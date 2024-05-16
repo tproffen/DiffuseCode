@@ -225,6 +225,9 @@ USE precision_mod
 !
 USE global_data_mod
 !
+use parallel_mod
+!$ use omp_lib
+!
 IMPLICIT NONE
 !
 INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
@@ -248,16 +251,39 @@ LOGICAL                                              , INTENT(IN)  :: LDERIV  ! 
 !
 !
 INTEGER              :: i,k, iix, iiy, iiz, l, j2, j3 ! Dummy loop variable
-INTEGER              :: nder          ! Numper of points for derivative
-REAL(KIND=PREC_DP)                 :: delta         ! Shift to calculate derivatives
-REAL(KIND=PREC_DP), DIMENSION(-2:2):: dvec          ! Parameter at P-2delta, P-delta, P, P+delta and P+2delta
-LOGICAL           , DIMENSION(-2:2):: lvec          ! Calculate at P-2delta, P-delta, P, P+delta and P+2delta
-REAL(KIND=PREC_DP), DIMENSION(3)   :: yvec          ! Chisquared at P, P+delta and P-delta
-REAL(KIND=PREC_DP), DIMENSION(3)   :: avec          ! Params for derivative y = a + bx + cx^2
-REAL(KIND=PREC_DP), DIMENSION(3,3) :: xmat          ! Rows are : 1, P, P^2
-REAL(KIND=PREC_DP), DIMENSION(3,3) :: imat          ! Inverse to xmat
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: refine_derivs_p   ! Derivativs (ix, iy, iz)
+!INTEGER              :: nder          ! Numper of points for derivative
+!REAL(KIND=PREC_DP)                 :: delta         ! Shift to calculate derivatives
+!REAL(KIND=PREC_DP), DIMENSION(-2:2):: dvec          ! Parameter at P-2delta, P-delta, P, P+delta and P+2delta
+!LOGICAL           , DIMENSION(-2:2):: lvec          ! Calculate at P-2delta, P-delta, P, P+delta and P+2delta
+!REAL(KIND=PREC_DP), DIMENSION(3)   :: yvec          ! Chisquared at P, P+delta and P-delta
+!REAL(KIND=PREC_DP), DIMENSION(3)   :: avec          ! Params for derivative y = a + bx + cx^2
+!REAL(KIND=PREC_DP), DIMENSION(3,3) :: xmat          ! Rows are : 1, P, P^2
+!REAL(KIND=PREC_DP), DIMENSION(3,3) :: imat          ! Inverse to xmat
 !
-REAL(kind=PREC_DP), DIMENSION(:,:,:,:), ALLOCATABLE :: refine_tttt     ! Calculated (ix, iy) for derivs
+!REAL(kind=PREC_DP), DIMENSION(:,:,:,:), ALLOCATABLE :: refine_tttt     ! Calculated (ix, iy) for derivs
+!
+!  OMP variables
+integer :: tid
+integer :: nthreads
+logical :: lserial
+!
+tid = 0
+nthreads = 1
+lserial = .true.
+if(.not.lserial .and. par_omp_use) then
+!$OMP parallel private(tid)
+!$   tid = OMP_GET_THREAD_NUM()
+!$   if(tid == 0) THEN
+!$      if(par_omp_maxthreads == -1) THEN
+!$         nthreads = OMP_GET_NUM_THREADS()
+!$      else
+!$         nthreads = max(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
+!$      endif
+!$   endif
+!$OMP end parallel
+endif
+nthreads = 1
 !
 initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user macro
 !
@@ -277,14 +303,145 @@ initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user 
 !  Loop over all parameters to derive derivatives
 !
    if_deriv: IF(LDERIV) THEN
-      DO k=1, NPARA
+!
+if(nthreads==1) then                ! Serial loop
+      loop_deriv_serial: DO k=1, NPARA
+         call refine_calc_deriv(NPARA, MAXP, REF_MAXPARAM_SPC, data_dim, k, &
+           p, par_names, refine_params, refine_spc_name, refine_spc_delta, &
+           prange, p_shift, p_nderiv, refine_mac, refine_mac_l, kupl_last, &
+                        refine_derivs)
+      ENDDO loop_deriv_serial
+elseif(nthreads>1) then
+!$OMP PARALLEL
+   if(allocated(refine_derivs_p)) deallocate(refine_derivs_p)
+   allocate(refine_derivs_p(data_dim(1), data_dim(2), data_dim(3)))
+   !$OMP DO SCHEDULE(STATIC)
+      loop_deriv: DO k=1, NPARA
+         call refine_calc_deriv_p(NPARA, MAXP, REF_MAXPARAM_SPC, data_dim, k, &
+           p, par_names, refine_params, refine_spc_name, refine_spc_delta, &
+           prange, p_shift, p_nderiv, refine_mac, refine_mac_l, kupl_last, &
+                        refine_derivs_p)
+!          refine_temp, refine_derivs)
+!write(* , '(a,6f12.6)') 'SUBROUTINE ', (refine_derivs(1,1,1,k))
 !        ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), -p_nderiv(k)/2:p_nderiv(k)/2))
-         is_deriv: IF(gl_is_der(k)) THEN
-            CALL gl_get_data(k,  data_dim(1),   data_dim(2),   data_dim(3), &
-                 refine_derivs(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), k))
+         refine_derivs(:,:,:,k) = refine_derivs(:,:,:,k) + refine_derivs_p(:,:,:)
+      ENDDO loop_deriv
+!$OMP END DO
+!$OMP END PARALLEL
+endif
+   ENDIF if_deriv
+   if(.not.(gl_is_der(1) .and. gl_is_der(2))) then
+            CALL refine_restore_seeds
+   CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+                     data_dim, refine_calc)
+   endif
+!write(*,*) ' GOT FINAL   ', lderiv, minval(refine_calc),maxval(refine_calc), p(1:2)
+!write(*,*) ' DERIVS Fin  ', 1, minval(refine_derivs(:,:,:,1)), maxval(refine_derivs(:,:,:,1))
+!write(*,*) ' DERIVS Fin  ', 2, minval(refine_derivs(:,:,:,2)), maxval(refine_derivs(:,:,:,2))
+!write(*,*) ' C11 CMM     ', 0, refine_calc(1,1,1), refine_calc(data_dim(1),data_dim(2),1)
+!write(*,*) ' D11 DMM     ', 1, refine_derivs(1,1,1,1), refine_derivs(data_dim(1),data_dim(2),1,1)
+!write(*,*) ' D11 DMM     ', 2, refine_derivs(1,1,1,2), refine_derivs(data_dim(1),data_dim(2),1,2)
+!write(* , '(6f12.6)') (refine_derivs(1,1,1,k), k=1, NPARA)
+!open(33, file='DERIV/deriv.1', status='unknown')
+!do l=1, data_dim(1)
+!write(33, '(6f12.6)') refine_derivs(l,1,1,k), k=1, NPARA
+!enddo
+!close(33)
+!open(33, file='DERIV/deriv.1', status='unknown')
+!write(33, '(2i4)') 21, 21
+!write(33, '(4f8.2)') -1.0 , 1.0, -1.0, 1.0
+!do i=1, 21
+!  write(33, '(5f12.6)') refine_derivs(:,i,1,1)
+!enddo
+!close(33)
+!open(33, file='DERIV/deriv.2', status='unknown')
+!write(33, '(2i4)') 21, 21
+!write(33, '(4f8.2)') -1.0 , 1.0, -1.0, 1.0
+!do i=1, 21
+!  write(33, '(5f12.6)') refine_derivs(:,i,1,2)
+!enddo
+!close( 33)
+!write(*,*) ' WROTE DERIVS '
+!read(*,*) i
+!
+ENDIF initial
+!
+f = refine_calc(inx, iny, inz)           ! Function value to be returned
+!iz = 1
+IF(LDERIV) THEN                   ! Derivatives are needed
+   DO k=1, NPARA
+      df(k) = refine_derivs(inx, iny, inz, k)
+   ENDDO
+ENDIF
+!
+END SUBROUTINE refine_theory
+!
+!*******************************************************************************
+!
+subroutine refine_calc_deriv(NPARA, MAXP, REF_MAXPARAM_SPC, data_dim, k, &
+           p, par_names, refine_params, refine_spc_name, refine_spc_delta, &
+           prange, p_shift, p_nderiv, refine_mac, refine_mac_l, kupl_last, &
+                        refine_derivs)
+!          refine_temp, refine_derivs)
+!-
+! Calculate the k derivatives
+!+
+!
+use refine_random_mod
+use refine_set_param_mod
+!
+use errlist_mod
+use global_data_mod
+use matrix_mod
+use precision_mod
+!
+implicit none
+!
+integer , intent(in) :: NPARA    ! Total number of parameter
+integer , intent(in) :: MAXP     ! Max  number of parameters
+integer , intent(in) :: REF_MAXPARAM_SPC     ! Max  number of special parameters
+integer, dimension(3)    , intent(in) :: data_dim         ! Data dimensions
+integer , intent(in) :: k        ! Current derivative number
+real(kind=PREC_DP)        , dimension(MAXP)            , intent(in) :: p                ! Parameter values
+character(len=*)          , dimension(MAXP)            , intent(in)  :: par_names    ! Parameter names
+character(len=PREC_STRING), dimension(MAXP)            , intent(in) :: refine_params    ! Parameter names
+character(len=PREC_STRING), dimension(REF_MAXPARAM_SPC), intent(in) :: refine_spc_name ! Parameter names, special
+real(kind=PREC_DP)        , dimension(REF_MAXPARAM_SPC), intent(in) :: refine_spc_delta ! Special parameter shift
+real(kind=PREC_DP)        , dimension(MAXP, 2)         , intent(in) :: prange           ! Parameter range
+real(kind=PREC_DP)        , dimension(MAXP)            , intent(in) :: p_shift ! Parameter shift
+integer                   , dimension(MAXP)            , intent(in) :: p_nderiv! Parameter uses this many points for derivatives
+character(len=*)                                       , intent(inout) :: refine_mac    ! Refine macro name
+integer                                                , intent(inout) :: refine_mac_l  ! Macro name length
+integer                                                , intent(in) :: kupl_last     
+!logical           , dimension(NPARA), intent(in) :: gl_is_der        ! Derivative has been calculated analytically
+!real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3))  , intent(inout) :: refine_temp           ! caclulated value
+real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3),NPARA) , intent(out) :: refine_derivs         ! caclulated derivatives
+!integer                                , intent(out) :: l_ier_num     
+!integer                                , intent(out) :: l_ier_typ     
+!character         , dimension(7)       , intent(out) :: l_ier_msg     
+!
+integer :: i, l    ! Dummy loop indeces
+integer :: j2, j3  ! Dummy loop indeces
+integer :: iix, iiy, iiz ! Dummy loop indices
+integer :: nder    ! Number of derivatives calculated
+logical           , dimension(-3:3) :: lvec
+real(kind=PREC_DP), dimension(-3:3) :: dvec
+real(kind=PREC_DP)                  :: delta
+real(kind=PREC_DP), dimension(:,:,:  ), allocatable :: refine_temp           ! Calculated values at derivative l
+real(kind=PREC_DP), dimension(:,:,:,:), allocatable :: refine_tttt           ! Calculated values at derivative l
+real(kind=PREC_DP), dimension(3,3)  :: xmat   ! matrix with derivatives
+real(kind=PREC_DP), dimension(3,3)  :: imat   ! Inverse of xmax
+real(kind=PREC_DP), dimension(3)    :: avec   ! Inverse of xmax
+real(kind=PREC_DP), dimension(3)    :: yvec   ! Inverse of xmax
+!
+ALLOCATE(refine_temp(1:data_dim(1), 1:data_dim(2), 1:data_dim(3)))
+!
+is_deriv: IF(gl_is_der(k)) THEN
+   CALL gl_get_data(k,  data_dim(1),   data_dim(2),   data_dim(3), &
+        refine_derivs(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), k))
 !write(*,*) ' DERIVS Calc ', k, minval(refine_derivs(:,:,:,k)), maxval(refine_derivs(:,:,:,k))
-         ELSE is_deriv
-         ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), -2:2))
+ELSE is_deriv
+   ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), -2:2))
          nder = 1                     ! First point is at P(k)
          dvec(:) = 0.0
          lvec(:) = .FALSE.
@@ -370,7 +527,7 @@ initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user 
 !write(*,*) ' GOT DERIV   ', k
             IF(ier_num /= 0) THEN
                DEALLOCATE(refine_tttt)
-               RETURN
+               exit is_deriv
             ENDIF
             do iiz = 1, data_dim(3)
             DO iiy=1, data_dim(2)
@@ -391,96 +548,6 @@ initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user 
 !enddo
             ENDIF
          ENDDO
-!        p_d = p(k) + delta
-!        IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
-!           nder = nder + 1
-!           dvec(2) = p_d            ! Store parameter value at P+DELTA
-!           CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
-!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-!                             data_dim, refine_temp)
-!           IF(ier_num /= 0) THEN
-!              DEALLOCATE(refine_tttt)
-!              RETURN
-!           ENDIF
-!           DO iiy=1, data_dim(2)
-!              DO iix=1, data_dim(1)
-!                 refine_tttt(iix,iiy,1) =  refine_temp(iix,iiy)
-!              ENDDO
-!           ENDDO
-!        ENDIF
-!                                     ! Test at P - DELTA
-!        IF(prange(k,1)<=prange(k,2)) THEN
-!           p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)-REAL(delta)))
-!        ELSE
-!           p_d     = p(k) - delta
-!        ENDIF
-!        p_d = p(k) - delta
-!        IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
-!           nder = nder + 1
-!           dvec(3) = p_d            ! Store parameter value at P-DELTA
-!           CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
-!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-!                             data_dim, refine_temp)
-!           IF(ier_num /= 0) THEN
-!              DEALLOCATE(refine_tttt)
-!              RETURN
-!           ENDIF
-!           DO iiy=1, data_dim(2)
-!              DO iix=1, data_dim(1)
-!                 refine_tttt(iix,iiy,-1) =  refine_temp(iix,iiy)
-!              ENDDO
-!           ENDDO
-!
-!        ENDIF
-!                                     ! Test at P + DELTA
-!        IF(p_nderiv(k)==5) THEN
-!        IF(prange(k,1)<=prange(k,2)) THEN     ! User provided parameter range
-!           p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+REAL(2.*delta)))
-!        ELSE
-!           p_d     = p(k) + 2.*delta
-!        ENDIF
-!        p_d = p(k) + delta
-!        IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
-!           nder = nder + 1
-!           dvec(2) = p_d            ! Store parameter value at P+DELTA
-!           CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
-!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-!                             data_dim, refine_temp)
-!           IF(ier_num /= 0) THEN
-!              DEALLOCATE(refine_tttt)
-!              RETURN
-!           ENDIF
-!           DO iiy=1, data_dim(2)
-!              DO iix=1, data_dim(1)
-!                 refine_tttt(iix,iiy,2) =  refine_temp(iix,iiy)
-!              ENDDO
-!           ENDDO
-!        ENDIF
-!                                     ! Test at P - DELTA
-!        IF(prange(k,1)<=prange(k,2)) THEN
-!           p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)-REAL(2.*delta)))
-!        ELSE
-!           p_d     = p(k) - 2.*delta
-!        ENDIF
-!        p_d = p(k) - delta
-!        IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
-!           nder = nder + 1
-!           dvec(3) = p_d            ! Store parameter value at P-DELTA
-!           CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
-!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-!                             data_dim, refine_temp)
-!           IF(ier_num /= 0) THEN
-!              DEALLOCATE(refine_tttt)
-!              RETURN
-!           ENDIF
-!           DO iiy=1, data_dim(2)
-!              DO iix=1, data_dim(1)
-!                 refine_tttt(iix,iiy,-2) =  refine_temp(iix,iiy)
-!              ENDDO
-!           ENDDO
-!
-!        ENDIF
-!        ENDIF
 call refine_rvalue_tttt(data_dim, refine_tttt, dvec)
          CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
 !
@@ -522,7 +589,7 @@ call refine_rvalue_tttt(data_dim, refine_tttt, dvec)
             IF(ier_num/=0) then
                ier_msg(1) = 'Error determining derivative '
                write(ier_msg(2), '(a,i3)') 'At derivative ',k
-               RETURN
+               exit is_deriv
             endif
             do iiz=1, data_dim(3)
             DO iiy=1, data_dim(2)
@@ -557,56 +624,277 @@ call refine_rvalue_tttt(data_dim, refine_tttt, dvec)
 !
          ELSE
             ier_num = -9
-            ier_typ = ER_APPL
+            ier_typ = 6
             ier_msg(1) = par_names(k)
             DEALLOCATE(refine_tttt)
-            RETURN
+            exit is_deriv
          ENDIF
          DEALLOCATE(refine_tttt)
 !
          ENDIF is_deriv
-      ENDDO
-   ENDIF if_deriv
-   if(.not.(gl_is_der(1) .and. gl_is_der(2))) then
+deallocate(refine_temp)
+!
+end subroutine refine_calc_deriv
+!
+!*******************************************************************************
+!
+subroutine refine_calc_deriv_p(NPARA, MAXP, REF_MAXPARAM_SPC, data_dim, k, &
+           p, par_names, refine_params, refine_spc_name, refine_spc_delta, &
+           prange, p_shift, p_nderiv, refine_mac, refine_mac_l, kupl_last, &
+                        refine_derivs_p)
+!          refine_temp, refine_derivs)
+!-
+! Calculate the k derivative parallel version
+!+
+!
+use refine_random_mod
+use refine_set_param_mod
+!
+use errlist_mod
+use global_data_mod
+use matrix_mod
+use precision_mod
+!
+implicit none
+!
+integer , intent(in) :: NPARA    ! Total number of parameter
+integer , intent(in) :: MAXP     ! Max  number of parameters
+integer , intent(in) :: REF_MAXPARAM_SPC     ! Max  number of special parameters
+integer, dimension(3)    , intent(in) :: data_dim         ! Data dimensions
+integer , intent(in) :: k        ! Current derivative number
+real(kind=PREC_DP)        , dimension(MAXP)            , intent(in) :: p                ! Parameter values
+character(len=*)          , dimension(MAXP)            , intent(in)  :: par_names    ! Parameter names
+character(len=PREC_STRING), dimension(MAXP)            , intent(in) :: refine_params    ! Parameter names
+character(len=PREC_STRING), dimension(REF_MAXPARAM_SPC), intent(in) :: refine_spc_name ! Parameter names, special
+real(kind=PREC_DP)        , dimension(REF_MAXPARAM_SPC), intent(in) :: refine_spc_delta ! Special parameter shift
+real(kind=PREC_DP)        , dimension(MAXP, 2)         , intent(in) :: prange           ! Parameter range
+real(kind=PREC_DP)        , dimension(MAXP)            , intent(in) :: p_shift ! Parameter shift
+integer                   , dimension(MAXP)            , intent(in) :: p_nderiv! Parameter uses this many points for derivatives
+character(len=*)                                       , intent(inout) :: refine_mac    ! Refine macro name
+integer                                                , intent(inout) :: refine_mac_l  ! Macro name length
+integer                                                , intent(in) :: kupl_last     
+!logical           , dimension(NPARA), intent(in) :: gl_is_der        ! Derivative has been calculated analytically
+!real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3))  , intent(inout) :: refine_temp           ! caclulated value
+real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3)) , intent(out) :: refine_derivs_p         ! caclulated derivatives
+!integer                                , intent(out) :: l_ier_num     
+!integer                                , intent(out) :: l_ier_typ     
+!character         , dimension(7)       , intent(out) :: l_ier_msg     
+!
+integer :: i, l    ! Dummy loop indeces
+integer :: j2, j3  ! Dummy loop indeces
+integer :: iix, iiy, iiz ! Dummy loop indices
+integer :: nder    ! Number of derivatives calculated
+logical           , dimension(-3:3) :: lvec
+real(kind=PREC_DP), dimension(-3:3) :: dvec
+real(kind=PREC_DP)                  :: delta
+real(kind=PREC_DP), dimension(:,:,:  ), allocatable :: refine_temp           ! Calculated values at derivative l
+real(kind=PREC_DP), dimension(:,:,:,:), allocatable :: refine_tttt           ! Calculated values at derivative l
+real(kind=PREC_DP), dimension(3,3)  :: xmat   ! matrix with derivatives
+real(kind=PREC_DP), dimension(3,3)  :: imat   ! Inverse of xmax
+real(kind=PREC_DP), dimension(3)    :: avec   ! Inverse of xmax
+real(kind=PREC_DP), dimension(3)    :: yvec   ! Inverse of xmax
+!
+ALLOCATE(refine_temp(1:data_dim(1), 1:data_dim(2), 1:data_dim(3)))
+!
+is_deriv: IF(gl_is_der(k)) THEN
+   CALL gl_get_data(k,  data_dim(1),   data_dim(2),   data_dim(3), &
+        refine_derivs_p(1:data_dim(1), 1:data_dim(2), 1:data_dim(3)))
+!write(*,*) ' DERIVS Calc ', k, minval(refine_derivs(:,:,:,k)), maxval(refine_derivs(:,:,:,k))
+ELSE is_deriv
+   ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), -2:2))
+         nder = 1                     ! First point is at P(k)
+         dvec(:) = 0.0
+         lvec(:) = .FALSE.
+         dvec(0) = p(k)               ! Store parameter value
+         if_delta: IF(p(k)/=0.0) THEN
+            delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+         ELSE if_delta
+            do i=1, REF_MAXPARAM_SPC      ! Check for special names
+               if(refine_params  (k)(1:len_trim(refine_spc_name(i)))==          &
+                  refine_spc_name(i)(1:len_trim(refine_spc_name(i)))     ) then
+                  delta = refine_spc_delta(i)
+                  exit if_delta
+               endif
+            enddo
+            delta = 1.0D-4                ! Default delta for unknown variables
+         ENDIF if_delta
+!
+!                                     ! Test at P + DELTA
+         IF(prange(k,1)<=prange(k,2)) THEN     ! User provided parameter range
+            IF(p(k)==prange(k,1)) THEN         ! At lower limit, use +delta +2delta
+               delta = MIN(ABS(delta), 0.5D0*(ABS(prange(k,2) - p(k)))) ! Make sure +2Delta fits
+               dvec(1) = p(k) + delta
+               dvec(2) = p(k) + 2.0D0*delta
+               lvec(1) = .TRUE.
+               lvec(2) = .TRUE.
+               nder = 3
+            ELSEIF(p(k)==prange(k,2)) THEN         ! At upper limit, use -delta -2delta
+               delta = MIN(ABS(delta), 0.5D0*(ABS(p(k) - prange(k,1)))) ! Make sure -2Delta fits
+               dvec(-2) = p(k) - 2.0D0*delta
+               dvec(-1) = p(k) - 1.0D0*delta
+               lvec(-2) = .TRUE.
+               lvec(-1) = .TRUE.
+               nder = 3
+            ELSE                               ! within range, use +-delta or +2delta
+               IF(p_nderiv(k)==3) THEN         ! Three point derivative
+                  dvec(-1) = MIN(prange(k,2),MAX(prange(k,1),p(k)+(delta))) ! +delta
+                  dvec( 1) = MIN(prange(k,2),MAX(prange(k,1),p(k)-(delta))) ! -delta
+                  lvec(-1) = .TRUE.
+                  lvec( 1) = .TRUE.
+                  nder = 3
+               ELSEIF(p_nderiv(k)==5) THEN     ! Five point derivative
+                  delta = MIN(delta, 0.5D0*(ABS(prange(k,2) - p(k))),  &
+                                     0.5D0*(ABS(p(k) - prange(k,1))) ) ! Make sure +-2delta fits
+                  dvec(-2) = p(k) - 2.0D0*delta
+                  dvec(-1) = p(k) - 1.0D0*delta
+                  dvec( 1) = p(k) + 1.0D0*delta
+                  dvec( 2) = p(k) + 2.0D0*delta
+                  lvec(-2) = .TRUE.
+                  lvec(-1) = .TRUE.
+                  lvec( 1) = .TRUE.
+                  lvec( 2) = .TRUE.
+                  nder = 5
+               ENDIF
+            ENDIF
+!           p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+REAL(delta)))
+         ELSE
+            IF(p_nderiv(k)==3) THEN         ! Three point derivative
+               dvec(-1) = p(k) - 1.0D0*delta
+               dvec( 1) = p(k) + 1.0D0*delta
+               lvec(-1) = .TRUE.
+               lvec( 1) = .TRUE.
+               nder = 3
+            ELSEIF(p_nderiv(k)==5) THEN     ! Five point derivative
+               dvec(-2) = p(k) - 2.0D0*delta
+               dvec(-1) = p(k) - 1.0D0*delta
+               dvec( 0) = p(k)
+               dvec( 1) = p(k) + 1.0D0*delta
+               dvec( 2) = p(k) + 2.0D0*delta
+               lvec(-2) = .TRUE.
+               lvec(-1) = .TRUE.
+               lvec( 1) = .TRUE.
+               lvec( 2) = .TRUE.
+               nder = 5
+            ENDIF
+!           p_d     = p(k) + delta
+         ENDIF
+         DO l = -2, 2
+            IF(lvec(l)) THEN
+            CALL refine_set_param(NPARA, par_names(k), k, (dvec(l)) )  ! Set modified value
             CALL refine_restore_seeds
-   CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-                     data_dim, refine_calc)
-   endif
-!write(*,*) ' GOT FINAL   ', lderiv, minval(refine_calc),maxval(refine_calc), p(1:2)
-!write(*,*) ' DERIVS Fin  ', 1, minval(refine_derivs(:,:,:,1)), maxval(refine_derivs(:,:,:,1))
-!write(*,*) ' DERIVS Fin  ', 2, minval(refine_derivs(:,:,:,2)), maxval(refine_derivs(:,:,:,2))
-!write(*,*) ' C11 CMM     ', 0, refine_calc(1,1,1), refine_calc(data_dim(1),data_dim(2),1)
-!write(*,*) ' D11 DMM     ', 1, refine_derivs(1,1,1,1), refine_derivs(data_dim(1),data_dim(2),1,1)
-!write(*,*) ' D11 DMM     ', 2, refine_derivs(1,1,1,2), refine_derivs(data_dim(1),data_dim(2),1,2)
-
-!open(33, file='DERIV/deriv.1', status='unknown')
-!write(33, '(2i4)') 21, 21
-!write(33, '(4f8.2)') -1.0 , 1.0, -1.0, 1.0
-!do i=1, 21
-!  write(33, '(5f12.6)') refine_derivs(:,i,1,1)
+            CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+                              data_dim, refine_temp)
+!write(*,*) ' GOT DERIV   ', k
+            IF(ier_num /= 0) THEN
+               DEALLOCATE(refine_tttt)
+               exit is_deriv
+            ENDIF
+            do iiz = 1, data_dim(3)
+            DO iiy=1, data_dim(2)
+               DO iix=1, data_dim(1)
+                  refine_tttt(iix,iiy,iiz,l) =  refine_temp(iix,iiy,iiz)
+               ENDDO
+            ENDDO
+            enddo
+!do iiz=-2, 2
+!write(line,'(a,i1.1)') 'CALC/expli.',iiz+3
+!open(33,file = line, status='unknown')
+!write(33,'(2i5)') data_dim(1:2)
+!write(33,'(4f8.2)') -1.0, 1.0, -1.0, 1.0
+!do iiy=1, data_dim(2)
+!  write(33, '(5f12.6)') refine_tttt(:,iiy,1,iiz)
 !enddo
 !close(33)
-!open(33, file='DERIV/deriv.2', status='unknown')
-!write(33, '(2i4)') 21, 21
-!write(33, '(4f8.2)') -1.0 , 1.0, -1.0, 1.0
-!do i=1, 21
-!  write(33, '(5f12.6)') refine_derivs(:,i,1,2)
 !enddo
-!close( 33)
-!write(*,*) ' WROTE DERIVS '
-!read(*,*) i
+            ENDIF
+         ENDDO
+call refine_rvalue_tttt(data_dim, refine_tttt, dvec)
+         CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
 !
-ENDIF initial
+         IF(nder==5) THEN             ! Got all five  points for derivative
+            do iiz=1, data_dim(3)
+            DO iiy=1, data_dim(2)
+               DO iix=1, data_dim(1)
+                  refine_derivs_p(iix, iiy, iiz   ) = (-1.0*refine_tttt(iix,iiy,iiz, 2)   &
+                                                     +8.0*refine_tttt(iix,iiy,iiz, 1)   &
+                                                     -8.0*refine_tttt(iix,iiy,iiz,-1)   &
+                                                     +1.0*refine_tttt(iix,iiy,iiz,-2))/ &
+                                                    (12.*delta)
+               ENDDO
+            ENDDO
+            enddo
+         ELSEIF(nder==3) THEN             ! Got all three points for derivative
+            xmat(:,1) =  1.0
+            xmat(1,2) =  dvec(0) !p(k)
+            IF(lvec(2)) THEN              ! +delta, + 2delta
+              j2 =  1
+              j3 =  2
+            ELSEIF(lvec(-2)) THEN         ! -delta, - 2delta
+              j2 = -1
+              j3 = -2
+            ELSE
+              j2 = -1
+              j3 =  1
+            ENDIF
+              xmat(2,2) =  dvec(j2)       ! p(k) - delta
+              xmat(3,2) =  dvec(j3)       ! p(k) + delta
+              xmat(2,3) = (dvec(j2))**2   ! (p(k) - delta ) **2
+              xmat(3,3) = (dvec(j3))**2   ! (p(k) + delta ) **2
+!           xmat(2,2) =  dvec(2) !p(k) + delta
+!           xmat(3,2) =  dvec(3) !p(k) - delta
+!           xmat(1,3) = (dvec(0))**2 !(p(k)        ) **2
+!           xmat(2,3) = (dvec(2))**2 !(p(k) + delta) **2
+!           xmat(3,3) = (dvec(3))**2 !(p(k) - delta) **2
+            CALL matinv3(xmat, imat)
+            IF(ier_num/=0) then
+               ier_msg(1) = 'Error determining derivative '
+               write(ier_msg(2), '(a,i3)') 'At derivative ',k
+               exit is_deriv
+            endif
+            do iiz=1, data_dim(3)
+            DO iiy=1, data_dim(2)
+               DO iix=1, data_dim(1)
 !
-f = refine_calc(inx, iny, inz)           ! Function value to be returned
-!iz = 1
-IF(LDERIV) THEN                   ! Derivatives are needed
-   DO k=1, NPARA
-      df(k) = refine_derivs(inx, iny, inz, k)
-   ENDDO
-ENDIF
+!              Derivative is calculated as a fit of a parabola at P, P+delta, P-delta
+                  yvec(1) = refine_calc  (iix, iiy, iiz)
+                  yvec(2) = refine_tttt  (iix, iiy, iiz, j2)
+                  yvec(3) = refine_tttt  (iix, iiy, iiz, j3)
+                  avec = MATMUL(imat, yvec)
 !
-END SUBROUTINE refine_theory
+                  refine_derivs_p(iix, iiy, iiz   ) = avec(2) + 2.*avec(3)*p(k)
+               ENDDO
+            ENDDO
+            enddo
+!        ELSEIF(nder==2) THEN
+!           IF(dvec(2)==0) THEN          ! P + Delta failed
+!              DO iiy=1, data_dim(2)
+!                 DO iix=1, data_dim(1)
+!                    refine_derivs(iix, iiy, k) = (refine_temp  (iix, iiy)-refine_calc  (iix, iiy))/ &
+!                                                 (dvec(3)-dvec(1))
+!                 ENDDO
+!              ENDDO
+!           ELSEIF(dvec(3)==0) THEN      ! P - Delta failed
+!              DO iiy=1, data_dim(2)
+!                 DO iix=1, data_dim(1)
+!                    refine_derivs(iix, iiy, k) = (refine_derivs(iix, iiy,k)-refine_calc  (iix, iiy))/ &
+!                                                 (dvec(2)-dvec(1))
+!                 ENDDO
+!              ENDDO
+!           ENDIF
+!
+         ELSE
+            ier_num = -9
+            ier_typ = 6
+            ier_msg(1) = par_names(k)
+            DEALLOCATE(refine_tttt)
+            exit is_deriv
+         ENDIF
+         DEALLOCATE(refine_tttt)
+!
+         ENDIF is_deriv
+deallocate(refine_temp)
+!
+end subroutine refine_calc_deriv_p
 !
 !*******************************************************************************
 !
