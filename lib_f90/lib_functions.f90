@@ -31,4 +31,22 @@ end function sinc
 !
 !###############################################################################
 !
+function frac(x) result(val)
+!-
+! Returns fractional part of val 
+!+
+use precision_mod
+!
+implicit none
+!
+real(kind=PREC_DP) :: val
+!
+real(kind=PREC_DP), intent(in) :: x
+!
+val = x - real(int(x), PREC_DP)
+!
+end function frac
+!
+!###############################################################################
+!
 end module lib_functions_mod
