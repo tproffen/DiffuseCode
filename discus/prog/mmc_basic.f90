@@ -1391,10 +1391,24 @@ corr_pair: DO is = 0, cr_nscat
 !          change = mmc_cfac(ic, MC_OCC) * (mmc_target_corr(ic, MC_OCC, is, js) -      &
 !                                           mmc_ach_corr   (ic, MC_OCC, is, js) ) / 0.1& !divisor &
 !                  *ABS(mmc_target_corr(ic, MC_OCC, is, js)) * damp
-!
-               IF(mmc_target_corr(ic, MC_OCC, is, js)*mmc_ach_corr(ic, MC_OCC, is, js)>=0.0  .AND. &
+!ENAGE
+               if(abs(mmc_target_corr(ic, MC_OCC, is, js))<0.001D0) then
+!write(*,*) ' Zerol ', change, change*0.0001, mmc_target_corr(ic, MC_OCC, is, js)
+                  mmc_depth(ic, MC_OCC, is, js) = 0.0D0
+                  mmc_depth(ic, MC_OCC, js, is) = mmc_depth (ic, MC_OCC, is, js)
+                  change = 0.0D0
+               elseif(abs(mmc_target_corr(ic, MC_OCC, is, js))<0.10) then
+!write(*,*) ' Small ', change, change*0.005
+                   change = change*0.005
+               elseif(abs(mmc_target_corr(ic, MC_OCC, is, js))<0.2) then
+!write(*,*) ' SMALL ', change, change*0.05
+                   change = change*0.05
+               elseIF(mmc_target_corr(ic, MC_OCC, is, js)*mmc_ach_corr(ic, MC_OCC, is, js)>=0.0  .AND. &
                   mmc_depth(ic, MC_OCC, is, js)*(mmc_depth(ic, MC_OCC, is, js)+change)<0.0         ) THEN
-                   change = -mmc_depth(ic, MC_OCC, is, js)*0.005
+!write(*,*) ' CHANGE ', change, -mmc_depth(ic, MC_OCC, is, js)*0.100
+!                  change = change*0.05
+!                  change = -mmc_depth(ic, MC_OCC, is, js)*0.005
+                   change = -mmc_depth(ic, MC_OCC, is, js)*0.100
                ENDIF
 !
                mmc_depth(ic, MC_OCC, is, js) = mmc_depth (ic, MC_OCC, is, js) + change
@@ -1420,7 +1434,8 @@ corr_pair: DO is = 0, cr_nscat
                 mmc_ach_corr   (ic, je, is, js),                                &
                 mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js), &
                (mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js))/divisor, &
-                nneigh
+                nneigh! , &
+!                mmc_depth(ic, MC_OCC, is, js), change
 !write(*,'(a,f16.8)') ' depth ', mmc_depth(ic, MC_OCC, is,js)
 !                                                                     
          ENDIF 
@@ -1430,7 +1445,7 @@ corr_pair: DO is = 0, cr_nscat
 ENDDO corr_pair
 !
  3100 FORMAT (1x,i3,3x,'Occupancy',a5,3x,a5,      8x,2(f7.3,3x),        &
-     &        10x,f7.3,3x,f7.3,3x,i8)
+     &        10x,f7.3,3x,f7.3,3x,i8) !, 2f9.5)
 !
 END SUBROUTINE mmc_correlations_occ
 !

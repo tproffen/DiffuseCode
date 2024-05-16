@@ -1311,8 +1311,12 @@ cond_type: IF(str_comp(cpara(2), 'corr', 2, lpara(2), 4) .OR.  &
       ENDIF 
       CALL ber_params (ianz, cpara, lpara, werte, maxw)
       IF (mmc_cfac (ic, MC_OCC) > 0.0) THEN 
+         if(abs(werte(1))<0.1) then
+            winit = 0.0D0
+         else
          winit = -2.0D0*werte(1) - 3.0D0*werte(1)**5
          winit = -1.0D0*werte(1)  - 3.0D0*werte(1)**5
+         endif
          CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
                           MAXW, werte1, werte2, werte(1) , winit)
                         mmc_depth (ic, MC_OCC, 0, 0) = winit
