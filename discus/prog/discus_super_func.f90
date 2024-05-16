@@ -189,50 +189,55 @@ character(LEN=PREC_STRING), dimension(10        ) :: ccpara
 integer                   , dimension(10        ) :: llpara
 real(kind=PREC_DP)        , dimension(10        ) :: wwerte   ! Calculated values
 real(kind=PREC_DP)        , dimension(3         ) :: v        ! A vector
-real(kind=PREC_DP) :: vv ! Vectro length
+real(kind=PREC_DP) :: vv ! Vector length
+real(kind=PREC_DP) :: up_up ! 'UP' length crenel
 integer :: ianz, iianz
 integer :: i1, i2, j     ! Dummy indices
 !integer :: isite         ! Current site
 logical, dimension(:), allocatable :: l_isite
 logical :: lselect
 !
-integer, parameter :: NOPTIONAL = 15
-integer, parameter :: O_PHASE   = 1
-integer, parameter :: O_SITE    = 2
-integer, parameter :: O_PSEUDO  = 3
-integer, parameter :: O_CHAR    = 4
-integer, parameter :: O_FUNC    = 5
-integer, parameter :: O_DISP    = 6
-integer, parameter :: O_REPLACE = 7
-integer, parameter :: O_FILE    = 8
-integer, parameter :: O_QVEC    = 9
-integer, parameter :: O_AMP     = 10
-integer, parameter :: O_VEC     = 11
-integer, parameter :: O_NUMBER  = 12
-integer, parameter :: O_PROB    = 13
-integer, parameter :: O_OLD     = 14
-integer, parameter :: O_NEW     = 15
+integer, parameter :: NOPTIONAL = 17
+integer, parameter :: O_CURRENT = 1
+integer, parameter :: O_UP      = 2
+integer, parameter :: O_PHASE   = 3
+integer, parameter :: O_SITE    = 4
+integer, parameter :: O_PSEUDO  = 5
+integer, parameter :: O_CHAR    = 6
+integer, parameter :: O_FUNC    = 7
+integer, parameter :: O_DISP    = 8
+integer, parameter :: O_REPLACE = 9
+integer, parameter :: O_FILE    = 10
+integer, parameter :: O_QVEC    = 11
+integer, parameter :: O_AMP     = 12
+integer, parameter :: O_VEC     = 13
+integer, parameter :: O_NUMBER  = 14
+integer, parameter :: O_PROB    = 15
+integer, parameter :: O_OLD     = 16
+integer, parameter :: O_NEW     = 17
 character(LEN=  12), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
-integer, parameter                        :: ncalc = 1 ! Number of values to calculate 
+integer, parameter                        :: ncalc = 2 ! Number of values to calculate 
 !
-data oname  / 'phase'  , 'site' , 'pseudo', 'character', 'function', 'displacement',    &
+data oname  / 'current', 'up'   , 'phase' , 'site' , 'pseudo', 'character', 'function', 'displacement',    &
               'replace', 'file' , 'qvec'  , 'amp'      , 'vec'     , 'number'      ,    &
               'prob'   , 'old'  , 'new'                                             /
-data loname /  5,       4,       6,      9,           8,          12,               &
+data loname /  7    ,  2,           5,       4,       6,      9,           8,          12,               &
                7    ,  4         ,  4       ,  3   ,  3   , 6   ,  4, 3, 3/
-opara  =  (/ '0.0000        ', '0.0000        ', 'VOID          ', 'displa        ', &
+opara  =  (/ '1.0000        ', '0.5000        ', '0.0000        ', '0.0000        ', &
+             'VOID          ', 'displa        ', &
              'sine          ', '[0,0,0,0]     ', '[VOID,0.0,1.0]', 'internal      ', &
              '[1,0,0]       ', '0.0000        ', '[1,0,0]       ', '1             ', &
              '[0.0,1.0]     ', 'VOID          ', 'VOID          '                   /)   ! Always provide fresh default values
-lopara =  (/  6         ,  6,           4,           6,           6         ,  9         ,    &
+lopara =  (/  6         ,  6         ,  6         ,  6,           4,           6, &
+              6         ,  9         ,    &
               14        ,  9         ,  7,           6,           7         ,  1         ,    &
               9         ,  4,           4                                           /)
-owerte =  (/  1.0, 1.0, 0.0,      0.0,      0.0    ,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0  /)
+owerte =  (/  1.0, 0.50, 1.0, 1.0, 0.0,      0.0,      0.0    ,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0  /)
 !
 call get_params(zeile, ianz, cpara, lpara, maxw, lp)
 call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
@@ -243,33 +248,39 @@ if(lpresent(O_FILE)) then   ! Set file:
    return
 endif
 !
+if(lpresent(O_CURRENT)) then   ! Set file:
+   sup_current = owerte(O_CURRENT)
+   if(sup_current>sup_nwaves) then
+      call alloc_super(cr_ncatoms, cr_nscat, sup_current)
+      sup_nwaves = sup_current
+   endif
+   return
+endif
+!
 if(lpresent(O_QVEC)) then   ! Set qvec:
    string=opara(O_QVEC)
    j = lopara(O_QVEC)
    call get_optional_multi(MAXWW, string, j, werte, iianz)
    if(ier_num/=0) return
-   sup_qvec = werte(1:3)
+   sup_qvec(:, sup_current) = werte(1:3)
    return
 endif
 !
 cond_site: if(lpresent(O_SITE)) then
-   if(cr_ncatoms>ubound(l_isite,1)) then
-      allocate(l_isite(1:cr_ncatoms))
-   endif
-   if(cr_ncatoms>ubound(sup_char,1) .or.  &
+   if(allocated(l_isite)) deallocate(l_isite)
+   allocate(l_isite(1:cr_ncatoms))
+!
+   if(cr_ncatoms>ubound(sup_char,1 ) .or.  &
       cr_nscat  >ubound(sup_old,1 )      ) then
-      call alloc_super(cr_ncatoms, cr_nscat)
-   endif
-   if(opara(O_SITE)(1:1)=='[') then 
-      i1 = 2
-   else
-      i1 = 1
+      call alloc_super(cr_ncatoms, cr_nscat, sup_nwaves)
    endif
    j = lopara(O_SITE)
-   if(opara(O_SITE)(j:j)==']') then 
-      i2 = j-1
+   if(opara(O_SITE)(1:1)=='[') then    ! Multiple sites
+      i1 = 2
+      i2 = lopara(O_SITE) - 1
    else
-      i2 = j
+      i1 = 1
+      i2 = lopara(O_SITE)
    endif
    string = opara(O_SITE)(i1:i2)
    j = i2-i1+1
@@ -294,17 +305,12 @@ cond_site: if(lpresent(O_SITE)) then
       do j=1, cr_ncatoms
          if(l_isite(j)) then
             do i1=1, iianz
-               sup_atom(i1, j) = ccpara(i1)(1:llpara(i1))
-               call do_cap(sup_atom(i1, j))
+               sup_atom(i1, j, sup_current) = ccpara(i1)(1:llpara(i1))
+               call do_cap(sup_atom(i1, j, sup_current))
             enddo
          endif
       enddo
    endif
-!   where(l_isite)
-!      sup_atom = opara(O_PSEUDO)(1:lopara(O_PSEUDO))
-!   else where
-!      sup_atom = ' '
-!   end where
 !
 !  CHARACTER
 !
@@ -317,7 +323,7 @@ cond_site: if(lpresent(O_SITE)) then
 !     sup_char = 0
       do j=1, cr_ncatoms
          if(l_isite(j)) then
-            sup_char(j) = i1
+            sup_char(j, sup_current) = i1
          endif
       enddo
    endif
@@ -327,11 +333,19 @@ cond_site: if(lpresent(O_SITE)) then
    if(lpresent(O_FUNC)) then
       if(str_comp(opara(O_FUNC), 'sine', 3, lopara(O_FUNC), 4)) then
          i1 = SUP_SINE
+      elseif(str_comp(opara(O_FUNC), 'crenel', 3, lopara(O_FUNC), 7)) then
+         i1 = SUP_CREN 
+         if(lpresent(O_UP)) then
+            up_up = owerte(O_UP)
+         else
+            up_up = 0.50_PREC_DP
+         endif
       endif
 !     sup_func = 0
       do j=1, cr_ncatoms
          if(l_isite(j)) then
-            sup_func(j) = i1
+            sup_func(j, sup_current) = i1
+            sup_func_p(j, sup_current) = up_up
          endif
       enddo
    endif
@@ -397,12 +411,12 @@ cond_site: if(lpresent(O_SITE)) then
       i1 = nint(wwerte(6))
       do j=1,cr_ncatoms
          if(l_isite(j)) then
-            sup_phase(i1,j) = wwerte(5)
-            sup_ampl(1:4, i1, j) = wwerte(1:4)
+            sup_phase(i1,j, sup_current) = wwerte(5)
+            sup_ampl(1:4, i1, j, sup_current) = wwerte(1:4)
             v = wwerte(2:4)
             vv = lib_blen(cr_gten, v)
             if(vv>0.0) then
-               sup_ampl(2:4, i1, j) = sup_ampl(2:4, i1, j)*sup_ampl(1, i1, j)/vv
+               sup_ampl(2:4, i1, j, sup_current) = sup_ampl(2:4, i1, j, sup_current)*sup_ampl(1, i1, j, sup_current)/vv
             endif
          end if
       enddo
@@ -430,15 +444,15 @@ cond_site: if(lpresent(O_SITE)) then
          if(nint(werte(1))==-1) then
             do j=1,cr_ncatoms
                if(l_isite(j)) then
-                  sup_old(:,j) = .TRUE.
+                  sup_old(:,j, sup_current) = .TRUE.
                endif
             enddo
          else
             do j=1,cr_ncatoms
                if(l_isite(j)) then
-                  sup_old(:,j) = .false.
+                  sup_old(:,j, sup_current) = .false.
                   do i1=1, ianz
-                     sup_old(nint(werte(i1)),j) = .TRUE.
+                     sup_old(nint(werte(i1)),j, sup_current) = .TRUE.
                   enddo
                endif
             enddo
@@ -456,24 +470,24 @@ cond_site: if(lpresent(O_SITE)) then
          lselect = .TRUE.
          call get_iscat(ianz, cpara, lpara, werte, maxw, lselect)
          if(cr_ncatoms>ubound(sup_char,1) .or.  &
-            cr_nscat  >ubound(sup_old,1 )      ) then
-            call alloc_super(cr_ncatoms, cr_nscat)
+            cr_nscat  >ubound(sup_old,1)      ) then
+            call alloc_super(cr_ncatoms, cr_nscat, sup_nwaves)
          endif
          if(nint(werte(1))==-1) then
             do j=1,cr_ncatoms
                if(l_isite(j)) then
                   do i1=0, cr_nscat
-                     sup_new(i1,j) = i1
+                     sup_new(i1,j, sup_current) = i1
                   enddo
                endif
             enddo
          else
             do j=1,cr_ncatoms
                if(l_isite(j)) then
-                  sup_new(:,j) = -1
-                  sup_irepl(j) = ianz
+                  sup_new(:,j, sup_current) = -1
+                  sup_irepl(j, sup_current) = ianz
                   do i1=1, ianz
-                     sup_new(ianz-1,j) = nint(werte(i1))
+                     sup_new(ianz-1,j, sup_current) = nint(werte(i1))
                   enddo
                endif
             enddo
@@ -514,9 +528,9 @@ cond_site: if(lpresent(O_SITE)) then
          if(l_isite(j)) then
 !           sup_irepl(j) = nint(werte(2))
 !           sup_repl (j) = at_new
-            sup_prob (1,j) = wwerte(2)
-            sup_prob (2,j) = wwerte(3)
-            sup_phase(1,j) = wwerte(4)
+            sup_prob (1,j, sup_current) = wwerte(2)
+            sup_prob (2,j, sup_current) = wwerte(3)
+            sup_phase(1,j, sup_current) = wwerte(4)
          endif
       enddo loop_atom
    endif
@@ -531,6 +545,8 @@ else cond_site
    return
 endif cond_site
 !
+if(allocated(l_isite)) deallocate(l_isite)
+!
 end subroutine super_set
 !
 !*******************************************************************************
@@ -544,11 +560,46 @@ use celltoindex_mod
 use crystal_mod
 use read_internal_mod
 use superspace_mod
+use super_waves_mod
+!
+use lib_functions_mod
 !
 use precision_mod
 use wink_mod
 !
 implicit none
+!
+interface
+  real(kind=PREC_DP    ) function sup_fun_gen (amp, amp0, arg1, arg2)
+  USE precision_mod
+  real(kind=PREC_DP), intent(in) :: amp
+  real(kind=PREC_DP), intent(in) :: amp0
+  real(kind=PREC_DP), intent(in) :: arg1
+  real(kind=PREC_DP), intent(in) :: arg2
+  end function sup_fun_gen 
+end interface
+!
+!interface
+!  real(kind=kind(1.0_D0)) function sup_fun_sine(amp, amp0, arg1, arg2)
+!  USE precision_mod
+!  real(kind=PREC_DP), intent(in) :: amp
+!  real(kind=PREC_DP), intent(in) :: amp0
+!  real(kind=PREC_DP), intent(in) :: arg1
+!  real(kind=PREC_DP), intent(in) :: arg2
+!  end function sup_fun_sine
+!end interface
+!
+!interface
+!  real(kind=PREC_DP    ) function sup_fun_cren(amp, amp0, arg1, arg2)
+!  USE precision_mod
+!  real(kind=PREC_DP), intent(in) :: amp
+!  real(kind=PREC_DP), intent(in) :: amp0
+!  real(kind=PREC_DP), intent(in) :: arg1
+!  real(kind=PREC_DP), intent(in) :: arg2
+!  end function sup_fun_cren
+!end interface
+!
+PROCEDURE(sup_fun_gen   )   , POINTER :: p_sub_function   => NULL()
 !
 real(kind=PREC_DP), parameter :: TOL = 0.00001_PREC_DP
 !
@@ -567,6 +618,7 @@ integer  :: n_mole     ! Number of molecules
 integer  :: n_type     ! Number of molecule types
 integer  :: n_atom     ! Total number of atoms in molecules
 !
+integer  :: current  ! Current wave
 integer  :: iatom  ! Dummy atom number from "super file"
 integer  :: jatom  ! Dummy atom number from  crystal structure
 real(kind=PREC_DP), dimension(3) :: arg
@@ -589,29 +641,44 @@ REAL(kind=PREC_DP)  , DIMENSION(0:3):: rd_cr_magn
 INTEGER                             :: rd_cr_mole
 INTEGER                             :: rd_cr_moleatom
 !
-real(kind=PREC_DP), dimension(:,:), allocatable :: rep_ampl
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: rep_ampl
 real(kind=PREC_DP)                              :: r1
 real(kind=PREC_DP)                              :: phase
 real(kind=PREC_DP)                              :: prob
 real(kind=PREC_DP), dimension(3) :: v
 !
-allocate(rep_ampl(2, cr_ncatoms))
+p_sub_function => sup_fun_sine          ! Default to sine function
+!
+! For replacement waves, calculate amplitude and average probability
+!
+allocate(rep_ampl(2, cr_ncatoms, sup_nwaves))
+current = 1
 do iatom=1, cr_ncatoms
-   rep_ampl(1,iatom) = (sup_prob(2,iatom) + sup_prob(1,iatom))*0.5_PREC_DP
-   rep_ampl(2,iatom) = (sup_prob(2,iatom) - sup_prob(1,iatom))*0.5_PREC_DP
+  do current=1, sup_nwaves
+      rep_ampl(1,iatom, current) = (sup_prob(2,iatom, current) - sup_prob(1,iatom, current))*0.5_PREC_DP ! Amplitude
+      rep_ampl(2,iatom, current) = (sup_prob(2,iatom, current) + sup_prob(1,iatom, current))*0.5_PREC_DP ! Average
+   enddo
 enddo
+!
+!  Read list of pseudo atoms
 !
 call readstru_size_int(sup_file, dim_natoms, dim_ncatoms,      &
      dim_nscat, dim_nanis, dim_n_mole, dim_n_type, dim_n_atom, &
      natoms, ncatoms, nscat, nanis, n_mole, n_type, n_atom)
+!
+! Get pseudo atom names 
 allocate(rd_at_lis(0:dim_nscat))
 call stru_get_atlis(sup_file, dim_nscat, rd_at_lis)
+!
+! Determine steps:  Crystal atoms / Pseudo atoms
 istep = 1
 xstep = real(cr_natoms)/real(natoms)
 if(abs(xstep-real(nint(xstep)))<TOL) then
    istep = cr_natoms/natoms
 endif
-!write(*,*) ' STEP ', xstep, istep , cr_natoms, natoms
+!write(*,*) ' STEPS ', istep, cr_natoms, natoms, dim_natoms, sup_nwaves
+!
+!  Main loop
 !
 loop_main: do iatom=1, dim_natoms
 !
@@ -623,42 +690,72 @@ loop_main: do iatom=1, dim_natoms
    loop_cell: do jj=1, istep
       jatom = (iatom-1)*istep + jj
       call indextocell(jatom, ic, is)
-         v = cr_pos(:,jatom) !- cr_dim0(:,1)
-         phase = 0.0_PREC_DP
-         if(sup_atom(1,is)==rd_at_lis(rd_cr_iscat(1))) then
+      v = cr_pos(:,jatom) !- cr_dim0(:,1)
+!
+      vector = 0.0_PREC_DP
+      prob   = 1.0_PREC_DP
+!
+      loop_current: do current=1, sup_nwaves   ! Accumulate vectors / probabilities
             phase = 0.0_PREC_DP
-         elseif(sup_atom(2,is)==rd_at_lis(rd_cr_iscat(1))) then
+         if(sup_atom(1,is, current)==rd_at_lis(rd_cr_iscat(1))) then
+            phase = 0.0_PREC_DP
+         elseif(sup_atom(2,is, current)==rd_at_lis(rd_cr_iscat(1))) then
             phase = 0.5_PREC_DP
          endif
          do ii=1,3
-         arg(ii) = (v(1)*sup_qvec(1) + v(2)*sup_qvec(2) + v(3)*sup_qvec(3) + &
-                  sup_phase(ii,is)+ phase                             )*zpi
+         arg(ii) = (v(1)*sup_qvec(1, current) + v(2)*sup_qvec(2, current) + v(3)*sup_qvec(3, current) + &
+                  sup_phase(ii,is, current)+ phase                             )!*zpi
          enddo
 !if(jatom<12) then
-! write(*,'(3i5,12f8.3)') iatom, jatom, is, arg(1), sup_phase(1,is), sin(arg(1)), sup_ampl(2:3, 1,is), &
-! arg(2), sup_phase(2,is), sin(arg(2)), sup_ampl(2:3, 2,is), v(1:2)
+! write(*,'(3i5,12f8.3)') iatom, jatom, is, arg(1), sup_phase(1,is,current), sin(arg(1)), sup_ampl(2:3, 1,is,current), &
+! arg(2), sup_phase(2,is,current), sin(arg(2)), sup_ampl(2:3, 2,is,current), v(1:2)
 !endif
 !if(iatom<=12) then
-!write(*,'(a,i7,3f8.2, i3,2a, i3, 2a6)') ' PSEUDO ',iatom, rd_cr_pos, rd_cr_iscat(1), rd_at_lis(rd_cr_iscat(1)),&
-!  ' HOST ', jatom, sup_atom(:,is)
-!write(*,'(a,i7, 2l3,3f10.4)')      ' sup_at ', is, sup_atom(1,is)==rd_at_lis(rd_cr_iscat(1)), &
-!sup_atom(2,is)==rd_at_lis(rd_cr_iscat(1)), phase, sup_phase(ii,is), arg(1)
+!if(iatom<=200 .and. ic(2)==1 .and. ic(3)==1) then
+!write(*,'(a,i7,3f8.2, i3,1x, 2a, i3, 2a6, 2(2x,3f8.3))') ' PSEUDO ',iatom, rd_cr_pos, rd_cr_iscat(1), rd_at_lis(rd_cr_iscat(1)),&
+!  ' HOST ', jatom, sup_atom(:,is,current), v, sup_qvec(:, current)
+!write(*,'(a,i7, 2l3,3f10.4)')      ' sup_at ', is, sup_atom(1,is,current)==rd_at_lis(rd_cr_iscat(1)), &
+!sup_atom(2,is,current)==rd_at_lis(rd_cr_iscat(1)), phase, sup_phase(ii,is,current), arg(1)
 !endif
-         if(sup_char(is)==SUP_DISP) then     ! Displacement wave
+         select case(sup_func(is, current))
+            case(SUP_SINE)
+               p_sub_function => sup_fun_sine
+            case(SUP_CREN)
+               p_sub_function => sup_fun_cren
+            case default
+               p_sub_function => sup_fun_sine
+         end select
+         if(sup_char(is, current)==SUP_DISP) then     ! Displacement wave
             do ii=1, 3
-               vector =                     sup_ampl(2:4,ii,is) * sin(arg(ii))
-               cr_pos(:,jatom) = cr_pos(:,jatom) + vector
+               vector = vector + sup_ampl(2:4,ii,is, current) * & !sin(arg(ii))
+                                 p_sub_function(1.0_PREC_DP, 0.0_PREC_DP, arg(1), sup_func_p(is,current))
             enddo
-         elseif(sup_char(is)==SUP_DENS) then
-      cond_old: if(sup_old(cr_iscat(1,jatom),is)) then   ! Proper old atom type
-            prob = rep_ampl(1,is) + rep_ampl(2,is)*sin(arg(1))
-            call random_number(r1)
-            if(r1>prob) then
-               call random_number(r1)
-               cr_iscat(1,jatom) = sup_new(int(r1)*sup_irepl(is),is)
-            endif
-      endif cond_old
+         elseif(sup_char(is, current)==SUP_DENS) then
+            prob = prob * p_sub_function(rep_ampl(1,is, current), rep_ampl(2,is,current), arg(1), sup_func_p(is,current))
+!if(iatom<= 12.or. iatom > dim_natoms-12) then
+!write(*,'(i5,i9,i5, 7f8.3, 2f20.16, l3, f8.3)') iatom, jatom, is, arg(1), cr_pos(:,jatom) , sup_qvec(:, current), &
+!frac(arg(1)), frac( (frac(arg(1))+1.0D0)), frac( (frac(arg(1))+1.0D0))<sup_func_p(is,current), sup_func_p(is,current)
+!write(*,'(i5,i9,i5, 7f8.3)') iatom, jatom, is, arg(1), v
+!write(*, '(a,4f8.4, 2i8, l2)')  ' PROB ', prob, rep_ampl(1,is, current) , rep_ampl(2,is, current), &
+!p_sub_function (rep_ampl(1,is, current), rep_ampl(2,is,current), arg(1), sup_func_p(is,current)), jatom, is, &
+!sup_old(cr_iscat(1,jatom),is, current)
+!endif
          endif
+      enddo loop_current
+!
+      loop_current2: do current=1, sup_nwaves   ! Performe shift/ replacement
+         if(sup_char(is, current)==SUP_DISP) then     ! Displacement wave
+            cr_pos(:,jatom) = cr_pos(:,jatom) + vector
+         elseif(sup_char(is, current)==SUP_DENS) then
+            cond_old: if(sup_old(cr_iscat(1,jatom),is, current)) then   ! Proper old atom type
+               call random_number(r1)
+               if(r1<prob) then
+                  call random_number(r1)
+                  cr_iscat(1,jatom) = sup_new(int(r1)*sup_irepl(is, current),is, current)
+               endif
+            endif cond_old
+         endif
+      enddo loop_current2
    enddo loop_cell
 enddo loop_main
 !
@@ -673,63 +770,85 @@ subroutine super_show
 ! Show super space setting
 !
 use crystal_mod
+use metric_mod
 use superspace_mod
 !
+use param_mod
 use prompt_mod
 !
 implicit none
 !
 character(len=PREC_STRING) :: string
 
-character(len=12), dimension(0:1) :: cchar
-character(len=12), dimension(0:1) :: cfunc
+character(len=12), dimension(1:2) :: cchar
+character(len=12), dimension(1:4) :: cfunc
+integer :: current  ! Current wave
 integer :: is   ! Site number
 integer :: iv   ! Displacement vector number
-data cchar /'Displacement', 'Substitution'/
-data cfunc /'sine        ', 'User        '/
+data cchar /'Displacement', &
+            'Substitution'/
+data cfunc /'sine        ', 'crenel      ', 'triangle    ', 'User        '/
 !
 write(output_io,*)
 write(output_io, '(a )') ' Super space setting'
-write(output_io, '(2a)') ' Super space structure : ', sup_file(1:len_trim(sup_file))
-write(output_io, '(a,3f9.5)')  ' Satellite vector      : ', sup_qvec
-write(output_io,*)
+write(output_io, '(2a)') ' Super space structure  : ', sup_file(1:len_trim(sup_file))
+loop_current: do current=1, sup_nwaves
+   cond_show:if(any(sup_func(:, current)>0)) then
+      write(string,'(3(f12.6:,'',''))') sup_qvec(:,current)
+      is = len_trim(string)
+      call d2r(string, is, .false.)
+   write(output_io,*)
+   write(output_io, '(a,i4)')  ' Current modulation     : ', current
+   write(output_io, '(a,2(3f10.5:, ''; ''))')  ' Satellite vector; Wave : ', sup_qvec(:,current), res_para(4:6)
 do is = 1, cr_ncatoms
-   write(output_io,'(a, i4,2('', '',a))')  ' Site                  : ', &
-                               is, cchar(sup_char(is)), cfunc(sup_func(is))
-   write(output_io,'(a, 4a4)') ' Pseudo atoms          : ', sup_atom(1:2, is)
-   if(sup_char(is)==0) then   ! Displacement wave
+   cond_any:if(sup_func(is, current)>0) then
+   if(sup_func(is, current)==SUP_SINE) then   ! Sine function
+      write(output_io,'(a, i4,('', '',a12),'', '',a4)')  ' Site                   : ', &
+            is, cchar(sup_char(is, current)), cfunc(sup_func(is, current))
+   elseif(sup_func(is, current)==SUP_CREN) then   ! Crenel function
+      write(output_io,'(a, i4,('', '',a12),'', '',a6,a6, 2f10.5)')  ' Site                   : ', &
+            is, cchar(sup_char(is, current)), cfunc(sup_func(is, current)), ' up +-', &
+            sup_func_p(is, current)!, 1.0_PREC_DP-sup_func_p(is, current)
+      write(output_io,'(a, 2(3f10.5:, ''; ''))')    ' Up / down vectors      : ', res_para(4:6)*sup_func_p(is, current), &
+            res_para(4:6)*(1.0_PREC_DP-sup_func_p(is, current))
+   endif
+   write(output_io,'(a, 4a4)') ' Pseudo atoms           : ', sup_atom(1:2, is, current)
+   if(sup_char(is, current)==0) then   ! Displacement wave
       do iv=1, 3
-        if(sup_ampl(1,iv,is)>0.0) then
-            write(output_io,'(a,i4, a, f10.4,a,3f10.4,a,f10.4)') &
-            ' Ampl, Vector, Phase   : ', iv, ' ; ', sup_ampl(1,iv,is), ' ; ', &
-            sup_ampl(2:4,iv,is), ' ; ', sup_phase (iv,is)
+        if(sup_ampl(1,iv,is, current)>0.0) then
+            write(output_io,'(a,i4, a, f10.5,a,3f10.5,a,f10.5)') &
+            ' Ampl, Vector, Phase    : ', iv, ' ; ', sup_ampl(1,iv,is, current), ' ; ', &
+            sup_ampl(2:4,iv,is, current), ' ; ', sup_phase (iv,is, current)
         endif
       enddo
    else                       ! Replacement = Density wave
       string = ' '
       do iv = 0, cr_nscat
-         if(sup_old(iv,is)) then
+         if(sup_old(iv,is, current)) then
              string = string(1:len_trim(string)) // cr_at_lis(iv)(1:4) //', '
          endif
       enddo
       iv = len_trim(string)
       if(string(iv:iv)==',') string(iv:iv)=' '
       write(output_io, '(a, a)') &
-         ' Old atom types        : ', string(1:len_trim(string))
+         ' Old atom types         : ', string(1:len_trim(string))
       string = ' '
-      do iv = 0, sup_irepl(is)-1
-         if(sup_new(iv,is)/=-1) then
-         string = string(1:len_trim(string)) // cr_at_lis(sup_new(iv,is))(1:4) //', '
+      do iv = 0, sup_irepl(is, current)-1
+         if(sup_new(iv,is, current)/=-1) then
+         string = string(1:len_trim(string)) // cr_at_lis(sup_new(iv,is, current))(1:4) //', '
          endif
       enddo
       iv = len_trim(string)
       if(string(iv:iv)==',') string(iv:iv)=' '
       write(output_io, '(a, a)') &
-         ' New atom types        : ', string(1:len_trim(string))
-      write(output_io,'(a, 3f10.4)') &
-         ' Low, high, Phase      : ', sup_prob(1,is), sup_prob(2,is), sup_phase(1,is)
+         ' New atom types         : ', string(1:len_trim(string))
+      write(output_io,'(a, 3f10.5)') &
+         ' Low, high, Phase       : ', sup_prob(1,is, current), sup_prob(2,is, current), sup_phase(1,is, current)
    endif
+   endif cond_any
 enddo
+   endif cond_show
+enddo loop_current
 !
 end subroutine super_show
 !
@@ -742,13 +861,14 @@ subroutine super_reset
 use superspace_mod
 use discus_allocate_appl_mod
 !
-integer :: is, ic
+integer :: is, ic, iw
 is = 1
 ic = 1
+iw = 1
 !
-call alloc_super( is, ic)
+call alloc_super( is, ic, iw)
 !
-sup_qvec = 0.0_PREC_DP
+sup_nwaves = 1
 
 end subroutine super_reset
 !
