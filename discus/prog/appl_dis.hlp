@@ -66,6 +66,7 @@
 !p spacegroup ! Sets the space group for the current structure
 !p stack      ! Enter STACKING FAULT level
 !p storage    ! Enter STORAGE level
+!p super      ! Enter superspace level
 !p switch     ! Swap two atoms or molecules within crystal
 !p symm       ! Enter SYMMETRY transformation level
 !p transform  ! Enter unit cell TRANSFORMATION  level
@@ -1040,6 +1041,7 @@
    stack      ! Build a crystal with stacking faults
    symm       ! Perform a generalized symmetry operation
    shear      ! Perform a general shear/affine operation
+   super      ! Apply disordered superspace 
    waves      ! Apply modulation wave modifications
    transform  ! Describe the structure with a different unit cell
 
@@ -9760,6 +9762,58 @@
    Clears the complete internal list or the single structure
    named <name>
    Commands 'reset' and 'remove' are synonymous
+2  superspace
+!p super
+
+   Menu to apply (disordered) superspace concepts. 
+   The physical crystal is modified accoring to one or several
+   waves that are defined in superspace as
+   u = ampl * function(q*r + phase)
+   where u is the resulting displacement vector
+         ampl the ampltude vector
+         q the satellite vector
+         r the current atom position
+         phase an additialn constant phase shift
+3  assign
+!p assign site:<number>,  additional parameters
+
+   Assigns the details of the wave function, such as the 
+   distinction of a displacement versus substitution
+             ==> "character:", 
+   wave type ==> "function:"
+   displacement vector ==> "displacement"  For displacment waves
+   replace characters  ==> "replace"       For Rsubstitution waaves
+4  character
+!p character:density
+!p character:displacement
+4  displacement
+!p displacement:[ampl:<amplitude>, vec:[<vx>, <vy>, <vz>],
+                 phase:<value>, number:<n> ]
+4  function
+!p function:sine
+!p function:crenel
+4  pseudo
+!p pseudo:[<pseudo atom types>]
+4  replace
+!p replace:[old:[<old atom types],new:[<new atom types>],
+!p          prob[<low>, <high>], phase:<value> ]
+3  run
+!p run
+
+   Start the actual calculation
+3  set
+!p set file:internal.filenname
+!p set qvec:[<qx>, <qy>, <qz>]
+!p set current:<number>
+
+3  show
+!p show
+
+   Display current settings on screen.
+3  reset
+!p reset
+
+   Set all settings back to system start.
 2  surface
 
    Menu to define crystal surfaces and related settings
