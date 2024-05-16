@@ -960,6 +960,7 @@ place_ywrt: IF(value==val_pdf) THEN  ! Transform F(Q) into PDF
 !   rstp_back =   0.01D0
       IF(out_user_limits) THEN
          rmin_back     = 0.01D0 ! out_user_values(1)
+         rmin_back     = out_user_values(1)
          rmax_back     = out_user_values(2)
          rstp_back     = out_user_values(3)
       ELSE
@@ -968,9 +969,6 @@ place_ywrt: IF(value==val_pdf) THEN  ! Transform F(Q) into PDF
          rstp_back     = pdf_deltaru
       ENDIF
       npkt_ppdf = nint((rmax_back-rmin_back)/rstp_back) + 1
-!write(*,*) 'FINAL POINTS', npkt_pdf, npkt_ppdf
-!write(*,*) ' RMIN       ', rmin_back, rmax_back
-!write(*,*) ' RSTEP      ', rstp_back
       allocate(rr_back(0:npkt_ppdf))
       allocate(gr_back(0:npkt_ppdf))
       CALL fft_fq(npkt_back, xback, yback, qmin_back, qmax_back, qstp_back, rmin_back, rmax_back, rstp_back, &
@@ -1009,8 +1007,10 @@ place_ywrt: IF(value==val_pdf) THEN  ! Transform F(Q) into PDF
       DEALLOCATE(xwrt)
       DEALLOCATE(ywrt)
 !
-      IF(rminf<rmin) THEN       !rminuser < rmin; rmin is set to 0.5 if User_values are present
-         j = NINT((rmin-rminf)/rstepf)
+!RMIN   IF(rminf<rmin) THEN       !rminuser < rmin; rmin is set to 0.5 if User_values are present
+      IF(rminf<rmin_back) THEN       !rminuser < rmin; rmin is set to 0.5 if User_values are present
+!RMIN      j = NINT((rmin-rminf)/rstepf)
+         j = NINT((rmin_back-rminf)/rstepf)
          ALLOCATE(xwrt(0:npkt_pdff))
          ALLOCATE(ywrt(0:npkt_pdff))
          DO ii = 0, j
@@ -1021,11 +1021,13 @@ place_ywrt: IF(value==val_pdf) THEN  ! Transform F(Q) into PDF
             xwrt(ii) = xfour(ii-j)
             ywrt(ii) = yfour(ii-j)
          ENDDO
-         npkt_wrt = npkt_pdff-1   ! Finally set corrept points for write
-      ELSEIF(rminf>rmin) THEN  ! rminuser > rmin; rmin is set to 0.5 if User_values are present
+         npkt_wrt = npkt_pdff-1   ! Finally set correct points for write
+!RMIN   ELSEIF(rminf>rmin) THEN  ! rminuser > rmin; rmin is set to 0.5 if User_values are present
+      ELSEIF(rminf>rmin_back) THEN  ! rminuser > rmin; rmin is set to 0.5 if User_values are present
          ALLOCATE(xwrt(0:npkt_pdff))
          ALLOCATE(ywrt(0:npkt_pdff))
-         j = NINT((rmin-rminf)/rstepf)     ! j will be < 0
+!RMIN         j = NINT((rmin-rminf)/rstepf)     ! j will be < 0
+         j = NINT((rmin_back-rminf)/rstepf)     ! j will be < 0
          DO ii = 0, npkt_pdff-1
             xwrt(ii) = xfour(ii-j)
             ywrt(ii) = yfour(ii-j)
