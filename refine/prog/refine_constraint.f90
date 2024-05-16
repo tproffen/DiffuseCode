@@ -493,7 +493,9 @@ q01 = -1.000E4
 q02 = -1.000E4
 !
 IF(u==0.0 .AND. v==0.0) then               ! Constant eta
-   if(w>=0.0 .and. w<=1) THEN              ! All positive, OK
+   if(w_in>=0.0 .and. w_in<=1) THEN              ! All positive, OK
+      refine_constrain_test_eta = .TRUE.
+   elseif(w>=0.0 .and. w<=1) THEN              ! All positive, OK
       refine_constrain_test_eta = .TRUE.
    else                                    ! Constant value outside [0,1]
       refine_constrain_test_eta = .false.
