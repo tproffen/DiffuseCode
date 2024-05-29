@@ -4,7 +4,7 @@ CONTAINS
 !
 !*****7*****************************************************************
 !                                                                       
-SUBROUTINE discus_loop
+recursive SUBROUTINE discus_loop
 !                                                                       
 USE discus_exit_mod
 !use discus_mache_kdo_mod
