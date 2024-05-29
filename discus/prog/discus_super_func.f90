@@ -331,6 +331,7 @@ cond_site: if(lpresent(O_SITE)) then
 !  FUNCTION
 !
    if(lpresent(O_FUNC)) then
+      up_up = 0.50_PREC_DP
       if(str_comp(opara(O_FUNC), 'sine', 3, lopara(O_FUNC), 4)) then
          i1 = SUP_SINE
       elseif(str_comp(opara(O_FUNC), 'crenel', 3, lopara(O_FUNC), 7)) then
@@ -627,7 +628,7 @@ real(kind=PREC_DP), dimension(3) :: vector
 integer               :: jj   ! Counter atoms per cell
 integer, dimension(3) :: ic   ! unit cell of crystal atom
 integer               :: is   ! Site of crystal atom
-integer               :: ip   ! Pseudo atom counter
+!integer               :: ip   ! Pseudo atom counter
 integer               :: ii   ! Diplacement number
 integer               :: istep ! Number of crystal atoms per pseudo atom
 real(kind=PREC_DP)    :: xstep ! Number of crystal atoms per pseudo atom
