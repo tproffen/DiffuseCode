@@ -3,6 +3,8 @@ GENERAL
 DISCUS
 KUPLOT
   kpar_par    Extremely narrow parameter distribution messed up x/y scales. 
+REFINE
+              Added parallel refinement
 
 6.16.03  RELEASE 2024_04_22
 GENERAL
