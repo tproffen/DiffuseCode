@@ -102,7 +102,7 @@ USE support_mod
             level = level_mpi
             ilevel(level) = nlevel_mpi
             rvalue_yes = .FALSE.
-            IF(run_mpi_senddata%l_get_state) THEN       ! Log random number state
+            IF(run_mpi_senddata%l_get_state==-1) THEN       ! Log random number state
                CALL random_current(nseeds, seeds)
                pop_random(:,i) = 0
                l = MIN(nseeds, RUN_MPI_NSEEDS)
@@ -128,6 +128,7 @@ USE support_mod
                  run_mpi_senddata%rvalue, run_mpi_senddata%l_rvalue,     &
                  LEN(run_mpi_senddata%out),                        &
                  run_mpi_senddata%out  , run_mpi_senddata%out_l,     &
+                 run_mpi_senddata%RUN_MPI_MAX_FLAGS, run_mpi_senddata%global_flags, &
                  run_mpi_senddata%generation, run_mpi_senddata%member,   &
                  run_mpi_senddata%children, run_mpi_senddata%parameters, &
                                          run_mpi_senddata%nindiv  , &
@@ -142,7 +143,7 @@ USE support_mod
                  IF(rvalue_yes) THEN
                     trial_val(run_mpi_senddata%kid,0) = run_mpi_senddata%rvalue(0)
                  ENDIF
-            IF(run_mpi_senddata%l_get_state) THEN       ! Log random number state
+            IF(run_mpi_senddata%l_get_state==-1) THEN       ! Log random number state
                l = MIN(nseeds, RUN_MPI_NSEEDS)
                pop_random(1:l,i) = seeds(1:l)
                pop_random(0  ,i) = l

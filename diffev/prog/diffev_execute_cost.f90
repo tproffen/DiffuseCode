@@ -10,6 +10,7 @@ SUBROUTINE diffev_execute_cost( repeat,    &
                          rvalue, l_rvalue, &
                          output_len,       &
                          output, output_l, &
+                         GLOBAL_FLAGS_MAX, global_flags, &
                          generation, member, &
                          children, parameters, &
                                  nindiv  , &
@@ -51,6 +52,8 @@ INTEGER                , INTENT(IN) :: n_rvalue_o
 INTEGER                , INTENT(IN ):: NRVAL
 REAL(kind=PREC_DP), DIMENSION(0:NRVAL   ),INTENT(IN):: rvalue
 LOGICAL                , INTENT(IN):: l_rvalue
+integer                , intent(in) :: GLOBAL_FLAGS_MAX
+integer(kind=PREC_INT_BYTE), dimension(GLOBAL_FLAGS_MAX) :: global_flags
 CHARACTER(LEN=output_len), INTENT(IN) :: output
 INTEGER                , INTENT(IN) :: generation
 INTEGER                , INTENT(IN) :: member
@@ -63,9 +66,9 @@ integer                , INTENT(in)  :: ierr_msg_l
 integer                , INTENT(in)  :: ierr_msg_n
 character(len=ierr_msg_l),dimension(ierr_msg_n) :: ierr_msg
 INTEGER                , INTENT(IN) :: NTRIAL
-LOGICAL                , INTENT(IN)  :: l_get_random_state
-INTEGER                , INTENT(OUT) :: rd_nseeds
-INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
+integer                , INTENT(IN)  :: l_get_random_state
+INTEGER                , INTENT(inOUT) :: rd_nseeds
+INTEGER, DIMENSION(64) , INTENT(inOUT) :: rd_seeds
 LOGICAL                , INTENT(IN ):: l_first_job
 CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_names
 REAL(kind=PREC_DP),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_values
@@ -78,7 +81,7 @@ INTEGER             :: system
 ! If instructed, get state of random number generator
 ! As there is no connection to slave program set all to zero
 !
-IF(l_get_random_state) THEN
+IF(l_get_random_state==-1) THEN
    rd_nseeds   = 1
    rd_seeds(:) = 0
 ENDIF

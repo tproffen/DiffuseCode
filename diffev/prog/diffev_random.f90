@@ -11,7 +11,7 @@ CHARACTER(LEN=100), DIMENSION(16) :: random_macro
 CHARACTER(LEN=100), DIMENSION(16) :: random_prog
 LOGICAL           , DIMENSION(16) :: random_repeat
 LOGICAL :: write_random_state = .FALSE.
-LOGICAL :: l_get_random_state = .TRUE.
+integer :: l_get_random_state = -1    
 !INTEGER, DIMENSION(:,:), ALLOCATABLE :: random_state  ! Status for current members
 INTEGER                              :: random_n      ! number of run_mpi commands prior to 'compare'
 INTEGER                              :: random_nseed
@@ -25,7 +25,7 @@ SUBROUTINE diffev_random_on
 !
 IMPLICIT NONE
 !
-l_get_random_state = .TRUE.
+l_get_random_state = -1
 !
 END SUBROUTINE diffev_random_on
 !
@@ -35,13 +35,13 @@ SUBROUTINE diffev_random_off
 !
 IMPLICIT NONE
 !
-l_get_random_state = .FALSE.
+l_get_random_state = 0
 !
 END SUBROUTINE diffev_random_off
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-LOGICAL FUNCTION diffev_random_status()
+integer FUNCTION diffev_random_status()
 !
 IMPLICIT NONE
 !

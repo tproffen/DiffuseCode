@@ -520,7 +520,7 @@ rec_hand: DO   ! i = 1, num_hand
 !       port_id  (run_mpi_senddata%prog_num,sender) = run_mpi_senddata%port  ! Store port info in data base
 !   ENDIF
 !
-   IF(l_get_random_state) THEN             ! Update random number status
+   IF(l_get_random_state==-1) THEN             ! Update random number status
       pop_random(:,run_mpi_senddata%kid) = 0
       nseeds = run_mpi_senddata%nseeds
       j = MIN(nseeds, RUN_MPI_NSEEDS)
@@ -602,6 +602,7 @@ SUBROUTINE run_mpi_slave
 USE mpi
 USE run_mpi_mod
 USE diffev_setup_cost_mod
+!use diffev_allocate_appl
 !
 USE gen_mpi_mod
 USE set_sub_generic_mod
@@ -635,9 +636,11 @@ INTEGER  :: port  = 2000
 !INTEGER  :: socket_get
 !INTEGER  :: socket_send
 !
+!real(kind=PREC_DP), dimension(:), allocatable :: trial_values
 INTEGER  :: local_id  ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
 ierr = 0
+!call alloc_senddata(14, 1)
 !
 local_id = gen_mpi_myid ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
@@ -795,6 +798,14 @@ slave: DO
       mpi_is_slave = .true.
       mpi_slave_error = 0
 !             Execute the "generic" cost function calculation
+!deallocate(run_mpi_senddata%trial_values)
+!allocate(run_mpi_senddata%trial_values(1:ubound(run_mpi_senddata%trial_values,1)))
+!write(*,*) ' SLAVE ', gen_mpi_myid, allocated(run_mpi_senddata%trial_values)
+!write(*,*) ' SLAVE ', gen_mpi_myid, ubound(run_mpi_senddata%trial_values)
+!write(*,*) ' SLAVE ', 'allocated'
+!trial_values = run_mpi_senddata%trial_values
+!write(*,*) ' SLAVE1', gen_mpi_myid,                         trial_values(1)
+!write(*,*) ' SLAVE2', gen_mpi_myid,        run_mpi_senddata%trial_values(1)
       CALL p_execute_cost( run_mpi_senddata%repeat,                          &
                            LEN(run_mpi_senddata%prog),                       &
                            run_mpi_senddata%prog , run_mpi_senddata%prog_l , &
@@ -804,15 +815,16 @@ slave: DO
                            run_mpi_senddata%direc, run_mpi_senddata%direc_l, &
                            run_mpi_senddata%kid  , run_mpi_senddata%indiv  , &
                            run_mpi_senddata%n_rvalue_i, run_mpi_senddata%n_rvalue_o, &
-                           RUN_MPI_MAXRVALUE,     &
+                           run_mpi_senddata%RUN_MPI_MAXRVALUE,     &
                            run_mpi_senddata%rvalue, run_mpi_senddata%l_rvalue,     &
                            LEN(output),                                      &
                            output                , output_l ,                      &
+                           run_mpi_senddata%RUN_MPI_MAX_FLAGS, run_mpi_senddata%global_flags, &
                            run_mpi_senddata%generation, run_mpi_senddata%member,   &
                            run_mpi_senddata%children, run_mpi_senddata%parameters, &
                                                    run_mpi_senddata%nindiv  , &
                            run_mpi_senddata%trial_names ,                          &
-                           run_mpi_senddata%trial_values, RUN_MPI_COUNT_TRIAL,     &
+                           run_mpi_senddata%trial_values, run_mpi_senddata%RUN_MPI_COUNT_TRIAL,     &
                            run_mpi_senddata%l_get_state,                           &
                            run_mpi_senddata%nseeds, run_mpi_senddata%seeds,        &
                            run_mpi_senddata%l_first_job,                           &
