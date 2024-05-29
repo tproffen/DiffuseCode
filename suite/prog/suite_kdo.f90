@@ -136,6 +136,8 @@ ELSE
 !                                                                 
    ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
       LEND = .TRUE. 
+   ELSEIF (str_comp (befehl, 'finished', 2, lbef, 8) ) then 
+      LEND = .TRUE. 
 !                                                                 
 !     ----Start of DISCUS_SUITE special commands                        
 !                                                                 

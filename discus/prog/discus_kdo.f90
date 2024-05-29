@@ -266,6 +266,8 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )       &
 !                                                                       
          ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
             LEND = .TRUE. 
+         ELSEIF (str_comp (befehl, 'finished', 2, lbef, 8) ) THEN 
+            LEND = .TRUE. 
 !                                                                       
 !-------Find properties   'find'                                        
 !                                                                       

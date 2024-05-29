@@ -2,7 +2,7 @@
 !     This routine interprets the commands and executes the             
 !     corresponding function.                                           
 !*****7*****************************************************************
-SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous) 
+recursive SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous) 
 !                                                                       
 !     Main menu for KUPLOT                                              
 !                                                                       
@@ -15,6 +15,7 @@ use kuplot_adt_mod
 use kuplot_blk_mod
 use kuplot_calc_mod
 use kuplot_color_mod
+use kuplot_exit_mod
 USE kuplot_fit6
 use kuplot_frame_mod
 use kuplot_load_mod
@@ -83,6 +84,7 @@ integer, parameter                        :: ncalc = 1 ! Number of values to cal
 data  oname / 'data' /
 data loname / 1      /
 !
+!REFDIF
 opara  = (/'1'    /)
 lopara = (/ 1     /)
 owerte = (/ 1.0D0 /)
@@ -166,6 +168,10 @@ owerte = (/ 1.0D0 /)
 !------ Terminate KUPLOT 'exit'                                         
 !                                                                       
          ELSEIF (str_comp (bef, 'exit', 2, lbef, 4) ) then 
+            call kuplot_exit
+            lend = .true. 
+         ELSEIF (str_comp (bef, 'finished', 2, lbef, 8) ) then 
+            call kuplot_exit
             lend = .true. 
 !                                                                       
 !-------  Start of KUPLOT specific commands                             
