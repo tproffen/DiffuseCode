@@ -20,6 +20,7 @@ SUBROUTINE refine_run(line, length)
 USE refine_control_mod
 USE refine_data_mod
 USE refine_fit_erg
+use refine_log_mod
 USE refine_params_mod
 USE refine_show_mod
 !
@@ -32,6 +33,10 @@ USE prompt_mod
 USE take_param_mod
 !
 USE global_data_mod
+use mpi_slave_mod
+use diffev_random
+!
+use run_mpi_mod
 !
 IMPLICIT NONE
 !
@@ -52,6 +57,12 @@ LOGICAL                              :: lexist   ! File exists yes/no
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line)))                  :: plmac    ! optional plot macro
 LOGICAL                              :: ref_do_plot ! Do plot yes/no
 LOGICAL                              :: linit       ! Initialize mrq
+integer                              :: diffev_l_get_random_state  ! Copy of current random state
+!
+character(len=PREC_STRING) :: string
+integer :: ier_cmd
+integer :: exit_msg
+character(len=PREC_STRING) :: message
 !
 INTEGER, PARAMETER :: NOPTIONAL = 2
 INTEGER, PARAMETER :: OPLOT     = 1
@@ -138,6 +149,15 @@ call gl_set_x(dimen(1), ref_x)
 call gl_set_y(dimen(2), ref_y)
 call gl_set_z(dimen(3), ref_z)
 !
+!
+diffev_l_get_random_state = l_get_random_state
+l_get_random_state = 1    ! We need the slaves to maintain fixe random seeds
+! Initialize MPI interface
+!
+if(mpi_active) then
+   call refine_init_pop
+endif
+!
 ! Call main refinement routine
 !
 !write(*,*) 'INIT    ', linit
@@ -201,6 +221,14 @@ DEALLOCATE(refine_derivs)
 !
 lmacro_close = .TRUE.        ! Do close macros in do-loops
 !
+l_get_random_state = diffev_l_get_random_state   ! Restore diffev random state variable
+if(mpi_active) then
+   string = 'rm -rf   DISCUS_SUITE_DERIVATIVES'
+   if(.not. refine_log) then
+      call execute_command_line(string, CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg, wait=.true.)
+   endif
+endif
+!
 END SUBROUTINE refine_run
 !
 !*******************************************************************************
@@ -223,10 +251,13 @@ USE errlist_mod
 USE matrix_mod
 USE precision_mod
 !
+use population
+!
 USE global_data_mod
+use mpi_slave_mod
 !
 use parallel_mod
-!$ use omp_lib
+!OMP !$ use omp_lib
 !
 IMPLICIT NONE
 !
@@ -250,8 +281,8 @@ REAL(kind=PREC_DP), DIMENSION(NPARA)                 , INTENT(OUT) :: df      ! 
 LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
 !
 !
-INTEGER              :: i,k, iix, iiy, iiz, l, j2, j3 ! Dummy loop variable
-REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: refine_derivs_p   ! Derivativs (ix, iy, iz)
+INTEGER              :: k ! Dummy loop variable
+!REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: refine_derivs_p   ! Derivativs (ix, iy, iz)
 !INTEGER              :: nder          ! Numper of points for derivative
 !REAL(KIND=PREC_DP)                 :: delta         ! Shift to calculate derivatives
 !REAL(KIND=PREC_DP), DIMENSION(-2:2):: dvec          ! Parameter at P-2delta, P-delta, P, P+delta and P+2delta
@@ -271,18 +302,18 @@ logical :: lserial
 tid = 0
 nthreads = 1
 lserial = .true.
-if(.not.lserial .and. par_omp_use) then
-!$OMP parallel private(tid)
-!$   tid = OMP_GET_THREAD_NUM()
-!$   if(tid == 0) THEN
-!$      if(par_omp_maxthreads == -1) THEN
-!$         nthreads = OMP_GET_NUM_THREADS()
-!$      else
-!$         nthreads = max(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
-!$      endif
-!$   endif
-!$OMP end parallel
-endif
+!OMP if(.not.lserial .and. par_omp_use) then
+!OMP !$OMP parallel private(tid)
+!OMP !$   tid = OMP_GET_THREAD_NUM()
+!OMP !$   if(tid == 0) THEN
+!OMP !$      if(par_omp_maxthreads == -1) THEN
+!OMP !$         nthreads = OMP_GET_NUM_THREADS()
+!OMP !$      else
+!OMP !$         nthreads = max(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
+!OMP !$      endif
+!OMP !$   endif
+!OMP !$OMP end parallel
+!OMP endif
 nthreads = 1
 !
 initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user macro
@@ -296,39 +327,45 @@ initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user 
                      data_dim, refine_calc)
    CALL gl_set_data(data_dim(1), data_dim(2), data_dim(3), 0, -1,  &
         refine_calc(1:data_dim(1),1:data_dim(2),1:data_dim(3)))
-!write(*,*) ' GOT PRIMARY ' , gl_is_der(1),gl_is_der(2), LDERIV
 !
    IF(ier_num /= 0) RETURN
 !
 !  Loop over all parameters to derive derivatives
 !
    if_deriv: IF(LDERIV) THEN
+      cond_MPI: if(mpi_active) then
+         call refine_calc_deriv_mpi(NPARA, MAXP, REF_MAXPARAM_SPC, data_dim,         &
+                 p, par_names, refine_params, refine_spc_name, refine_spc_delta, &
+                 prange, p_shift, p_nderiv, refine_mac, refine_mac_l, kupl_last, &
+                              refine_derivs)
+      else  cond_MPI
 !
-if(nthreads==1) then                ! Serial loop
-      loop_deriv_serial: DO k=1, NPARA
-         call refine_calc_deriv(NPARA, MAXP, REF_MAXPARAM_SPC, data_dim, k, &
-           p, par_names, refine_params, refine_spc_name, refine_spc_delta, &
-           prange, p_shift, p_nderiv, refine_mac, refine_mac_l, kupl_last, &
-                        refine_derivs)
-      ENDDO loop_deriv_serial
-elseif(nthreads>1) then
-!$OMP PARALLEL
-   if(allocated(refine_derivs_p)) deallocate(refine_derivs_p)
-   allocate(refine_derivs_p(data_dim(1), data_dim(2), data_dim(3)))
-   !$OMP DO SCHEDULE(STATIC)
-      loop_deriv: DO k=1, NPARA
-         call refine_calc_deriv_p(NPARA, MAXP, REF_MAXPARAM_SPC, data_dim, k, &
-           p, par_names, refine_params, refine_spc_name, refine_spc_delta, &
-           prange, p_shift, p_nderiv, refine_mac, refine_mac_l, kupl_last, &
-                        refine_derivs_p)
-!          refine_temp, refine_derivs)
-!write(* , '(a,6f12.6)') 'SUBROUTINE ', (refine_derivs(1,1,1,k))
-!        ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), -p_nderiv(k)/2:p_nderiv(k)/2))
-         refine_derivs(:,:,:,k) = refine_derivs(:,:,:,k) + refine_derivs_p(:,:,:)
-      ENDDO loop_deriv
-!$OMP END DO
-!$OMP END PARALLEL
-endif
+!OMP if(nthreads==1) then                ! Serial loop
+         loop_deriv_serial: DO k=1, NPARA
+            call refine_calc_deriv(NPARA, MAXP, REF_MAXPARAM_SPC, data_dim, k, &
+              p, par_names, refine_params, refine_spc_name, refine_spc_delta, &
+              prange, p_shift, p_nderiv, refine_mac, refine_mac_l, kupl_last, &
+                           refine_derivs)
+         ENDDO loop_deriv_serial
+!OMP elseif(nthreads>1) then
+!OMP !$OMP PARALLEL
+!OMP    if(allocated(refine_derivs_p)) deallocate(refine_derivs_p)
+!OMP    allocate(refine_derivs_p(data_dim(1), data_dim(2), data_dim(3)))
+!OMP $OMP DO SCHEDULE(STATIC)
+!OMP       loop_deriv: DO k=1, NPARA
+!OMP          call refine_calc_deriv_p(NPARA, MAXP, REF_MAXPARAM_SPC, data_dim, k, &
+!OMP            p, par_names, refine_params, refine_spc_name, refine_spc_delta, &
+!OMP            prange, p_shift, p_nderiv, refine_mac, refine_mac_l, kupl_last, &
+!OMP                         refine_derivs_p)
+!OMP !          refine_temp, refine_derivs)
+!OMP !write(* , '(a,6f12.6)') 'SUBROUTINE ', (refine_derivs(1,1,1,k))
+!OMP !        ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), -p_nderiv(k)/2:p_nderiv(k)/2))
+!OMP          refine_derivs(:,:,:,k) = refine_derivs(:,:,:,k) + refine_derivs_p(:,:,:)
+!OMP       ENDDO loop_deriv
+!OMP !$OMP END DO
+!OMP !$OMP END PARALLEL
+!OMP endif
+      endif cond_MPI
    ENDIF if_deriv
    if(.not.(gl_is_der(1) .and. gl_is_der(2))) then
             CALL refine_restore_seeds
@@ -439,7 +476,6 @@ ALLOCATE(refine_temp(1:data_dim(1), 1:data_dim(2), 1:data_dim(3)))
 is_deriv: IF(gl_is_der(k)) THEN
    CALL gl_get_data(k,  data_dim(1),   data_dim(2),   data_dim(3), &
         refine_derivs(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), k))
-!write(*,*) ' DERIVS Calc ', k, minval(refine_derivs(:,:,:,k)), maxval(refine_derivs(:,:,:,k))
 ELSE is_deriv
    ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), -2:2))
          nder = 1                     ! First point is at P(k)
@@ -895,6 +931,318 @@ call refine_rvalue_tttt(data_dim, refine_tttt, dvec)
 deallocate(refine_temp)
 !
 end subroutine refine_calc_deriv_p
+!
+!*******************************************************************************
+!
+subroutine refine_calc_deriv_mpi(NPARA, MAXP, REF_MAXPARAM_SPC, data_dim,  &
+           p, par_names, refine_params, refine_spc_name, refine_spc_delta, &
+           prange, p_shift, p_nderiv, refine_mac, refine_mac_l, kupl_last, &
+                        refine_derivs)
+!          refine_temp, refine_derivs)
+!-
+! Calculate the k derivatives
+!+
+!
+use refine_log_mod
+use refine_random_mod
+use refine_set_param_mod
+!
+use diffev_mpi_mod
+use run_mpi_mod    ! contains "run_mpi_senddata"
+use population
+!
+use kuplot_load_mod
+!
+use errlist_mod
+use global_data_mod
+use matrix_mod
+use precision_mod
+use random_state_mod
+!
+implicit none
+!
+integer , intent(in) :: NPARA    ! Total number of parameter
+integer , intent(in) :: MAXP     ! Max  number of parameters
+integer , intent(in) :: REF_MAXPARAM_SPC     ! Max  number of special parameters
+integer, dimension(3)    , intent(in) :: data_dim         ! Data dimensions
+real(kind=PREC_DP)        , dimension(MAXP)            , intent(in) :: p                ! Parameter values
+character(len=*)          , dimension(MAXP)            , intent(in)  :: par_names    ! Parameter names
+character(len=PREC_STRING), dimension(MAXP)            , intent(in) :: refine_params    ! Parameter names
+character(len=PREC_STRING), dimension(REF_MAXPARAM_SPC), intent(in) :: refine_spc_name ! Parameter names, special
+real(kind=PREC_DP)        , dimension(REF_MAXPARAM_SPC), intent(in) :: refine_spc_delta ! Special parameter shift
+real(kind=PREC_DP)        , dimension(MAXP, 2)         , intent(in) :: prange           ! Parameter range
+real(kind=PREC_DP)        , dimension(MAXP)            , intent(in) :: p_shift ! Parameter shift
+integer                   , dimension(MAXP)            , intent(in) :: p_nderiv! Parameter uses this many points for derivatives
+character(len=*)                                       , intent(inout) :: refine_mac    ! Refine macro name
+integer                                                , intent(inout) :: refine_mac_l  ! Macro name length
+integer                                                , intent(in) :: kupl_last     
+!logical           , dimension(NPARA), intent(in) :: gl_is_der        ! Derivative has been calculated analytically
+!real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3))  , intent(inout) :: refine_temp           ! caclulated value
+real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3),NPARA) , intent(out) :: refine_derivs         ! caclulated derivatives
+!integer                                , intent(out) :: l_ier_num     
+!integer                                , intent(out) :: l_ier_typ     
+!character         , dimension(7)       , intent(out) :: l_ier_msg     
+integer :: k        ! Current derivative number
+!
+integer :: i, j, l    ! Dummy loop indeces
+integer :: j2, j3  ! Dummy loop indeces
+integer :: iix, iiy, iiz ! Dummy loop indices
+integer           , dimension(     NPARA):: nder    ! Number of derivatives calculated
+logical           , dimension(-3:3) :: lvec
+real(kind=PREC_DP), dimension(-3:3,NPARA) :: dvec
+real(kind=PREC_DP), dimension(     NPARA) :: delta
+real(kind=PREC_DP), dimension(:,:,:  ), allocatable :: refine_temp           ! Calculated values at derivative l
+real(kind=PREC_DP), dimension(:,:,:,:), allocatable :: refine_tttt           ! Calculated values at derivative l
+real(kind=PREC_DP), dimension(3,3)  :: xmat   ! matrix with derivatives
+real(kind=PREC_DP), dimension(3,3)  :: imat   ! Inverse of xmax
+real(kind=PREC_DP), dimension(3)    :: avec   ! Inverse of xmax
+real(kind=PREC_DP), dimension(3)    :: yvec   ! Inverse of xmax
+!
+character(len=PREC_STRING)           :: string   ! Dummy character string
+integer, dimension(:,:), allocatable :: kid_is   ! Lookup kid is parameter, derivative number
+integer, dimension(:,:), allocatable :: para_has ! Lookup para has these kids
+!
+allocate(kid_is(2, NPARA*4))
+kid_is = 0
+allocate(para_has(0:5, NPARA*4))
+para_has = 0
+!
+ALLOCATE(refine_temp(1:data_dim(1), 1:data_dim(2), 1:data_dim(3)))
+!
+! Initial loop, populate all values in pop_t  Trial for DIFFEV
+do k=1, NPARA
+  pop_t(k, :) = p(k)
+enddo
+run_mpi_senddata%children = 0
+!
+loop_npara_init: do k=1, NPARA
+   cond_is_deriv: IF(gl_is_der(k)) THEN
+      CALL gl_get_data(k,  data_dim(1),   data_dim(2),   data_dim(3), &
+           refine_derivs(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), k))
+      ELSE cond_is_deriv
+         nder(k) = 1                     ! First point is at P(k)
+         dvec(:,k) = 0.0
+         lvec(:) = .FALSE.
+         dvec(0,k) = p(k)               ! Store parameter value
+         cond_if_delta: IF(p(k)/=0.0) THEN
+            delta(k) = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+         ELSE cond_if_delta
+            do i=1, REF_MAXPARAM_SPC      ! Check for special names
+               if(refine_params  (k)(1:len_trim(refine_spc_name(i)))==          &
+                  refine_spc_name(i)(1:len_trim(refine_spc_name(i)))     ) then
+                  delta(k) = refine_spc_delta(i)
+                  exit cond_if_delta
+               endif
+            enddo
+            delta(k) = 1.0D-4                ! Default delta for unknown variables
+         ENDIF cond_if_delta
+!
+!                                     ! Test at P + DELTA
+      IF(prange(k,1)<=prange(k,2)) THEN     ! User provided parameter range
+         IF(p(k)==prange(k,1)) THEN         ! At lower limit, use +delta +2delta
+            delta(k) = MIN(ABS(delta(k)), 0.5D0*(ABS(prange(k,2) - p(k)))) ! Make sure +2Delta fits
+            dvec(1,k) = p(k) + delta(k)
+            dvec(2,k) = p(k) + 2.0D0*delta(k)
+            lvec(1) = .TRUE.
+            lvec(2) = .TRUE.
+            nder(k) = 3
+         ELSEIF(p(k)==prange(k,2)) THEN         ! At upper limit, use -delta -2delta
+            delta(k) = MIN(ABS(delta(k)), 0.5D0*(ABS(p(k) - prange(k,1)))) ! Make sure -2Delta fits
+            dvec(-2,k) = p(k) - 2.0D0*delta(k)
+            dvec(-1,k) = p(k) - 1.0D0*delta(k)
+            lvec(-2) = .TRUE.
+            lvec(-1) = .TRUE.
+            nder(k) = 3
+         ELSE                               ! within range, use +-delta or +2delta
+            IF(p_nderiv(k)==3) THEN         ! Three point derivative
+               dvec(-1,k) = MIN(prange(k,2),MAX(prange(k,1),p(k)+(delta(k)))) ! +delta
+               dvec( 1,k) = MIN(prange(k,2),MAX(prange(k,1),p(k)-(delta(k)))) ! -delta
+               lvec(-1) = .TRUE.
+               lvec( 1) = .TRUE.
+               nder(k) = 3
+            ELSEIF(p_nderiv(k)==5) THEN     ! Five point derivative
+               delta(k) = MIN(delta(k), 0.5D0*(ABS(prange(k,2) - p(k))),  &
+                                  0.5D0*(ABS(p(k) - prange(k,1))) ) ! Make sure +-2delta fits
+               dvec(-2,k) = p(k) - 2.0D0*delta(k)
+               dvec(-1,k) = p(k) - 1.0D0*delta(k)
+               dvec( 1,k) = p(k) + 1.0D0*delta(k)
+               dvec( 2,k) = p(k) + 2.0D0*delta(k)
+               lvec(-2) = .TRUE.
+               lvec(-1) = .TRUE.
+               lvec( 1) = .TRUE.
+               lvec( 2) = .TRUE.
+               nder(k) = 5
+            ENDIF
+         ENDIF
+!           p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+REAL(delta)))
+      ELSE
+         IF(p_nderiv(k)==3) THEN         ! Three point derivative
+            dvec(-1,k) = p(k) - 1.0D0*delta(k)
+            dvec( 1,k) = p(k) + 1.0D0*delta(k)
+            lvec(-1  ) = .TRUE.
+            lvec( 1  ) = .TRUE.
+            nder(k) = 3
+         ELSEIF(p_nderiv(k)==5) THEN     ! Five point derivative
+            dvec(-2,k) = p(k) - 2.0D0*delta(k)
+            dvec(-1,k) = p(k) - 1.0D0*delta(k)
+            dvec( 0,k) = p(k)
+            dvec( 1,k) = p(k) + 1.0D0*delta(k)
+            dvec( 2,k) = p(k) + 2.0D0*delta(k)
+            lvec(-2) = .TRUE.
+            lvec(-1) = .TRUE.
+            lvec( 1) = .TRUE.
+            lvec( 2) = .TRUE.
+            nder(k) = 5
+         ENDIF
+!           p_d     = p(k) + delta
+      ENDIF
+!
+!     Populate trial values for DIFFEV
+!
+      do l=-2,2
+         if(lvec(l)) then
+            run_mpi_senddata%children = run_mpi_senddata%children + 1    ! at p(k) + delta
+            pop_t(k, run_mpi_senddata%children) = dvec(l,k)
+            kid_is(1,run_mpi_senddata%children) =  k
+            kid_is(2,run_mpi_senddata%children) =  l
+            para_has(0,k) = para_has(0,k) + 1
+            para_has(para_has(0,k),k) = run_mpi_senddata%children
+         endif
+      enddo
+   endif cond_is_deriv
+enddo loop_npara_init
+pop_n = run_mpi_senddata%children
+pop_c = run_mpi_senddata%children
+!do k=1, run_mpi_senddata%children
+   if(refine_log) then
+      write(run_mpi_senddata%out,'(a)') 'DISCUS_SUITE_DERIVATIVES/LOGFILE'
+      run_mpi_senddata%out_l = 32
+   else
+      write(run_mpi_senddata%out,'(a)') '/dev/null/'
+      run_mpi_senddata%out_l = 10
+   endif
+!enddo
+!
+call random_current(run_mpi_senddata%nseeds, run_mpi_senddata%seeds)
+run_mpi_senddata%l_get_state=1
+call run_mpi_master
+ier_num = 0
+ier_typ = 0
+ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), -2:2))
+!
+! Here we will place call to run_mpi_master
+!
+if(1==2) then   ! DUMMY OLD STUFF
+   DO l = -2, 2
+      IF(lvec(l)) THEN
+         CALL refine_set_param(NPARA, par_names(k), k, (dvec(l,k)) )  ! Set modified value
+         CALL refine_restore_seeds
+         CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+                              data_dim, refine_temp)
+         IF(ier_num /= 0) THEN
+            DEALLOCATE(refine_tttt)
+!           exit cond_is_deriv_2
+            return
+         ENDIF
+         do iiz = 1, data_dim(3)
+            DO iiy=1, data_dim(2)
+               DO iix=1, data_dim(1)
+                  refine_tttt(iix,iiy,iiz,l) =  refine_temp(iix,iiy,iiz)
+               ENDDO
+            ENDDO
+         enddo
+      ENDIF
+   ENDDO
+   call refine_rvalue_tttt(data_dim, refine_tttt, dvec(:,k))
+   CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
+endif
+!
+! Now evaluate all derivatives
+!
+loop_npara_eval: do k=1, NPARA
+   cond_is_deriv_2: if(gl_is_der(k)) then
+      continue
+   else cond_is_deriv_2
+!
+! Load derivatives from disk
+!
+   j2 = 38
+   do i=1, para_has(0,k)           ! Loop over all derivativs for this parameter
+      j = para_has(i,k)            ! Current REF_KID
+      l = kid_is(2,j)
+      string =  ' '
+      write(string,'(a,i4.4)') 'h5, DISCUS_SUITE_DERIVATIVES/data.', j
+      call refine_kupl_last(0)
+      call do_load(string, j2, .FALSE.)
+      call refine_load_calc(data_dim, refine_temp)
+      refine_tttt(:,:,:,l) = refine_temp(:,:,:)
+   enddo
+!
+   IF(nder(k)==5) THEN             ! Got all five  points for derivative
+      do iiz=1, data_dim(3)
+         DO iiy=1, data_dim(2)
+            DO iix=1, data_dim(1)
+               refine_derivs(iix, iiy, iiz, k) = (-1.0*refine_tttt(iix,iiy,iiz, 2)   &
+                                                  +8.0*refine_tttt(iix,iiy,iiz, 1)   &
+                                                  -8.0*refine_tttt(iix,iiy,iiz,-1)   &
+                                                  +1.0*refine_tttt(iix,iiy,iiz,-2))/ &
+                                                 (12.*delta(k))
+            ENDDO
+         ENDDO
+      enddo
+   ELSEIF(nder(k)==3) THEN             ! Got all three points for derivative
+      xmat(:,1) =  1.0
+      xmat(1,2) =  dvec(0,k) !p(k)
+      IF(lvec(2)) THEN              ! +delta, + 2delta
+         j2 =  1
+         j3 =  2
+      ELSEIF(lvec(-2)) THEN         ! -delta, - 2delta
+         j2 = -1
+         j3 = -2
+      ELSE
+         j2 = -1
+         j3 =  1
+      ENDIF
+      xmat(2,2) =  dvec(j2,k)       ! p(k) - delta
+      xmat(3,2) =  dvec(j3,k)       ! p(k) + delta
+      xmat(2,3) = (dvec(j2,k))**2   ! (p(k) - delta ) **2
+      xmat(3,3) = (dvec(j3,k))**2   ! (p(k) + delta ) **2
+      CALL matinv3(xmat, imat)
+      IF(ier_num/=0) then
+         ier_msg(1) = 'Error determining derivative '
+         write(ier_msg(2), '(a,i3)') 'At derivative ',k
+         exit cond_is_deriv_2
+      endif
+      do iiz=1, data_dim(3)
+         DO iiy=1, data_dim(2)
+            DO iix=1, data_dim(1)
+!
+!              Derivative is calculated as a fit of a parabola at P, P+delta, P-delta
+               yvec(1) = refine_calc  (iix, iiy, iiz)
+               yvec(2) = refine_tttt  (iix, iiy, iiz, j2)
+               yvec(3) = refine_tttt  (iix, iiy, iiz, j3)
+               avec = MATMUL(imat, yvec)
+!
+               refine_derivs(iix, iiy, iiz, k) = avec(2) + 2.*avec(3)*p(k)
+            ENDDO
+         ENDDO
+      enddo
+!
+   ELSE
+      ier_num = -9
+      ier_typ = 6
+      ier_msg(1) = par_names(k)
+      DEALLOCATE(refine_tttt)
+      exit cond_is_deriv_2
+   ENDIF
+!
+ENDIF cond_is_deriv_2
+enddo loop_npara_eval
+!
+DEALLOCATE(refine_tttt)
+deallocate(refine_temp)
+!
+end subroutine refine_calc_deriv_mpi
 !
 !*******************************************************************************
 !
@@ -1826,6 +2174,116 @@ end subroutine refine_rvalue_hkl
 !
 !*******************************************************************************
 !
+subroutine refine_init_pop
+!-
+! Global parameters for DIFFEV interface
+!+
+!
+use refine_mac_mod
+use refine_params_mod
+!
+use diffev_allocate_appl    ! Allocation of DIFFEV population
+use run_mpi_mod             ! DIFFEV data structure
+use population              ! DIFFEV populationn
+!
+use blanks_mod
+use errlist_mod
+use lib_global_flags_mod
+use random_state_mod
+use support_mod, only:oeffne
+!
+implicit none
+!
+character(len=PREC_STRING) :: string
+integer, parameter :: IRD=33   ! READ MAC FILE
+integer :: i   ! Dummy loop index
+integer :: ios ! I/O error status
+integer :: ier_cmd
+integer :: exit_msg
+character(len=PREC_STRING) :: message
+!
+MAXBACK = 1
+!
+call alloc_population(refine_par_n * 4, refine_par_n + refine_fix_n)
+call alloc_senddata(refine_par_n + refine_fix_n, 1)
+!
+call oeffne(IRD, refine_mac, 'old')
+if(ier_num/=0) then
+   return
+endif
+read(IRD, '(a)', iostat=ios) string
+close(IRD)
+if(ios/=0) then
+   return
+endif
+ios = len_trim(string)
+call rem_dbl_bl(string,ios)
+if(string=='branch discus') then
+   run_mpi_senddata%prog       = 'kuplot'
+elseif(string=='branch kuplot') then
+   run_mpi_senddata%prog       = 'discus'
+endif
+!
+string = 'mkdir -p DISCUS_SUITE_DERIVATIVES'
+call execute_command_line(string, CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg, wait=.true.)
+!
+run_mpi_senddata%generation = 0
+run_mpi_senddata%member     = 0
+run_mpi_senddata%children   = 0
+run_mpi_senddata%parameters = refine_par_n + refine_fix_n
+run_mpi_senddata%nindiv     = 1
+run_mpi_senddata%kid        = 1
+run_mpi_senddata%indiv      = 1
+run_mpi_senddata%ierr       = 0
+run_mpi_senddata%ierr_typ   = 0
+run_mpi_senddata%ierr_msg_l = len(ier_msg)
+run_mpi_senddata%ierr_msg_n = ubound(ier_msg,1)
+run_mpi_senddata%direc_l    = 1
+run_mpi_senddata%prog_l     = 6   ! == len('refine')
+run_mpi_senddata%mac_l      = refine_mac_l
+run_mpi_senddata%out_l      = 9
+run_mpi_senddata%prog_num   = 1
+run_mpi_senddata%s_remote   = 0
+run_mpi_senddata%port       = 0
+call random_current(run_mpi_senddata%nseeds, run_mpi_senddata%seeds)
+run_mpi_senddata%n_rvalue_i = 1
+run_mpi_senddata%n_rvalue_o = 1
+run_mpi_senddata%global_flags = lib_global_flags   ! Use all global flags in current settings
+run_mpi_senddata%global_flags(1) = 1 ! Tell KUPLOT to save
+run_mpi_senddata%repeat     = .FALSE.
+run_mpi_senddata%prog_start = .FALSE.
+run_mpi_senddata%l_rvalue   = .FALSE.
+run_mpi_senddata%l_get_state= 1 
+run_mpi_senddata%l_first_job= .TRUE.
+run_mpi_senddata%spacer2    = .FALSE.
+run_mpi_senddata%spacer3    = .FALSE.
+run_mpi_senddata%ierr_msg   = ' '
+run_mpi_senddata%direc      = '.'
+!run_mpi_senddata%prog       = 'discus'
+run_mpi_senddata%mac        = refine_mac(1:min(len(run_mpi_senddata%mac), len_trim(refine_mac)))
+run_mpi_senddata%out        = '/dev/null'
+run_mpi_senddata%trial_values = 0.0_PREC_DP
+run_mpi_senddata%rvalue       = 0.0_PREC_DP
+run_mpi_senddata%trial_names  = ' '
+!
+run_mpi_senddata%trial_names (1:refine_par_n)  = refine_params(1:refine_par_n)
+pop_name                     (             1:refine_par_n               ) = refine_params(1:refine_par_n)
+!
+if(refine_fix_n>0) then
+run_mpi_senddata%trial_names (refine_par_n+1:refine_par_n+refine_fix_n) = refine_fixed(1:refine_fix_n)
+run_mpi_senddata%trial_values(refine_par_n+1:refine_par_n+refine_fix_n) = refine_f    (1:refine_fix_n)
+!
+pop_name                     (refine_par_n+1:refine_par_n+refine_fix_n  ) = refine_fixed (1:refine_fix_n)
+do i=1,MAXPOP
+pop_t                        (refine_par_n+1:refine_par_n+refine_fix_n,i) = refine_f     (1:refine_fix_n)
+enddo
+endif
+pop_dimx = refine_par_n+refine_fix_n
+!
+end subroutine refine_init_pop
+!
+!*******************************************************************************
+!
 SUBROUTINE refine_best(rval)
 !
 use refine_control_mod
@@ -1843,7 +2301,6 @@ IMPLICIT NONE
 REAL(kind=PREC_DP), INTENT(IN) :: rval   ! Current R-value
 !
 INTEGER, PARAMETER :: IWR=11
-real(kind=PREC_DP), parameter :: TOL=0.0005D0
 !
 CHARACTER(LEN=15), PARAMETER :: ofile='refine_best.mac'
 CHARACTER(LEN=15), PARAMETER :: nfile='refine_new.res '

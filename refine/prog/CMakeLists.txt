@@ -20,7 +20,7 @@ set (SOURCES_ALL refine_add_param.f90 refine_allocate_appl.f90 refine_blk_appl.f
              refine_current.f90 refine_data_mod.f90 refine_do_exit.f90 
              refine_err_appl.f90 refine_fit_erg.f90 refine_fit_mache_kdo.f90 
              refine_fit_set_sub_mod.f90 refine_fix.f90 refine_kdo.f90
-             refine_load.f90 refine_loop.f90 refine_loop_mpi.f90
+             refine_load.f90 refine_log_mod.f90 refine_loop.f90 refine_loop_mpi.f90
              refine_mac_mod.f90  refine_params.f90
              refine_random_mod.f90
              refine_reset.f90 refine_run.f90 refine_show.f90 

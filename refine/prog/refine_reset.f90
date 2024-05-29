@@ -12,6 +12,7 @@ USE refine_blk_appl
 USE refine_control_mod
 USE refine_data_mod
 USE refine_fit_erg
+use refine_log_mod
 USE refine_params_mod
 USE do_variable_mod
 USE precision_mod
@@ -83,7 +84,8 @@ conv_conf_u    = .FALSE. ! Minimum confidence level; user defined
 refine_lamda_s_u = .FALSE.!MRQ lamda start
 refine_lamda_u_u = .FALSE.!MRQ lamda Increase (up)
 refine_lamda_d_u = .FALSE.!MRQ lamda Decrease (down)
-
+!
+refine_log = .false.
 !
 END SUBROUTINE refine_do_reset
 !

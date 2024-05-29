@@ -12,6 +12,8 @@ SUBROUTINE refine_initarrays
 !
 !       Startvalues for all important arrays.                           
 !                                                                       
+!
+use run_mpi_mod
 USE prompt_mod 
 !
 IMPLICIT NONE
@@ -22,6 +24,7 @@ s_port = 3333
 s_ipallowed = "localhost" 
 !
 !   CALL init_refine
+call run_mpi_senddata_init
 !
 END SUBROUTINE refine_initarrays
 !

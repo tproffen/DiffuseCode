@@ -11,6 +11,7 @@ CONTAINS
 SUBROUTINE refine_set(line, length)
 !
 USE refine_control_mod
+use refine_log_mod
 !
 USE errlist_mod
 USE ber_params_mod
@@ -62,6 +63,8 @@ ELSEIF(str_comp (cpara(1), 'relax', 3, lpara(1), 5) ) THEN
 !        refine_lamda_d  = werte(4)
 !     ENDIF
 !  ENDIF
+elseif(str_comp(cpara(1), 'log', 3, lpara(1), 3)) then
+   refine_log = str_comp(cpara(2), 'on', 2, lpara(1), 2)
 ELSE
    ier_num = -8
    ier_typ = ER_COMM
