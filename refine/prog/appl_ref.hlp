@@ -9,6 +9,13 @@
    refinement parameters are determined numerically by calling
    the macro at p +-h where p is the current parameter value
    and h a small deviation.
+   The caclulation of the derivatives is time consuming and can be 
+   run in parallel by starting the discus suite with:
+   mpiexec -n NNN discus_suite -macro refinement_macro
+      NNN is the number of available / desired CPUs
+   At Windows initiate the parllel refinement with:
+   parallel NNN, refinement_macro
+      Here NNN can be omitted to use all CPUs
 
 2  Summary
 
@@ -185,6 +192,7 @@
 !p            ["chisq:<value>]
 !p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
 !p            [,"success:"<lamda_g>]
+!p set log "on"| "off"
 !p
 
    Several basic settings to fine tune the refinement. These can be
@@ -274,6 +282,17 @@
         beyond the Chi^2 minimum. With lamda_f > 1 the lambda value
         is increased to take smaller steps.
         Default is 4.0
+3  log
+!p set log, on   
+!p set log, off
+
+   If refine is run in parallel vie mpiexec (MAC, LINUX) or the 
+   suite/parallel caommand(WINDOWS) you can create log files 
+   that document the run of the work macro. These logs will be 
+   stored in an otherwise temporary directory called
+   "DISCUS_SUITE_DERIVATIVES" located within the current directory.
+   Logfils are called "LOGFILE.nnnn", where nnnn is a number that
+   enumerates the calculations needed for all derivatives.   
 2  sigma
 !p sigma "kuplot", <number> 
 !p sigma <type>,<infile>
