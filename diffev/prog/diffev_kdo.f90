@@ -723,6 +723,9 @@ ELSE
          ier_msg(3) = 'Check population size, dimension etc'
          RETURN
       ENDIF
+!
+      call alloc_senddata(max(1,pop_dimx), max(1,n_rvalue_i))
+!
       DO i=1, pop_dimx
          IF(.NOT. pop_refine(i)) THEN  ! parameter is fixed, check pop_xmin/max
             IF(pop_xmin(i) /= pop_xmax(i) .OR.         &
