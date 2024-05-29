@@ -471,7 +471,7 @@ real(kind=PREC_DP), parameter :: TOL = 1.0D-5
 character(len=PREC_STRING) :: string
 integer :: length     ! Dummy index
 integer :: ik         ! Data set number in KUPLOT
-logical :: w_data     ! Use weight from data
+!logical :: w_data     ! Use weight from data
 !
 if(minval(exp_temp_dy)<TOL .and. maxval(exp_temp_dy)<TOL) then
   exp_temp_dy = 1.0_PREC_DP
