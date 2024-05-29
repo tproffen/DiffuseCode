@@ -159,7 +159,7 @@ IMPLICIT NONE
 integer :: i,j
 INTEGER :: k,iscat
 INTEGER :: npkt
-REAL( KIND=PREC_DP)            :: signum, q
+REAL( KIND=PREC_DP)            :: signum
 !character(len=1024) :: ofile
 !
 npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1

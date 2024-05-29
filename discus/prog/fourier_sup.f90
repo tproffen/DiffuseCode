@@ -334,7 +334,7 @@ implicit none
 real(kind=PREC_DP), parameter :: EPS=1.0D-8
 real(kind=PREC_DP), parameter :: MAXSCALE=3.0D0      ! Maximum scale allowed by FINUFFT
 integer               :: i, j, k  ! Dummy index
-integer               :: ii       ! Dummy index
+!integer               :: ii       ! Dummy index
 integer               :: iscat    ! Dummy scattering type
 integer, dimension(:), allocatable :: nat      ! Atom number
 integer               :: is_dim   ! Crystal is of this dimension
@@ -355,12 +355,12 @@ real(kind=PREC_DP)   , dimension(:,:), allocatable :: ypos    ! atom coordinates
 real(kind=PREC_DP)   , dimension(:,:), allocatable :: zpos    ! atom coordinates, fractional
 complex(kind=PREC_DP), dimension(:,:,:), allocatable :: fcsf    ! complex structure factor from FINUFFT
 !
-real(kind=PREC_DP)   , dimension(:    ), allocatable :: infield_1d    ! input into LANCZOS
-real(kind=PREC_DP)   , dimension(:,:  ), allocatable :: infield_2d    ! input into LANCZOS
-real(kind=PREC_DP)   , dimension(:,:,:), allocatable :: infield_3d    ! input into LANCZOS
-real(kind=PREC_DP)   , dimension(:    ), allocatable ::outfield_1d    ! input into LANCZOS
-real(kind=PREC_DP)   , dimension(:,:  ), allocatable ::outfield_2d    ! input into LANCZOS
-real(kind=PREC_DP)   , dimension(:,:,:), allocatable ::outfield_3d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:    ), allocatable :: infield_1d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:,:  ), allocatable :: infield_2d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:,:,:), allocatable :: infield_3d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:    ), allocatable ::outfield_1d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:,:  ), allocatable ::outfield_2d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:,:,:), allocatable ::outfield_3d    ! input into LANCZOS
 !
 character(len=1), dimension(3) :: c_hkl
 character(len=8), dimension(3) :: c_axes
@@ -2774,7 +2774,6 @@ INTEGER            :: ih_max,ik_max,il_max
 INTEGER            :: n_refl
 INTEGER            :: startline
 INTEGER            :: j
-integer :: iii
 INTEGER            :: nentries
 INTEGER            :: length, ianz
 INTEGER            ::   j_h      = 0

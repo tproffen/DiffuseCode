@@ -407,7 +407,7 @@ LOGICAL         ,                  INTENT(IN) :: l_site
 integer                          , intent(in) :: MAXMASK
 logical, dimension(0:MAXMASK)    , intent(in) :: uni_mask           ! Mask for unique atom types
 !
-character(len=PREC_STRING) :: string
+!character(len=PREC_STRING) :: string
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: strucfile
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: outfile
 logical             :: l_not_full      ! Do not use old cr_anis_full
