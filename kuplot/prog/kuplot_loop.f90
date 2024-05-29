@@ -2,7 +2,7 @@ MODULE kuplot_loop_mod
 !
 CONTAINS
 !
-      SUBROUTINE kuplot_loop
+recursive SUBROUTINE kuplot_loop
 !                                                                       
 use kuplot_exit_mod
 use kuplot_draw_mod
