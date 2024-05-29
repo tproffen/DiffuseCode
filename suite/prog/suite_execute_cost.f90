@@ -14,6 +14,7 @@ SUBROUTINE suite_execute_cost( repeat,           &
                          rvalue, l_rvalue, &
                          output_len,       &
                          output, output_l, &
+                         GLOBAL_FLAGS_MAX, global_flags, &
                          generation, member, &
                          children, parameters, &
                                  nindiv  , &
@@ -41,6 +42,11 @@ USE kuplot_setup_sub_mod
 USE kuplot_loop_mod
 use kuplot_reset_mod
 !
+USE refine_setup_mod
+USE refine_setup_sub_mod
+USE refine_loop_mod
+use refine_reset
+!
 USE suite_setup_mod
 USE suite_set_sub_mod
 !
@@ -48,6 +54,7 @@ USE appl_env_mod
 USe define_variable_mod
 USE do_set_mod
 USE errlist_mod
+use lib_global_flags_mod
 USE lib_length
 USE mpi_slave_mod
 use precision_mod
@@ -81,6 +88,8 @@ INTEGER                , INTENT(OUT) :: n_rvalue_o
 INTEGER                , INTENT(IN)  :: NRVAL
 REAL(kind=PREC_DP), DIMENSION(0:NRVAL), INTENT(OUT) :: rvalue
 LOGICAL                , INTENT(OUT):: l_rvalue
+integer                , intent(in) :: GLOBAL_FLAGS_MAX
+integer(kind=PREC_INT_BYTE), dimension(GLOBAL_FLAGS_MAX) :: global_flags
 INTEGER                , INTENT(IN) :: generation
 INTEGER                , INTENT(IN) :: member
 INTEGER                , INTENT(IN) :: children
@@ -89,9 +98,9 @@ INTEGER                , INTENT(IN) :: nindiv
 INTEGER                , INTENT(IN) :: NTRIAL
 CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_n
 REAL(kind=PREC_DP),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
-LOGICAL                , INTENT(IN)  :: l_get_random_state
-INTEGER                , INTENT(OUT) :: rd_nseeds
-INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
+integer                , INTENT(IN)  :: l_get_random_state
+INTEGER                , INTENT(inOUT) :: rd_nseeds
+INTEGER, DIMENSION(64) , INTENT(inOUT) :: rd_seeds
 LOGICAL                , INTENT(IN ) :: l_first_job
 INTEGER                , INTENT(OUT):: ierr
 INTEGER                , INTENT(OUT):: ierr_typ
@@ -123,6 +132,8 @@ ier_mpi = .TRUE.
 ierr     = 0
 ierr_typ = 0
 ierr_msg = ' '
+!
+lib_global_flags = global_flags  ! Copy all global flags
 !
 CALL do_chdir(direc,direc_l,.FALSE.)    ! Set current directory as passed from master
 !
@@ -258,13 +269,15 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
       l_discus_init = .true.
    ENDIF
 !
-! If instructed, get state of random number generator
+! If instructed, get/set state of random number generator
 !
    np = 1
    idummy(:) = 0
    CALL ini_ran_ix(np, idummy, kid+indiv)
-   IF(l_get_random_state) THEN
+   IF(l_get_random_state==-1) THEN
       CALL random_current(rd_nseeds, rd_seeds)
+   elseif(l_get_random_state==1) then
+      call put_seeds(rd_nseeds, rd_seeds)
    ENDIF
 !
    IF(str_comp(prog, 'discus', 6, prog_l, 6)) THEN
@@ -289,6 +302,16 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
       CALL kuplot_set_sub ()
       CALL suite_set_sub_branch
       CALL kuplot_loop ()
+   ELSEIF(str_comp(prog, 'refine', 6, prog_l, 6)) THEN
+      pname     = 'refine'
+      pname_cap = 'REFINE'
+      prompt    = pname
+      oprompt   = pname
+      var_val(VAR_PROGRAM)= var_val(VAR_REFINE)   ! Set program to REFINE
+      var_val(VAR_STATE)  = var_val(VAR_IS_SECTION)
+      CALL kuplot_set_sub ()
+      CALL suite_set_sub_branch
+      CALL refine_loop ()
    ENDIF
 !
    mpi_slave_error = ier_num

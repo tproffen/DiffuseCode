@@ -79,6 +79,7 @@ INTERFACE
                             rvalue, l_rvalue, &
                             output_len,       &
                             output, output_l, &
+                            GLOBAL_FLAGS_MAX, global_flags, &
                             generation, member, &
                             children, parameters, &
                                     nindiv  , &
@@ -112,6 +113,8 @@ INTERFACE
    INTEGER                , INTENT(IN ):: NRVAL
    REAL(kind=PREC_DP), DIMENSION(0:NRVAL), INTENT(OUT):: rvalue
    LOGICAL                , INTENT(OUT):: l_rvalue
+   integer                , intent(in) :: GLOBAL_FLAGS_MAX
+   integer(kind=PREC_INT_BYTE), dimension(GLOBAL_FLAGS_MAX) :: global_flags
    INTEGER                , INTENT(IN) :: generation
    INTEGER                , INTENT(IN) :: member
    INTEGER                , INTENT(IN) :: children
@@ -120,9 +123,9 @@ INTERFACE
    INTEGER                , INTENT(IN) :: NTRIAL
    CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_n
    REAL(kind=PREC_DP),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
-   LOGICAL                , INTENT(IN)  :: l_get_random_state
-   INTEGER                , INTENT(OUT) :: rd_nseeds
-   INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
+   integer                , INTENT(IN)  :: l_get_random_state
+   INTEGER                , INTENT(inOUT) :: rd_nseeds
+   INTEGER, DIMENSION(64) , INTENT(inOUT) :: rd_seeds
    LOGICAL                , INTENT(IN)  :: l_first_job
    INTEGER                , INTENT(OUT):: ierr 
    INTEGER                , INTENT(OUT):: ierr_typ
