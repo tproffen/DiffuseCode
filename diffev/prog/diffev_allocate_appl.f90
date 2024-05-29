@@ -26,6 +26,7 @@ PUBLIC  :: dealloc_backup
 !PUBLIC  :: alloc_socket_nprogs
 PUBLIC  :: alloc_population
 PUBLIC  :: alloc_constraint
+public  :: alloc_senddata
 PUBLIC  :: diffev_show_config
 !
 !
@@ -179,6 +180,7 @@ USE str_comp_mod
 !
       CALL alloc_constraint ( 1 )
       CALL alloc_population ( 1,  1    )
+      CALL alloc_senddata   ( 1,  1    )
       CALL alloc_backup     ( 20)
 !      CALL alloc_socket_nprogs ( 2, 1)
 !
@@ -361,6 +363,36 @@ USE str_comp_mod
 !
     END SUBROUTINE alloc_population
 !
+!*******************************************************************************
+!
+subroutine alloc_senddata(n_dimx, n_rvalue)
+!-
+!  Allocate variables within senddata
+!+
+use run_mpi_mod
+!
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: n_dimx
+integer, intent(in) :: n_rvalue
+!
+!integer :: all_status
+!
+!call alloc_arr(run_mpi_senddata%trial_values, 1, n_dimx  , all_status, 0.0_PREC_DP)
+!call alloc_arr(run_mpi_senddata%trial_names , 1, n_dimx  , all_status, ' '        )
+!call alloc_arr(run_mpi_senddata%rvalue      , 0, n_rvalue, all_status, 0.0_PREC_DP)
+!RUN_MPI_COUNT_TRIAL = n_dimx
+!RUN_MPI_MAXRVALUE   = n_rvalue
+!run_mpi_senddata%RUN_MPI_COUNT_TRIAL = n_dimx
+!run_mpi_senddata%RUN_MPI_MAXRVALUE   = n_rvalue
+run_mpi_senddata%RUN_MPI_COUNT_TRIAL = RUN_MPI_COUNT_TRIAL
+run_mpi_senddata%RUN_MPI_MAXRVALUE   = RUN_MPI_MAXRVALUE
+!
+end subroutine alloc_senddata
+!
+!*******************************************************************************
 !
     SUBROUTINE alloc_backup ( n_pop)
 !-
