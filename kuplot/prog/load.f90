@@ -588,7 +588,7 @@ IF (ianz.ge.2) then
             CALL hdf5_read_kuplot(cpara(2),lpara(2), O_LAYER, O_TRANS, NOPTIONAL, opara,   &
                            lopara, lpresent, owerte , iz, ku_ndims,               &
                            ier_num, ier_typ, UBOUND(ier_msg,1), ier_msg, ER_APPL, &
-                           ER_IO, output_io)
+                           ER_IO, lecho, output_io)
 !XX!                       MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny,    &
 !XX!                       xmin, xmax, ymin, ymax, offxy, offz, lni, lh5, ku_ndims, lenc, &
             deallocate(cpara)
