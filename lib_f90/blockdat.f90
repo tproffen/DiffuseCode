@@ -16,6 +16,7 @@ USE debug_mod
 USE doloop_mod
 USE gauss_lorentz_pseudo_mod
 USE learn_mod 
+use lib_global_flags_mod
 USE macro_mod 
 USE param_mod 
 USE prompt_mod 
@@ -98,6 +99,8 @@ CALL variable_init
 ! INIT GAUSS AND LORENTZ LOOKUP
 !
 CALL glp_setup
+!
+call lib_global_flags_reset   ! Reset all global flags
 !
 END SUBROUTINE init_sysarrays                 
 END MODULE lib_init_mod
