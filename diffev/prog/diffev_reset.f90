@@ -10,6 +10,7 @@ SUBROUTINE diffev_do_reset
 USE diffev_allocate_appl
 USE diffev_blk_appl
 USE population
+use run_mpi_mod
 USE diff_evol
 USE do_variable_mod
 USE precision_mod
@@ -52,6 +53,7 @@ pop_current        = .FALSE.
 !
 CALL diffev_do_allocate_appl(zeile,lcomm)
 CALL diffev_initarrays
+call run_mpi_senddata_init    ! Initialize run_mpi_senddata
 !
 END SUBROUTINE diffev_do_reset
 !
