@@ -24,7 +24,7 @@ CONTAINS
 !
 SUBROUTINE hdf5_read_kuplot(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte, iz, ku_ndims,     &
-                     ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+                     ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, lout, output_io)
 !
 use kuplot_global
 !
@@ -50,6 +50,7 @@ INTEGER,                            INTENT(OUT)   :: ier_typ
 INTEGER,                            INTENT(IN )   :: idims
 CHARACTER(LEN=*), DIMENSION(idims), INTENT(INOUT) :: ier_msg    ! Error message
 INTEGER,                            INTENT(IN )   :: ER_APPL
+logical,                            intent(in)    :: lout
 INTEGER,                            INTENT(IN )   :: ER_IO
 INTEGER, INTENT(IN)    :: output_io   ! KUPLOT array size
 !
@@ -60,7 +61,6 @@ integer               :: node_number = 0
 integer               :: ndims = 0
 integer               :: ik
 integer, dimension(3) :: dims  = 1
-logical               :: lout = .TRUE.
 !
 dataname = ' '
 !
