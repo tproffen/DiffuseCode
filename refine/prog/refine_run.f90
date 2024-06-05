@@ -111,6 +111,11 @@ IF(.NOT.lexist) THEN              ! Macro does not exist
    RETURN
 ENDIF
 !
+if(refine_log) then
+   string = 'mkdir -p DISCUS_SUITE_DERIVATIVES'
+   call execute_command_line(string, CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg, wait=.true.)
+endif
+!
 ref_do_plot = .FALSE.
 plmac       = ' '
 IF(opara(OPLOT) /= ' ') THEN
@@ -298,6 +303,8 @@ INTEGER              :: k ! Dummy loop variable
 integer :: tid
 integer :: nthreads
 logical :: lserial
+character(len=PREC_STRING) :: string
+integer :: iix
 !
 tid = 0
 nthreads = 1
@@ -366,6 +373,14 @@ initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user 
 !OMP !$OMP END PARALLEL
 !OMP endif
       endif cond_MPI
+!do k=1, npara
+!write(string,'(a,i4.4)') 'DISCUS_SUITE_DERIVATIVES/DERIVATIVE', k
+!open(55, file=string(1:len_trim(string)), status='unknown')
+!do iix=1, data_dim(1)
+!write(55,'(2(g20.12e3,2x))') real(iix), refine_derivs(iix, 1  , 1  , k)
+!enddo
+!close(55)
+!enddo
    ENDIF if_deriv
    if(.not.(gl_is_der(1) .and. gl_is_der(2))) then
             CALL refine_restore_seeds
@@ -988,7 +1003,7 @@ integer :: i, j, l    ! Dummy loop indeces
 integer :: j2, j3  ! Dummy loop indeces
 integer :: iix, iiy, iiz ! Dummy loop indices
 integer           , dimension(     NPARA):: nder    ! Number of derivatives calculated
-logical           , dimension(-3:3) :: lvec
+logical           , dimension(-3:3,NPARA) :: lvec
 real(kind=PREC_DP), dimension(-3:3,NPARA) :: dvec
 real(kind=PREC_DP), dimension(     NPARA) :: delta
 real(kind=PREC_DP), dimension(:,:,:  ), allocatable :: refine_temp           ! Calculated values at derivative l
@@ -1022,7 +1037,7 @@ loop_npara_init: do k=1, NPARA
       ELSE cond_is_deriv
          nder(k) = 1                     ! First point is at P(k)
          dvec(:,k) = 0.0
-         lvec(:) = .FALSE.
+         lvec(:,k) = .FALSE.
          dvec(0,k) = p(k)               ! Store parameter value
          cond_if_delta: IF(p(k)/=0.0) THEN
             delta(k) = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
@@ -1043,22 +1058,22 @@ loop_npara_init: do k=1, NPARA
             delta(k) = MIN(ABS(delta(k)), 0.5D0*(ABS(prange(k,2) - p(k)))) ! Make sure +2Delta fits
             dvec(1,k) = p(k) + delta(k)
             dvec(2,k) = p(k) + 2.0D0*delta(k)
-            lvec(1) = .TRUE.
-            lvec(2) = .TRUE.
+            lvec(1,k) = .TRUE.
+            lvec(2,k) = .TRUE.
             nder(k) = 3
          ELSEIF(p(k)==prange(k,2)) THEN         ! At upper limit, use -delta -2delta
             delta(k) = MIN(ABS(delta(k)), 0.5D0*(ABS(p(k) - prange(k,1)))) ! Make sure -2Delta fits
             dvec(-2,k) = p(k) - 2.0D0*delta(k)
             dvec(-1,k) = p(k) - 1.0D0*delta(k)
-            lvec(-2) = .TRUE.
-            lvec(-1) = .TRUE.
+            lvec(-2,k) = .TRUE.
+            lvec(-1,k) = .TRUE.
             nder(k) = 3
          ELSE                               ! within range, use +-delta or +2delta
             IF(p_nderiv(k)==3) THEN         ! Three point derivative
                dvec(-1,k) = MIN(prange(k,2),MAX(prange(k,1),p(k)+(delta(k)))) ! +delta
                dvec( 1,k) = MIN(prange(k,2),MAX(prange(k,1),p(k)-(delta(k)))) ! -delta
-               lvec(-1) = .TRUE.
-               lvec( 1) = .TRUE.
+               lvec(-1,k) = .TRUE.
+               lvec( 1,k) = .TRUE.
                nder(k) = 3
             ELSEIF(p_nderiv(k)==5) THEN     ! Five point derivative
                delta(k) = MIN(delta(k), 0.5D0*(ABS(prange(k,2) - p(k))),  &
@@ -1067,10 +1082,10 @@ loop_npara_init: do k=1, NPARA
                dvec(-1,k) = p(k) - 1.0D0*delta(k)
                dvec( 1,k) = p(k) + 1.0D0*delta(k)
                dvec( 2,k) = p(k) + 2.0D0*delta(k)
-               lvec(-2) = .TRUE.
-               lvec(-1) = .TRUE.
-               lvec( 1) = .TRUE.
-               lvec( 2) = .TRUE.
+               lvec(-2,k) = .TRUE.
+               lvec(-1,k) = .TRUE.
+               lvec( 1,k) = .TRUE.
+               lvec( 2,k) = .TRUE.
                nder(k) = 5
             ENDIF
          ENDIF
@@ -1079,8 +1094,8 @@ loop_npara_init: do k=1, NPARA
          IF(p_nderiv(k)==3) THEN         ! Three point derivative
             dvec(-1,k) = p(k) - 1.0D0*delta(k)
             dvec( 1,k) = p(k) + 1.0D0*delta(k)
-            lvec(-1  ) = .TRUE.
-            lvec( 1  ) = .TRUE.
+            lvec(-1,k) = .TRUE.
+            lvec( 1,k) = .TRUE.
             nder(k) = 3
          ELSEIF(p_nderiv(k)==5) THEN     ! Five point derivative
             dvec(-2,k) = p(k) - 2.0D0*delta(k)
@@ -1088,10 +1103,10 @@ loop_npara_init: do k=1, NPARA
             dvec( 0,k) = p(k)
             dvec( 1,k) = p(k) + 1.0D0*delta(k)
             dvec( 2,k) = p(k) + 2.0D0*delta(k)
-            lvec(-2) = .TRUE.
-            lvec(-1) = .TRUE.
-            lvec( 1) = .TRUE.
-            lvec( 2) = .TRUE.
+            lvec(-2,k) = .TRUE.
+            lvec(-1,k) = .TRUE.
+            lvec( 1,k) = .TRUE.
+            lvec( 2,k) = .TRUE.
             nder(k) = 5
          ENDIF
 !           p_d     = p(k) + delta
@@ -1100,7 +1115,7 @@ loop_npara_init: do k=1, NPARA
 !     Populate trial values for DIFFEV
 !
       do l=-2,2
-         if(lvec(l)) then
+         if(lvec(l,k)) then
             run_mpi_senddata%children = run_mpi_senddata%children + 1    ! at p(k) + delta
             pop_t(k, run_mpi_senddata%children) = dvec(l,k)
             kid_is(1,run_mpi_senddata%children) =  k
@@ -1113,6 +1128,8 @@ loop_npara_init: do k=1, NPARA
 enddo loop_npara_init
 pop_n = run_mpi_senddata%children
 pop_c = run_mpi_senddata%children
+pop_gen = 0
+lastgen = -1
 !do k=1, run_mpi_senddata%children
    if(refine_log) then
       write(run_mpi_senddata%out,'(a)') 'DISCUS_SUITE_DERIVATIVES/LOGFILE'
@@ -1134,7 +1151,7 @@ ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), -2:2))
 !
 if(1==2) then   ! DUMMY OLD STUFF
    DO l = -2, 2
-      IF(lvec(l)) THEN
+      IF(lvec(l,k)) THEN
          CALL refine_set_param(NPARA, par_names(k), k, (dvec(l,k)) )  ! Set modified value
          CALL refine_restore_seeds
          CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
@@ -1193,10 +1210,10 @@ loop_npara_eval: do k=1, NPARA
    ELSEIF(nder(k)==3) THEN             ! Got all three points for derivative
       xmat(:,1) =  1.0
       xmat(1,2) =  dvec(0,k) !p(k)
-      IF(lvec(2)) THEN              ! +delta, + 2delta
+      IF(lvec(2,k)) THEN              ! +delta, + 2delta
          j2 =  1
          j3 =  2
-      ELSEIF(lvec(-2)) THEN         ! -delta, - 2delta
+      ELSEIF(lvec(-2,k)) THEN         ! -delta, - 2delta
          j2 = -1
          j3 = -2
       ELSE
@@ -2018,6 +2035,7 @@ DO j=2, NPARA                   ! Fill in upper diagonal
 ENDDO
 !write(*,*) ' ALPHA 1: ', alpha(1,:)
 !write(*,*) ' ALPHA 2: ', alpha(2,:)
+!write(*,*) ' ALPHA 3: ', alpha(3,:)
 !
 END SUBROUTINE mrqcof
 !
@@ -2218,9 +2236,9 @@ if(ios/=0) then
 endif
 ios = len_trim(string)
 call rem_dbl_bl(string,ios)
-if(string=='branch discus') then
+if(string(1:13)=='branch discus') then
    run_mpi_senddata%prog       = 'kuplot'
-elseif(string=='branch kuplot') then
+elseif(string(1:13)=='branch kuplot') then
    run_mpi_senddata%prog       = 'discus'
 endif
 !
