@@ -1,4 +1,7 @@
-6.16.04  DRAFT
+6.17.01  DRAFT
+REFINE
+  refine      xiBUG FIX Failed for differing "points:" number.
+6.17.00  RELEASE 2024_06_02
 GENERAL
 DISCUS
 KUPLOT
