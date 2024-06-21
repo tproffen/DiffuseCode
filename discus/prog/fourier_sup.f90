@@ -2745,6 +2745,7 @@ USE param_mod
 USE prompt_mod
 USE precision_mod
 USE support_mod
+USE trig_degree_mod
 !
 IMPLICIT NONE
 !
