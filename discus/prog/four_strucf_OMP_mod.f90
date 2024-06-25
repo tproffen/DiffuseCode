@@ -115,6 +115,7 @@ num123_1 = fnum(1)*fnum(2)*fnum(3)-1
 !write(*,'(a,3f6.2, 2x, 3f6.2)') ' VIN ', vin, off_shift(:,2)
 !write(*,'(a,3f6.2, 2x, 3f6.2)') ' WIN ', win, off_shift(:,3)
 !write(*,'(a,6i10)')  ' LMN ', lmn
+!write(*,*) ' NXAT ', nxat, fnum
 !
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
