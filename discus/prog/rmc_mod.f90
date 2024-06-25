@@ -82,7 +82,7 @@ REAL(kind=PREC_DP)   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_mindist  
 !
 COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:,:,:,:)  , ALLOCATABLE  :: rmc_csf       ! (RMC_MAX_SQ, RMC_MAX_LOTS)
 COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:,:,:,:)  , ALLOCATABLE  :: rmc_csf_new   ! (RMC_MAX_SQ, RMC_MAX_LOTS)
-INTEGER, DIMENSION(:)      , ALLOCATABLE           :: ristl         ! (RMC_MAX_SQ)
+INTEGER, DIMENSION(:,:,:)  , ALLOCATABLE           :: ristl         ! (RMC_MAX_SQ)
 INTEGER, DIMENSION(:,:)    , ALLOCATABLE           :: rmc_lots_orig ! (3,RMC_MAX_LOTS)
 !
 REAL(kind=PREC_DP)   , DIMENSION(:,:,:)      , ALLOCATABLE           :: rmc_int       ! (RMC_MAX_Q)

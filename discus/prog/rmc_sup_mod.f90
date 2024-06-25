@@ -1595,7 +1595,7 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
       n_qxy(2)  = max(n_qxy(2), ny, MAXQXY(2))    ! NEEDS WORK
       n_qxy(1)  = nx                              ! NEEDS WORK
       n_qxy(2)  = ny                              ! NEEDS WORK
-      n_qxy(3)  =  1                              ! NEEDS WORK
+      n_qxy(3)  =  rmc_nplane                     ! NEEDS WORK
       if(any(n_qxy/=ubound(csf))) then
          call alloc_diffuse_four (n_qxy )
          if(ier_num/=0) return
@@ -1615,21 +1615,23 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
 !     call alloc_diffuse_scat (n_nscat)
 !     call alloc_diffuse_atom (n_natoms)
       rmc_n_sym = MAX(rmc_n_sym, nsym)    ! Save RMC actual number of symmetry operations
-      n_sq      = product(n_qxy)*rmc_n_sym
+      n_sq      = product(n_qxy)*rmc_n_sym! is already in n_qxy(3) *rmc_nplane
       rmc_n_sq  = n_sq                    ! Save RMC_actual number of data points * nsym
-      CALL alloc_rmc_istl ( n_sq, n_nscat, rmc_nplane )
+      CALL alloc_rmc_istl ( n_qxy, n_nscat, rmc_nplane )
 !                                                                       
 !------ initial q range of data to be used is ALL data                  
 !                                                                       
       CALL rmc_layer (1, ip) 
       CALL rmc_stltab (1, ip, .true.) 
 !                                                                       
-      qmin = (REAL(ristl (offsq (ip, 1) + 1),KIND=KIND(0.0D0)) * CFINC )
-      qmax = (REAL(ristl (offsq (ip, 1) + 1),KIND=KIND(0.0D0)) * CFINC )
-      DO i = 2, rmc_num (1, ip) * rmc_num (2, ip) 
-      qmin = min (qmin, (REAL(ristl (offsq (ip, 1) + i),KIND=KIND(0.0D0)) * CFINC) )
-      qmax = max (qmax, (REAL(ristl (offsq (ip, 1) + i),KIND=KIND(0.0D0)) * CFINC) )
-      ENDDO 
+!     qmin = (REAL(ristl (offsq (ip, 1) + 1),KIND=KIND(0.0D0)) * CFINC )
+!     qmax = (REAL(ristl (offsq (ip, 1) + 1),KIND=KIND(0.0D0)) * CFINC )
+      qmin = real(minval(ristl),kind=PREC_DP)*CFINC
+      qmax = real(maxval(ristl),kind=PREC_DP)*CFINC
+!     DO i = 2, rmc_num (1, ip) * rmc_num (2, ip) 
+!     qmin = min (qmin, (REAL(ristl (offsq (ip, 1) + i),KIND=KIND(0.0D0)) * CFINC) )
+!     qmax = max (qmax, (REAL(ristl (offsq (ip, 1) + i),KIND=KIND(0.0D0)) * CFINC) )
+!     ENDDO 
 !                                                                       
       rmc_qmin = min (rmc_qmin, qmin) 
       rmc_qmax = max (rmc_qmax, qmax) 
@@ -1880,6 +1882,7 @@ IF (ier_num.ne.0) return
 !                                                                       
 !------ calculate sums from exp. data needed and initial chi2           
 !                                                                       
+write(*,*) ' INITIAL CHI ', isym(1:2), ' PLANES ', rmc_nplane
       chi2_old = 0.0 
       DO ip=1,rmc_nplane
         rmc_wtot (ip)=0.0 
@@ -1896,8 +1899,10 @@ IF (ier_num.ne.0) return
           DO jq=1,rmc_num(2,ip)
           DO iq=1,rmc_num(1,ip)
             ii = iq*jq
-            IF ((ristl(offsq(ip,1)+ii)*CFINC).ge.rmc_llim .and.         &
-     &          (ristl(offsq(ip,1)+ii)*CFINC).le.rmc_ulim    ) THEN
+!           IF ((ristl(offsq(ip,1)+ii)*CFINC).ge.rmc_llim .and.         &
+!    &          (ristl(offsq(ip,1)+ii)*CFINC).le.rmc_ulim    ) THEN
+!RISTL        if(ristl(iq,jq,ip)*CFINC>=rmc_llim .and.         &
+!RISTL               ristl(iq,jq,ip)*CFINC<=rmc_ulim       ) then
                iii=offq(ip)+ii 
                rmc_wtot(ip)=rmc_wtot(ip)+rmc_wic(iq,jq,ip) 
                rmc_e (ip)=rmc_e (ip)+rmc_wic(iq,jq,ip)*rmc_int(iq,jq,ip) 
@@ -1905,10 +1910,12 @@ IF (ier_num.ne.0) return
                rmc_c =rmc_c +rmc_wic(iq,jq,ip)*dsi(iq,jq,ip) 
                rmc_cc=rmc_cc+rmc_wic(iq,jq,ip)*dsi(iq,jq,ip)**2 
                rmc_ce=rmc_ce+rmc_wic(iq,jq,ip)*dsi(iq,jq,ip)*rmc_int(iq,jq,ip) 
-            ENDIF 
+!RISTL            ENDIF 
           ENDDO 
           ENDDO 
         ENDDO 
+write(*,*) ' WEIGHT ', rmc_wtot(ip), rmc_e (ip), rmc_ee(ip), rmc_c, rmc_cc, rmc_ce
+write(*,*) ' DSI    ', dsi(1,1,ip), dsi(rmc_num(1,ip), rmc_num(2,ip), ip)
         IF (rmc_e(ip).gt.1E-06) THEN 
           call rmc_calcskal(ip,rmc_wtot(ip),rmc_c,rmc_cc,rmc_ce,        &
                                  rmc_e(ip),skal,back)        
@@ -1919,6 +1926,8 @@ IF (ier_num.ne.0) return
           chi2_old=chi2_old + chi2(ip) 
         ENDIF 
       ENDDO 
+write(*,*) ' INITIAL CHI ', chi2
+write(*,*) ' INITIAL wtot', rmc_wtot(1:2)
 !                                                                       
       IF (chi2_old.lt.1E-06) THEN 
         ier_num = -14 
@@ -1981,13 +1990,15 @@ IF (ier_num.ne.0) return
               DO jq=1,rmc_num(2,ip)
               DO iq=1,rmc_num(1,ip)
                 ii = iq*jq
-                IF ((ristl(offsq(ip,is)+iq)*CFINC).ge.rmc_llim .and.    &
-     &              (ristl(offsq(ip,is)+iq)*CFINC).le.rmc_ulim ) THEN
+!               IF ((ristl(offsq(ip,is)+iq)*CFINC).ge.rmc_llim .and.    &
+!    &              (ristl(offsq(ip,is)+iq)*CFINC).le.rmc_ulim ) THEN
+!RISTL                if(ristl(iq,jq,ip)*CFINC>=rmc_llim .and.         &
+!RISTL                   ristl(iq,jq,ip)*CFINC<=rmc_ulim       ) then
                   iii=offq(ip)+ii 
                   rmc_c =rmc_c +rmc_wic(iq,jq,ip)*dsi(iq,jq,ip) 
                   rmc_cc=rmc_cc+rmc_wic(iq,jq,ip)*dsi(iq,jq,ip)**2 
                   rmc_ce=rmc_ce+rmc_wic(iq,jq,ip)*dsi(iq,jq,ip)*rmc_int(iq,jq,ip) 
-                ENDIF 
+!RISTL                ENDIF 
               ENDDO 
               ENDDO 
             ENDDO 
@@ -2223,6 +2234,14 @@ loop_plane: DO ip = 1, rmc_nplane                                               
             CALL rmc_layer (k, ip) 
             CALL fourier_lmn(eck,vi,num,lmn,off_shift)
             fnum = num   ! Number of increments (reduced by Friedel)
+write(*,*) ' RMC_LAYER ', num, ' :: ',k, ip
+write(*,*) ' eck 1     ', eck(:,1)
+write(*,*) ' eck 2     ', eck(:,2)
+write(*,*) ' eck 3     ', eck(:,3)
+write(*,*) ' Vi  1     ',  vi(:,1)
+write(*,*) ' Vi  2     ',  vi(:,2)
+write(*,*) ' Vi  3     ',  vi(:,3)
+write(*,*) ' NSCAT     ', cr_nscat, rmc_nlots, fnum
             CALL rmc_stltab (k, ip, .true.) 
             CALL four_aver (rmc_ilots, rmc_ave, cr_icc, fnum, ldiscamb) 
 !                                                                       
@@ -2240,10 +2259,12 @@ loop_plane: DO ip = 1, rmc_nplane                                               
             DO iscat = 1, cr_nscat                                                              ! Loop over iscat
                CALL four_getatm (iscat, rmc_ilots, lbeg, ncell) 
                CALL four_strucf (iscat, .true., .false., .false., 1, 1, fnum) 
+write(*,*) ' PLANE ', ip, tcsf(1,1,ip), tcsf(rmc_num(1, ip), rmc_num(2, ip),ip), &
+minval(real(tcsf(:,:,ip))), maxval(imag(tcsf(:,:,ip)))
 !              DO i = 1, rmc_num (1, ip) * rmc_num (2, ip)                                      ! Loop over i
 !                 rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) + tcsf (i)                  ! Clarify who are these "rmc" arrays ...
 !              ENDDO                                                                            ! End loop over i
-               do j=1, rmc_num(1, ip)
+               do j=1, rmc_num(2, ip)
                do i=1, rmc_num(1, ip)
                   rmc_csf(i,j,ip,k,nlot) = rmc_csf (i,j,ip,k,nlot) + tcsf(i,j,ip)
                enddo
@@ -2266,6 +2287,7 @@ loop_plane: DO ip = 1, rmc_nplane                                               
 !------ we don not need to calculate the initial Fourier again          
 !                                                                       
       rmc_calc_f = .false. 
+write(*,*) ' RMC_CSF  ', minval(real(rmc_csf)), maxval(imag(rmc_csf))
       RETURN 
 !                                                                       
    99 CONTINUE 
@@ -2571,7 +2593,8 @@ END SUBROUTINE rmc_inten
          do j = 1,rmc_num (2, ip)
          DO i = 1, rmc_num (1, ip)! * rmc_num (2, ip) 
          k = k + 1
-         ristl (offsq (ip, is) + k) = istl (i,j,ip) 
+!        ristl (offsq (ip, is) + k) = istl (i,j,ip) 
+         ristl(i,j,ip) = istl(i,j,ip)
          ENDDO 
          ENDDO 
 !                                                                       
@@ -2582,7 +2605,8 @@ END SUBROUTINE rmc_inten
          do j = 1,rmc_num (2, ip)
          DO i = 1, rmc_num (1, ip)! * rmc_num (2, ip) 
          k = k + 1
-         istl (i,j,ip) = ristl (offsq (ip, is) + k) 
+!        istl (i,j,ip) = ristl (offsq (ip, is) + k) 
+         istl(i,j,ip) = ristl(i,j,ip)
          ENDDO 
          ENDDO 
       ENDIF 
@@ -2675,6 +2699,7 @@ END SUBROUTINE rmc_inten
       vi (1:3,1:2) = rmc_vi (1:3,1:2,is, ip)
       vi (1:3,3)   = 0.0
       num(3)       = 1
+
 !                                                                       
       END SUBROUTINE rmc_layer                      
 !*****7*****************************************************************
