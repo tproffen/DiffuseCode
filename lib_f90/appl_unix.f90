@@ -37,6 +37,7 @@ USE string_convert_mod
 USE support_mod
 use sys_compiler
 USE lib_do_operating_mod
+use gen_mpi_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -204,6 +205,8 @@ ELSE   !  /proc/version does not exist , likely a MAC OS X
    length = LEN_TRIM(line)
    CALL do_operating(line, length)
    line = ' '
+   length = len_trim(ufile)
+   call set_rw(ufile, length)
 !  WRITE(line,'(a,a,i10.10)')                                           &
 !         tmp_dir(1:tmp_dir_l), '/DISCUS_SUITE_UNAME' , PID
 !  INQUIRE(FILE=line                     ,EXIST=lpresent)
@@ -386,14 +389,21 @@ ENDIF
          ENDIF
          CALL do_chdir ( start_dir, start_dir_l, .FALSE.)
       ELSEIF(operating==OS_LINUX_WSL) THEN
-         CALL do_cwd (start_dir, start_dir_l) 
 !
-!           Started from Icon set start directory to
-!           User HOME
+         if(gen_mpi_myid==0) then  ! Start as MASTER only
             line = 'echo $PATH > '//tmp_dir(1:tmp_dir_l)//'/discus_suite_path.txt'
             length = LEN_TRIM(line)
             CALL do_operating(line, length)
+!           Set read/write priviledge to ensure file has been written to disk prior to next read 
             pathfile = tmp_dir(1:tmp_dir_l)//'/discus_suite_path.txt'
+            length = LEN_TRIM(pathfile)
+            call set_rw(pathfile, length)
+         endif
+!
+!           Started from Icon set start directory to
+!           User HOME
+         CALL do_cwd (start_dir, start_dir_l) 
+!
             OPEN(UNIT=idef,FILE=pathfile,ACTION='READ')
             READ(idef,'(a)') line
             CLOSE(UNIT=idef)
