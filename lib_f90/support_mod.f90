@@ -1026,6 +1026,28 @@ END SUBROUTINE umount_drive
 !
 !*****7***********************************************************      
 !
+subroutine set_rw(infile, length)
+!-
+!  set user rw  privillege to  a file
+!+
+!
+use precision_mod
+!
+implicit none
+!
+character(len=*), intent(in) :: infile
+integer         , intent(in) :: length
+!
+character(len=PREC_STRING) :: string
+character(len=PREC_STRING) :: message
+integer :: exit_msg
+integer :: ier_cmd
+!
+string = 'chmod u+rw ' // infile(1:length)
+call execute_command_line (string(1:LEN_TRIM(string)), wait=.true., &
+           CMDSTAT=ier_cmd, CMDMSG=message, exitstat=exit_msg)
+!
+end subroutine set_rw
 !
 !*****7**************************************************************** 
 !
