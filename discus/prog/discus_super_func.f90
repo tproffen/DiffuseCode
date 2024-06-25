@@ -197,24 +197,25 @@ integer :: i1, i2, j     ! Dummy indices
 logical, dimension(:), allocatable :: l_isite
 logical :: lselect
 !
-integer, parameter :: NOPTIONAL = 17
+integer, parameter :: NOPTIONAL = 18
 integer, parameter :: O_CURRENT = 1
-integer, parameter :: O_UP      = 2
-integer, parameter :: O_PHASE   = 3
-integer, parameter :: O_SITE    = 4
-integer, parameter :: O_PSEUDO  = 5
-integer, parameter :: O_CHAR    = 6
-integer, parameter :: O_FUNC    = 7
-integer, parameter :: O_DISP    = 8
-integer, parameter :: O_REPLACE = 9
-integer, parameter :: O_FILE    = 10
-integer, parameter :: O_QVEC    = 11
-integer, parameter :: O_AMP     = 12
-integer, parameter :: O_VEC     = 13
-integer, parameter :: O_NUMBER  = 14
-integer, parameter :: O_PROB    = 15
-integer, parameter :: O_OLD     = 16
-integer, parameter :: O_NEW     = 17
+integer, parameter :: O_GROUP   = 2
+integer, parameter :: O_UP      = 3
+integer, parameter :: O_PHASE   = 4
+integer, parameter :: O_SITE    = 5
+integer, parameter :: O_PSEUDO  = 6
+integer, parameter :: O_CHAR    = 7
+integer, parameter :: O_FUNC    = 8
+integer, parameter :: O_DISP    = 9
+integer, parameter :: O_REPLACE = 10
+integer, parameter :: O_FILE    = 11
+integer, parameter :: O_QVEC    = 12
+integer, parameter :: O_AMP     = 13
+integer, parameter :: O_VEC     = 14
+integer, parameter :: O_NUMBER  = 15
+integer, parameter :: O_PROB    = 16
+integer, parameter :: O_OLD     = 17
+integer, parameter :: O_NEW     = 18
 character(LEN=  12), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -223,21 +224,21 @@ logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
 integer, parameter                        :: ncalc = 2 ! Number of values to calculate 
 !
-data oname  / 'current', 'up'   , 'phase' , 'site' , 'pseudo', 'character', 'function', 'displacement',    &
+data oname  / 'current', 'group', 'up'   , 'phase' , 'site' , 'pseudo', 'character', 'function', 'displacement',    &
               'replace', 'file' , 'qvec'  , 'amp'      , 'vec'     , 'number'      ,    &
               'prob'   , 'old'  , 'new'                                             /
-data loname /  7    ,  2,           5,       4,       6,      9,           8,          12,               &
+data loname /  7    ,  5         ,  2,           5,       4,       6,      9,           8,          12,               &
                7    ,  4         ,  4       ,  3   ,  3   , 6   ,  4, 3, 3/
-opara  =  (/ '1.0000        ', '0.5000        ', '0.0000        ', '0.0000        ', &
+opara  =  (/ '1.0000        ', '1.0000        ', '0.5000        ', '0.0000        ', '0.0000        ', &
              'VOID          ', 'displa        ', &
              'sine          ', '[0,0,0,0]     ', '[VOID,0.0,1.0]', 'internal      ', &
              '[1,0,0]       ', '0.0000        ', '[1,0,0]       ', '1             ', &
              '[0.0,1.0]     ', 'VOID          ', 'VOID          '                   /)   ! Always provide fresh default values
-lopara =  (/  6         ,  6         ,  6         ,  6,           4,           6, &
+lopara =  (/  6         ,  6         ,  6         ,  6         ,  6,           4,           6, &
               6         ,  9         ,    &
               14        ,  9         ,  7,           6,           7         ,  1         ,    &
               9         ,  4,           4                                           /)
-owerte =  (/  1.0, 0.50, 1.0, 1.0, 0.0,      0.0,      0.0    ,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0  /)
+owerte =  (/  1.0, 1.0, 0.50, 1.0, 1.0, 0.0,      0.0,      0.0    ,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0  /)
 !
 call get_params(zeile, ianz, cpara, lpara, maxw, lp)
 call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
@@ -248,14 +249,27 @@ if(lpresent(O_FILE)) then   ! Set file:
    return
 endif
 !
-if(lpresent(O_CURRENT)) then   ! Set file:
+if(lpresent(O_CURRENT)) then   ! Set current wave:
    sup_current = owerte(O_CURRENT)
    if(sup_current>sup_nwaves) then
-      call alloc_super(cr_ncatoms, cr_nscat, sup_current)
+      call alloc_super(cr_ncatoms, cr_nscat, sup_current, sup_ngroups)
       sup_nwaves = sup_current
    endif
+!
+   if(lpresent(O_GROUP)) then   ! Set group
+      j = owerte(O_GROUP)
+      if(j>sup_ngroups) then
+         i1 = max(1, j, sup_ngroups)
+         call alloc_super(cr_ncatoms, cr_nscat, sup_current, i1)
+      endif
+      sup_group(sup_current) = j
+   else
+      sup_group(sup_current) = 1
+   endif
+!
    return
 endif
+!
 !
 if(lpresent(O_QVEC)) then   ! Set qvec:
    string=opara(O_QVEC)
@@ -272,7 +286,7 @@ cond_site: if(lpresent(O_SITE)) then
 !
    if(cr_ncatoms>ubound(sup_char,1 ) .or.  &
       cr_nscat  >ubound(sup_old,1 )      ) then
-      call alloc_super(cr_ncatoms, cr_nscat, sup_nwaves)
+      call alloc_super(cr_ncatoms, cr_nscat, sup_nwaves, sup_ngroups)
    endif
    j = lopara(O_SITE)
    if(opara(O_SITE)(1:1)=='[') then    ! Multiple sites
@@ -305,8 +319,8 @@ cond_site: if(lpresent(O_SITE)) then
       do j=1, cr_ncatoms
          if(l_isite(j)) then
             do i1=1, iianz
-               sup_atom(i1, j, sup_current) = ccpara(i1)(1:llpara(i1))
-               call do_cap(sup_atom(i1, j, sup_current))
+               sup_atom(i1, j, sup_current, sup_group(sup_current)) = ccpara(i1)(1:llpara(i1))
+               call do_cap(sup_atom(i1, j, sup_current, sup_group(sup_current)))
             enddo
          endif
       enddo
@@ -472,7 +486,7 @@ cond_site: if(lpresent(O_SITE)) then
          call get_iscat(ianz, cpara, lpara, werte, maxw, lselect)
          if(cr_ncatoms>ubound(sup_char,1) .or.  &
             cr_nscat  >ubound(sup_old,1)      ) then
-            call alloc_super(cr_ncatoms, cr_nscat, sup_nwaves)
+            call alloc_super(cr_ncatoms, cr_nscat, sup_nwaves, sup_ngroups)
          endif
          if(nint(werte(1))==-1) then
             do j=1,cr_ncatoms
@@ -620,7 +634,9 @@ integer  :: n_type     ! Number of molecule types
 integer  :: n_atom     ! Total number of atoms in molecules
 !
 integer  :: current  ! Current wave
+integer, dimension(sup_ngroups) :: group_iscat
 integer  :: iatom  ! Dummy atom number from "super file"
+integer  :: katom  ! Dummy atom number from "super file"
 integer  :: jatom  ! Dummy atom number from  crystal structure
 real(kind=PREC_DP), dimension(3) :: arg
 real(kind=PREC_DP), dimension(3) :: vector
@@ -630,6 +646,7 @@ integer, dimension(3) :: ic   ! unit cell of crystal atom
 integer               :: is   ! Site of crystal atom
 !integer               :: ip   ! Pseudo atom counter
 integer               :: ii   ! Diplacement number
+integer               :: ig    ! group counter
 integer               :: istep ! Number of crystal atoms per pseudo atom
 real(kind=PREC_DP)    :: xstep ! Number of crystal atoms per pseudo atom
 !
@@ -671,36 +688,51 @@ call readstru_size_int(sup_file, dim_natoms, dim_ncatoms,      &
 allocate(rd_at_lis(0:dim_nscat))
 call stru_get_atlis(sup_file, dim_nscat, rd_at_lis)
 !
-! Determine steps:  Crystal atoms / Pseudo atoms
+! Determine steps:  Crystal atoms / Pseudo atoms / N_groups
 istep = 1
 xstep = real(cr_natoms)/real(natoms)
 if(abs(xstep-real(nint(xstep)))<TOL) then
-   istep = cr_natoms/natoms
+   istep = cr_natoms/natoms!*sup_ngroups
 endif
-!write(*,*) ' STEPS ', istep, cr_natoms, natoms, dim_natoms, sup_nwaves
+!write(*,*) ' STEPS ', istep, cr_natoms, natoms, dim_natoms, sup_nwaves, sup_ngroups
+!write(*,*) ' STEPS ', istep, cr_ncatoms, dim_ncatoms, dim_natoms, sup_nwaves, sup_ngroups
+!write(*,*) ' G1    ', sup_group(1)
+!write(*,*) ' G1    ', sup_group(2)
+!write(*,*) ' GROUP 1:2, 1, 1, : ', sup_atom(1:2, 1, 1, sup_group(1))
+!write(*,*) ' GROUP 1:2, 1, 2, : ', sup_atom(1:2, 1, 2, sup_group(2))
+!write(*,*) ' GROUP 1:2, 2, 1, : ', sup_atom(1:2, 2, 1, sup_group(1))
+!write(*,*) ' GROUP 1:2, 2, 2, : ', sup_atom(1:2, 2, 2, sup_group(2))
 !
 !  Main loop
 !
-loop_main: do iatom=1, dim_natoms
+loop_main: do iatom=1, dim_natoms, sup_ngroups
 !
 !  Read "pseudo atoms" from "super file"
 !
-   call struc_read_one_atom_internal(sup_file, iatom,  &
-              rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, &
-              rd_cr_magn, rd_cr_mole, rd_cr_moleatom )
+   do ig=1, sup_ngroups
+      katom = iatom + ig - 1
+      call struc_read_one_atom_internal(sup_file, katom,  &
+                 rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, &
+                 rd_cr_magn, rd_cr_mole, rd_cr_moleatom )
+      group_iscat(ig) = rd_cr_iscat(1)
+   enddo
    loop_cell: do jj=1, istep
       jatom = (iatom-1)*istep + jj
       call indextocell(jatom, ic, is)
+      if(all(sup_atom(1,is,:,:)==' ')) cycle loop_cell   ! nothing defined for this site
       v = cr_pos(:,jatom) !- cr_dim0(:,1)
 !
       vector = 0.0_PREC_DP
       prob   = 1.0_PREC_DP
 !
       loop_current: do current=1, sup_nwaves   ! Accumulate vectors / probabilities
+         if(sup_atom(1,is,current,sup_group(current))==' ') cycle loop_current   ! nothing defined for this current wave
             phase = 0.0_PREC_DP
-         if(sup_atom(1,is, current)==rd_at_lis(rd_cr_iscat(1))) then
+!GROUP   if(sup_atom(1,is, current, sup_group(sup_current))==rd_at_lis(rd_cr_iscat(1))) then
+         if(sup_atom(1,is, current, sup_group(current))==rd_at_lis(group_iscat(sup_group(current)))) then
             phase = 0.0_PREC_DP
-         elseif(sup_atom(2,is, current)==rd_at_lis(rd_cr_iscat(1))) then
+!GROUP   elseif(sup_atom(2,is, current, sup_group(sup_current))==rd_at_lis(rd_cr_iscat(1))) then
+         elseif(sup_atom(2,is, current, sup_group(current))==rd_at_lis(group_iscat(sup_group(current)))) then
             phase = 0.5_PREC_DP
          endif
          do ii=1,3
@@ -711,12 +743,18 @@ loop_main: do iatom=1, dim_natoms
 ! write(*,'(3i5,12f8.3)') iatom, jatom, is, arg(1), sup_phase(1,is,current), sin(arg(1)), sup_ampl(2:3, 1,is,current), &
 ! arg(2), sup_phase(2,is,current), sin(arg(2)), sup_ampl(2:3, 2,is,current), v(1:2)
 !endif
-!if(iatom<=12) then
+!if(iatom<=4) then
 !if(iatom<=200 .and. ic(2)==1 .and. ic(3)==1) then
-!write(*,'(a,i7,3f8.2, i3,1x, 2a, i3, 2a6, 2(2x,3f8.3))') ' PSEUDO ',iatom, rd_cr_pos, rd_cr_iscat(1), rd_at_lis(rd_cr_iscat(1)),&
-!  ' HOST ', jatom, sup_atom(:,is,current), v, sup_qvec(:, current)
-!write(*,'(a,i7, 2l3,3f10.4)')      ' sup_at ', is, sup_atom(1,is,current)==rd_at_lis(rd_cr_iscat(1)), &
-!sup_atom(2,is,current)==rd_at_lis(rd_cr_iscat(1)), phase, sup_phase(ii,is,current), arg(1)
+!write(*,'(a, 3i4)') 'LOOP CELL', jj, current, sup_group(current)
+!write(*,'(a,i7,3f8.2, i3,1x, 2a5, i3, 2a6, 2(2x,3f8.3))') ' PSEUDO ',iatom, rd_cr_pos, &
+!  group_iscat(current), rd_at_lis(group_iscat(sup_group(current))),&
+!  ' HOST ', jatom, sup_atom(:,is,current, sup_group(current)), v, sup_qvec(:, current)
+!write(*,'(a,i7, 2(2a4,l3),3f10.4)')      ' sup_at ', is, &
+!  sup_atom(1,is,current, (sup_group(current))), rd_at_lis(group_iscat(sup_group(current))), &
+!  sup_atom(1,is,current, (sup_group(current)))==rd_at_lis(group_iscat(sup_group(current))), &
+!  sup_atom(2,is,current, (sup_group(current))), rd_at_lis(group_iscat(sup_group(current))), &
+!  sup_atom(2,is,current, (sup_group(current)))==rd_at_lis(group_iscat(sup_group(current))), &
+!  phase, sup_phase(1,is,current), arg(1)
 !endif
          select case(sup_func(is, current))
             case(SUP_SINE)
@@ -799,7 +837,7 @@ loop_current: do current=1, sup_nwaves
       is = len_trim(string)
       call d2r(string, is, .false.)
    write(output_io,*)
-   write(output_io, '(a,i4)')  ' Current modulation     : ', current
+   write(output_io, '(a,i4, i4)')  ' Current modulation     : ', current, sup_group(current)
    write(output_io, '(a,2(3f10.5:, ''; ''))')  ' Satellite vector; Wave : ', sup_qvec(:,current), res_para(4:6)
 do is = 1, cr_ncatoms
    cond_any:if(sup_func(is, current)>0) then
@@ -813,7 +851,7 @@ do is = 1, cr_ncatoms
       write(output_io,'(a, 2(3f10.5:, ''; ''))')    ' Up / down vectors      : ', res_para(4:6)*sup_func_p(is, current), &
             res_para(4:6)*(1.0_PREC_DP-sup_func_p(is, current))
    endif
-   write(output_io,'(a, 4a4)') ' Pseudo atoms           : ', sup_atom(1:2, is, current)
+   write(output_io,'(a, 4a4)') ' Pseudo atoms           : ', sup_atom(1:2, is, current, sup_group(current))
    if(sup_char(is, current)==0) then   ! Displacement wave
       do iv=1, 3
         if(sup_ampl(1,iv,is, current)>0.0) then
@@ -862,12 +900,13 @@ subroutine super_reset
 use superspace_mod
 use discus_allocate_appl_mod
 !
-integer :: is, ic, iw
+integer :: is, ic, iw, ig
 is = 1
 ic = 1
 iw = 1
+ig = 1
 !
-call alloc_super( is, ic, iw)
+call alloc_super( is, ic, iw, ig)
 !
 sup_nwaves = 1
 
