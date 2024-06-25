@@ -29,6 +29,7 @@ USE lib_echo
 USE lib_help
 USE lib_macro_func
 use lib_math_mod
+use lib_timer_mod
 USE precision_mod
 USE prompt_mod 
 !USE sockets_mod
@@ -224,6 +225,12 @@ elseif(str_comp(bef, 'minabs', 2, lbef, 6)) then
             ier_num = - 6 
             ier_typ = ER_COMM 
          ENDIF 
+!
+!------ start/stop the timer
+!
+      elseif(str_comp(bef, 'timer', 3, lbef, 5) ) THEN 
+         call lib_timer(zei)
+         zei = ' '
 !
 !------ mount a WSL drive
 !
