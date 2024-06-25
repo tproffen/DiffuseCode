@@ -285,7 +285,7 @@ USE str_comp_mod
       CALL alloc_powder_nmax ( 1,1          )
       CALL alloc_rmc      ( 1,  1        )
       CALL alloc_rmc_data ( n_qxy        )
-      CALL alloc_rmc_istl ( 1,  1, 1     )
+      CALL alloc_rmc_istl ( (/1,1,1/),  1, 1     )
       CALL alloc_rmc_q    ( (/1,1,1/),  1, 1        )
       CALL alloc_rmc_planes(1, 48        )
       CALL alloc_save     ( 1, 1         )
@@ -294,7 +294,7 @@ USE str_comp_mod
       CALL alloc_stack_four(n_qxy )
       CALL alloc_stack_crystal    ( 1,  1        )
       CALL alloc_surf     ( MAXSCAT      )
-      CALL alloc_super    ( 1,  1, 1     )
+      CALL alloc_super    ( 1,  1, 1, 1  )
       CALL alloc_symmetry ( 1,  1        )
       CALL alloc_transfrm ( 1,  1        )
       CALL alloc_waves    ( 1,  1        )
@@ -1695,6 +1695,13 @@ integer :: i_scat
                                       all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+      CALL alloc_arr ( mmc_ach_pairs   ,1,n_corr , &
+                                        0,n_ener , &
+                                       -1,n_scat , &
+                                       -1,n_scat , &
+                                      all_status, 0      )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       CALL alloc_arr ( mmc_ini_corr    ,1,n_corr , &
                                         0,n_ener , &
                                        -1,n_scat , &
@@ -2852,7 +2859,7 @@ END SUBROUTINE alloc_powder_nmax
       IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_sq
+      INTEGER, dimension(3), INTENT(IN)  :: n_sq
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_planes
 !
@@ -2864,7 +2871,7 @@ END SUBROUTINE alloc_powder_nmax
       def_value = CMPLX(0.0D0,0.0D0,KIND=PREC_DP)
       lstat     = .TRUE.
 !
-       CALL alloc_arr ( ristl,             0,n_sq  , all_status, 0         )
+       CALL alloc_arr ( ristl, 1,n_sq(1), 1, n_sq(2), 1, n_sq(3)  , all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
        CALL alloc_arr ( rcfact, 0, CFPKT,1,n_scat,1, n_planes , all_status, def_value   )
@@ -3382,7 +3389,7 @@ END SUBROUTINE alloc_powder_nmax
 !
 !*******************************************************************************
 !
-subroutine alloc_super(n_site, n_scat, n_waves )
+subroutine alloc_super(n_site, n_scat, n_waves, n_groups )
 !-
 !  Allocate super space
 !+
@@ -3393,10 +3400,12 @@ implicit none
 integer, intent(in) :: n_site
 integer, intent(in) :: n_scat
 integer, intent(in) :: n_waves
+integer, intent(in) :: n_groups
 !
 integer             :: all_status
 !
-call alloc_arr(sup_atom, 1, 2,      1, n_site, 1, n_waves, all_status, ' '   )
+call alloc_arr(sup_group,                      1, n_waves, all_status, 1     )
+call alloc_arr(sup_atom, 1, 2,      1, n_site, 1, n_waves, 1, n_groups, all_status, ' '   )
 !call alloc_arr(sup_repl,            1, n_site, all_status, 'VOID')
 call alloc_arr(sup_irepl,           1, n_site, 1, n_waves, all_status, 0     )
 call alloc_arr(sup_char,            1, n_site, 1, n_waves, all_status, 0     )
@@ -3409,7 +3418,8 @@ call alloc_arr(sup_phase,      1,3, 1, n_site, 1, n_waves, all_status, 0.0D0)
 call alloc_arr(sup_prob, 1, 3,      1, n_site, 1, n_waves, all_status, 0.0D0)
 call alloc_arr(sup_qvec, 1, 3,                 1, n_waves, all_status, 0.0D0)
 !
-sup_nwaves = n_waves
+sup_nwaves  = n_waves
+sup_ngroups = n_groups
 !
 end subroutine alloc_super
 !
@@ -3817,7 +3827,7 @@ SUBROUTINE dealloc_super
 !+
       IMPLICIT NONE
 !
-      CALL alloc_super ( 1, 1, 1 )
+      CALL alloc_super ( 1, 1, 1, 1 )
 !
 END SUBROUTINE dealloc_super
 !
