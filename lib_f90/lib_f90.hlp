@@ -1417,6 +1417,34 @@
    system ls "%d.*"
 
    This would list all files called 10.*
+3  timer
+!p timer reset
+!p timer {"mode:start" | "mode:stop" }
+
+   Optional parameters:
+!p {"type:cpu" | "type:wall" }   
+!p number:<value>
+!p {"output:screen" | "output:none"}
+
+   A general timer command.
+   "timer mode:start" 
+   will start timer number 1 counting CPU time.
+
+   To get the elapsed time use:
+   "timer mode:stop"
+   This will print the elapsed CPU time to the screen and 
+   place the time into res[1]. If the timer had not been started, you 
+   get an error message. 
+
+   Options:
+   With the optional parameter "type:wall" the Wall clock time is measured.
+   With the optional parameter number:<value> you may start another timer,
+   keep in mind that you will have to stop the correct timer number later on.
+   Several timers can be started.
+
+   To suppress the output, add "output:none", the result variable is still set.
+
+   "timer reset" clears all timers
 3  wait
 !p wait [{"return" | "input" [,<prompt>] }]
 
