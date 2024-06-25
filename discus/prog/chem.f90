@@ -5173,6 +5173,10 @@ WRITE (output_io, 500) chem_blen_cut, chem_fname, chem_bin
 !                                                                       
 !------ Reset arrays                                                    
 !                                                                       
+if(chem_bin>ubound(chem_hist,1)) then
+   deallocate(chem_hist)
+   allocate(chem_hist(1:chem_bin))
+endif
 bl_sum = 0.0
 bl_s2  = 0.0
 bl_anz = 0
