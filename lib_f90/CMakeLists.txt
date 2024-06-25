@@ -22,7 +22,8 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               lib_conv.f90 lib_functions.f90
               lib_get_var_type.f90  lib_global_flags.f90 
               lib_ik.f90 lib_lanczos.f90 lib_load.f90
-              lib_math.f90 lib_metric.f90 lib_f90_profile.f90 lib_trans.f90 
+              lib_math.f90 lib_metric.f90 lib_f90_profile.f90 lib_timer.f90
+              lib_timer_mod.f90 lib_trans.f90 
               lib_use_coor.f90 lib_weights.f90
               lib_write_debug.f90 lib_upd_mod.f90 
               macro.f90  matrix_mod.f90 map_1dtofield.f90 
