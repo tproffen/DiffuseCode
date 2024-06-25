@@ -240,6 +240,9 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
+CALL alloc_arr ( refine_range_fix   ,1,n_params, 1, 2, all_status, 1.00000D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!!
 CALL alloc_arr ( refine_shift_fix   ,1,n_params, all_status, 0.00500D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!

@@ -2509,8 +2509,20 @@ ENDDO
 ianz = refine_fix_n
 CALL ber_params(ianz, cpara, lpara, werte, MAXW)
 DO i=1, refine_fix_n            ! Make sure each parameter is defined as a variable
+      string = ' '
+   if(refine_range_fix(i,1)>refine_range_fix(i,2)) then    ! No range parameter
+      string = ' '
+   elseif(refine_range_fix(i,1) > -0.5*HUGE(0.0) .and. refine_range_fix(i,2) < 0.5*HUGE(0.0)) then  ! [low, high]
+      write(string,'(a,g20.8e3,a,g20.8e3,a)') ' , range:[', refine_range_fix(i,1), ',', refine_range_fix(i,2), ']'
+   elseif(refine_range_fix(i,1) < -0.5*HUGE(0.0) .and. refine_range_fix(i,2) < 0.5*HUGE(0.0)) then  ! [   , high]
+      write(string,'(a,g20.8e3,a)') ' , range:[,', refine_range_fix(i,2), ']'
+   elseif(refine_range_fix(i,1) > -0.5*HUGE(0.0) .and. refine_range_fix(i,2) > 0.5*HUGE(0.0)) then  ! [low,     ]
+      write(string,'(a,g20.8e3,a)') ' , range:[', refine_range_fix(i,1), ',]'
+   else
+      write(string,'(a,g20.8e3,a,g20.8e3,a)') ' , range:[', refine_range_fix(i,1), ',', refine_range_fix(i,2), ']'
+   endif
    WRITE(IWR,'(3a,G20.8E3,(a,i1),(a,g15.8e3),a)') 'newpara ', refine_fixed(i)(1:len_trim(refine_fixed(i))), ' , value:', werte(i),  &
-   ' , points:', refine_nderiv_fix(i), ' , shift:',abs(refine_shift_fix(i)), ' , status:fixed'
+   ' , points:', refine_nderiv_fix(i), ' , shift:',abs(refine_shift_fix(i)), ' , status:fixed', string(1:len_trim(string))
 ENDDO
 !
 write(IWR, '(a)') '#'

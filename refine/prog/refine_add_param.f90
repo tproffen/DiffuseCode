@@ -283,8 +283,10 @@ IF(lrefine) THEN
          IF(i==refine_fix_n) THEN              ! This is the last parameter
             refine_fixed(i) = ' '
             refine_f    (i) = 1.0D0
-            refine_shift_fix(i) = 0.005_PREC_DP
-            refine_nderiv_fix(i) = 2
+            refine_shift_fix(i) = owerte(OSHIFT)
+            refine_nderiv_fix(i) = owerte(ONDERIV)
+            refine_range_fix(ipar,1) = range_low
+            refine_range_fix(ipar,2) = range_high
             refine_fix_n = refine_fix_n - 1
          ELSE                                  ! This is not the last parameter
             DO j=i+1, refine_fix_n
@@ -292,6 +294,7 @@ IF(lrefine) THEN
                refine_f    (j-1) = refine_f    (j)
                refine_nderiv_fix(j-1) = refine_nderiv_fix(j)
                refine_shift_fix(j-1)  = refine_shift_fix(j)
+               refine_range_fix(j-1,:)  = refine_range_fix(j,:)
             ENDDO
             refine_fix_n = refine_fix_n - 1
             EXIT fixed
@@ -322,6 +325,8 @@ ELSE
       refine_f(refine_fix_n)     = temp_val
       refine_shift_fix(refine_fix_n) = owerte(OSHIFT)
       refine_nderiv_fix(refine_fix_n) = owerte(ONDERIV)
+      refine_range_fix(refine_fix_n,1)= range_low
+      refine_range_fix(refine_fix_n,2)= range_high
    ENDIF
 ENDIF
 !

@@ -23,6 +23,7 @@ real(kind=PREC_DP),dimension(REF_MAXPARAM_SPC) :: refine_spc_delta    ! Fixed sh
 real(kind=PREC_DP),dimension(REF_MAXPARAM_SPC) :: refine_spc_shift    ! Fixed relative shifts for parameters with special meaning
 integer           ,dimension(REF_MAXPARAM_SPC) :: refine_spc_nderiv   ! Fixed relative shifts for parameters with special meaning
 REAL(kind=PREC_DP),DIMENSION(:,:), ALLOCATABLE :: refine_range        ! allowed parameter range
+REAL(kind=PREC_DP),DIMENSION(:,:), ALLOCATABLE :: refine_range_fix    ! allowed parameter range
 REAL(kind=PREC_DP),DIMENSION(:)  , ALLOCATABLE :: refine_p            ! Current parameter value
 REAL(kind=PREC_DP),DIMENSION(:)  , ALLOCATABLE :: refine_f            ! Current fixed parameter value
 REAL(kind=PREC_DP),DIMENSION(:)  , ALLOCATABLE :: refine_dp           ! Current parameter sigma
