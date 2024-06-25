@@ -88,6 +88,8 @@ REAL(kind=PREC_DP)    ::  mmc_c_rad
 !
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE ::  mmc_nvec        ! (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 !
+integer            , dimension(:,:,:,:), allocatable ::  mmc_ach_pairs   ! Initial number of pairs
+integer            , dimension(:,:,:,:), allocatable ::  mmc_ini_pairs   ! Initial number of pairs
 REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_target_corr ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_depth       ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE, target ::  mmc_ach_corr    ! (CHEM_MAX_COR,0:MC_N_ENERGY,-1:DEF_MAXSCAT,-1:DEF_MAXSCAT)

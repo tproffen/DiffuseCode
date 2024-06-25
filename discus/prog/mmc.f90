@@ -2841,10 +2841,11 @@ lout_feed = lout_feed_in .and. mmc_out_feed    ! Combine system and user feedbac
 lfinished = .false.
 done      = .false.
 CALL mmc_correlations (.false., rel_cycl, done, lfinished, lfeed, maxdev) 
-mmc_ini_corr = mmc_ach_corr 
-mmc_ini_sigm = mmc_ach_sigm 
-mmc_ini_angl = mmc_ach_angl 
-mmc_ini_sang = mmc_ang_sigm 
+mmc_ini_corr  = mmc_ach_corr 
+mmc_ini_sigm  = mmc_ach_sigm 
+mmc_ini_angl  = mmc_ach_angl 
+mmc_ini_sang  = mmc_ang_sigm 
+mmc_ini_pairs = mmc_ach_pairs
 if(lout_feed) then
    call mmc_correlation_write
 endif

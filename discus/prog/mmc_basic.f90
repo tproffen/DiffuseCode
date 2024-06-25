@@ -726,6 +726,7 @@ ENDIF
                  (mmc_target_corr(ic, je, is, js) - mmc_ach_corr(ic,je, is, js))/divider,&
                   ncentral(is)
             ENDIF
+            mmc_ach_pairs(ic, je, is, js) = ncentral(is)
          ENDIF
       ENDDO
    ENDDO cn_out
@@ -780,6 +781,7 @@ disp_pair: DO is = 0, cr_nscat
                (mmc_target_corr(ic, je, is, js) - mmc_ach_corr(ic,je, is, js))/divider,&
                nneigh                                         
          ENDIF 
+            mmc_ach_pairs(ic, je, is, js) = nneigh
          ENDIF 
          ENDDO 
          ENDDO disp_pair
@@ -824,6 +826,7 @@ spri_pair: DO is = 0, cr_nscat
                  (mmc_target_corr(ic, je, is, js) - mmc_ach_corr(ic,je, is, js))/divider,&
                   bl_anz (is, js)  + bl_anz (js, is) 
             ENDIF 
+            mmc_ach_pairs(ic, je, is, js) = bl_anz (is, js)  + bl_anz (js, is)
          ENDIF 
          ENDIF 
          ENDDO 
@@ -876,6 +879,7 @@ angl_pair: IF (mmc_cor_energy (ic, MC_ANGLE) ) THEN
                   ENDIF 
                ENDIF 
             ENDIF 
+            mmc_ach_pairs(ic, je, k, k  ) = ba_anz (k)  + ba_anz (k)
          ELSE 
             IF (lout) THEN 
                IF (iic == ic) THEN 
@@ -925,6 +929,7 @@ lenn_pair: DO is = 0, cr_nscat
                   (mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic, je, is, js))/divider,&
                    bl_anz (is, js)  + bl_anz (js, is) 
             ENDIF 
+            mmc_ach_pairs(ic, je, is, js) = bl_anz (is, js)  + bl_anz (js, is)
          ENDIF 
       ENDIF 
       ENDDO 
@@ -968,6 +973,7 @@ repu_pair: DO is = 0, cr_nscat
               (mmc_target_corr (ic, je, is, js)  - mmc_ach_corr (ic, je, is, js))/divider, &
                bl_anz (is, js)  + bl_anz (js, is) 
             ENDIF 
+            mmc_ach_pairs(ic, je, is, js) = bl_anz (is, js)  + bl_anz (js, is)
          ENDIF 
       ENDIF 
       ENDDO 
@@ -1011,6 +1017,7 @@ repu_pair: DO is = 0, cr_nscat
                      mmc_ach_corr(ic, je, is, js), mmc_ach_sigm(ic, je,is, js), &
                      bl_anz (is, js) + bl_anz (js, is)               
                ENDIF 
+            mmc_ach_pairs(ic, je, is, js) = bl_anz (is, js)  + bl_anz (js, is)
             ENDIF 
          ENDIF 
       ENDDO 
@@ -1439,6 +1446,7 @@ corr_pair: DO is = 0, cr_nscat
 !write(*,'(a,f16.8)') ' depth ', mmc_depth(ic, MC_OCC, is,js)
 !                                                                     
          ENDIF 
+            mmc_ach_pairs(ic, je, is, js) = nneigh
 !                                                                       
       ENDIF 
    ENDDO 
@@ -1604,7 +1612,8 @@ cond_ener: IF(mmc_cor_energy (ic, je) ) THEN
                 mmc_target_corr(ic, je, is, js),                                &
                 mmc_ini_corr   (ic, je, is, js),                                &
                 mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js), &
-               (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor
+               (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor, &
+                mmc_ini_pairs(ic,je, is, js)
             endif
          endif
       enddo
@@ -1658,7 +1667,8 @@ cond_ener: IF(mmc_cor_energy (ic, je) ) THEN
                 mmc_ini_corr   (ic, je, is, js),                                &
                 mmc_ini_sigm (ic, je, is, js),                                     &
                 mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js), &
-               (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor
+               (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor, &
+                mmc_ini_pairs(ic,je, is, js)
             endif
          endif
       enddo
@@ -1704,14 +1714,15 @@ cond_ener: IF(mmc_cor_energy (ic, je) ) THEN
          divisor = 1.0
       ENDIF
       WRITE (output_io, 3400) ic, cr_at_lis (iis),  cr_at_lis (jjs), &
-         cr_at_lis (lls),  mmc_target_angl (k),  mmc_ach_angl (k),   &
+         cr_at_lis (lls),  mmc_target_angl (k),  mmc_ini_angl (k),   &
          mmc_ini_sang (k),                                           &
-         mmc_target_angl (k)  - mmc_ach_angl (k),                    &
-         (mmc_target_angl (k)  - mmc_ach_angl (k))/divisor
+         mmc_target_angl (k)  - mmc_ini_angl (k),                    &
+         (mmc_target_angl (k)  - mmc_ini_angl (k))/divisor,          &
+                mmc_ini_pairs(ic,je, k, k  )
    enddo
 endif cond_ener
 !
- 3400 FORMAT (1x,i3,3x,'Angle    ',a5,3x,a5,2x,a5,1x,5(f7.3,3x))
+ 3400 FORMAT (1x,i3,3x,'Angle    ',a5,3x,a5,2x,a5,1x,5(f7.3,3x),i8)
 !
 end subroutine mmc_correlation_write_angl
 !
@@ -1920,6 +1931,7 @@ corr_pair: DO is = 0, cr_nscat
 !                                                                       
       ENDIF 
 !
+            mmc_ach_pairs(ic, je, is, js) = nneigh
       mmc_ach_corr (ic, je,  0,  0) = mmc_ach_corr (ic, je, is, js)
    ENDDO 
 ENDDO corr_pair
@@ -2080,6 +2092,7 @@ IF(lout .AND. lfirst) THEN
    WRITE(output_io, 3100) ic, 'GR1 ', 'GR2 ', target_corr, achieved ,          &
          target_corr - achieved, (target_corr - achieved)/divisor, pneig(1,2,ic) !nneigh
 ENDIF
+            mmc_ach_pairs(ic, je, is, js) = 0
 !write(*,*) ' DEPTH , change ', mmc_depth(ic, MC_GROUP, 1:2, 1:2), -change
 !     ENDIF 
 !do is=0,cr_nscat
