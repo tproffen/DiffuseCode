@@ -1,6 +1,13 @@
 6.17.01  DRAFT
+GENERAL
+  general     on Windows, a parallel process might have crashe ddu to timing issues
+  general     added a timer command to the command language
+DISCUS
+  mmc         The mmc initial reported wrong values for angles
+  super       Ongoing development
 REFINE
-  refine      xiBUG FIX Failed for differing "points:" number.
+  refine      BUG FIX Failed for differing "points:" number.
+
 6.17.00  RELEASE 2024_06_02
 GENERAL
 DISCUS
