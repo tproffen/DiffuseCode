@@ -5126,6 +5126,7 @@ SUBROUTINE chem_blen (iianz, jjanz, werte, wwerte, maxw)
 !     Calculate bond length distribution within crystal                 
 !-                                                                      
 USE discus_config_mod 
+use discus_allocate_appl_mod
 USE crystal_mod 
 USE atom_name 
 USE atom_env_mod 
@@ -5174,8 +5175,7 @@ WRITE (output_io, 500) chem_blen_cut, chem_fname, chem_bin
 !------ Reset arrays                                                    
 !                                                                       
 if(chem_bin>ubound(chem_hist,1)) then
-   deallocate(chem_hist)
-   allocate(chem_hist(1:chem_bin))
+   call alloc_chem_hist(chem_bin)
 endif
 bl_sum = 0.0
 bl_s2  = 0.0
@@ -5885,7 +5885,7 @@ CALL alloc_chem_ran ( 1,  1 ,  1   )
 CALL alloc_chem_con ( 1,  1        )
 CALL alloc_chem_dir (     1        )
 CALL alloc_chem_dist(     1        )
-CALL alloc_chem_hist(     1        )
+CALL alloc_chem_hist(   601        )
 !
 CHEM_MAXAT_CELL   = 1
 CHEM_MAX_AVE_ATOM = 1

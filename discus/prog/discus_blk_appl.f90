@@ -7,6 +7,7 @@ CONTAINS
 !+                                                                      
 !       Startvalues for all important arrays.                           
 !-                                                                      
+use discus_allocate_appl_mod
       USE crystal_mod 
       USE discus_config_mod 
       USE atom_env_mod 
@@ -75,6 +76,9 @@ CONTAINS
       chem_freq_sigma (:) = 0.05 
       chem_wink_sigma (:) = 0.05 
       chem_dir (1, 1, :) = - 9999 
+if(chem_bin> ubound(chem_hist,1)) then
+   call alloc_chem_hist(chem_bin)
+endif
 !     ENDDO 
 !                                                                       
 !     /mcbl/                                                
