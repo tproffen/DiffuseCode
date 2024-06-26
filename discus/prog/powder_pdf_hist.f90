@@ -188,7 +188,7 @@ if(ltemp.or. .not.out_user_limits) then
 endif
 !
 cpow_form = 'r'
-call powder_out(val_pdf, .TRUE.)
+call powder_out_pdf(val_pdf, .TRUE.)
 CALL errlist_save                   ! Keep error status 
 
 CALL save_restore_setting
