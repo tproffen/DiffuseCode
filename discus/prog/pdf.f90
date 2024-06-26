@@ -2534,6 +2534,7 @@ use precision_mod
       enddo
 !                                                                       
       sum = 0.0 
+
 !                                                                       
 !------ Start the calculation                                           
 !                                                                       
@@ -2996,7 +2997,7 @@ use precision_mod
          DO ii = 1, cr_ncatoms 
          CALL celltoindex (cell, ii, iatom) 
          js = cr_iscat (1,iatom) 
-         IF ( (pdf_allowed_i (js) .and.pdf_allowed_j (js) ) )THEN
+         IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) )THEN
                IF(offzero==0 .AND. cr_mole(ia)==cr_mole(iatom)) THEN
                   islook = 0   ! Atoms are within the same molecule
                ELSE
@@ -3104,7 +3105,7 @@ use precision_mod
          DO ii = 1, cr_ncatoms 
          CALL celltoindex (cell, ii, iatom) 
          js = cr_iscat (1,iatom) 
-         IF ( (pdf_allowed_i (js) .and.pdf_allowed_j (js) ) )THEN
+         IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) )THEN
                IF(offzero==0 .AND. cr_mole(ia)==cr_mole(iatom)) THEN
                   islook = 0   ! Atoms are within the same molecule
                ELSE
