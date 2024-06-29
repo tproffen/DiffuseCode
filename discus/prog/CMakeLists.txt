@@ -41,7 +41,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
         domain.f90 domain_mod.f90 domaindis_mod.f90  domain_irreg_mod.f90
 	discus_err_appl.f90 discus_exit.f90 external.f90 external_mod.f90 extrmc.f90 fourier.f90 fourier_sup.f90
         discus_fft.f90 discus_fit.f90 discus_pointgrp.f90 discus_prep_anis.f90 discus_reset_all.f90
-        discus_powder_fft.f90 discus_symmetrize.f90 discus_3dpdf.f90 discus_xplor.f90
+        discus_powder_fft.f90 discus_save_temp.f90 discus_symmetrize.f90 discus_3dpdf.f90 discus_xplor.f90
         do_find_mod.f90 find_top.f90
         four_angles_mod.f90 fourier_conv.f90 fourier_finufft.f90 fourier_lmn_mod.f90 fourier_reset.f90
 	gen_add_mod.f90 generate_mod.f90 graphic.f90 insert.f90 insert_mod.f90 intens_mod.f90
@@ -55,7 +55,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	perioditize.f90 pdf.f90 pdf_mod.f90
 	discus_plot.f90 discus_plot_mod.f90 discus_plot_init.f90  discus_plot_export.f90
 	powder.f90 powder_mod.f90 powder_scat_mod.f90 powder_write_mod.f90
-	powder_tables.f90 powder_pdf_hist.f90 
+	powder_tables.f90 powder_pdf_hist.f90  powder_out_partial.f90
         prop_char_mod.f90 prop_para_func.f90 prop_para_mod.f90 refine_mod.f90
 	recipro_mod.f90 rmc.f90 rmc_mod.f90 rmc_symm.f90 rmc_sup_mod.f90 discus_save.f90 
         discus_save_mod.f90 shear.f90 shear_mod.f90
