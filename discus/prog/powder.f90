@@ -961,6 +961,9 @@ elseif(str_comp(cpara(1), 'partial', 3, lpara(1), 7)) then
       pow_ipartial(1) = werte(2) 
       pow_ipartial(2) = werte(3) 
       pow_l_partial   = .TRUE.
+   elseif(ianz==2 .and. str_comp(cpara(2), 'off', 3, lpara(1), 3)) then
+      pow_ipartial = 0
+      pow_l_partial   = .FALSE.
    ELSE 
       ier_num = -6 
       ier_typ = ER_COMM 
