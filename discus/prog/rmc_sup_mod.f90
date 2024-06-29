@@ -123,11 +123,12 @@ IF (ianz.ge.2) then
                 ie2.le.ie1                        ) then                                  
                rmc_constrain (ie1) = ie2 
             ELSE 
-               ier_num = - 19 
+               ier_num = -19 
                ier_typ = ER_RMC 
+               ier_msg(1) = 'Constraint number outside [0:n_planes]'
             ENDIF 
          ELSE 
-            ier_num = - 6 
+            ier_num = -6 
             ier_typ = ER_COMM 
          ENDIF 
       ENDIF 
@@ -1589,21 +1590,24 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
 !------ Allocate initial Diffuse
 !
       rmc_n_qxy = (/nx, ny, ip/)
-      rmc_n_qxy = MAX(nx,ny,RMC_MAX_Q)   ! Save RMC required size for allocation prior to 'run'
+!     rmc_n_qxy = MAX(nx,ny,RMC_MAX_Q)   ! Save RMC required size for allocation prior to 'run'
 !     n_qxy     = MAX(n_qxy, nx*ny, RMC_MAX_Q, MAXQXY)
       n_qxy(1)  = max(n_qxy(1), nx, MAXQXY(1))    ! NEEDS WORK
       n_qxy(2)  = max(n_qxy(2), ny, MAXQXY(2))    ! NEEDS WORK
       n_qxy(1)  = nx                              ! NEEDS WORK
       n_qxy(2)  = ny                              ! NEEDS WORK
       n_qxy(3)  =  rmc_nplane                     ! NEEDS WORK
+!RBNwrite(*,*) ' CALL alloc_diffuse_four ', n_qxy, any(n_qxy/=ubound(csf))
       if(any(n_qxy/=ubound(csf))) then
          call alloc_diffuse_four (n_qxy )
          if(ier_num/=0) return
       endif
+!RBNwrite(*,*) ' CALL alloc_diffuse_scat ', cr_nscat, cr_nscat/=ubound(cfact,2)
       if(cr_nscat/=ubound(cfact,2)) then
          call alloc_diffuse_scat(cr_nscat)
          if(ier_num/=0) return
       endif
+!RBNwrite(*,*) ' CALL alloc_diffuse_atom ', cr_natoms, cr_natoms/=ubound(xat,1)
       if(cr_natoms/=ubound(xat,1)) then
          call alloc_diffuse_atom(cr_natoms)
          if(ier_num/=0) return
@@ -1618,6 +1622,8 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
       n_sq      = product(n_qxy)*rmc_n_sym! is already in n_qxy(3) *rmc_nplane
       rmc_n_sq  = n_sq                    ! Save RMC_actual number of data points * nsym
       CALL alloc_rmc_istl ( n_qxy, n_nscat, rmc_nplane )
+!RBNwrite(*,*) ' RISTL  ', ubound(ristl)
+!RBNwrite(*,*) ' Rcfact ', ubound(rcfact)
 !                                                                       
 !------ initial q range of data to be used is ALL data                  
 !                                                                       
@@ -1807,7 +1813,14 @@ IMPLICIT none
 !      INTEGER  :: n_natoms=1 ! Maximum number of atoms for DIFFUSE allocation
 !      INTEGER  :: n_nscat =1 ! Maximum number of atoms for DIFFUSE allocation
 REAL(kind=PREC_DP) :: r1
+integer, dimension(3) :: nnn
 !                                                                       
+nnn(1) = maxval(rmc_num(1,:))
+nnn(2) = maxval(rmc_num(2,:))
+nnn(3) = rmc_nplane
+if(any(nnn/=ubound(dsi))) then
+  call alloc_diffuse_four ( nnn)
+endif
 !                                                                       
 igen = 0 
 itry = 0 
@@ -1831,7 +1844,9 @@ IF (ier_num.ne.0) return
 !     n_sq   = rmc_n_qxy*rmc_n_sym   ! Could like wise be = rmc_n_sq
 !     n_sym  = rmc_n_sym
       n_lots = MAX( n_lots, rmc_nlots, RMC_MAX_LOTS)
+!RBNwrite(*,*) ' ALLOC  rmc_n_qxy:', rmc_n_qxy, ' rmc_n_sym: ', rmc_n_sym, ' n_lots: ', n_lots
       CALL alloc_rmc_q ( rmc_n_qxy, rmc_n_sym, n_lots)
+!RBNread(*,*)  ip
 !                                                                       
 !------ sym ?                                                           
 !                                                                       
@@ -1855,6 +1870,7 @@ IF (ier_num.ne.0) return
       ELSE 
          WRITE (output_io, 1150) 
       ENDIF 
+!RBNwrite(*,*) ' RMC_RUN calculate initial'
 !                                                                       
 !------ Calculate maximal value in rmc_mindist array                    
 !                                                                       
@@ -1882,7 +1898,7 @@ IF (ier_num.ne.0) return
 !                                                                       
 !------ calculate sums from exp. data needed and initial chi2           
 !                                                                       
-write(*,*) ' INITIAL CHI ', isym(1:2), ' PLANES ', rmc_nplane
+!RBNwrite(*,*) ' INITIAL CHI ', isym(1:rmc_nplane), ' PLANES ', rmc_nplane
       chi2_old = 0.0 
       DO ip=1,rmc_nplane
         rmc_wtot (ip)=0.0 
@@ -1914,8 +1930,8 @@ write(*,*) ' INITIAL CHI ', isym(1:2), ' PLANES ', rmc_nplane
           ENDDO 
           ENDDO 
         ENDDO 
-write(*,*) ' WEIGHT ', rmc_wtot(ip), rmc_e (ip), rmc_ee(ip), rmc_c, rmc_cc, rmc_ce
-write(*,*) ' DSI    ', dsi(1,1,ip), dsi(rmc_num(1,ip), rmc_num(2,ip), ip)
+!RBNwrite(*,*) ' WEIGHT ', rmc_wtot(ip), rmc_e (ip), rmc_ee(ip), rmc_c, rmc_cc, rmc_ce
+!RBNwrite(*,*) ' DSI    ', ip, ' : ',dsi(1,1,ip), dsi(rmc_num(1,ip), rmc_num(2,ip), ip)
         IF (rmc_e(ip).gt.1E-06) THEN 
           call rmc_calcskal(ip,rmc_wtot(ip),rmc_c,rmc_cc,rmc_ce,        &
                                  rmc_e(ip),skal,back)        
@@ -1926,8 +1942,8 @@ write(*,*) ' DSI    ', dsi(1,1,ip), dsi(rmc_num(1,ip), rmc_num(2,ip), ip)
           chi2_old=chi2_old + chi2(ip) 
         ENDIF 
       ENDDO 
-write(*,*) ' INITIAL CHI ', chi2
-write(*,*) ' INITIAL wtot', rmc_wtot(1:2)
+!RBNwrite(*,*) ' INITIAL CHI ', chi2
+!RBNwrite(*,*) ' INITIAL wtot', rmc_wtot(1:rmc_nplane)
 !                                                                       
       IF (chi2_old.lt.1E-06) THEN 
         ier_num = -14 
@@ -2217,6 +2233,7 @@ loop_plane: DO ip = 1, rmc_nplane                                               
                      rmc_rlambda (ip),  rmc_energy, l_rmc_energy, &
                      rmc_radiation(ip), RAD_WAAS, rmc_power(ip) )
          CALL rmc_formtab (ip, .true.) 
+!RBNwrite(*,*) ' rmc_formtab 0,1, ip', 0,1, ip, rcfact (0, 1, ip)
 !                                                                       
 !------ - Loop over all sym. equivalent planes                          
 !                                                                       
@@ -2234,14 +2251,14 @@ loop_plane: DO ip = 1, rmc_nplane                                               
             CALL rmc_layer (k, ip) 
             CALL fourier_lmn(eck,vi,num,lmn,off_shift)
             fnum = num   ! Number of increments (reduced by Friedel)
-write(*,*) ' RMC_LAYER ', num, ' :: ',k, ip
-write(*,*) ' eck 1     ', eck(:,1)
-write(*,*) ' eck 2     ', eck(:,2)
-write(*,*) ' eck 3     ', eck(:,3)
-write(*,*) ' Vi  1     ',  vi(:,1)
-write(*,*) ' Vi  2     ',  vi(:,2)
-write(*,*) ' Vi  3     ',  vi(:,3)
-write(*,*) ' NSCAT     ', cr_nscat, rmc_nlots, fnum
+!RBNwrite(*,*) ' RMC_LAYER ', num, ' :: ',k, ip
+!RBNwrite(*,*) ' eck 1     ', eck(:,1)
+!RBNwrite(*,*) ' eck 2     ', eck(:,2)
+!RBNwrite(*,*) ' eck 3     ', eck(:,3)
+!RBNwrite(*,*) ' Vi  1     ',  vi(:,1)
+!RBNwrite(*,*) ' Vi  2     ',  vi(:,2)
+!RBNwrite(*,*) ' Vi  3     ',  vi(:,3)
+!RBNwrite(*,*) ' NSCAT     ', cr_nscat, rmc_nlots, fnum
             CALL rmc_stltab (k, ip, .true.) 
             CALL four_aver (rmc_ilots, rmc_ave, cr_icc, fnum, ldiscamb) 
 !                                                                       
@@ -2249,6 +2266,7 @@ write(*,*) ' NSCAT     ', cr_nscat, rmc_nlots, fnum
 !                                                                       
 !------ --- Loop over all 'lots'                                        
 !                                                                       
+!RBNwrite(*,*) ' START LOTS ', rmc_nlots, rmc_ilots
             DO nlot = 1, rmc_nlots                                                              ! Loop over nlot
                DO i = 1, 3                                                                      ! Loop over i
                   lbeg (i) = rmc_lots_orig (i, nlot) 
@@ -2256,17 +2274,22 @@ write(*,*) ' NSCAT     ', cr_nscat, rmc_nlots, fnum
 !                                                                       
 !------ ----- Loop over all atom types                                  
 !                                                                       
+!RBNwrite(*,*) ' START CALC ', cr_nscat, ubound(rmc_csf)
+!RBNwrite(*,*) ' START CALC ', cr_nscat, ubound(tcsf)
+!RBNwrite(*,*) ' rmc_num    ', rmc_num(:,ip)
             DO iscat = 1, cr_nscat                                                              ! Loop over iscat
                CALL four_getatm (iscat, rmc_ilots, lbeg, ncell) 
+!RBNwrite(*,*) ' GOT GETATM ', nxat,  fnum
+!RBNwrite(*,*) ' FORM       ', cfact(istl(1,1,1), iscat), cfact(istl(21, 21,1), iscat)
                CALL four_strucf (iscat, .true., .false., .false., 1, 1, fnum) 
-write(*,*) ' PLANE ', ip, tcsf(1,1,ip), tcsf(rmc_num(1, ip), rmc_num(2, ip),ip), &
-minval(real(tcsf(:,:,ip))), maxval(imag(tcsf(:,:,ip)))
+!RBNwrite(*,*) ' PLANE ', ip, tcsf(1,1, 1), tcsf(rmc_num(1, ip), rmc_num(2, ip), 1), &
+!RBNminval(real(tcsf(:,:,ip))), maxval(imag(tcsf(:,:,ip)))
 !              DO i = 1, rmc_num (1, ip) * rmc_num (2, ip)                                      ! Loop over i
 !                 rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) + tcsf (i)                  ! Clarify who are these "rmc" arrays ...
 !              ENDDO                                                                            ! End loop over i
                do j=1, rmc_num(2, ip)
                do i=1, rmc_num(1, ip)
-                  rmc_csf(i,j,ip,k,nlot) = rmc_csf (i,j,ip,k,nlot) + tcsf(i,j,ip)
+                  rmc_csf(i,j,ip,k,nlot) = rmc_csf (i,j,ip,k,nlot) + tcsf(i,j, 1)
                enddo
                enddo
             ENDDO                                                                               ! End loop over iscat
@@ -2276,7 +2299,7 @@ minval(real(tcsf(:,:,ip))), maxval(imag(tcsf(:,:,ip)))
 !           ENDDO                                                                               ! End loop over i
             do j=1, rmc_num(1, ip)
                do i=1, rmc_num(1, ip)
-                  rmc_csf(i,j,ip,k,nlot) = rmc_csf (i,j,ip,k,nlot) - acsf(i,j,ip)
+                  rmc_csf(i,j,ip,k,nlot) = rmc_csf (i,j,ip,k,nlot) - acsf(i,j, 1)
                enddo
             enddo
          ENDDO                                                                                  ! End loop over nlot
@@ -2287,7 +2310,8 @@ minval(real(tcsf(:,:,ip))), maxval(imag(tcsf(:,:,ip)))
 !------ we don not need to calculate the initial Fourier again          
 !                                                                       
       rmc_calc_f = .false. 
-write(*,*) ' RMC_CSF  ', minval(real(rmc_csf)), maxval(imag(rmc_csf))
+!RBNwrite(*,*) ' RMC_CSF  ', minval(real(rmc_csf)), maxval(imag(rmc_csf))
+!RBNread(*,*) i
       RETURN 
 !                                                                       
    99 CONTINUE 
@@ -2897,7 +2921,7 @@ integer, dimension(3), intent(in) :: fnum ! Number increments (reduced by Friede
       IF (lplus) then 
          do jq = 1,rmc_num (2, ip)
          do iq = 1,rmc_num (1, ip)
-         rmc_csf_new(iq,jq,ip, is,1) = rmc_csf_new(iq,jq,ip, is,1) + tcsf(iq,jq,ip)
+         rmc_csf_new(iq,jq,ip, is,1) = rmc_csf_new(iq,jq,ip, is,1) + tcsf(iq,jq, 1)
          enddo
          enddo
 !        DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
@@ -2907,7 +2931,7 @@ integer, dimension(3), intent(in) :: fnum ! Number increments (reduced by Friede
       ELSE 
          do jq = 1,rmc_num (2, ip)
          do iq = 1,rmc_num (1, ip)
-         rmc_csf_new(iq,jq,ip, is,1) = rmc_csf_new(iq,jq,ip, is,1) - tcsf(iq,jq,ip)
+         rmc_csf_new(iq,jq,ip, is,1) = rmc_csf_new(iq,jq,ip, is,1) - tcsf(iq,jq, 1)
          enddo
          enddo
 !        DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
