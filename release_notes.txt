@@ -3,7 +3,11 @@ GENERAL
   general     on Windows, a parallel process might have crashe ddu to timing issues
   general     added a timer command to the command language
 DISCUS
-  mmc         The mmc initial reported wrong values for angles
+  mmc         The mmc initial reported wrong values for angles.
+  powder/output  The periodic boundary treatment for PDF did not work.
+  powder/output  Added option for partial PDFs via Debye-Scattering-Equation
+  pdf         The partial pdf calculation in the old pdf menu did not work.
+  rmc         RMC needed fixes.
   super       Ongoing development
 REFINE
   refine      BUG FIX Failed for differing "points:" number.
