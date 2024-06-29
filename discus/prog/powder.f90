@@ -949,7 +949,22 @@ ELSEIF (str_comp (cpara(1), 'ka21', 4, lpara(1), 4) ) THEN
             ELSE 
                ier_num = -6 
                ier_typ = ER_COMM 
-            ENDIF 
+            ENDIF
+!
+!   set a partial PDF pair
+!
+elseif(str_comp(cpara(1), 'partial', 3, lpara(1), 7)) then
+   IF (ianz.eq.3) THEN 
+      cpara(1) = '0' 
+      lpara(1) = 1 
+      CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+      pow_ipartial(1) = werte(2) 
+      pow_ipartial(2) = werte(3) 
+      pow_l_partial   = .TRUE.
+   ELSE 
+      ier_num = -6 
+      ier_typ = ER_COMM 
+   ENDIF
 !                                                                       
 !     set the periodic radius 'period' 
 !                                                                       
@@ -2929,6 +2944,8 @@ pow_four_mode  = 0
 pow_four_type  = POW_COMPL
 !
 pow_lp         = POW_LP_BRAGG
+pow_ipartial   = 0
+pow_l_partial  = .false.
 !
 pow_l_all      = .true.
 !

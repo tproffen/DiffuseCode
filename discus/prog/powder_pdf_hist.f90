@@ -344,12 +344,18 @@ if(cr_nscat/=ubound(pow_do_partial,1)) then
    call alloc_powder_partial(cr_nscat)
    if(ier_num/=0) return
 endif
-pow_do_partial = .true.
-pow_l_partial = .false.
+if(pow_l_partial) then     ! User wants a partial PDF
+   pow_do_partial = .false.
+   pow_do_partial(pow_ipartial(1), pow_ipartial(2)) = .true.
+   pow_do_partial(pow_ipartial(2), pow_ipartial(1)) = .true.
+else
+   pow_do_partial = .true.
+endif
+!  pow_l_partial = .false.
 !pow_l_partial = .true.
 !pow_do_partial = .false.
-!pow_do_partial(1,2) = .true.
-!pow_do_partial(2,1) = .true.
+!pow_do_partial(1,3) = .true.
+!pow_do_partial(3,1) = .true.
 look  = 0
 nlook = 0 
 DO i = 1, cr_nscat 
@@ -632,7 +638,8 @@ IF(.NOT.deb_conv .AND. ldbw) THEN
 !     store <f**2> and <f>**2
 !                                                                       
    DO iscat = 1, cr_nscat 
-      if(pow_do_partial(iscat, iscat)) then
+      if(any(pow_do_partial(iscat, :))) then
+!     if(pow_do_partial(iscat, iscat)) then
       DO i = 1, num(1)
          rsf (i) = rsf (i) + DBLE (cfact      (powder_istl (i), iscat) * &
                             conjg (cfact      (powder_istl (i), iscat) ) ) * natom (iscat)
@@ -657,7 +664,7 @@ ELSE
 !     store <f**2> and <f>**2
 !
    DO iscat = 1, cr_nscat 
-      if(pow_do_partial(iscat, iscat)) then
+      if(any(pow_do_partial(iscat, :))) then
       DO i = 1, num(1)
          rsf(i) = rsf(i) + DBLE(cfact_pure(powder_istl(i), iscat) * &
                           CONJG(cfact_pure(powder_istl(i), iscat))) * natom(iscat)

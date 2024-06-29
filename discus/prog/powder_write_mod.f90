@@ -385,6 +385,7 @@ ELSEIF( cpow_form == 'q') THEN        ! axis is Q
 !        IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
 !            ((pow_four_type == POW_COMPL) .AND. value == val_pdf) .OR. &
 !             pow_four_type == POW_DEBYE              ) THEN ! DEBYE, always spline
+!write(*,*) ' OUT_USE_LIMITS', out_user_limits, out_user_values
    IF(out_user_limits) THEN                     ! User provided values
       qmin   = out_user_values(1)
       qmax   = out_user_values(2)
@@ -398,6 +399,7 @@ ELSEIF( cpow_form == 'q') THEN        ! axis is Q
       qmax = pow_qmax
       deltaq = pow_deltaq
    ENDIF
+!write(*,*) 'qmin, xpl)(0) ', qmin, xpl(0), qmin < xpl(0)
    IF(qmin < xpl(0) ) THEN                     ! User lower limit too low!
       qmin =            (INT( (xpl(1)            )/deltaq) + 1)*deltaq
       npkt_u =     NINT((qmax-qmin)/deltaq) + 1             
@@ -444,7 +446,7 @@ ELSE                    ! cpow_form ==
    DEALLOCATE( lpv, stat = all_status)
    RETURN
 ENDIF                   ! cpow_form == 
-!write(*,*) ' AFTER EQUI ', npkt_u, npkt_equi
+!write(*,*) ' AFTER EQUI ', npkt_u, npkt_equi, npkt_wrt, lbound(xwrt), ubound(xwrt), lbound(ywrt), ubound(ywrt)
 !write(*,*) ' AFTER EQUI ', npkt_wrt, xwrt(0), xwrt(npkt_wrt-1), xwrt(npkt_wrt)
 npkt_wrt = npkt_u -1    ! xwrt is in range [0, npkt_u-1]
 !write(*,*) ' AFTER EQUI ', npkt_wrt, xwrt(0), xwrt(npkt_wrt-1), xwrt(npkt_wrt)

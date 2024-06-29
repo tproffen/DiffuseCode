@@ -49,6 +49,7 @@ INTEGER                  :: pow_four_type  = POW_COMPL
 !INTEGER                  :: pow_four_vers  = POW_DEBYE
 !
 INTEGER                  :: pow_lp         = POW_LP_BRAGG
+integer, dimension(2)    :: pow_ipartial   = 0         ! Do a partiol for these atom types
 !
 LOGICAL                  :: pow_l_all      = .true.
 logical                  :: pow_constlam   = .true.    ! Constant lambda(==true) or TOF(==false)
