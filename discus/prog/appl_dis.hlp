@@ -7418,6 +7418,16 @@
    A Debye-Scherrer geometry at a synchrotron source is defined.
    The polarisation fraction is required. 
    Optionally you can specify the monochromator angle.
+4  partial
+!p set partial, <i>, <j>
+
+   Instruct powder to calculate a partial powder pattern for atom type
+   <i> and <j> in preparation for a partial PDF. 
+   Atom tyes <i> and <j> ay be the same atom type.
+   This option is available for the Debye-Scattering-Equation only.
+
+   Within the ==> 'output' menu save the PDF with identical setting as
+   for a full PDF. 
 4  period
 !p set period, "off"
 !p set period, <diameter>
