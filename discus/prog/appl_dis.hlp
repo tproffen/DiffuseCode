@@ -7426,6 +7426,14 @@
    Atom tyes <i> and <j> ay be the same atom type.
    This option is available for the Debye-Scattering-Equation only.
 
+   These "partial" PDFs are going to be of approximate scale. While the
+   sum of all "partial" PDFs will add up to roughly the full PDF, 
+   contributions by atoms with small scattering power are likely 
+   overestimated.
+   To obtain a quantitative coordination number for any given pair we
+   strongly suggest to use the ==> 'chem/blen' command to obtain
+   precise numbers.
+
    Within the ==> 'output' menu save the PDF with identical setting as
    for a full PDF. 
 4  period
