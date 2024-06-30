@@ -38,9 +38,13 @@ integer                    :: length
 integer                    :: val_temp = 1    ! Value for intensity
 integer                    :: ik              ! Kuplot data set number
 integer                    :: izz             ! Initial Kuplot data set number
+integer                    :: i,j             ! Dummy indices
 integer,dimension(2) :: par_ipartial
 logical                    :: par_user_limits
 real(kind=PREC_DP), dimension(3) :: par_rmin
+real(kind=PREC_DP)               :: par_scale   ! Scale factor for G(r)
+real(kind=PREC_DP)               :: par_sum     ! Dummy sum
+real(kind=PREC_DP), dimension(:,:), allocatable :: par_pairs
 data crad/'xray    ', 'neutron ', 'electron'/
 !
 ! RESET KUPLOT
@@ -89,8 +93,21 @@ call exp2pdf_load(1, string, length)
 ! Set composition
 !
 call chem_elem(.false.)     ! Silently get composition
+!
+allocate(par_pairs(0:cr_nscat, 0:cr_nscat))
+par_pairs = 0.0_PREC_DP
+par_sum   = 0.0_PREC_DP
+do i=0,cr_nscat
+   do j=0,cr_nscat
+      par_pairs(i,j) = (res_para(i+1)*res_para(j+1))
+      par_sum        = par_sum + par_pairs(i,j)
+   enddo
+enddo
+par_pairs = 2.0D0*par_pairs/par_sum
+!par_pairs = 1.0_PREC_DP
 
 if(pow_ipartial(1)/=pow_ipartial(2)) then
+   par_scale = sqrt(par_pairs(pow_ipartial(1), pow_ipartial(2)))
    write(string,'(a17,a2,f5.3,a1, a2, f5.3)') 'composition comp:',&
        cr_at_lis(pow_ipartial(1))(1:2), res_para(pow_ipartial(1)+1), &
    ' ',cr_at_lis(pow_ipartial(2))(1:2), res_para(pow_ipartial(2)+1)
@@ -100,6 +117,7 @@ if(pow_ipartial(1)/=pow_ipartial(2)) then
    if(string(27:27)=='-' .or. string(27:27)=='-') string(27:27) =  ' ' 
    length = 32
 else
+   par_scale = sqrt(par_pairs(pow_ipartial(1), pow_ipartial(1)))
    write(string,'(a17,a2,f5.3)') 'composition comp:',&
       cr_at_lis(pow_ipartial(1))(1:2), 1.0
    call do_low(string(19:19))
@@ -127,11 +145,12 @@ call exp2pdf_qmax(string, length)
 !
 ! Set output file name
 !
-write(string,'(a,a,3(a,f7.3))') 'gr:', par_outfile(1:len_trim(par_outfile)), &
+write(string,'(a,a,4(a,f7.3))') 'gr:', par_outfile(1:len_trim(par_outfile)), &
 ' , rmin:',par_rmin(1), &
 ' , rmax:',par_rmin(2), &
-' , rstep:',par_rmin(3)
-length = 65
+' , rstep:',par_rmin(3), &
+' , scale:',par_scale  
+length = 85
 !write(*,*) ' OUTF >', string(1:length),'< ', len_trim(string)
 call exp2pdf_outfile(string, length)
 !
@@ -160,6 +179,8 @@ if(iz==1) then
    length = 1
    call kuplot_do_reset(string, length)
 endif
+!
+deallocate(par_pairs)
 !
 end subroutine powder_out_partial
 !

@@ -837,6 +837,7 @@ if(exp_outgr_l) then
    cvalue(1) = 'r[Angstroem]'
    cvalue(2) = 'G(r)[Angstroem^-2]'
    ncols     = 2
+   yfour     = yfour * exp_scale
    call exp2pdf_header(exp_outgr, ncols, cvalue, exp_load, exp_cback, exp_csigma, &
                 exp_bscale, &
                 exp_radiation, exp_rlambda, exp_renergy, &

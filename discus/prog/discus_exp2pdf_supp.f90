@@ -245,27 +245,28 @@ INTEGER           , DIMENSION(MAXW) :: lpara
 !
 INTEGER                              :: ianz
 !
-integer, parameter :: NOPTIONAL = 7
+integer, parameter :: NOPTIONAL = 8
 integer, parameter :: O_RMIN    = 1
 integer, parameter :: O_RMAX    = 2
 integer, parameter :: O_RSTEP   = 3
-integer, parameter :: O_GR      = 4
-integer, parameter :: O_IQ      = 5
-integer, parameter :: O_SQ      = 6
-integer, parameter :: O_FQ      = 7
+integer, parameter :: O_SCALE   = 4
+integer, parameter :: O_GR      = 5
+integer, parameter :: O_IQ      = 6
+integer, parameter :: O_SQ      = 7
+integer, parameter :: O_FQ      = 8
 character(LEN=   5), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
-integer, parameter                        :: ncalc = 3 ! Number of values to calculate 
+integer, parameter                        :: ncalc = 4 ! Number of values to calculate 
 !
-data oname  / 'rmin ', 'rmax ', 'rstep', 'gr', 'iq', 'sq', 'fq' /
-data loname /  4     ,  4     ,  5     ,  2  ,  2  ,  2  ,  2   /
-opara  =  (/ '0.0100000000',  '100.01000000', '0.0100000000', 'discus.grobs', 'discus.iqobs', 'discus.sqobs', 'discus.fqobs' /) ! Always provide fresh default values
-lopara =  (/  12           ,   12           ,  12           ,  12           ,  12           ,  12           ,  12            /)
-owerte =  (/  0.0100000000 ,   100.01000000 ,  0.0100000000 , 0.0000        ,  0.0000       ,  0.0000       ,  0.0000        /)
+data oname  / 'rmin ', 'rmax ', 'rstep', 'scale', 'gr', 'iq', 'sq', 'fq' /
+data loname /  4     ,  4     ,  5     ,  5     ,  2  ,  2  ,  2  ,  2   /
+opara  =  (/ '0.0100000000',  '100.01000000', '0.0100000000', '1.0000000000', 'discus.grobs', 'discus.iqobs', 'discus.sqobs', 'discus.fqobs' /) ! Always provide fresh default values
+lopara =  (/  12           ,   12           ,  12           ,  12           ,  12           ,  12           ,  12           ,  12            /)
+owerte =  (/  0.0100000000 ,   100.01000000 ,  0.0100000000 , 1.00000       ,  0.0000        ,  0.0000       ,  0.0000       ,  0.0000        /)
 !
 call get_params(line, ianz, cpara, lpara, MAXW, length)
 if(ier_num/=0) return
@@ -279,6 +280,7 @@ if(lpresent(O_GR  )) then
    exp_rmin  = nint(owerte(O_RMIN )*10000.0D0)/10000.0D0
    exp_rmax  = nint(owerte(O_RMAX )*10000.0D0)/10000.0D0
    exp_rstep = nint(owerte(O_RSTEP)*10000.0D0)/10000.0D0
+   exp_scale = owerte(O_SCALE)
 !else
 !   call do_build_name(ianz, cpara, lpara, werte, MAXW, 1) 
 !   if(ier_num /= 0) return

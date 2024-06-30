@@ -36,6 +36,7 @@ REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_temp_y ! the ac
 REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_temp_dy ! the actual data set sigmas
 !REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_temp_b ! the actual background
 real(kind=PREC_DP)                                        :: exp_bscale = 1.0D0 ! Background scale
+real(kind=PREC_DP)                                        :: exp_scale  = 1.0D0 ! GR  scale
 real(kind=PREC_DP)                                        :: exp_qmin   ! Internal      Qmin
 real(kind=PREC_DP)                                        :: exp_qmax   ! Internal      Qmax
 real(kind=PREC_DP)                                        :: exp_qmin_i = 0.0D0   ! User supplied "instrumental" Qmin
