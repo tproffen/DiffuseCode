@@ -1,5 +1,9 @@
 6.17.02  DRAFT
 
+REFINE
+  convergence Added a fourth convergence criterion that stops if lambda becomes too large
+              Improved output of "refine_best.mac and "refine_new.res"
+
 6.17.01  RELEASE 2024_06_30
 GENERAL
   general     on Windows, a parallel process might have crashed due to timing issues
