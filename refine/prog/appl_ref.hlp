@@ -189,7 +189,7 @@
 !p set cycle,<maxc>
 !p set conver, ["status:on" | "status:off"]
 !p set conver ["dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
-!p            ["chisq:<value>]
+!p            ["chisq:<value>] [,"lambda:"<max>]
 !p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
 !p            [,"success:"<lamda_g>]
 !p set log "on"| "off"
@@ -204,9 +204,10 @@
 
 3  convergence
 !p set conver [,"dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
-!p            [,"chi2:"<level>] [,"status:on" | "status:off"]
+!p            [,"chi2:"<level>] [,"lambda:"<max>]
+!p            [,"status:on" | "status:off"] 
 
-   REFINE will test three convergence criteria after each cycle and
+   REFINE will test four convergence criteria after each cycle and
    will stop if any of these criterial is met. 
    Allows the user to define convergence criteria.
 
@@ -230,6 +231,10 @@
      If the value of Chi^2/(Ndata-Npara) falls below <level>
      convergence is reached.
      Defaults to 0.500
+   lambda:<max>
+     If the internal control variable lambda is larger than <max>
+     convergence is reached.
+     Defaults to 1.0*10^10
 
    Convergence is reached, if:
    Either one of the three conditions are met. 
@@ -252,6 +257,10 @@
       chi2
       Chi^2 is less than chisq:<value>
 
+
+   Criterion 4:
+      lambda
+      Lambda is larger than lambda:<max>
 
 3  relax
 !p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
