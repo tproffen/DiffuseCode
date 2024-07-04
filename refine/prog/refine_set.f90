@@ -100,32 +100,34 @@ INTEGER                              :: ianz
 !
 !
 !
-INTEGER, PARAMETER :: NOPTIONAL = 5
+INTEGER, PARAMETER :: NOPTIONAL = 6
 INTEGER, PARAMETER :: O_DCHI    = 1
 INTEGER, PARAMETER :: O_PSHIFT  = 2
 INTEGER, PARAMETER :: O_CONF    = 3
 INTEGER, PARAMETER :: O_CHI     = 4
-INTEGER, PARAMETER :: O_STATUS  = 5
+INTEGER, PARAMETER :: O_LAMBDA  = 5
+INTEGER, PARAMETER :: O_STATUS  = 6
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate
+INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate
 logical, save :: INIT = .true.
 !
 !
-DATA oname  / 'dchi  ' , 'pshift'  ,  'conf '   ,  'chisq ' , 'status'  /
-DATA loname /  4       ,  6        ,   4        ,  5        ,  6        /
-opara  =  (/ '0.500000', '0.005000',  '0.010000', '0.500000', 'on      '/)   ! Always provide fresh default values
-lopara =  (/  8        ,  8        ,   8        ,  8        ,  8        /)
-owerte =  (/  0.500000 ,  0.005000 ,   0.010000 ,  0.005000 ,  0.000000 /)
+DATA oname  / 'dchi  ' , 'pshift'  ,  'conf '   ,  'chisq ' , 'lambda'  , 'status'  /
+DATA loname /  4       ,  6        ,   4        ,  5        ,  6        ,  6        /
+opara  =  (/ '0.500000', '0.005000',  '0.010000', '0.500000', '1.0E10  ', 'on      '/)   ! Always provide fresh default values
+lopara =  (/  8        ,  8        ,   8        ,  8        ,  8        ,  8        /)
+owerte =  (/  0.500000 ,  0.005000 ,   0.010000 ,  0.005000 ,  1.0E10   ,  0.000000 /)
 if(INIT) then
    conv_dchi2    = owerte(O_DCHI)
    conv_dp_sig   = owerte(O_PSHIFT)
    conv_conf     = owerte(O_CONF)
    conv_chi2     = owerte(O_CHI)
+   conv_lambda   = owerte(O_LAMBDA)
    INIT          = .false.
 endif
 !
@@ -160,6 +162,12 @@ IF(IANZ>=1) THEN
       conv_chi2_u = .TRUE.
    else
       conv_chi2_u = .FALSE.
+   endif
+   if(lpresent(O_LAMBDA))    then
+      conv_lambda = owerte(O_LAMBDA)
+      conv_lamb_u = .TRUE.
+   else
+      conv_lamb_u = .FALSE.
    endif
 ELSE
    ier_num = -6

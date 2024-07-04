@@ -18,6 +18,7 @@ USE refine_allocate_appl
 USE refine_constraint_mod
 USE refine_current_mod
 USE refine_fix_mod
+use refine_head_mod
 USE refine_load_mod
 USE refine_params_mod
 USE refine_run_mod
@@ -58,6 +59,7 @@ CHARACTER (LEN= *  ), INTENT(INOUT) :: line
 LOGICAL             , INTENT(  OUT) :: lend 
 INTEGER             , INTENT(INOUT) :: length 
 !
+CHARACTER (LEN=MAX(PREC_STRING,LEN(line)))                  :: tohead  != ' '
 CHARACTER (LEN=MAX(PREC_STRING,LEN(line)))                  :: zeile   != ' '
 CHARACTER (LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara   != ' '
 CHARACTER (LEN=  10)                  :: befehl  = ' '
@@ -71,6 +73,7 @@ INTEGER                                :: ref_output_status
 !LOGICAL                               :: back_new
 !LOGICAL                               :: lexist
 !                                                                       
+logical :: add_header   ! Add this line to header
 REAL(kind=PREC_DP)  , DIMENSION(MAXW) :: werte = 0.0
 !                                                                       
 CALL no_error 
@@ -79,6 +82,9 @@ CALL no_error
 !                                                                 
 IF (line (1:1) .EQ.' ' .or. line (1:1) .eq.'#'.or. &
     line (1:1) .eq.'!' .or. length.eq.0           ) RETURN                                     
+!
+add_header = .TRUE.    ! Assume we want this in the header
+tohead     = line      ! Backup of full line
 !                                                                 
 !     Only the first 5 characters are significant. The command    
 !     consists of the four nonblank characters                    
@@ -159,36 +165,43 @@ ELSE  is_math
 !                                                                 
    ELSEIF (str_comp (befehl, 'set', 3, lbef, 3) ) THEN  is_befehl
       CALL refine_set(zeile, length)
+      add_header = .false.     ! No need in header
 !
 !     -- define data set
 !
    ELSEIF (str_comp (befehl, 'data', 3, lbef, 4) ) THEN  is_befehl
       CALL refine_load(LDATA, zeile, length)
+      add_header = .false.     ! No need in header
 !
 !     -- define data set
 !
    ELSEIF (str_comp (befehl, 'sigma', 3, lbef, 5) ) THEN  is_befehl
       CALL refine_load(LSIGMA, zeile, length)
+      add_header = .false.     ! No need in header
 !                                                                 
 !     -- Finish command will be ignored
 !                                                                 
    ELSEIF (str_comp (befehl, 'finished', 3, lbef, 8) ) THEN  is_befehl
       CONTINUE
+      add_header = .false.     ! No need in header
 !                                                                 
 !     -- Fix a parameter
 !                                                                 
    ELSEIF (str_comp (befehl, 'fix', 3, lbef, 3) ) THEN  is_befehl
       CALL refine_fix(zeile, length)
+      add_header = .false.     ! No need in header
 !                                                                 
 !     -- add a new parameter to the dimension                     
 !                                                                 
    ELSEIF (str_comp (befehl, 'newparam', 3, lbef, 8) ) THEN  is_befehl
       CALL refine_add_param(zeile, length)
+      add_header = .false.     ! No need in header
 !                                                                 
 !     -- reset to system start 'reset'
 !                                                                 
    ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) THEN is_befehl
       CALL refine_do_reset
+      add_header = .false.     ! No need in header
 !
 !     -- start the refinement process
 !                                                                 
@@ -203,6 +216,8 @@ ELSE  is_math
          prompt_status = ref_prompt_status
          output_status = ref_output_status
       ENDIF
+      add_header = .false.     ! No need in header
+      refine_head_a = .false.  ! Do not accumulate after run command
 !                                                                 
 !-------  Show parameters 'show'                                  
 !                                                                 
@@ -212,6 +227,7 @@ ELSE  is_math
       IF(ier_num == 0) THEN
          CALL refine_do_show (zeile, lcomm) 
       ENDIF
+      add_header = .false.     ! No need in header
 !
 !-------- Copy dimension to global 'togloal'
 !
@@ -223,10 +239,13 @@ ELSE  is_math
 !                                                                       
    ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) THEN is_befehl
       CALL p_branch (zeile, lcomm, .FALSE., 0     )
+      add_header = .false.     ! No need in header
 elseif(str_comp (befehl, 'uvw', 3, lbef, 3)) THEN
 call refine_constrain_temp(zeile, lcomm, .TRUE.)
+      add_header = .false.     ! No need in header
 elseif(str_comp (befehl, 'eta', 3, lbef, 3)) THEN
 call refine_constrain_temp(zeile, lcomm, .false.)
+      add_header = .false.     ! No need in header
 !                                                                 
 !------   Try general commands                                    
 !                                                                 
@@ -237,8 +256,16 @@ call refine_constrain_temp(zeile, lcomm, .false.)
       ENDIF 
    ENDIF  is_befehl
 ENDIF  is_math
+!
+if(refine_head_a) then
+   if(add_header) call accumulate_header(tohead)
+endif
 !                                                                       
 if(ex_do_exit) lend = .true.   ! A global exit was flagged
+!
+if(lend) then
+   refine_head_a = .TRUE.   ! Start accumulation again
+endif
 !
 END SUBROUTINE refine_mache_kdo                      
 !

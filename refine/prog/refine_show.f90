@@ -148,7 +148,7 @@ CALL show_fit_erg(iounit, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n,   &
            refine_lamda, refine_rval, refine_rexp,                        &
            refine_params, refine_p, refine_dp, refine_range, refine_cl,   &
            refine_fixed, refine_f, lconv,                                 &
-           conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf     &
+           conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, conv_lambda     &
            )
 !
 IF(iounit/=output_io) CLOSE(iounit)
@@ -161,7 +161,7 @@ SUBROUTINE show_fit_erg(iounit, MAXP, MAXF, npara, nfixed, ndata, mac, mac_l,   
            load, kload, csigma, ksigma, lcovar, chisq, conf, lamda,             &
            r4, re,                                                              &
            params, pp, dpp, prange, cl, fixed, pf, lconv,                       &
-           conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf           &
+           conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, conv_lambda           &
            )
 !+                                                                      
 !     Display fit results
@@ -196,12 +196,13 @@ REAL(kind=PREC_DP), DIMENSION(MAXP,2)     , INTENT(IN) :: prange      ! Paramete
 REAL(kind=PREC_DP), DIMENSION(NPARA,NPARA), INTENT(IN) :: cl          ! Covariance matrix
 CHARACTER(LEN=*)  , DIMENSION(MAXF)       , INTENT(IN) :: fixed       ! Fixed parameter names
 REAL(kind=PREC_DP), DIMENSION(MAXF)       , INTENT(IN) :: pf          ! Fixed parameter values
-LOGICAL           , DIMENSION(3)          , intent(in) :: lconv       ! Convergence criteria
+LOGICAL           , DIMENSION(4)          , intent(in) :: lconv       ! Convergence criteria
 LOGICAL                                   , INTENT(IN) :: conv_status ! Apply convergence criteria
 REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_dp_sig ! Max parameter shift
 REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_dchi2  ! Max Chi^2     shift
 REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_chi2   ! Min Chi^2     value 
 REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_conf   ! Min confidence level
+REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_lambda ! Max lambda     level
 !                                                                       
 INTEGER :: i, j 
 LOGICAL :: kor 
@@ -236,6 +237,7 @@ ENDIF
 WRITE(iounit, 4000) lconv(1), conv_dp_sig, conv_conf , conv_dchi2
 WRITE(iounit, 4100) lconv(2), conv_dchi2
 WRITE(iounit, 4200) lconv(3), conv_chi2
+WRITE(iounit, 4300) lconv(4), conv_lambda
 !
 IF(chisq>=0.0) THEN
    WRITE(iounit, 1040) chisq, chisq/ndata, conf, chisq/(ndata-npara),  &
@@ -294,6 +296,8 @@ WRITE(iounit, * ) ' '
 4100 FORMAT('   Convergence 2    :   dChi^2 <   AND dP/sigma > 0.0          ',/, &
             '                      ',l1,  G11.3E3            )
 4200 FORMAT('   Convergence 3    :   Chi^2 <                                ',/, &
+            '                      ',l1,  G11.3E3            )
+4300 FORMAT('   Convergence 4    :   Lambda <                               ',/, &
             '                      ',l1,  G11.3E3            )
  1040 FORMAT (/,                                                        &
               ' Information about the fit : ',/,                        &

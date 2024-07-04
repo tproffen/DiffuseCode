@@ -192,7 +192,7 @@ CALL refine_mrq(linit, REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,     
                 refine_params, ref_dim, ref_data, ref_sigma, ref_x, ref_y,      &
                 ref_z,                                                          &
                 conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf,     &
-                lconvergence, lconv,                                            &
+                conv_lambda, lconvergence, lconv,                               &
                 refine_chisqr, refine_conf, refine_lamda, refine_lamda_s,       &
                 refine_lamda_d, refine_lamda_u, refine_rval,                    &
                 refine_rexp, refine_p, refine_range, refine_shift, refine_nderiv,&
@@ -217,7 +217,7 @@ main:IF(ier_num==0) THEN
                      refine_lamda, refine_rval, refine_rexp, refine_params,        &
                      refine_p, refine_dp, refine_range, refine_cl, refine_fixed,   &
                         refine_f, lconv,                                           &
-                     conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf     )
+                     conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, conv_lambda     )
 !
 ENDIF main
 DEALLOCATE(refine_calc)      ! Clean up temporary files
@@ -1529,7 +1529,7 @@ END SUBROUTINE refine_load_calc
 !
 SUBROUTINE refine_mrq(linit, MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
                       data_data, data_sigma, data_x, data_y, data_z, conv_status, &
-                      conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,&
+                      conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, conv_lambda, lconvergence,&
                       lconv, chisq, conf, lamda_fin, lamda_s, lamda_d, lamda_u,  rval,   &
                       rexp, p, prange, p_shift, p_nderiv, dp, cl, alpha, beta,    &
                       ref_do_plot, plmac)
@@ -1567,8 +1567,9 @@ REAL(kind=PREC_DP)                                     , INTENT(IN)    :: conv_d
 REAL(kind=PREC_DP)                                     , INTENT(IN)    :: conv_dchi2  ! Max Chi^2     shift
 REAL(kind=PREC_DP)                                     , INTENT(IN)    :: conv_chi2   ! Min Chi^2     value 
 REAL(kind=PREC_DP)                                     , INTENT(IN)    :: conv_conf   ! Min confidence level
+REAL(kind=PREC_DP)                                     , INTENT(IN)    :: conv_lambda ! Max lambda    value 
 LOGICAL                                                , INTENT(INOUT) :: lconvergence ! Convergence criteria were reached
-LOGICAL           , DIMENSION(3)                       , intent(out)   :: lconv       ! Convergence criteria
+LOGICAL           , DIMENSION(4)                       , intent(out)   :: lconv       ! Convergence criteria
 REAL(kind=PREC_DP)                                     , INTENT(OUT)   :: chisq       ! Chi^2 value
 REAL(kind=PREC_DP)                                     , INTENT(OUT)   :: conf        ! Confidence test from Gamma function
 REAL(kind=PREC_DP)                                     , INTENT(OUT)   :: lamda_fin   ! Final Marquardt lamda
@@ -1702,8 +1703,9 @@ cycles:DO
    lconv(2) = (last_shift(last_i)>0.0 .AND.                               &
                ABS(last_chi(last_i)-last_chi(prev_i))<conv_dchi2)
    lconv(3) = last_chi(last_i)  < conv_chi2
+   lconv(4) = alamda            > conv_lambda
 !  lconv(2) =   last_chi( last_i)  < conv_chi2
-   IF(lconv(1) .OR. lconv(2) .OR. lconv(3)) THEN
+   IF(lconv(1) .OR. lconv(2) .OR. lconv(3) .or. lconv(4)) THEN
 !  IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
 !     last_shift(last_i) < conv_dp_sig                   .AND.   &
 !     last_conf(last_i)  > conv_conf                     .OR.    &
@@ -2307,9 +2309,11 @@ SUBROUTINE refine_best(rval)
 use refine_control_mod
 USE refine_params_mod
 USE refine_data_mod
+use refine_head_mod
 !
 use errlist_mod
 USE ber_params_mod
+use blanks_mod
 use build_name_mod
 USE get_params_mod
 USE precision_mod
@@ -2330,6 +2334,7 @@ REAL(kind=PREC_DP)    :: step
 REAL(kind=PREC_DP)    :: rval_w
 !
 character(len=PREC_STRING) ::  string
+character(len=PREC_STRING) ::  long_line
 integer                    :: length
 !
 CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE :: cpara
@@ -2445,6 +2450,8 @@ IF(ref_csigma/= ' ') THEN           ! sigma set was loaded
 ENDIF
 WRITE(IWR, '(a)') 'refine'
 WRITE(IWR, '(a)') '#'
+call write_header(IWR)          ! Write all accumulated header line
+WRITE(IWR, '(a)') '#'
 !
 ! Write refined values
 !
@@ -2469,6 +2476,8 @@ OPEN(UNIT=IWR, FILE=nfile, STATUS='unknown')
 write(IWR, '(a)') 'refine'
 write(IWR, '(a)') 'reset'
 write(IWR, '(a)') '#'
+call write_header(IWR)       ! Write accumulated header lines
+write(IWR, '(a)') '#'
 if(ref_load_u /= ' ') then
    write(IWR, '(2a)') 'data ', ref_load_u(1:len_trim(ref_load_u))
 endif
@@ -2480,7 +2489,7 @@ write(IWR, '(a)') '#'
 !  Set free parameters
 !
 do i=1, refine_par_n            ! Write values for all refined parameters
-      string = ' '
+   string = ' '
    if(refine_range(i,1)>refine_range(i,2)) then    ! No range parameter
       string = ' '
    elseif(refine_range(i,1) > -0.5*HUGE(0.0) .and. refine_range(i,2) < 0.5*HUGE(0.0)) then  ! [low, high]
@@ -2492,9 +2501,13 @@ do i=1, refine_par_n            ! Write values for all refined parameters
    else
       write(string,'(a,g20.8e3,a,g20.8e3,a)') ' , range:[', refine_range(i,1), ',', refine_range(i,2), ']'
    endif
-   write(IWR, '(3a,G20.8E3,(a,i1),(a,g15.8e3),a,a)') 'newpara ', refine_params(i)(1:len_trim(refine_params(i))), ' , value:',refine_p(i), &
+   write(long_line, '(2a,G20.8E3,(a,i1),(a,g15.8e3),a,a)') refine_params(i)(1:len_trim(refine_params(i))), ' , value:',refine_p(i), &
    ' , points:', refine_nderiv(i), ' , shift:',abs(refine_shift(i)), ' , status:free', string(1:len_trim(string))
+   length = len_trim(long_line)
+   call rem_bl(long_line, length)
+   write(IWR, '(2a)') 'newpara ', long_line(1:length)
 enddo
+write(IWR, '(a)') '#'
 !
 ! Set fixed parameter values
 !
@@ -2509,7 +2522,7 @@ ENDDO
 ianz = refine_fix_n
 CALL ber_params(ianz, cpara, lpara, werte, MAXW)
 DO i=1, refine_fix_n            ! Make sure each parameter is defined as a variable
-      string = ' '
+   string = ' '
    if(refine_range_fix(i,1)>refine_range_fix(i,2)) then    ! No range parameter
       string = ' '
    elseif(refine_range_fix(i,1) > -0.5*HUGE(0.0) .and. refine_range_fix(i,2) < 0.5*HUGE(0.0)) then  ! [low, high]
@@ -2521,8 +2534,12 @@ DO i=1, refine_fix_n            ! Make sure each parameter is defined as a varia
    else
       write(string,'(a,g20.8e3,a,g20.8e3,a)') ' , range:[', refine_range_fix(i,1), ',', refine_range_fix(i,2), ']'
    endif
-   WRITE(IWR,'(3a,G20.8E3,(a,i1),(a,g15.8e3),a)') 'newpara ', refine_fixed(i)(1:len_trim(refine_fixed(i))), ' , value:', werte(i),  &
+   long_line = ' '
+   WRITE(long_line, '(2a,G20.8E3,(a,i1),(a,g15.8e3),a,a)') refine_fixed(i)(1:len_trim(refine_fixed(i))), ' , value:', werte(i),  &
    ' , points:', refine_nderiv_fix(i), ' , shift:',abs(refine_shift_fix(i)), ' , status:fixed', string(1:len_trim(string))
+   length = len_trim(long_line)
+   call rem_bl(long_line, length)
+   write(IWR, '(2a)') 'newpara ', long_line(1:length)
 ENDDO
 !
 write(IWR, '(a)') '#'
@@ -2551,6 +2568,11 @@ endif
 !
 if(conv_chi2_u) then          ! User provided pshift:
    write(string(length+1:),'(a,g20.8e3)') ', chisq:', conv_chi2
+   length = len_trim(string)
+endif
+!
+if(conv_lamb_u) then          ! User provided pshift:
+   write(string(length+1:),'(a,g20.8e3)') ', lambda:', conv_lambda
    length = len_trim(string)
 endif
 !

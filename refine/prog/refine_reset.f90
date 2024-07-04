@@ -12,6 +12,7 @@ USE refine_blk_appl
 USE refine_control_mod
 USE refine_data_mod
 USE refine_fit_erg
+use refine_head_mod
 use refine_log_mod
 USE refine_params_mod
 USE do_variable_mod
@@ -58,6 +59,7 @@ conv_dp_sig     = 0.005 ! Maximum DeltaP/sigma for convergence
 conv_dchi2      = 0.5   ! Maximum Chi^2 change for convergence
 conv_chi2       = 0.5   ! Minimum Chi^2 value  for convergence
 conv_conf       = 0.01  ! Minimum confidence level
+conv_lambda     = 1.00E10 ! Maximum lambda     level
 lconvergence    = .FALSE. ! Convergence has been reached
 lconv           = .FALSE. ! Convergence has been reached
 refine_lamda_s  = 0.001   ! MRQ lamda start
@@ -80,12 +82,15 @@ conv_dp_sig_u  = .FALSE. ! Maximum DeltaP/sigma for convergence; user defined
 conv_dchi2_u   = .FALSE. ! Maximum Chi^2 change for convergence; user defined
 conv_chi2_u    = .FALSE. ! Minimum Chi^2 value  for convergence; user defined
 conv_conf_u    = .FALSE. ! Minimum confidence level; user defined
+conv_lamb_u    = .FALSE. ! Maxmimum lambda    level; user defined
 !
 refine_lamda_s_u = .FALSE.!MRQ lamda start
 refine_lamda_u_u = .FALSE.!MRQ lamda Increase (up)
 refine_lamda_d_u = .FALSE.!MRQ lamda Decrease (down)
 !
 refine_log = .false.
+!
+call reset_header      ! Clear header lines for "refine_best", "refine_new.res"
 !
 END SUBROUTINE refine_do_reset
 !
