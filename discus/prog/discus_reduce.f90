@@ -16,6 +16,7 @@ subroutine reduce_atoms(MAXMASK, uni_mask)
 !+
 !
 use crystal_mod
+use discus_allocate_appl_mod
 use atom_line_mod
 !
 use precision_mod
@@ -42,7 +43,7 @@ integer :: nscat ! number atom types as to unique mask
 integer :: nscat_start
 !
 lb = lbound(cr_at_lis,1)
-ub = ubound(cr_at_lis,1)
+ub = ubound(cr_at_lis,1)+5
 allocate(at_lis (lb:ub))
 allocate(at_dw  (lb:ub))
 allocate(at_occ (lb:ub))
@@ -65,6 +66,9 @@ do i=1, cr_natoms
                        nw_name, nw_dw, nw_occ, uni_mask)
    if(is_type==-1) then                     ! New atom type
       nscat = nscat + 1
+      if(nscat>ubound(cr_at_lis,1)) then
+         call alloc_crystal_scat(nscat)
+      endif
       at_lis(nscat) = nw_name
       at_dw (nscat) = nw_dw
       at_occ(nscat) = nw_occ
