@@ -7919,7 +7919,7 @@
 !p cell <name> [,<nx> [,<ny> [,<nz>]]]
 !p       [,"identical:"{"tolerate"|"none"}]
 !p       [,"radius:"<value>]
-!p       [,"occupancy:"{"clear"|"apply"|"ignore"}]
+!p       [,"occupancy:"{"clear"|"apply"|"keep"}]
 !p       [,"unique:"{"site"|"name"|"charge"|"biso"|"occ"}]
 
    Reads the contents of a single asymmetric unit from file <name> and
