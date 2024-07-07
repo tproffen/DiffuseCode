@@ -7,299 +7,299 @@ MODULE discus_allocate_appl_mod
 !     SUBROUTINE alloc_constraint ( n_constr)  ! Allocate the number of constraints
 !     SUBROUTINE alloc_population ( n_pop, n_dimx)  ! Allocate the number of members, parameters
 !+
-  USE allocate_generic
-  USE discus_config_mod
-  USE errlist_mod 
+USE allocate_generic
+USE discus_config_mod
+USE errlist_mod 
 !
-  CONTAINS
+CONTAINS
 !
-    SUBROUTINE discus_do_allocate_appl(zeile,lcomm)
+SUBROUTINE discus_do_allocate_appl(zeile,lcomm)
 !
-    USE ber_params_mod
-    USE get_params_mod
+USE ber_params_mod
+USE get_params_mod
 USE precision_mod
 USE str_comp_mod
-    IMPLICIT NONE
+IMPLICIT NONE
 !
 !
-    CHARACTER (LEN=*), INTENT(IN)            :: zeile
-    INTEGER          , INTENT(INOUT)         :: lcomm
+CHARACTER (LEN=*), INTENT(IN)            :: zeile
+INTEGER          , INTENT(INOUT)         :: lcomm
 !
-    INTEGER , PARAMETER                      :: MAXW=10
-    CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW)  :: cpara
-    INTEGER             , DIMENSION(1:MAXW)  :: lpara
-    REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW)  :: werte
-    INTEGER                                  :: ianz
+INTEGER , PARAMETER                      :: MAXW=10
+CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW)  :: cpara
+INTEGER             , DIMENSION(1:MAXW)  :: lpara
+REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW)  :: werte
+INTEGER                                  :: ianz
 !
 !
-    CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
-    IF (ier_num.eq.0) then 
-       IF ( ianz == 0 ) THEN
-          CALL discus_show_config
-       ELSE IF (str_comp (cpara (1) , 'default'   , 1, lpara (1) , 7) )  THEN
-          CALL discus_alloc_default
-       ELSE IF (str_comp (cpara (1) , 'crystal'   , 1, lpara (1) , 5) )  THEN
-          IF ( ianz == 3 ) THEN
-             CALL del_params (1, ianz, cpara, lpara, maxw) 
-             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-             IF (ier_num.eq.0) then 
-               CALL alloc_crystal_scat ( NINT (werte(1)))
-               CALL alloc_crystal_nmax ( NINT (werte(2)))
-             ELSE 
-                ier_num = - 6 
-                ier_typ = ER_COMM 
-             ENDIF 
-          ELSE 
-             ier_num = - 6 
-             ier_typ = ER_COMM 
-          ENDIF 
-       ELSE IF (str_comp (cpara (1) , 'show', 1, lpara (1) , 4) )  THEN
-          CALL discus_show_config
-       ELSE 
-          ier_num = - 6 
-          ier_typ = ER_COMM 
-       ENDIF 
-    ENDIF 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
+IF (ier_num.eq.0) then 
+IF ( ianz == 0 ) THEN
+  CALL discus_show_config
+ELSE IF (str_comp (cpara (1) , 'default'   , 1, lpara (1) , 7) )  THEN
+  CALL discus_alloc_default
+ELSE IF (str_comp (cpara (1) , 'crystal'   , 1, lpara (1) , 5) )  THEN
+  IF ( ianz == 3 ) THEN
+     CALL del_params (1, ianz, cpara, lpara, maxw) 
+     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+     IF (ier_num.eq.0) then 
+       CALL alloc_crystal_scat ( NINT (werte(1)))
+       CALL alloc_crystal_nmax ( NINT (werte(2)))
+     ELSE 
+	ier_num = - 6 
+	ier_typ = ER_COMM 
+     ENDIF 
+  ELSE 
+     ier_num = - 6 
+     ier_typ = ER_COMM 
+  ENDIF 
+ELSE IF (str_comp (cpara (1) , 'show', 1, lpara (1) , 4) )  THEN
+  CALL discus_show_config
+ELSE 
+  ier_num = - 6 
+  ier_typ = ER_COMM 
+ENDIF 
+ENDIF 
 !
-    END SUBROUTINE discus_do_allocate_appl
+END SUBROUTINE discus_do_allocate_appl
 !
-    SUBROUTINE discus_do_deallocate_appl(zeile,lcomm)
+SUBROUTINE discus_do_deallocate_appl(zeile,lcomm)
 !
-       USE get_params_mod
+USE get_params_mod
 USE precision_mod
 USE str_comp_mod
-       IMPLICIT NONE
+IMPLICIT NONE
 !
 !
-       CHARACTER (LEN=*), INTENT(IN)            :: zeile
-       INTEGER          , INTENT(INOUT)         :: lcomm
+CHARACTER (LEN=*), INTENT(IN)            :: zeile
+INTEGER          , INTENT(INOUT)         :: lcomm
 !
-       INTEGER , PARAMETER                      :: MAXW=10
-       CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW)  :: cpara
-       INTEGER             , DIMENSION(1:MAXW)  :: lpara
-       INTEGER                                  :: ianz
-!
-!
-       CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm)
-       IF (ier_num.eq.0) then
-            IF ( ianz == 0 ) THEN
-               ier_num = - 6
-               ier_typ = ER_COMM
-            ELSE IF (str_comp (cpara (1) , 'all'       , 3, lpara (1) , 3) )  THEN
-               CALL discus_alloc_default
-!
-            ELSE IF (str_comp (cpara (1) , 'chemistry' , 3, lpara (1) , 9) )  THEN
-               CALL dealloc_chemistry
-            ELSE IF (str_comp (cpara (1) , 'domain'    , 3, lpara (1) , 6) )  THEN
-               CALL dealloc_domain
-            ELSE IF (str_comp (cpara (1) , 'mmc'       , 3, lpara (1) , 3) )  THEN
-               CALL dealloc_mmc
-            ELSE IF (str_comp (cpara (1) , 'stack'     , 3, lpara (1) , 5) )  THEN
-               CALL dealloc_stack
-!
-            ELSE IF (str_comp (cpara (1) , 'crystal'   , 3, lpara (1) , 7) )  THEN
-               CALL dealloc_crystal
-            ELSE IF (str_comp (cpara (1) , 'debye'     , 3, lpara (1) , 5) )  THEN
-               CALL dealloc_debye
-            ELSE IF (str_comp (cpara (1) , 'diffuse'   , 3, lpara (1) , 7) )  THEN
-               CALL dealloc_diffuse
-            ELSE IF (str_comp (cpara (1) , 'molecule'  , 3, lpara (1) , 8) )  THEN
-               CALL dealloc_molecule
-            ELSE IF (str_comp (cpara (1) , 'phase'     , 3, lpara (1) , 5) )  THEN
-               CALL dealloc_phases
-            ELSE IF (str_comp (cpara (1) , 'pdf'       , 3, lpara (1) , 3) )  THEN
-               CALL dealloc_pdf
-            ELSE IF (str_comp (cpara (1) , 'plot'      , 3, lpara (1) , 4) )  THEN
-               CALL dealloc_plot
-            ELSE IF (str_comp (cpara (1) , 'powder'    , 3, lpara (1) , 6) )  THEN
-               CALL dealloc_powder
-               CALL dealloc_powder_nmax
-            ELSE IF (str_comp (cpara (1) , 'rmc'       , 3, lpara (1) , 3) )  THEN
-               CALL dealloc_rmc    
-            ELSE IF (str_comp (cpara (1) , 'save'      , 3, lpara (1) , 4) )  THEN
-               CALL dealloc_save    
-            ELSE IF (str_comp (cpara (1) , 'shear'     , 3, lpara (1) , 5) )  THEN
-               CALL dealloc_shear
-            ELSE IF (str_comp (cpara (1) , 'super'     , 3, lpara (1) , 5) )  THEN
-               CALL dealloc_super
-            ELSE IF (str_comp (cpara (1) , 'surface'   , 3, lpara (1) , 7) )  THEN
-               CALL dealloc_surf
-            ELSE IF (str_comp (cpara (1) , 'symmetry'  , 3, lpara (1) , 8) )  THEN
-               CALL dealloc_symmetry
-            ELSE IF (str_comp (cpara (1) , 'transform' , 3, lpara (1) , 9) )  THEN
-               CALL dealloc_transfrm
-            ELSE IF (str_comp (cpara (1) , 'waves'     , 3, lpara (1) , 5) )  THEN
-               CALL dealloc_waves
-            ELSE
-               ier_num = - 6
-               ier_typ = ER_COMM
-            ENDIF
-       ENDIF
-!
-    END SUBROUTINE discus_do_deallocate_appl
+INTEGER , PARAMETER                      :: MAXW=10
+CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW)  :: cpara
+INTEGER             , DIMENSION(1:MAXW)  :: lpara
+INTEGER                                  :: ianz
 !
 !
-    SUBROUTINE discus_show_config
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm)
+IF (ier_num.eq.0) then
+    IF ( ianz == 0 ) THEN
+       ier_num = - 6
+       ier_typ = ER_COMM
+    ELSE IF (str_comp (cpara (1) , 'all'       , 3, lpara (1) , 3) )  THEN
+       CALL discus_alloc_default
 !
-       USE chem_mod
-       USE atom_env_mod
-       USE debye_mod
-       USE diffuse_mod
-       USE domain_mod
-       USE micro_mod
-       USE mmc_mod
-       USE pdf_mod
-       USE discus_plot_mod
-       USE powder_mod
-       USE rmc_mod
-       USE discus_save_mod
-       USE shear_mod
-       USE surface_mod
-       USE stack_mod
-       USE symm_mod
-       USE transfrm_mod
-       USE waves_mod
+    ELSE IF (str_comp (cpara (1) , 'chemistry' , 3, lpara (1) , 9) )  THEN
+       CALL dealloc_chemistry
+    ELSE IF (str_comp (cpara (1) , 'domain'    , 3, lpara (1) , 6) )  THEN
+       CALL dealloc_domain
+    ELSE IF (str_comp (cpara (1) , 'mmc'       , 3, lpara (1) , 3) )  THEN
+       CALL dealloc_mmc
+    ELSE IF (str_comp (cpara (1) , 'stack'     , 3, lpara (1) , 5) )  THEN
+       CALL dealloc_stack
 !
-       USE prompt_mod
-       IMPLICIT NONE
+    ELSE IF (str_comp (cpara (1) , 'crystal'   , 3, lpara (1) , 7) )  THEN
+       CALL dealloc_crystal
+    ELSE IF (str_comp (cpara (1) , 'debye'     , 3, lpara (1) , 5) )  THEN
+       CALL dealloc_debye
+    ELSE IF (str_comp (cpara (1) , 'diffuse'   , 3, lpara (1) , 7) )  THEN
+       CALL dealloc_diffuse
+    ELSE IF (str_comp (cpara (1) , 'molecule'  , 3, lpara (1) , 8) )  THEN
+       CALL dealloc_molecule
+    ELSE IF (str_comp (cpara (1) , 'phase'     , 3, lpara (1) , 5) )  THEN
+       CALL dealloc_phases
+    ELSE IF (str_comp (cpara (1) , 'pdf'       , 3, lpara (1) , 3) )  THEN
+       CALL dealloc_pdf
+    ELSE IF (str_comp (cpara (1) , 'plot'      , 3, lpara (1) , 4) )  THEN
+       CALL dealloc_plot
+    ELSE IF (str_comp (cpara (1) , 'powder'    , 3, lpara (1) , 6) )  THEN
+       CALL dealloc_powder
+       CALL dealloc_powder_nmax
+    ELSE IF (str_comp (cpara (1) , 'rmc'       , 3, lpara (1) , 3) )  THEN
+       CALL dealloc_rmc    
+    ELSE IF (str_comp (cpara (1) , 'save'      , 3, lpara (1) , 4) )  THEN
+       CALL dealloc_save    
+    ELSE IF (str_comp (cpara (1) , 'shear'     , 3, lpara (1) , 5) )  THEN
+       CALL dealloc_shear
+    ELSE IF (str_comp (cpara (1) , 'super'     , 3, lpara (1) , 5) )  THEN
+       CALL dealloc_super
+    ELSE IF (str_comp (cpara (1) , 'surface'   , 3, lpara (1) , 7) )  THEN
+       CALL dealloc_surf
+    ELSE IF (str_comp (cpara (1) , 'symmetry'  , 3, lpara (1) , 8) )  THEN
+       CALL dealloc_symmetry
+    ELSE IF (str_comp (cpara (1) , 'transform' , 3, lpara (1) , 9) )  THEN
+       CALL dealloc_transfrm
+    ELSE IF (str_comp (cpara (1) , 'waves'     , 3, lpara (1) , 5) )  THEN
+       CALL dealloc_waves
+    ELSE
+       ier_num = - 6
+       ier_typ = ER_COMM
+    ENDIF
+ENDIF
 !
-!
-       WRITE (output_io, 1000)
-!
-       WRITE (output_io, 1005) MAXSCAT
-       WRITE (output_io, 1010) NMAX
-       WRITE (output_io, 1020) MAXQXY
-!
-       WRITE (output_io, 1030) RMC_MAX_Q
-       WRITE (output_io, 1040) RMC_MAX_PLANES
-       WRITE (output_io, 1050) RMC_MAX_SYM
-       WRITE (output_io, 1060) RMC_MAX_ATOM
-       WRITE (output_io, 1070) RMC_MAX_LOTS
-!
-       WRITE (output_io, 1080) CHEM_MAX_VEC
-       WRITE (output_io, 1090) CHEM_MAX_COR
-       WRITE (output_io, 1100) CHEM_MAX_BIN
-       WRITE (output_io, 1110)  MMC_MAX_ATOM
-       WRITE (output_io, 1120) MAX_ATOM_ENV
-!
-       WRITE (output_io, 1130) MK_MAX_ATOM
-       WRITE (output_io, 1140) MK_MAX_SCAT
-!
-       WRITE (output_io, 1160) ST_MAXQXY
-       WRITE (output_io, 1170) ST_MAXLAYER
-       WRITE (output_io, 1180) ST_MAXTYPE
-!
-       WRITE (output_io, 1190) PDF_MAXDAT
-!
-       WRITE (output_io, 1200) MAXHIST
-!
-       WRITE (output_io, 6400) PL_MAXSCAT
-!
-       WRITE (output_io, 6600) SAV_MAXSCAT
-!
-       WRITE (output_io, 6700) SHEAR_MAXSCAT
-!
-       WRITE (output_io, 6800) SYM_MAXSCAT
-!
-       WRITE (output_io, 6900) TRAN_MAXSCAT
-!
-       WRITE (output_io, 7000) WV_MAXSCAT
+END SUBROUTINE discus_do_deallocate_appl
 !
 !
- 1000 FORMAT(' Current configuration of DISCUS : ')
- 1005 FORMAT('   Maximum number of different atomtypes         : ',i8)
- 1010 FORMAT('   Maximum number of atoms                       : ',i8)
- 1020 FORMAT('   Maximum number of points in Q                 : ',i8)
- 1030 FORMAT('   Maximum number of RMC input data points       : ',i8)
- 1040 FORMAT('   Maximum number of RMC input data planes       : ',i8)
- 1050 FORMAT('   Maximum number of RMC sym. equivalent planes  : ',i8)
- 1060 FORMAT('   Maximum number of atoms moved in one RMC move : ',i8)
- 1070 FORMAT('   Maximum number of RMC lots allowed            : ',i8)
- 1080 FORMAT('   Maximum number of neighbour vec. definitions  : ',i8)
- 1090 FORMAT('   Maximum number of correlations                : ',i8)
- 1100 FORMAT('   Maximum number of points for histograms       : ',i8)
- 1110 FORMAT('   Maximum number of different atoms             : ',i8)
- 1120 FORMAT('   Maximum number of neighbouring atoms/mol.     : ',i8)
- 1130 FORMAT('   Maximum number of atoms in microdomain        : ',i8)
- 1140 FORMAT('   Maximum number of atom types in microdomain   : ',i8)
- 1160 FORMAT('   Maximum number of points of Fourier           : ',i8)
- 1170 FORMAT('   Maximum number of layers                      : ',i8)
- 1180 FORMAT('   Maximum number of layer types                 : ',i8)
- 1190 FORMAT('   Maximum number of points in PDF               : ',i8)
- 1200 FORMAT('   Maximum number of points in Debye Histogram   : ',i8)
- 6400 FORMAT('   Current number of atomtypes for plot          : ',i8)
- 6600 FORMAT('   Current number of atomtypes for save          : ',i8)
- 6700 FORMAT('   Current number of atomtypes for shear         : ',i8)
- 6800 FORMAT('   Current number of atomtypes for symmetry      : ',i8)
- 6900 FORMAT('   Current number of atomtypes for transform     : ',i8)
- 7000 FORMAT('   Current number of atomtypes for waves         : ',i8)
+SUBROUTINE discus_show_config
 !
-    END SUBROUTINE discus_show_config
+USE chem_mod
+USE atom_env_mod
+USE debye_mod
+USE diffuse_mod
+USE domain_mod
+USE micro_mod
+USE mmc_mod
+USE pdf_mod
+USE discus_plot_mod
+USE powder_mod
+USE rmc_mod
+USE discus_save_mod
+USE shear_mod
+USE surface_mod
+USE stack_mod
+USE symm_mod
+USE transfrm_mod
+USE waves_mod
 !
-    SUBROUTINE discus_alloc_default
+USE prompt_mod
+IMPLICIT NONE
 !
-      USE discus_config_mod
-      USE precision_mod
-      IMPLICIT NONE
-      INTEGER(KIND=PREC_INT_LARGE), PARAMETER :: ONE=1
-      integer, dimension(3) :: n_qxy
 !
-      n_qxy = 1
+WRITE (output_io, 1000)
 !
-      CALL alloc_chem_correlation( 1     )
-      CALL alloc_chem_ang ( 1,  1        )
-      CALL alloc_chem_aver( 1,  1        )
-      CALL alloc_chem_disp( 1,  1        )
-      CALL alloc_chem_env ( 1,  1,  1    )
-      CALL alloc_chem_vec ( 1,  1        )
-      CALL alloc_chem_con ( 1,  1        )
-      CALL alloc_chem_dir ( 1 )
-      CALL alloc_chem_ran ( 1,  1,  1    )
-      CALL alloc_chem_dist( 1 )
-      CALL alloc_chem_hist( 1            )
-      CALL alloc_conn_vect( 1            )
-      CALL alloc_crystal_scat( 1)
-      CALL alloc_crystal_nmax( 1)
-      call alloc_unitcell ( 1 )
-      call alloc_anis     ( 1 )
-      CALL alloc_deco     ( 1,  1,  4,  3,   3, 2 , 3)
-      CALL alloc_debye    ( 1,  1,  1, ONE )
-      CALL alloc_demol    ( 1,  1        ) 
-      CALL alloc_diffuse_four  ( n_qxy)
-      CALL alloc_diffuse_scat  ( 1    )
-      call alloc_diffuse_dbw   ( n_qxy, 1)
-      CALL alloc_diffuse_atom  ( 1    )
-      CALL alloc_domain   ( 1            )
-      CALL alloc_micro    ( 1,  1        )
-      CALL alloc_mmc      ( 1,  8,  1,  1)
-      CALL alloc_mmc_angle( 1,  1        )
-      CALL alloc_mmc_buck ( 1,  1        )
-      CALL alloc_mmc_lenn ( 1,  1        )
-      CALL alloc_mmc_move ( 1,  1,  1    )
-      CALL alloc_molecule ( 1,  1,  1,  1,  1)
-      CALL alloc_phases   ( 1,  n_qxy,  1        )
-      CALL alloc_pdf      ( 1,  1,  1,  1    )
-      CALL alloc_plot     ( 1,  1,  1    )
-      CALL alloc_powder   ( 1,  1        )
-      CALL alloc_powder_partial( 1       )
-      CALL alloc_powder_nmax ( 1,1          )
-      CALL alloc_rmc      ( 1,  1        )
-      CALL alloc_rmc_data ( n_qxy        )
-      CALL alloc_rmc_istl ( (/1,1,1/),  1, 1     )
-      CALL alloc_rmc_q    ( (/1,1,1/),  1, 1        )
-      CALL alloc_rmc_planes(1, 48        )
-      CALL alloc_save     ( 1, 1         )
-      CALL alloc_shear    ( 1,  1        )
-      CALL alloc_stack    ( 1,  1,  .TRUE.)
-      CALL alloc_stack_four(n_qxy )
-      CALL alloc_stack_crystal    ( 1,  1        )
-      CALL alloc_surf     ( MAXSCAT      )
-      CALL alloc_super    ( 1,  1, 1, 1  )
-      CALL alloc_symmetry ( 1,  1        )
-      CALL alloc_transfrm ( 1,  1        )
-      CALL alloc_waves    ( 1,  1        )
+WRITE (output_io, 1005) MAXSCAT
+WRITE (output_io, 1010) NMAX
+WRITE (output_io, 1020) MAXQXY
 !
-    END SUBROUTINE discus_alloc_default
+WRITE (output_io, 1030) RMC_MAX_Q
+WRITE (output_io, 1040) RMC_MAX_PLANES
+WRITE (output_io, 1050) RMC_MAX_SYM
+WRITE (output_io, 1060) RMC_MAX_ATOM
+WRITE (output_io, 1070) RMC_MAX_LOTS
+!
+WRITE (output_io, 1080) CHEM_MAX_VEC
+WRITE (output_io, 1090) CHEM_MAX_COR
+WRITE (output_io, 1100) CHEM_MAX_BIN
+WRITE (output_io, 1110)  MMC_MAX_ATOM
+WRITE (output_io, 1120) MAX_ATOM_ENV
+!
+WRITE (output_io, 1130) MK_MAX_ATOM
+WRITE (output_io, 1140) MK_MAX_SCAT
+!
+WRITE (output_io, 1160) ST_MAXQXY
+WRITE (output_io, 1170) ST_MAXLAYER
+WRITE (output_io, 1180) ST_MAXTYPE
+!
+WRITE (output_io, 1190) PDF_MAXDAT
+!
+WRITE (output_io, 1200) MAXHIST
+!
+WRITE (output_io, 6400) PL_MAXSCAT
+!
+WRITE (output_io, 6600) SAV_MAXSCAT
+!
+WRITE (output_io, 6700) SHEAR_MAXSCAT
+!
+WRITE (output_io, 6800) SYM_MAXSCAT
+!
+WRITE (output_io, 6900) TRAN_MAXSCAT
+!
+WRITE (output_io, 7000) WV_MAXSCAT
+!
+!
+1000 FORMAT(' Current configuration of DISCUS : ')
+1005 FORMAT('   Maximum number of different atomtypes         : ',i8)
+1010 FORMAT('   Maximum number of atoms                       : ',i8)
+1020 FORMAT('   Maximum number of points in Q                 : ',i8)
+1030 FORMAT('   Maximum number of RMC input data points       : ',i8)
+1040 FORMAT('   Maximum number of RMC input data planes       : ',i8)
+1050 FORMAT('   Maximum number of RMC sym. equivalent planes  : ',i8)
+1060 FORMAT('   Maximum number of atoms moved in one RMC move : ',i8)
+1070 FORMAT('   Maximum number of RMC lots allowed            : ',i8)
+1080 FORMAT('   Maximum number of neighbour vec. definitions  : ',i8)
+1090 FORMAT('   Maximum number of correlations                : ',i8)
+1100 FORMAT('   Maximum number of points for histograms       : ',i8)
+1110 FORMAT('   Maximum number of different atoms             : ',i8)
+1120 FORMAT('   Maximum number of neighbouring atoms/mol.     : ',i8)
+1130 FORMAT('   Maximum number of atoms in microdomain        : ',i8)
+1140 FORMAT('   Maximum number of atom types in microdomain   : ',i8)
+1160 FORMAT('   Maximum number of points of Fourier           : ',i8)
+1170 FORMAT('   Maximum number of layers                      : ',i8)
+1180 FORMAT('   Maximum number of layer types                 : ',i8)
+1190 FORMAT('   Maximum number of points in PDF               : ',i8)
+1200 FORMAT('   Maximum number of points in Debye Histogram   : ',i8)
+6400 FORMAT('   Current number of atomtypes for plot          : ',i8)
+6600 FORMAT('   Current number of atomtypes for save          : ',i8)
+6700 FORMAT('   Current number of atomtypes for shear         : ',i8)
+6800 FORMAT('   Current number of atomtypes for symmetry      : ',i8)
+6900 FORMAT('   Current number of atomtypes for transform     : ',i8)
+7000 FORMAT('   Current number of atomtypes for waves         : ',i8)
+!
+END SUBROUTINE discus_show_config
+!
+SUBROUTINE discus_alloc_default
+!
+USE discus_config_mod
+USE precision_mod
+IMPLICIT NONE
+INTEGER(KIND=PREC_INT_LARGE), PARAMETER :: ONE=1
+integer, dimension(3) :: n_qxy
+!
+n_qxy = 1
+!
+CALL alloc_chem_correlation( 1     )
+CALL alloc_chem_ang ( 1,  1        )
+CALL alloc_chem_aver( 1,  1        )
+CALL alloc_chem_disp( 1,  1        )
+CALL alloc_chem_env ( 1,  1,  1    )
+CALL alloc_chem_vec ( 1,  1        )
+CALL alloc_chem_con ( 1,  1        )
+CALL alloc_chem_dir ( 1 )
+CALL alloc_chem_ran ( 1,  1,  1    )
+CALL alloc_chem_dist( 1 )
+CALL alloc_chem_hist( 1            )
+CALL alloc_conn_vect( 1            )
+CALL alloc_crystal_scat( 1)
+CALL alloc_crystal_nmax( 1)
+call alloc_unitcell ( 1 )
+call alloc_anis     ( 1 )
+CALL alloc_deco     ( 1,  1,  4,  3,   3, 2 , 3)
+CALL alloc_debye    ( 1,  1,  1, ONE )
+CALL alloc_demol    ( 1,  1        ) 
+CALL alloc_diffuse_four  ( n_qxy)
+CALL alloc_diffuse_scat  ( 1    )
+call alloc_diffuse_dbw   ( n_qxy, 1)
+CALL alloc_diffuse_atom  ( 1    )
+CALL alloc_domain   ( 1            )
+CALL alloc_micro    ( 1,  1        )
+CALL alloc_mmc      ( 1,  8,  1,  1)
+CALL alloc_mmc_angle( 1,  1        )
+CALL alloc_mmc_buck ( 1,  1        )
+CALL alloc_mmc_lenn ( 1,  1        )
+CALL alloc_mmc_move ( 1,  1,  1    )
+CALL alloc_molecule ( 1,  1,  1,  1,  1)
+CALL alloc_phases   ( 1,  n_qxy,  1        )
+CALL alloc_pdf      ( 1,  1,  1,  1    )
+CALL alloc_plot     ( 1,  1,  1    )
+CALL alloc_powder   ( 1,  1        )
+CALL alloc_powder_partial( 1       )
+CALL alloc_powder_nmax ( 1,1          )
+CALL alloc_rmc      ( 1,  1        )
+CALL alloc_rmc_data ( n_qxy        )
+CALL alloc_rmc_istl ( (/1,1,1/),  1, 1     )
+CALL alloc_rmc_q    ( (/1,1,1/),  1, 1        )
+CALL alloc_rmc_planes(1, 48        )
+CALL alloc_save     ( 1, 1         )
+CALL alloc_shear    ( 1,  1        )
+CALL alloc_stack    ( 1,  1,  .TRUE.)
+CALL alloc_stack_four(n_qxy )
+CALL alloc_stack_crystal    ( 1,  1        )
+CALL alloc_surf     ( MAXSCAT      )
+CALL alloc_super    ( 1,  1, 1, 1  )
+CALL alloc_symmetry ( 1,  1        )
+CALL alloc_transfrm ( 1,  1        )
+CALL alloc_waves    ( 1,  1        )
+!
+END SUBROUTINE discus_alloc_default
 !
 SUBROUTINE alloc_chem_correlation( n_cor)
 !-
@@ -322,435 +322,435 @@ CHEM_MAX_COR = n_cor
 !
 END SUBROUTINE alloc_chem_correlation
 !
-    SUBROUTINE alloc_chem_aver ( n_atom_cell, n_max_atom )
+SUBROUTINE alloc_chem_aver ( n_atom_cell, n_max_atom )
 !-
 !     Allocate the arrays needed by CHEM average structure
 !+
-      USE crystal_mod
-      USE chem_mod
+USE crystal_mod
+USE chem_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_atom_cell
-      INTEGER, INTENT(IN)  :: n_max_atom
+INTEGER, INTENT(IN)  :: n_atom_cell
+INTEGER, INTENT(IN)  :: n_max_atom
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat  = .TRUE.
+lstat  = .TRUE.
 !
-      CALL alloc_arr ( chem_ave_n    ,1,n_atom_cell ,   &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_ave_n    ,1,n_atom_cell ,   &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_ave_iscat,1,n_atom_cell , 1,n_max_atom  , &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_ave_iscat,1,n_atom_cell , 1,n_max_atom  , &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_ave_pos  ,1,3 , 1,n_atom_cell ,   &
-                       all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_ave_pos  ,1,3 , 1,n_atom_cell ,   &
+	       all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_ave_sig  ,1,3           ,  1,n_atom_cell , &
-                       all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_ave_sig  ,1,3           ,  1,n_atom_cell , &
+	       all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_ave_bese ,1,n_atom_cell , 1,n_max_atom  , &
-                       all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-!
-      IF( lstat ) THEN                        ! Success
-         CHEM_MAXAT_CELL   = n_atom_cell
-         CHEM_MAX_AVE_ATOM = n_max_atom
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'CHEMISTRY'
-         ENDIF
-      ELSE                                    ! Failure
-         CHEM_MAXAT_CELL   = n_atom_cell
-         CHEM_MAX_AVE_ATOM = n_max_atom
-         NMAX          =  1
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'CHEMISTRY'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_chem_aver
+CALL alloc_arr ( chem_ave_bese ,1,n_atom_cell , 1,n_max_atom  , &
+	       all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
-    SUBROUTINE alloc_chem_ang  ( n_ang, n_cor )
+IF( lstat ) THEN                        ! Success
+ CHEM_MAXAT_CELL   = n_atom_cell
+ CHEM_MAX_AVE_ATOM = n_max_atom
+ ier_typ       = 0
+ ier_num       = 0
+ IF ( all_status == 1 ) THEN
+    ier_typ       = 1
+    ier_num       = ER_COMM
+    ier_msg(1)    = 'CHEMISTRY'
+ ENDIF
+ELSE                                    ! Failure
+ CHEM_MAXAT_CELL   = n_atom_cell
+ CHEM_MAX_AVE_ATOM = n_max_atom
+ NMAX          =  1
+ ier_num       = -3
+ ier_typ       = ER_COMM
+ ier_msg(1)    = 'CHEMISTRY'
+ RETURN
+END IF
+END SUBROUTINE alloc_chem_aver
+!
+!
+SUBROUTINE alloc_chem_ang  ( n_ang, n_cor )
 !-
 !     Allocate the arrays needed by CHEM angle definitions
 !+
-      USE crystal_mod
-      USE chem_mod
+USE crystal_mod
+USE chem_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_ang
-      INTEGER, INTENT(IN)  :: n_cor
+INTEGER, INTENT(IN)  :: n_ang
+INTEGER, INTENT(IN)  :: n_cor
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat  = .TRUE.
+lstat  = .TRUE.
 !
-      CALL alloc_arr ( chem_cwin     ,1,9, 1,n_ang,      &
-                       all_status, -9999)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_cwin     ,1,9, 1,n_ang,      &
+	       all_status, -9999)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_use_win  ,1,n_ang, 1,n_cor,  &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_use_win  ,1,n_ang, 1,n_cor,  &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_nwin             , 1,n_cor,  &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-!
-      IF( lstat ) THEN                        ! Success
-         CHEM_MAX_ANG  = n_ang
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'CHEMISTRY'
-         ENDIF
-      ELSE                                    ! Failure
-         CHEM_MAX_ANG  = n_ang
-         NMAX          =  1
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'CHEMISTRY'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_chem_ang
+CALL alloc_arr ( chem_nwin             , 1,n_cor,  &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
-    SUBROUTINE alloc_chem_disp ( n_cor, n_scat )
+IF( lstat ) THEN                        ! Success
+ CHEM_MAX_ANG  = n_ang
+ ier_typ       = 0
+ ier_num       = 0
+ IF ( all_status == 1 ) THEN
+    ier_typ       = 1
+    ier_num       = ER_COMM
+    ier_msg(1)    = 'CHEMISTRY'
+ ENDIF
+ELSE                                    ! Failure
+ CHEM_MAX_ANG  = n_ang
+ NMAX          =  1
+ ier_num       = -3
+ ier_typ       = ER_COMM
+ ier_msg(1)    = 'CHEMISTRY'
+ RETURN
+END IF
+END SUBROUTINE alloc_chem_ang
+!
+!
+SUBROUTINE alloc_chem_disp ( n_cor, n_scat )
 !-
 !     Allocate the arrays needed by CHEM displacement structure
 !+
-      USE crystal_mod
-      USE chem_mod
+USE crystal_mod
+USE chem_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_cor
-      INTEGER, INTENT(IN)  :: n_scat
+INTEGER, INTENT(IN)  :: n_cor
+INTEGER, INTENT(IN)  :: n_scat
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat  = .TRUE.
+lstat  = .TRUE.
 !
-      CALL alloc_arr ( chem_disp_ave    ,1,n_cor ,   &
-                       0, n_scat, 0, n_scat,         &
-                       all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_disp_ave    ,1,n_cor ,   &
+	       0, n_scat, 0, n_scat,         &
+	       all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_disp_sig    ,1,n_cor ,   &
-                       0, n_scat, 0, n_scat,         &
-                       all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-!
-      IF( lstat ) THEN                        ! Success
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'CHEMISTRY'
-         ENDIF
-      ELSE                                    ! Failure
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'CHEMISTRY'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_chem_disp
+CALL alloc_arr ( chem_disp_sig    ,1,n_cor ,   &
+	       0, n_scat, 0, n_scat,         &
+	       all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
-    SUBROUTINE alloc_chem_env ( n_atom, n_env, n_cor )
+IF( lstat ) THEN                        ! Success
+ ier_typ       = 0
+ ier_num       = 0
+ IF ( all_status == 1 ) THEN
+    ier_typ       = 1
+    ier_num       = ER_COMM
+    ier_msg(1)    = 'CHEMISTRY'
+ ENDIF
+ELSE                                    ! Failure
+ ier_num       = -3
+ ier_typ       = ER_COMM
+ ier_msg(1)    = 'CHEMISTRY'
+ RETURN
+END IF
+END SUBROUTINE alloc_chem_disp
+!
+!
+SUBROUTINE alloc_chem_env ( n_atom, n_env, n_cor )
 !-
 !     Allocate the arrays needed by CHEM displacement structure
 !+
-      USE crystal_mod
-      USE chem_mod
+USE crystal_mod
+USE chem_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_atom
-      INTEGER, INTENT(IN)  :: n_env
-      INTEGER, INTENT(IN)  :: n_cor
+INTEGER, INTENT(IN)  :: n_atom
+INTEGER, INTENT(IN)  :: n_env
+INTEGER, INTENT(IN)  :: n_cor
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat  = .TRUE.
+lstat  = .TRUE.
 !
-      CALL alloc_arr ( chem_use_env     ,1,n_env  , 1, n_cor,  &
-                       all_status, -9999)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_use_env     ,1,n_env  , 1, n_cor,  &
+	       all_status, -9999)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_nenv                  , 1, n_cor,  &
-                       all_status, -9999)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_nenv                  , 1, n_cor,  &
+	       all_status, -9999)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_cenv        ,0,n_atom , 1, n_env,  &
-                       all_status, -9999)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_cenv        ,0,n_atom , 1, n_env,  &
+	       all_status, -9999)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_env_neig    ,1,n_env ,   &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_env_neig    ,1,n_env ,   &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_rmax_env    ,1,n_env ,   &
-                       all_status, 3.5D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_rmax_env    ,1,n_env ,   &
+	       all_status, 3.5D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_rmin_env    ,1,n_env ,   &
-                       all_status, 0.1D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-!
-      IF( lstat ) THEN                        ! Success
-         CHEM_MAX_ENV  = n_env
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'CHEMISTRY'
-         ENDIF
-      ELSE                                    ! Failure
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'CHEMISTRY'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_chem_env
+CALL alloc_arr ( chem_rmin_env    ,1,n_env ,   &
+	       all_status, 0.1D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
-    SUBROUTINE alloc_chem_ran  ( n_ran, n_cor, n_max_atom )
+IF( lstat ) THEN                        ! Success
+ CHEM_MAX_ENV  = n_env
+ ier_typ       = 0
+ ier_num       = 0
+ IF ( all_status == 1 ) THEN
+    ier_typ       = 1
+    ier_num       = ER_COMM
+    ier_msg(1)    = 'CHEMISTRY'
+ ENDIF
+ELSE                                    ! Failure
+ ier_num       = -3
+ ier_typ       = ER_COMM
+ ier_msg(1)    = 'CHEMISTRY'
+ RETURN
+END IF
+END SUBROUTINE alloc_chem_env
+!
+!
+SUBROUTINE alloc_chem_ran  ( n_ran, n_cor, n_max_atom )
 !-
 !     Allocate the arrays needed by CHEM range definitions
 !+
-      USE crystal_mod
-      USE chem_mod
+USE crystal_mod
+USE chem_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_ran
-      INTEGER, INTENT(IN)  :: n_cor
-      INTEGER, INTENT(IN)  :: n_max_atom
+INTEGER, INTENT(IN)  :: n_ran
+INTEGER, INTENT(IN)  :: n_cor
+INTEGER, INTENT(IN)  :: n_max_atom
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat  = .TRUE.
+lstat  = .TRUE.
 !
-      CALL alloc_arr ( chem_use_ran  ,1,n_ran, 1,n_cor,      &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_use_ran  ,1,n_ran, 1,n_cor,      &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_nran     ,1,n_cor,      &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_nran     ,1,n_cor,      &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_cran_cent,0,n_max_atom, 1,n_ran, &
-                       all_status, -9999)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
- 
-      CALL alloc_arr ( chem_cran_neig,0,n_max_atom, 1,n_ran, &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
- 
-      CALL alloc_arr ( chem_cran_nuvw ,1,n_ran    ,          &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
- 
-      CALL alloc_arr ( chem_cran_nshort ,1,n_ran  ,          &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_cran_cent,0,n_max_atom, 1,n_ran, &
+	       all_status, -9999)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+
+CALL alloc_arr ( chem_cran_neig,0,n_max_atom, 1,n_ran, &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+
+CALL alloc_arr ( chem_cran_nuvw ,1,n_ran    ,          &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+
+CALL alloc_arr ( chem_cran_nshort ,1,n_ran  ,          &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_cran_uvw ,1,3         , 1,48,    &
-                                      1,n_ran     ,          &
-                       all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_cran_uvw(1,1,CHEM_MAX_RAN+1:n_ran) = -9999
+CALL alloc_arr ( chem_cran_uvw ,1,3         , 1,48,    &
+			      1,n_ran     ,          &
+	       all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+chem_cran_uvw(1,1,CHEM_MAX_RAN+1:n_ran) = -9999
 !
-      CALL alloc_arr ( chem_cran_sig  ,1,n_ran       ,      &
-                       all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_cran_sig  ,1,n_ran       ,      &
+	       all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_cran_wsig ,1,n_ran       ,      &
-                       all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_cran_wsig ,1,n_ran       ,      &
+	       all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_cran_rmax ,1,n_ran       ,      &
-                       all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_cran_rmax ,1,n_ran       ,      &
+	       all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_cran_rmin ,1,n_ran       ,      &
-                       all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_cran_rmin ,1,n_ran       ,      &
+	       all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_cran_cang ,1,n_ran       ,      &
-                       all_status, .false.)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_cran_cang ,1,n_ran       ,      &
+	       all_status, .false.)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_cran_lsym ,1,n_ran       ,      &
-                       all_status, .false.)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( chem_cran_lsym ,1,n_ran       ,      &
+	       all_status, .false.)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( chem_cran_short,1,n_ran       ,      &
-                       all_status, .false.)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-!
-!
-      IF( lstat ) THEN                        ! Success
-         CHEM_MAX_RAN  = n_ran
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'CHEMISTRY'
-         ENDIF
-      ELSE                                    ! Failure
-         CHEM_MAX_RAN  = n_ran
-         NMAX          =  1
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'CHEMISTRY'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_chem_ran
+CALL alloc_arr ( chem_cran_short,1,n_ran       ,      &
+	       all_status, .false.)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
-    SUBROUTINE alloc_chem_vec  ( n_vec, n_cor )
+!
+IF( lstat ) THEN                        ! Success
+ CHEM_MAX_RAN  = n_ran
+ ier_typ       = 0
+ ier_num       = 0
+ IF ( all_status == 1 ) THEN
+    ier_typ       = 1
+    ier_num       = ER_COMM
+    ier_msg(1)    = 'CHEMISTRY'
+ ENDIF
+ELSE                                    ! Failure
+ CHEM_MAX_RAN  = n_ran
+ NMAX          =  1
+ ier_num       = -3
+ ier_typ       = ER_COMM
+ ier_msg(1)    = 'CHEMISTRY'
+ RETURN
+END IF
+END SUBROUTINE alloc_chem_ran
+!
+!
+SUBROUTINE alloc_chem_vec  ( n_vec, n_cor )
 !-
 !     Allocate the arrays needed by CHEM vector definitions
 !+
-      USE crystal_mod
-      USE chem_mod
+USE crystal_mod
+USE chem_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_vec
-      INTEGER, INTENT(IN)  :: n_cor
+INTEGER, INTENT(IN)  :: n_vec
+INTEGER, INTENT(IN)  :: n_cor
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat  = .TRUE.
-!
-!
-      CALL alloc_arr ( chem_cvec     ,1,5,     1,n_vec,      &
-                       all_status, -9999)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-      CALL alloc_arr ( chem_use_vec  ,1,n_vec, 1,n_cor,      &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-      CALL alloc_arr ( chem_nvec     ,1,n_cor,      &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+lstat  = .TRUE.
 !
 !
-      IF( lstat ) THEN                        ! Success
-         CHEM_MAX_VEC  = n_vec
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'CHEMISTRY'
-         ENDIF
-      ELSE                                    ! Failure
-         CHEM_MAX_VEC  = n_vec
-         NMAX          =  1
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'CHEMISTRY'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_chem_vec
+CALL alloc_arr ( chem_cvec     ,1,5,     1,n_vec,      &
+	       all_status, -9999)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( chem_use_vec  ,1,n_vec, 1,n_cor,      &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( chem_nvec     ,1,n_cor,      &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
-    SUBROUTINE alloc_chem_con  ( n_con, n_cor )
+IF( lstat ) THEN                        ! Success
+ CHEM_MAX_VEC  = n_vec
+ ier_typ       = 0
+ ier_num       = 0
+ IF ( all_status == 1 ) THEN
+    ier_typ       = 1
+    ier_num       = ER_COMM
+    ier_msg(1)    = 'CHEMISTRY'
+ ENDIF
+ELSE                                    ! Failure
+ CHEM_MAX_VEC  = n_vec
+ NMAX          =  1
+ ier_num       = -3
+ ier_typ       = ER_COMM
+ ier_msg(1)    = 'CHEMISTRY'
+ RETURN
+END IF
+END SUBROUTINE alloc_chem_vec
+!
+!
+SUBROUTINE alloc_chem_con  ( n_con, n_cor )
 !-
 !     Allocate the arrays needed by CHEM contor definitions
 !+
-      USE crystal_mod
-      USE chem_mod
+USE crystal_mod
+USE chem_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_con
-      INTEGER, INTENT(IN)  :: n_cor
+INTEGER, INTENT(IN)  :: n_con
+INTEGER, INTENT(IN)  :: n_cor
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat  = .TRUE.
-!
-!
-      CALL alloc_arr ( chem_ccon     ,1,2,     1,n_con,      &
-                       all_status, -9999)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-      CALL alloc_arr ( chem_cname    ,         1,n_con,      &
-                       all_status, ' '  )
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-      CALL alloc_arr ( chem_cname_l  ,         1,n_con,      &
-                       all_status,     1)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-      CALL alloc_arr ( chem_use_con  ,1,n_con, 1,n_cor,      &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-      CALL alloc_arr ( chem_ncon  ,1,n_cor,      &
-                       all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+lstat  = .TRUE.
 !
 !
-      IF( lstat ) THEN                        ! Success
-         CHEM_MAX_CON  = n_con
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'CHEMISTRY'
-         ENDIF
-      ELSE                                    ! Failure
-         CHEM_MAX_CON  = n_con
-         NMAX          =  1
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'CHEMISTRY'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_chem_con
+CALL alloc_arr ( chem_ccon     ,1,2,     1,n_con,      &
+	       all_status, -9999)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( chem_cname    ,         1,n_con,      &
+	       all_status, ' '  )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( chem_cname_l  ,         1,n_con,      &
+	       all_status,     1)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( chem_use_con  ,1,n_con, 1,n_cor,      &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( chem_ncon  ,1,n_cor,      &
+	       all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+!
+IF( lstat ) THEN                        ! Success
+ CHEM_MAX_CON  = n_con
+ ier_typ       = 0
+ ier_num       = 0
+ IF ( all_status == 1 ) THEN
+    ier_typ       = 1
+    ier_num       = ER_COMM
+    ier_msg(1)    = 'CHEMISTRY'
+ ENDIF
+ELSE                                    ! Failure
+ CHEM_MAX_CON  = n_con
+ NMAX          =  1
+ ier_num       = -3
+ ier_typ       = ER_COMM
+ ier_msg(1)    = 'CHEMISTRY'
+ RETURN
+END IF
+END SUBROUTINE alloc_chem_con
 !
 SUBROUTINE alloc_chem_dir( n_cor)
 !-
@@ -831,20 +831,20 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
 IF( lstat ) THEN                        ! Success
-   CONN_MAX_VECT = n_vec
-   ier_typ       = 0
-   ier_num       = 0
-   IF(all_status == 1) THEN
-      ier_typ       = 1
-      ier_num       = ER_COMM
-      ier_msg(1)    = 'CONNECTIVITY'
-   ENDIF
+CONN_MAX_VECT = n_vec
+ier_typ       = 0
+ier_num       = 0
+IF(all_status == 1) THEN
+ier_typ       = 1
+ier_num       = ER_COMM
+ier_msg(1)    = 'CONNECTIVITY'
+ENDIF
 ELSE                                    ! Failure
-   CONN_MAX_VECT = n_vec
-   ier_num       = -3
-   ier_typ       = ER_COMM
-   ier_msg(1)    = 'CONNECTIVITY'
-   RETURN
+CONN_MAX_VECT = n_vec
+ier_num       = -3
+ier_typ       = ER_COMM
+ier_msg(1)    = 'CONNECTIVITY'
+RETURN
 END IF
 !
 end SUBROUTINE alloc_conn_vect
@@ -891,22 +891,22 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
 IF( lstat ) THEN                        ! Success
-   NMAX          = n_max
-   cr_dim_natoms = n_max                ! Array dimension
-   ier_typ       = 0
-   ier_num       = 0
-   IF ( all_status == 1 ) THEN
-      ier_typ       = 1
-      ier_num       = ER_COMM
-      ier_msg(1)    = 'Crystal'
-   ENDIF
+NMAX          = n_max
+cr_dim_natoms = n_max                ! Array dimension
+ier_typ       = 0
+ier_num       = 0
+IF ( all_status == 1 ) THEN
+ier_typ       = 1
+ier_num       = ER_COMM
+ier_msg(1)    = 'Crystal'
+ENDIF
 ELSE                                    ! Failure
-   NMAX          =  1
-   cr_dim_natoms =  1                   ! Array dimension
-   ier_num       = -3
-   ier_typ       = ER_COMM
-   ier_msg(1)    = 'Crystal'
-   RETURN
+NMAX          =  1
+cr_dim_natoms =  1                   ! Array dimension
+ier_num       = -3
+ier_typ       = ER_COMM
+ier_msg(1)    = 'Crystal'
+RETURN
 END IF
 !
 end subroutine alloc_crystal_nmax
