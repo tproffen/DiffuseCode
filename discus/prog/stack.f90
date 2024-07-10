@@ -2868,6 +2868,7 @@ st_new_form = .FALSE.                            ! Form factors have been writte
 !ENDDO
 dsi(1:num(1),1:num(2), 1:num(3)) = DBLE(csf(1:num(1),1:num(2), 1:num(3)) * &
                                   conjg(csf(1:num(1),1:num(2), 1:num(3))))
+call four_weight
 !
 IF (four_log) then 
    CALL four_qinfo 
