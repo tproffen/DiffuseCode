@@ -2731,11 +2731,32 @@ INTEGER           , DIMENSION(  :,:), ALLOCATABLE :: iatom ! Indizes of neighbor
 LOGICAL           , DIMENSION(  :,:), ALLOCATABLE :: tatom ! True is atom is neighbor to atom iatom(0,*) (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
 INTEGER           , DIMENSION(    :), ALLOCATABLE :: natom ! Number of neighbors       (MMC_MAX_CENT) 
 INTEGER :: iacc_good, iacc_neut, iacc_bad 
-INTEGER :: isel(MMC_MAX_ATOM) 
+!INTEGER :: isel(MMC_MAX_ATOM) 
+!        CALL mmc_select_atoms(isel, is, iz, iz1, iz2, iselz, iselz2, natoms, &
+!                              laccept, loop, NALLOWED, MMC_MAX_ATOM)
+INTEGER, DIMENSION(MMC_MAX_ATOM)  :: isel !(chem_max_atom) 
+integer, dimension(2)             :: is ! Site info
+integer                           :: iselz
+integer                           :: iselz2
+integer, dimension(2, 3)          :: iz ! 
+integer, dimension(   3)          :: iz1! 
+integer, dimension(   3)          :: iz2! 
+!****************
+! Atom select variable for parallel loop
+INTEGER, DIMENSION(:    ,:), allocatable       :: isel_p !(chem_max_atom) 
+integer, dimension(:    ,:), allocatable       :: is_p ! Site info
+integer, dimension(      :), allocatable       :: iselz_p
+integer, dimension(      :), allocatable       :: iselz2_p
+integer, dimension(:, :, :), allocatable       :: iz_p ! 
+integer, dimension(   :, :), allocatable       :: iz1_p! 
+integer, dimension(   :, :), allocatable       :: iz2_p! 
+integer, dimension(      :), allocatable       :: natoms_p
+!****************
 !INTEGER :: lbeg (3) 
 INTEGER :: ic
 INTEGER :: nocc
 INTEGER :: i, natoms
+integer :: iiii
 INTEGER :: ncent 
 INTEGER :: NALLOWED   ! Current size mmc_allowed
 INTEGER :: zh, zm, zs 
@@ -2919,15 +2940,47 @@ mmc_h_nfeed =  0
 IF(mmc_algo .EQV. MMC_CLASSIC) THEN           !Use the classical MMC algorithm
 !
 IF(nthreads > 1) THEN
-   !$OMP PARALLEL PRIVATE(tid, isel, natoms, &
+   allocate(isel_p  (MMC_MAX_ATOM, nthreads))
+   allocate(is_p    (2           , nthreads))
+   allocate(iselz_p (              nthreads))
+   allocate(iselz2_p(              nthreads))
+   allocate(iz_p    (2, 3        , nthreads))
+   allocate(iz1_p   (3           , nthreads))
+   allocate(iz2_p   (3           , nthreads))
+   allocate(natoms_p(              nthreads))
+   itry_loop: do itry=1, mo_cyc/nthreads   !Serial loop over cycles/nthread
+!     Select nthread atom (pairs)
+      do iiii=1, nthreads
+         CALL mmc_select_atoms(isel_p(:,iiii), is_p(:,iiii), iz_p(:,:,iiii),         &
+         iz1_p(:,iiii), iz2_p(:,iiii), iselz_p(  iiii), iselz2_p(  iiii), natoms_p(  iiii), &
+                               laccept, loop, NALLOWED, MMC_MAX_ATOM)
+         IF(ier_num/=0) THEN             ! Error, cycle to end of loop
+            done = .TRUE.
+            exit itry_loop
+         ENDIF
+      enddo
+!  Start parallel assessment for selected atom (pairs)
+   !$OMP PARALLEL PRIVATE(tid, isel, is, iz, iz1, iz2, iselz, iselz2,                &
+   !$OMP                  natoms, &
    !$OMP                  iatom, patom, tatom, natom,ncent, laccept,                 &
    !$OMP                  disp,             e_old, e_new)                            &
    !$OMP          SHARED(done)
-   !$   tid = OMP_GET_THREAD_NUM()
-   !$OMP DO SCHEDULE(DYNAMIC, mo_cyc/nthreads/32)
-   parallel_loop: DO itry=1, mo_cyc     ! Do mmc in parallel
+   !$      tid = OMP_GET_THREAD_NUM()
+   !$OMP DO SCHEDULE(static)
+   parallel_loop: DO iiii=1, nthreads   ! Do mmc in parallel
+      isel   (:) = isel_p  (:,iiii)
+      is     (:) = is_p    (:,iiii)
+      iz   (:,:) = iz_p  (:,:,iiii)
+      iz1    (:) = iz1_p   (:,iiii)
+      iz2    (:) = iz2_p   (:,iiii)
+      iselz      = iselz_p (  iiii)
+      iselz2     = iselz2_p(  iiii)
+      natoms     = natoms_p(  iiii)
+!
       IF(done) CYCLE parallel_loop    ! Quickly cycle to end if an error occuredd
-      CALL    mmc_run_loop(tid, nthreads, igen, itry, natoms, &
+      CALL    mmc_run_loop(tid, nthreads, igen, itry, &
+                           isel, is, iz, iz1, iz2, iselz, iselz2, &
+                           natoms, &
                            iatom, patom, tatom, natom,ncent, laccept,                &
                            rdi, rdj,         e_old, e_new, done, loop,               &
                            iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
@@ -2936,8 +2989,45 @@ IF(nthreads > 1) THEN
 !
    ENDDO parallel_loop
    !$OMP END DO NOWAIT
-   !$ IF(tid==0) igen = igen*nthreads
+!   !$ IF(tid==0) igen = igen*nthreads
    !$OMP END PARALLEL
+!  End of parallel section 
+      if(done) exit itry_loop
+   enddo itry_loop          ! End of main mmc loop, deallocate atom_select variables
+   deallocate(isel_p  )
+   deallocate(is_p    )
+   deallocate(iselz_p )
+   deallocate(iselz2_p)
+   deallocate(iz_p    )
+   deallocate(iz1_p   )
+   deallocate(iz2_p   )
+   deallocate(natoms_p)
+   IF(ier_num==0) THEN             ! Error, cycle to end of loop
+!!! OLD CODE up to 3025 to be deleted !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!  !$OMP PARALLEL PRIVATE(tid, isel, is, iz, iz1, iz2, iselz, iselz2,                &
+!  !$OMP                  natoms, &
+!  !$OMP                  iatom, patom, tatom, natom,ncent, laccept,                 &
+!  !$OMP                  disp,             e_old, e_new)                            &
+!  !$OMP          SHARED(done)
+!  !$   tid = OMP_GET_THREAD_NUM()
+!  !$OMP DO SCHEDULE(DYNAMIC, mo_cyc/nthreads/32)
+!  parallel_loop: DO itry=1, mo_cyc     ! Do mmc in parallel
+!     IF(done) CYCLE parallel_loop    ! Quickly cycle to end if an error occuredd
+!     CALL    mmc_run_loop(tid, nthreads, igen, itry, &
+!                          isel, is, iz, iz1, iz2, iselz, iselz2, &
+!                          natoms, &
+!                          iatom, patom, tatom, natom,ncent, laccept,                &
+!                          rdi, rdj,         e_old, e_new, done, loop,               &
+!                          iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
+!                          lout_feed, lfeed, imodulus, lmodulus,                     &
+!                          NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
+!
+!  ENDDO parallel_loop
+!  !$OMP END DO NOWAIT
+!  !$ IF(tid==0) igen = igen*nthreads
+!  !$OMP END PARALLEL
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    itry = igen
 !
    tid = 0
@@ -2953,7 +3043,12 @@ IF(nthreads > 1) THEN
    done = .false.
    i = max(1_PREC_INT_LARGE, min(nthreads/4*cr_natoms, 2*mo_feed, mo_cyc))
    final_loop: DO iitry=1, i! nthreads/4*cr_natoms !2*mo_feed !nthreads**2*cr_natoms    ! Do mmc serially
-      CALL    mmc_run_loop(tid,nnthreads, iigen, iitry, natoms, &
+      CALL mmc_select_atoms(isel, is, iz, iz1, iz2, iselz, iselz2, natoms, &
+                            laccept, loop, NALLOWED, MMC_MAX_ATOM)
+      if(ier_num/=0) exit final_loop
+      CALL    mmc_run_loop(tid,nnthreads, iigen, iitry, &
+                           isel, is, iz, iz1, iz2, iselz, iselz2, &
+                           natoms, &
                            iatom, patom, tatom, natom,ncent, laccept,                &
                            rdi, rdj,         e_old, e_new, done, loop,               &
                            iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
@@ -2962,9 +3057,14 @@ IF(nthreads > 1) THEN
 !     IF(ier_num/=0 .OR. done) EXIT  final_loop
       IF(ier_num/=0          ) EXIT  final_loop
    ENDDO  final_loop
+   endif
+   done = .true.
 ELSE     ! Use nonparallel code
    serial_loop: DO itry=1, mo_cyc     ! Do mmc serially
+      CALL mmc_select_atoms(isel, is, iz, iz1, iz2, iselz, iselz2, natoms, &
+                            laccept, loop, NALLOWED, MMC_MAX_ATOM)
       CALL    mmc_run_loop(tid, nthreads, igen, itry, &
+                           isel, is, iz, iz1, iz2, iselz, iselz2, &
                            natoms, &
                            iatom, patom, tatom, natom,ncent, laccept,                &
                            rdi, rdj,         e_old, e_new, done, loop,               &
@@ -3083,7 +3183,7 @@ END SUBROUTINE mmc_run_multi
 !*******************************************************************************
 !
 SUBROUTINE mmc_run_loop(tid, nthreads, igen, itry, &
-                        natoms, &
+                        isel, is, iz, iz1, iz2, iselz, iselz2, natoms, &
                         iatom, patom, tatom, natom,ncent, laccept,                &
                         rdi, rdj,         e_old, e_new, done, loop,               &
                         iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
@@ -3111,6 +3211,13 @@ INTEGER                           , INTENT(IN)  :: tid
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)  :: nthreads
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(INOUT)  :: igen
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)     :: itry
+INTEGER, DIMENSION(MMC_MAX_ATOM_L), intent(inout)  :: isel !(chem_max_atom) 
+INTEGER, DIMENSION(2)                           :: is
+INTEGER, DIMENSION(2, 3)                        :: iz
+INTEGER, DIMENSION(3)                           :: iz1
+INTEGER, DIMENSION(3)                           :: iz2
+INTEGER                                         :: iselz
+INTEGER                                         :: iselz2
 INTEGER                           , INTENT(OUT) :: natoms
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: iatom
 REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
@@ -3133,13 +3240,6 @@ LOGICAL                           , INTENT(IN ) :: lfeed
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(INout)  :: imodulus
 LOGICAL                           , INTENT(INout ) :: lmodulus
 !
-INTEGER, DIMENSION(MMC_MAX_ATOM_L)              :: isel !(chem_max_atom) 
-INTEGER, DIMENSION(2)                           :: is
-INTEGER, DIMENSION(2, 3)                        :: iz
-INTEGER, DIMENSION(3)                           :: iz1
-INTEGER, DIMENSION(3)                           :: iz2
-INTEGER                                         :: iselz
-INTEGER                                         :: iselz2
 LOGICAL :: valid_all
 REAL(kind=PREC_DP)   , DIMENSION(3, 0:nthreads-1)                     :: posz !(3) = 0.0
 REAL(kind=PREC_DP)   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
@@ -3149,6 +3249,7 @@ real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 !
 IF(tid==0) then
    igen = igen + 1
+!write(*,*) ' IN LOOP TID, igen ', tid, igen, itry
 !  if(rel_cycl>0.1 .and. lmodulus .and. maxdev(1)<0.1) then
 !     imodulus = imodulus/5
 !     lmodulus = .false.
@@ -3157,14 +3258,10 @@ endif
 !
 IF(done) RETURN                 ! Quickly cycle to end if an error occuredd
 !
-!  -- Choose move and atoms
+!  -- Choose move and atoms placed outside of mmc_run_loop to assist parallel computing
 !
-CALL mmc_select_atoms(isel, is, iz, iz1, iz2, iselz, iselz2, natoms, &
-                      laccept, loop, NALLOWED, MMC_MAX_ATOM_L)
-IF(ier_num/=0) THEN             ! Error, cycle to end of loop
-   done = .TRUE.
-   RETURN
-ENDIF
+!CALL mmc_select_atoms(isel, is, iz, iz1, iz2, iselz, iselz2, natoms, &
+!                      laccept, loop, NALLOWED, MMC_MAX_ATOM_L)
 !
 !-- Try move                                                      
 !                                                                       
@@ -3249,6 +3346,7 @@ IF(valid_all) THEN
    ELSE 
       laccept = .FALSE. 
    ENDIF 
+!write(*,*) ' ACCEPT ', laccept, ier_num, ier_typ
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
       done = .TRUE.
       RETURN
@@ -3265,6 +3363,7 @@ IF(valid_all) THEN
          CALL chem_apply_period(iselz, .TRUE.)
       ENDIF 
    ENDIF 
+!write(*,*) ' accepted/unmoved  ', laccept, ier_num, ier_typ
 !if(e_new(MC_COORDNUM)-e_old(MC_COORDNUM)>0.0d0) then
 !write(*,*) 'New - Old ', e_new(MC_COORDNUM)-e_old(MC_COORDNUM), laccept, &
 !iacc_good, iacc_neut, iacc_bad
@@ -3303,9 +3402,11 @@ ENDIF
 !      imodulus = max(1000, nint(imodulus*0.90))
    ENDIF 
    IF(igen> mo_cyc/nthreads) THEN
+write(*,*) ' IGEN TOO LARGE ', igen, mo_cyc/nthreads
       done = .TRUE.
    ENDIF
 ENDIF 
+!write(*,*) ' leaving LOOP ', ier_num, ier_typ
 !$OMP END CRITICAL
 !
  2000 FORMAT (/,' Gen: ',I10,' try: ',I10,' acc: (g/n/b): ',I8,        &
@@ -4599,8 +4700,8 @@ main: DO
          iz (1, i) = iz1 (i) 
          iz (2, i) = iz2 (i) 
          ENDDO 
-         laccept = cr_iscat (1,isel (1))  /= cr_iscat (1,isel (2) ) .AND.                  &
-                 ( mmc_allowed (cr_iscat (1,isel (1) ) ) .AND.                            &
+!        laccept = cr_iscat (1,isel (1))  /= cr_iscat (1,isel (2) ) .AND.                  &
+         laccept=( mmc_allowed (cr_iscat (1,isel (1) ) ) .AND.                            &
                    mmc_allowed (cr_iscat (1,isel (2) ) )      )    .AND.                  &
                    check_select_status (isel(1), .TRUE., cr_prop (isel (1) ), cr_sel_prop) .AND. &
                    check_select_status (isel(2), .TRUE., cr_prop (isel (2) ), cr_sel_prop) .and. &
