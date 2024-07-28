@@ -1594,19 +1594,23 @@ logical         , intent(in) :: luse_all ! Do not exist at first pair
 !
 integer :: is, js
 logical :: lfirst
+logical, dimension(:,:), allocatable :: show_pair
 real(kind=PREC_DP) :: divisor
+!
+allocate(show_pair(0:cr_nscat, 0:cr_nscat))
+show_pair = .true.
 !
 cond_ener: IF(mmc_cor_energy (ic, je) ) THEN 
    lfirst = .TRUE.
    loop_type: do is = 0, cr_nscat 
-      do js = is, cr_nscat 
+      do js = 0 , cr_nscat 
          if(mmc_pair(ic,je,is,js) < 0 .AND. lfirst) then
             if(mmc_target_corr (ic, je, is, js) /= 0.0) then
                divisor = ABS(mmc_target_corr (ic, je, is, js))
             else
                divisor = 1.0
             endif
-            if     (mmc_pair (ic, je, is, js) /=  0 ) then 
+            if     (mmc_pair (ic, je, is, js) /=  0 .and. show_pair(is,js)) then 
             lfirst = luse_all
             write(output_io, 3100) ic, title      , cr_at_lis (is), cr_at_lis (js),         &
                 mmc_target_corr(ic, je, is, js),                                &
@@ -1614,11 +1618,14 @@ cond_ener: IF(mmc_cor_energy (ic, je) ) THEN
                 mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js), &
                (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor, &
                 mmc_ini_pairs(ic,je, is, js)
+               show_pair(is,js) = .false.
+               show_pair(js,is) = .false.
             endif
          endif
       enddo
    enddo loop_type
 endif cond_ener
+deallocate(show_pair)
 !
  3100 FORMAT (1x,i3,3x,a9,a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,f7.3,3x,i8)
