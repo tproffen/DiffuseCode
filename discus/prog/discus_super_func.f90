@@ -479,7 +479,8 @@ cond_site: if(lpresent(O_SITE)) then
          return
       endif
       if(lpresent(O_NEW)) then
-         string = opara(O_NEW)(2:lopara(O_NEW)-1)
+         string = ' '
+         string(1:lopara(O_NEW)-2) = opara(O_NEW)(2:lopara(O_NEW)-1)
          i1 = len_trim(string)
          call get_params(string, ianz, cpara, lpara, maxw, i1)
          lselect = .TRUE.
