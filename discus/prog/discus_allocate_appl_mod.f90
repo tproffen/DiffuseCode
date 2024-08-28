@@ -46,8 +46,8 @@ ELSE IF (str_comp (cpara (1) , 'crystal'   , 1, lpara (1) , 5) )  THEN
        CALL alloc_crystal_scat ( NINT (werte(1)))
        CALL alloc_crystal_nmax ( NINT (werte(2)))
      ELSE 
-	ier_num = - 6 
-	ier_typ = ER_COMM 
+       ier_num = - 6 
+       ier_typ = ER_COMM 
      ENDIF 
   ELSE 
      ier_num = - 6 
@@ -341,23 +341,23 @@ LOGICAL              :: lstat
 lstat  = .TRUE.
 !
 CALL alloc_arr ( chem_ave_n    ,1,n_atom_cell ,   &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_ave_iscat,1,n_atom_cell , 1,n_max_atom  , &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_ave_pos  ,1,3 , 1,n_atom_cell ,   &
-	       all_status, 0.0D0)
+               all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_ave_sig  ,1,3           ,  1,n_atom_cell , &
-	       all_status, 0.0D0)
+               all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_ave_bese ,1,n_atom_cell , 1,n_max_atom  , &
-	       all_status, 0.0D0)
+               all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
@@ -402,15 +402,15 @@ LOGICAL              :: lstat
 lstat  = .TRUE.
 !
 CALL alloc_arr ( chem_cwin     ,1,9, 1,n_ang,      &
-	       all_status, -9999)
+               all_status, -9999)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_use_win  ,1,n_ang, 1,n_cor,  &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_nwin             , 1,n_cor,  &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
@@ -453,13 +453,13 @@ LOGICAL              :: lstat
 lstat  = .TRUE.
 !
 CALL alloc_arr ( chem_disp_ave    ,1,n_cor ,   &
-	       0, n_scat, 0, n_scat,         &
-	       all_status, 0.0D0)
+               0, n_scat, 0, n_scat,         &
+               all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_disp_sig    ,1,n_cor ,   &
-	       0, n_scat, 0, n_scat,         &
-	       all_status, 0.0D0)
+               0, n_scat, 0, n_scat,         &
+               all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
@@ -500,27 +500,27 @@ LOGICAL              :: lstat
 lstat  = .TRUE.
 !
 CALL alloc_arr ( chem_use_env     ,1,n_env  , 1, n_cor,  &
-	       all_status, -9999)
+               all_status, -9999)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_nenv                  , 1, n_cor,  &
-	       all_status, -9999)
+               all_status, -9999)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cenv        ,0,n_atom , 1, n_env,  &
-	       all_status, -9999)
+               all_status, -9999)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_env_neig    ,1,n_env ,   &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_rmax_env    ,1,n_env ,   &
-	       all_status, 3.5D0)
+               all_status, 3.5D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_rmin_env    ,1,n_env ,   &
-	       all_status, 0.1D0)
+               all_status, 0.1D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
@@ -562,61 +562,61 @@ LOGICAL              :: lstat
 lstat  = .TRUE.
 !
 CALL alloc_arr ( chem_use_ran  ,1,n_ran, 1,n_cor,      &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_nran     ,1,n_cor,      &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cran_cent,0,n_max_atom, 1,n_ran, &
-	       all_status, -9999)
+               all_status, -9999)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 
 CALL alloc_arr ( chem_cran_neig,0,n_max_atom, 1,n_ran, &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 
 CALL alloc_arr ( chem_cran_nuvw ,1,n_ran    ,          &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 
 CALL alloc_arr ( chem_cran_nshort ,1,n_ran  ,          &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cran_uvw ,1,3         , 1,48,    &
-			      1,n_ran     ,          &
-	       all_status, 0.0D0)
+               1,n_ran     ,          &
+               all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 chem_cran_uvw(1,1,CHEM_MAX_RAN+1:n_ran) = -9999
 !
 CALL alloc_arr ( chem_cran_sig  ,1,n_ran       ,      &
-	       all_status, 0.0D0)
+               all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cran_wsig ,1,n_ran       ,      &
-	       all_status, 0.0D0)
+               all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cran_rmax ,1,n_ran       ,      &
-	       all_status, 0.0D0)
+               all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cran_rmin ,1,n_ran       ,      &
-	       all_status, 0.0D0)
+               all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cran_cang ,1,n_ran       ,      &
-	       all_status, .false.)
+               all_status, .false.)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cran_lsym ,1,n_ran       ,      &
-	       all_status, .false.)
+               all_status, .false.)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cran_short,1,n_ran       ,      &
-	       all_status, .false.)
+               all_status, .false.)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
@@ -661,15 +661,15 @@ lstat  = .TRUE.
 !
 !
 CALL alloc_arr ( chem_cvec     ,1,5,     1,n_vec,      &
-	       all_status, -9999)
+               all_status, -9999)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_use_vec  ,1,n_vec, 1,n_cor,      &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_nvec     ,1,n_cor,      &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
@@ -713,23 +713,23 @@ lstat  = .TRUE.
 !
 !
 CALL alloc_arr ( chem_ccon     ,1,2,     1,n_con,      &
-	       all_status, -9999)
+               all_status, -9999)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cname    ,         1,n_con,      &
-	       all_status, ' '  )
+               all_status, ' '  )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_cname_l  ,         1,n_con,      &
-	       all_status,     1)
+               all_status,     1)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_use_con  ,1,n_con, 1,n_cor,      &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( chem_ncon  ,1,n_cor,      &
-	       all_status, 0)
+               all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
@@ -1662,6 +1662,8 @@ integer :: i_scat
 !      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       CALL alloc_arr ( mmc_allowed   ,0,n_scat  ,  all_status, .false.   )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      CALL alloc_arr ( mmc_allowed_site, 0, MC_N_MOVE   ,0,n_scat  ,  all_status, .false.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       CALL alloc_arr ( mmc_nvec    ,1,n_corr ,  &
