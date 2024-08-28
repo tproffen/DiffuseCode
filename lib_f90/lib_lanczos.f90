@@ -303,7 +303,6 @@ q(1) = i1/nscale
 q(2) = i2/nscale
 q(3) = i3/nscale
 !!write(*,*) 
-!write(*,*) 
 do i3=ll, lh
    g(3) = real(i3,kind=PREC_DP)/nscale
    do i2=kl, kh
