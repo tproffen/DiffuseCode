@@ -567,10 +567,10 @@ MODULE nr
             USE nrtype
             INTEGER               , INTENT(IN) :: NDATA
             INTEGER               , INTENT(IN) :: NRESPNS
-            REAL(DP), DIMENSION(:), INTENT(INOUT) :: data
-            REAL(DP), DIMENSION(:), INTENT(IN) :: respns
+            REAL(DP), DIMENSION(1:NDATA), INTENT(INOUT) :: data
+            REAL(DP), DIMENSION(1:NRESPNS), INTENT(IN) :: respns
             INTEGER(I4B), INTENT(IN) :: isign
-            REAL(DP), DIMENSION(:), INTENT(OUT) :: convlv
+            REAL(DP), DIMENSION(1:NDATA), INTENT(OUT) :: convlv
 !           REAL(DP), DIMENSION(size(data)) :: convlv
 !           END FUNCTION convlv
             END SUBROUTINE convlv_sub
