@@ -1,5 +1,9 @@
 6.17.02  DRAFT
 
+DISCUS
+  fourier     BUG FIX  NUFFT did not work properly for large DELT(hkl) steps
+  fourier     Improved lanczos filter to work in slices along small dimensions
+  mmc         BUG FIX, site restrictions on atom tyes at different sites did not work
 REFINE
   convergence Added a fourth convergence criterion that stops if lambda becomes too large
               Improved output of "refine_best.mac and "refine_new.res"
