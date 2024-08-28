@@ -314,7 +314,8 @@ CHARACTER (LEN=20), DIMENSION(MC_N_MOVE)    :: c_move = & !  (MC_N_MOVE)
       'shift atom          ', &
       'inverse displacement', &
       'rotate molecule     ', &
-      'switch neighbors    '  &
+      'switch neighbors    ', &
+      'exchange neighbors  '  &
    /)
 CHARACTER (LEN=20), DIMENSION(5)            :: c_site = & !(4) 
    (/ 'all                 ', &
@@ -2603,6 +2604,8 @@ IF (ianz >= 1) THEN
          endif
       enddo
       deallocate(wwerte)
+   ELSEIF (cpara (1) (1:3)  == 'EXN') THEN 
+      imode = MC_MOVE_EXNEIG 
    ELSEIF (cpara (1) (1:3)  == 'INV') THEN 
       imode = MC_MOVE_INVDISP 
    ELSEIF (cpara (1) (1:3)  == 'ROT') THEN 
@@ -2638,13 +2641,13 @@ IF (ianz >= 1) THEN
                IF (ier_num == 0) THEN 
                   IF(NINT(werte(1)) == -1) THEN 
                      DO i = 0, cr_nscat 
-                     mmc_allowed (i) = .TRUE. 
+                     mmc_allowed_site (imode,i) = .TRUE. 
                      ENDDO 
                   ELSE 
                      DO i = 1, ianz 
                      is = nint (werte (i) ) 
                      IF (is >= 0.AND.is <= cr_nscat) THEN 
-                        mmc_allowed (is) = .TRUE. 
+                        mmc_allowed_site (imode,is) = .TRUE. 
                      ELSE 
                         ier_num = - 27 
                         ier_typ = ER_APPL 
@@ -4537,6 +4540,7 @@ USE mc_mod
 USE mmc_mod
 USE modify_func_mod
 USE rmc_sup_mod
+use rmc_mod
 !
 USE errlist_mod
 USE lib_random_func
@@ -4677,6 +4681,16 @@ main: DO
                    mmc_allowed (cr_iscat (1,isel (2) ) )      )    .AND.                  &
                    check_select_status (isel(1), .TRUE., cr_prop (isel (1) ), cr_sel_prop) .AND. &
                    check_select_status (isel(2), .TRUE., cr_prop (isel (2) ), cr_sel_prop) 
+         if(mmc_local(mmc_move)==rmc_local_site .or. mmc_local(mmc_move)==rmc_local_locsite) then
+            if(any(mmc_allowed_site(mmc_move,:))) then
+            laccept = laccept .and. mmc_allowed_site(mmc_move,cr_iscat(1,isel(1))) .AND.  &
+                                    mmc_allowed_site(mmc_move,cr_iscat(1,isel(2)))
+            endif
+         endif
+!if(laccept) then
+!write(*,*) ' SELECTED ',isel(1), cr_iscat(1,isel(1)), cr_at_lis(cr_iscat(1,isel(1))), &
+!                        isel(2), cr_iscat(1,isel(2)), cr_at_lis(cr_iscat(1,isel(2)))
+!endif
       ELSEIF (mmc_move == MC_MOVE_SWNEIG) then
          natoms = 2 
          CALL rmc_select (mo_local, isel, iz1, iz2, is (1), is (2) , &
@@ -4707,7 +4721,27 @@ main: DO
                    check_select_status (isel(2), .TRUE., cr_prop (isel (2) ), cr_sel_prop) .and. &
          any(mmc_pair(:,MC_COORDNUM, cr_iscat(1, isel(1)),:)==-1) .and.  &
          any(mmc_pair(:,MC_COORDNUM, cr_iscat(1, isel(2)),:)==-1)
-      ENDIF 
+   ELSEIF (mmc_move == MC_MOVE_EXNEIG) then  ! Exchange neighbors for a central atom
+      loop_central: do i=1, 1000   ! Randomly select a central atom
+         call random_number(z)
+         j = int(cr_natoms*z) + 1
+         if(any(mmc_pair(:,MC_COORDNUM,cr_iscat(1,j),:) < 0)) exit loop_central
+         j= -1
+      enddo loop_central
+      if(j>0) then     ! Found a valid central atom
+!write(*,*) ' CENTRAL ATOM ', j, cr_iscat(1,j), cr_at_lis(cr_iscat(1,j))
+!write(*,*) 'ic, mmc_pair ', 1, mmc_pair(1,MC_COORDNUM, cr_iscat(1,j),:)
+!write(*,*) 'ic, mmc_pair ', 2, mmc_pair(2,MC_COORDNUM, cr_iscat(1,j),:)
+!write(*,*) 'ic, mmc_pair ', 3, mmc_pair(3,MC_COORDNUM, cr_iscat(1,j),:)
+!write(*,*) 'ic, mmc_pair ', 4, mmc_pair(4,MC_COORDNUM, cr_iscat(1,j),:)
+!write(*,*) 'ic, mmc_pair ', 5, mmc_pair(5,MC_COORDNUM, cr_iscat(1,j),:)
+!write(*,*) 'ic, mmc_pair ', 6, mmc_pair(6,MC_COORDNUM, cr_iscat(1,j),:)
+!write(*,*) 'ic, mmc_pair ', 7, mmc_pair(7,MC_COORDNUM, cr_iscat(1,j),:)
+!write(*,*) 'ic, mmc_pair ', 8, mmc_pair(8,MC_COORDNUM, cr_iscat(1,j),:)
+!write(*,*) 'ic, mmc_pair ', 9, mmc_pair(9,MC_COORDNUM, cr_iscat(1,j),:)
+         laccept = .TRUE.
+      endif
+   ENDIF 
 !                                                                       
 !-----      ----Check whether geometrical constrains apply              
 !                                                                       

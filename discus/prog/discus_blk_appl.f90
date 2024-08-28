@@ -231,6 +231,7 @@ mmc_style = MMC_IS_ATOM
       mmc_n_angles = 0 
 !     DO m = 0, MAXSCAT 
       mmc_allowed = .false. 
+      mmc_allowed_site = .false. 
 !     DO l = 0, MAXSCAT 
 !     DO k = 1, CHEM_MAX_COR 
 !     DO j = 1, 12 

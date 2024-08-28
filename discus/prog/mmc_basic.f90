@@ -78,11 +78,11 @@ IF(ALLOCATED(mmc_h_targ  )) DEALLOCATE(mmc_h_targ)
 IF(ALLOCATED(mmc_h_aver  )) DEALLOCATE(mmc_h_aver)
 IF(ALLOCATED(mmc_h_aver_r)) DEALLOCATE(mmc_h_aver_r)
 IF(ALLOCATED(mmc_h_maxd  )) DEALLOCATE(mmc_h_maxd)
-ALLOCATE(mmc_h_diff  (mmc_h_number+10,0:MMC_H_NNNN-1))
-ALLOCATE(mmc_h_targ  (mmc_h_number+10))
-ALLOCATE(mmc_h_aver  (mmc_h_number+10))
-ALLOCATE(mmc_h_aver_r(mmc_h_number+10))
-ALLOCATE(mmc_h_maxd  (mmc_h_number+10, 0:MMC_H_NNNN-1))
+ALLOCATE(mmc_h_diff  ((cr_nscat+1)*mmc_h_number+10,0:MMC_H_NNNN-1))
+ALLOCATE(mmc_h_targ  ((cr_nscat+1)*mmc_h_number+10))
+ALLOCATE(mmc_h_aver  ((cr_nscat+1)*mmc_h_number+10))
+ALLOCATE(mmc_h_aver_r((cr_nscat+1)*mmc_h_number+10))
+ALLOCATE(mmc_h_maxd  ((cr_nscat+1)*mmc_h_number+10, 0:MMC_H_NNNN-1))
 mmc_h_diff   = 0.0
 mmc_h_targ   = 0.0
 mmc_h_aver   = 0.0
@@ -341,11 +341,11 @@ ALLOCATE( p_cn(0:MAXSCAT, 0:MAXSCAT))
 !ALLOCATE( pneig(0:MAXSCAT, 0:MAXSCAT, 1:CHEM_MAX_COR) )
 !
 IF(.NOT.ALLOCATED(mmc_h_diff) ) THEN
-   ALLOCATE(mmc_h_diff  (1:mmc_h_number + 10,0:MMC_H_NNNN-1))
-   ALLOCATE(mmc_h_targ  (mmc_h_number+10))
-   ALLOCATE(mmc_h_aver  (mmc_h_number+10))
-   ALLOCATE(mmc_h_aver_r(mmc_h_number+10))
-   ALLOCATE(mmc_h_maxd  (mmc_h_number+10,0:MMC_H_NNNN-1))
+   ALLOCATE(mmc_h_diff  (1:(cr_nscat+1)*mmc_h_number + 10,0:MMC_H_NNNN-1))
+   ALLOCATE(mmc_h_targ  ((cr_nscat+1)*mmc_h_number+10))
+   ALLOCATE(mmc_h_aver  ((cr_nscat+1)*mmc_h_number+10))
+   ALLOCATE(mmc_h_aver_r((cr_nscat+1)*mmc_h_number+10))
+   ALLOCATE(mmc_h_maxd  ((cr_nscat+1)*mmc_h_number+10,0:MMC_H_NNNN-1))
    mmc_h_diff  = 0.0
    mmc_h_targ  = 0.0
    mmc_h_aver  = 0.0
@@ -1084,8 +1084,8 @@ IF(mmc_h_stop) THEN     ! Apply convergence criteria
 !
       mmc_h_aver  = 0.0                     ! Initialize average changes in difference (target -achieved)
       mmc_h_aver_r= 0.0                     ! Initialize maximum changes in difference (target -achieved)
+      conv_val = 0.0
       if(mmc_m_index>0) then                ! We need at least feedback cycles 0 and 1
-         conv_val = 0.0
          do i = 1, mmc_h_number             ! Loop over all targets
             do is = 0,mmc_m_index -1        ! Loop over all feedback cycles but one
                j = mod(is+1, MMC_H_NNNN)   ! Next cycle after is
@@ -1148,7 +1148,7 @@ maxdev(2) = conv_val(2)
 !write(*,*) mmc_h_nfeed , mmc_h_nfeed > 2
    done = mmc_h_nfeed >= MMC_H_NNNN                                   .and.     &
           conv_val(1) < mmc_h_conv_m .and. conv_val(2) < mmc_h_conv_r .and.     &
-          conv_val(3) < mmc_h_conv_a .and. conv_val(4) < mmc_h_conv_c 
+          abs(conv_val(3)) < mmc_h_conv_a .and. abs(conv_val(4)) < mmc_h_conv_c 
 !         MAXVAL(    mmc_h_aver  (1:mmc_h_ctarg))    < mmc_h_conv_m .AND.     &
 !         MAXVAL(    mmc_h_aver_r(1:mmc_h_ctarg))    < mmc_h_conv_r .AND.     &
 !         MAXVAL(ABS(mmc_h_maxd  (1:mmc_h_ctarg,:))) < mmc_h_conv_c .AND.     &
