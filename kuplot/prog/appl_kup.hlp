@@ -2130,7 +2130,7 @@
    By default, the middle layer is presented, optionally you can specify 
    a layer number or the "bottom" or "top" layer.
 
-   All layers in the HDF5 file are read, and you can use hte ==> 'mouse'
+   All layers in the HDF5 file are read, and you can use the ==> 'mouse'
    menu to step through the layers.
 
    The optional parameter "trans" give you the choice to step into a 
