@@ -333,8 +333,8 @@ implicit none
 !
 real(kind=PREC_DP), parameter :: EPS=1.0D-8
 real(kind=PREC_DP), parameter :: MAXSCALE=3.0D0      ! Maximum scale allowed by FINUFFT
-integer               :: i, j, k  ! Dummy index
-!integer               :: ii       ! Dummy index
+integer               :: i, j, k, l  ! Dummy index
+integer               :: ii       ! Dummy index
 integer               :: iscat    ! Dummy scattering type
 integer, dimension(:), allocatable :: nat      ! Atom number
 integer               :: is_dim   ! Crystal is of this dimension
@@ -346,6 +346,7 @@ logical, dimension(3) :: ll_dim   ! This dimension is not flat
 logical, dimension(3) :: ll_dim_rec   ! This reciprocal dimension is not flat
 logical               :: four_is_new  ! The reciprocal space dimensions have changed
 !
+integer              , dimension(3)              :: lscales  ! Scaling if iscale > MAXSCALE
 integer              , dimension(3)              :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
 real(kind=PREC_DP)   , dimension(3)              :: scales  ! Scaling if DELTA (hkl) /= 1/cr_icc
 real(kind=PREC_DP)   , dimension(3)              :: shift   ! Shift atom positions towards Center of mass
@@ -374,27 +375,46 @@ call four_cexpt
 is_dim = 0           ! Assume zero dimensional crystal
 ll_dim = .false.     ! Assume all dimensions to be flat
 do i=1,3
-   if(cr_dim(i,2)-cr_dim(i,1)>eps .and. cr_icc(i)>1 ) then
+   if((cr_dim(i,2)-cr_dim(i,1)>eps .and. cr_icc(i)>1) .or. abs(vi(i,i))>eps ) then
       is_dim = is_dim + 1                    ! Found a non-flat dimension
       ll_dim(i) = .true.                     ! dimension i is non-flat
    endif
 enddo
+!write(*,*) ' DIMENSION ', is_dim, ll_dim
+is_dim = 3
+ll_dim = .true.
 !                                                         ! Get point ratio for reciprocal space
 idims = 1                                                 ! Default to 1 data point along each axis in reciprocal space
 iscales = 1                                               ! Default to scale 1
+lscales = 1                                               ! Default to scale 1
 scales(1) = abs(vi(1,1)*real(cr_icc(1), kind=PREC_DP))    ! Currently parallel a*!
 scales(2) = abs(vi(2,2)*real(cr_icc(2), kind=PREC_DP))    ! Currently parallel b*!
 scales(3) = abs(vi(3,3)*real(cr_icc(3), kind=PREC_DP))    ! Currently parallel c*!
+!write(*,'(a,4f5.1,3i5,3i5)') ' scales ', scales, MAXSCALE
 do j=1,3
    if(scales(j)>MAXSCALE) then                            ! Scales must be < MAXSCALE
-      iscales(j) = int((scales(j)+EPS)/MAXSCALE) + 1      ! Adapt iscales to smallest possible integer
-      scales(j)  = scales(j) / real(iscales(j),kind=PREC_DP) ! Corrrect scales> iscales*scales=original_scales
-      idims(j)   = iscales(j)*(inc(j)-1)+1                ! Adapt data points for FINUFFT
+      ii = nint(scales(j))
+      loop_scale: do l=2, ii
+         if(scales(j)/l<=MAXSCALE .and. (abs(scales(j)/l - int(scales(j)/l))<0.01D0)) then
+            lscales(j) = l
+            scales(j)  = scales(j)/l
+            iscales(j) = nint(scales(j))
+            idims(j)   = iscales(j)*(inc(j)-1)+1
+            exit loop_scale
+         endif
+      enddo loop_scale
+!     iscales(j) = int((scales(j)+EPS)/MAXSCALE) + 1      ! Adapt iscales to smallest possible integer
+!if(j==3) iscales(j) = 10
+!     scales(j)  = scales(j) / real(iscales(j),kind=PREC_DP) ! Corrrect scales> iscales*scales=original_scales
+!     idims(j)   = iscales(j)*(inc(j)-1)+1                ! Adapt data points for FINUFFT
    else
-      iscales(j) = 1                                      ! Scales is small enough
+      lscales(j) = 1
+      iscales(j) = nint(scales(j))                        ! Scales is small enough
       idims(j)   = iscales(j)*(inc(j)-1)+1                ! == idims = inc
    endif
+   idims(j) = inc(j)
 enddo
+!write(*,'(a,4f5.1,3i5,3i5, 3i5)') ' scales ', scales, MAXSCALE, iscales,idims, lscales
 !
 !  Error checks: Scale = cr_icc*vi must be integer
 !                1/vi              must be integer
@@ -446,13 +466,13 @@ enddo
 !
 ! Calculate average structure factor
 !
-if(fave > 0.0D0) then
-   call four_aver_finufft(is_dim, ll_dim)
-   if(ier_num/=0) return
-else
-!
-   acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
-endif
+!if(fave > 0.0D0) then
+!   call four_aver_finufft(is_dim, ll_dim)
+!   if(ier_num/=0) return
+!else
+!!
+!   acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
+!endif
 !                                                                                                                                              
 !------ preset some values                                              
 !                                                                       
@@ -476,9 +496,9 @@ cond_dim: if(is_dim==3) then            ! 3-D crystal 33333333333333333333333333
    allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
 !
    allocate(nat (             0:cr_nscat))
-   allocate(xpos(0:cr_natoms, 0:cr_nscat))
-   allocate(ypos(0:cr_natoms, 0:cr_nscat))
-   allocate(zpos(0:cr_natoms, 0:cr_nscat))
+   allocate(xpos(1:cr_natoms, 0:cr_nscat))
+   allocate(ypos(1:cr_natoms, 0:cr_nscat))
+   allocate(zpos(1:cr_natoms, 0:cr_nscat))
    ncells = cr_icc
    xpos = 0.0D0
    ypos = 0.0D0
@@ -495,7 +515,7 @@ cond_dim: if(is_dim==3) then            ! 3-D crystal 33333333333333333333333333
 !
       call four_strucf_3d(cr_natoms, nat(iscat), ncells, idims, NQXYZ, &
                          xpos(:,iscat), ypos(:,iscat),     &
-                         zpos(:,iscat), cr_occ(iscat),iscales, scales, fcsf)
+                         zpos(:,iscat), cr_occ(iscat),iscales, lscales, scales, fcsf)
       call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
       csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))  ! Add to complex structure factor
    enddo loop_scat3
@@ -508,10 +528,13 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
   ! 
    j = findloc(inc   , 1      , 1)      ! Find     flat dimension in reciprocal space
    if(j==3) then             ! 3 is flat, set dimension 3 to 1
+      lscales(3) = 1
       iscales(3) = 1
       scales(3)  = 1
       idims(3)   = 1
    elseif(j==2) then         ! 2 is flat, 1 remains, 3 is copied down to 2
+      lscales(2) = iscales(3)
+      lscales(3) = 1
       iscales(2) = iscales(3)
       iscales(3) = 1
       scales(2)  = scales(3)
@@ -519,6 +542,9 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
       idims(2)   = idims(3)
       idims(3)   = 1
    elseif(j==1) then         ! 1 is flat, 2;3 each copied down one element
+      lscales(1) = iscales(2)
+      lscales(2) = iscales(3)
+      lscales(3) = 1
       iscales(1) = iscales(2)
       iscales(2) = iscales(3)
       iscales(3) = 1
@@ -532,9 +558,9 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
    idims(3) = 1
    j = findloc(ll_dim, .false., 1)      ! Find     flat dimension in direct space
    allocate(nat (             0:cr_nscat))
-   allocate(xpos(0:cr_natoms, 0:cr_nscat))
-   allocate(ypos(0:cr_natoms, 0:cr_nscat))
-   allocate(zpos(0:cr_natoms, 0:cr_nscat))
+   allocate(xpos(1:cr_natoms, 0:cr_nscat))
+   allocate(ypos(1:cr_natoms, 0:cr_nscat))
+   allocate(zpos(1:cr_natoms, 0:cr_nscat))
    xpos = 0.0D0
    ypos = 0.0D0
    zpos = 0.0D0
@@ -555,19 +581,19 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
          ncells(2) = cr_icc(2)
          ncells(3) = 1
          call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
-                             xpos(:,iscat), ypos(:,iscat), cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
+                             xpos(:,iscat), ypos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
       elseif(j==2) then                           ! x-z crystal
          ncells(1) = cr_icc(1)
          ncells(2) = cr_icc(3)
          ncells(3) = 1
          call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
-                             xpos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
+                             xpos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
       elseif(j==3) then                           ! y-z crystal
          ncells(1) = cr_icc(2)
          ncells(2) = cr_icc(3)
          ncells(3) = 1
          call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
-                             ypos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
+                             ypos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
       endif
 !call tofile((/num(1),num(2)/),'nufft_2d.dat',real(fcsf(:,:,1),kind=PREC_DP),(/-4.0D0, -4.0D0/),(/-0.1D0, -0.1D0/))
       call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
@@ -585,7 +611,7 @@ elseif(is_dim==1) then cond_dim                   ! 1-D crystal 1111111111111111
    allocate(fcsf(1:inc(1),1:inc(2),1:inc(3))) 
    j = findloc(ll_dim, .true., 1)                 ! Find non-flat dimension
    allocate(nat(0:cr_nscat))
-   allocate(xpos(0:cr_natoms, 0:cr_nscat))
+   allocate(xpos(1:cr_natoms, 0:cr_nscat))
 !
       nat = 0
       xpos = 0.0D0
@@ -599,7 +625,7 @@ elseif(is_dim==1) then cond_dim                   ! 1-D crystal 1111111111111111
       fcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
       !
       call four_strucf_1d(cr_natoms, nat(iscat), cr_icc(j), idims(j), NQXYZ, xpos(:,iscat),     &
-                          cr_occ(iscat),iscales(j), scales(j), fcsf)
+                          cr_occ(iscat),iscales(j), lscales(j), scales(j), fcsf)
       call tcsf_form(iscat, .true., NQXYZ, fcsf)  ! Multiply with atomic form factor
 !                                                 ! Add to complex structure factor
       !
@@ -616,6 +642,9 @@ deallocate(fcsf)
 !
 ! Calculate average structure factor
 !
+if(fave > 0.0D0) then
+   call four_aver_finufft_n(is_dim, ll_dim)
+endif
 !AV!if(fave > 0.0D0) then
 !AV!   call four_aver_finufft(is_dim, ll_dim)
 !AV!write(*,*) ' DONE  FINUFFT 2D AVERAGE', ier_num
@@ -623,14 +652,47 @@ deallocate(fcsf)
 !AV!else
 !AV!   acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0))
 !AV!endif
-csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) - acsf(1:num(1),1:num(2),1:num(3))
+!write(*,*) '  CSF ', maxval(real( csf)), maxval(imag( csf))
+!write(*,*) 'csf   ', csf(1,1,1)
+!write(*,*) 'csf   ', csf(2,2,2)
+!write(*,*) 'csf   ', csf(20,20,20)
+!write(*,*) 'csf   ', csf(21,21,21)
+!i = (num(1)+1)/2
+!j = (num(2)+1)/2
+!k = (num(3)+1)/2
+!write(*,*) ' ikl cent      ', i,j,k
+!do k=1, num(3)
+!write(*,*) ' SUBTRACT  CSF ',csf(i,j,k) , i,j,k
+!enddo
+!k = (num(3)+1)/2
+!write(*,*) ' SUBTRACT ACSF ',acsf(i,j,k)
+!write(*,*) '  CSF ' , ubound( csf)
+!write(*,*) ' ACSF ' , ubound(acsf)
+!write(*,*) 'csf   ', csf( 1, 1,11) , acsf( 1, 1,11)
+!write(*,*) 'csf   ', csf( 1, 6,11) , acsf( 1, 6,11)
+!write(*,*) 'csf   ', csf(11,11,11) , acsf(11,11,11)
+!write(*,*) 'csf   ', csf(21,21,21) , acsf(21,21,21)
+!csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) - acsf(1:num(1),1:num(2),1:num(3))
 do i=1, num(1)
    do j=1, num(2)
       do k=1, num(3)
-         dsi(i,j,k) = dble(csf(i,j,k) * conjg(csf(i,j,k)))
+         dsi(i,j,k) = max(0.0D0, dble(csf(i,j,k) * conjg(csf(i,j,k))))! &
+!                              - dble(acsf(i,j,k) * conjg(acsf(i,j,k))))
       enddo
    enddo
 enddo
+!write(*,*) ' DELTA ', (num(1)-1)/4, (num(2)-1)/4, (num(3)-1)/4
+!do i=1, num(1), (num(1)-1)/4
+!   do j=1, num(2), (num(2)-1)/4
+!      do k=1, num(3), (num(3)-1)/4
+!         dsi(i,j,k) =     0.0D0
+!      enddo
+!   enddo
+!enddo
+!
+!call four_weight               ! Correct the relative weight of Bragg and diffuse
+!call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
+!                    four_filter, FOUR_FILTER_LANCZOS, dsi)
 !
 call four_weight               ! Correct the relative weight of Bragg and diffuse
 call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
@@ -814,6 +876,10 @@ acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))    ! Z
 !  ih,ik,il are the indices of the Bragg reflection h,k,l in "acsf_hkl"
 !  vi_ij    are the coordinated of Bragg reflection h,k,l in "acsf"
 !  Only if these real valued indices are close enough to integer, the Bragg reflection is stored
+!write(*,'(a,3f8.2)') 'ECK 1 ',diff_eck_hkl(:,1)
+!write(*,'(a,3f8.2)') 'ECK 2 ',diff_eck_hkl(:,2)
+!write(*,'(a,3f8.2)') 'ECK 3 ',diff_eck_hkl(:,3)
+!write(*,'(a,3f8.2)') 'ECK 4 ',diff_eck_hkl(:,4)
 do h = nint(diff_eck_hkl(1,1)), nint(diff_eck_hkl(1,2))        ! Loop over H component all Bragg reflection
    hkl(1) = h - eck(1,1)
    ih     = h - nint(diff_eck_hkl(1,1)) + 1                    ! Index of H in acsf_hkl
@@ -829,6 +895,7 @@ do h = nint(diff_eck_hkl(1,1)), nint(diff_eck_hkl(1,2))        ! Loop over H com
          jj = nint(vi_ijk(2))
          kk = nint(vi_ijk(3))
          if(abs(vi_ijk(1)-ii)<EPS .and. abs(vi_ijk(2)-jj)<EPS .and. abs(vi_ijk(3)-kk)<EPS) then
+!write(*,'(a,3i5, 3f8.2, 6i5, 2G16.5e3)') 'HKL ',h,k,l, hkl, ih,ik,il, ii,jj,kk, real(acsf_hkl(ih,ik,il)), imag(acsf_hkl(ih,ik,il))
             acsf(ii, jj, kk) = acsf_hkl(ih,ik,il)
          endif
       enddo
@@ -838,6 +905,126 @@ enddo
 deallocate(acsf_hkl)
 !
 end subroutine four_aver_finufft
+!
+!*******************************************************************************
+!
+subroutine four_aver_finufft_n(is_dim, ll_dim)
+!-
+!  Calculate average structure factor and place into acsf
+!  Required steps
+!  Determine required integer range of HKL
+!  calculate structure factors for these hkl
+!  Determine indices of these hkl and place into acsf
+!
+!  For right now vectors vi must be parallel to a*, b*, c*
+!+
+use crystal_mod
+use diffuse_mod
+!
+use errlist_mod
+use matrix_mod
+!
+implicit none
+!
+integer                         , intent(in) :: is_dim  ! Reciprocal dimension is 1, 2, 3
+logical           , dimension(3), intent(in) :: ll_dim  ! This dimension is not flat
+!
+real(kind=PREC_DP), parameter :: EPS = 1.0D-9
+integer :: i,j,   ii, jj, kk
+integer :: ih,ik,il
+integer :: h,k,l                              ! Bragg indices
+!real(kind=PREC_DP)                 :: rjj     ! Real valued version of jj
+real(kind=PREC_DP), dimension(3,3) :: vi_tmp  ! temporary vi, augmented to give a determinant /= 0
+real(kind=PREC_DP), dimension(3,3) :: vi_inv  ! inverse matrix to vi
+real(kind=PREC_DP), dimension(3)   :: hkl     ! Indices    hkl
+real(kind=PREC_DP), dimension(3)   :: vi_ijk  ! Indices of hkl
+!complex(kind=PREC_DP), dimension(:,:,:), allocatable :: acsf_hkl   ! complex structure factor for Bragg
+!
+!write(*,*) ' IS_DIM, LL_DIM', is_dim, ll_dim
+!write(*,*) ' inc            ', inc
+!write(*,*) ' ecḱ ', eck(:,1)
+!write(*,*) ' ecḱ ', eck(:,2)
+!write(*,*) ' ecḱ ', eck(:,3)
+!write(*,*) ' ecḱ ', eck(:,4)
+if(is_dim==3) then             ! 3D-crystal  3333333333333333
+   vi_tmp = vi                 ! No need for further action
+   if(inc(1)==1) vi_tmp(1,1) = 1.0D0
+   if(inc(2)==1) vi_tmp(2,2) = 1.0D0
+   if(inc(3)==1) vi_tmp(3,3) = 1.0D0
+elseif(is_dim==2) then         ! 2D-crystal  2222222222222222
+   vi_tmp = vi                 ! Set most elements
+   if(inc(1)==1) vi_tmp(1,1) = 1.0D0
+   if(inc(2)==1) vi_tmp(2,2) = 1.0D0
+   vi_tmp(3,3) = 1.0D0
+elseif(is_dim==1) then         ! 1D-crystal  1111111111111111
+   vi_tmp = vi                 ! Set most elements
+   vi_tmp(2,2) = 1.0D0
+   vi_tmp(3,3) = 1.0D0
+endif
+!write(*,*) ' VI ', vi(:,1)
+!write(*,*) ' VI ', vi(:,2)
+!write(*,*) ' VI ', vi(:,3)
+call matinv(vi_tmp, vi_inv)    ! Inverse matrix to place integer hkl indices into full acsf
+if(ier_num/=0) then
+   ier_msg(1) = 'Increment vectors cannot be inverted'
+   ier_msg(2) = 'Are increment vectors parallel ?'
+   write(ier_msg(3),'(a,i1,a)') 'The crystal is ',is_dim,'D'
+   return
+endif
+!
+do j = 1, 4
+   do i =1, 3
+      diff_eck_hkl(i,j) = real(int(eck(i,j)),kind=PREC_DP)  ! HKL corners are integer positions
+   enddo
+enddo
+diff_vi_hkl       =  0.0D0     ! can always be a unit matrix
+diff_vi_hkl(1,1)  =  1.0D0
+diff_vi_hkl(2,2)  =  1.0D0
+diff_vi_hkl(3,3)  =  1.0D0
+diff_inc_hkl(1)   = nint(diff_eck_hkl(1,2)-diff_eck_hkl(1,1)) + 1
+diff_inc_hkl(2)   = nint(diff_eck_hkl(2,3)-diff_eck_hkl(2,1)) + 1
+diff_inc_hkl(3)   = nint(diff_eck_hkl(3,4)-diff_eck_hkl(3,1)) + 1
+!
+!call four_aver_hkl
+!
+! Zero averace complex structure factor arrays, copy Bragg into  local acsf_hkl
+!allocate(acsf_hkl(1:diff_inc_hkl(1),1:diff_inc_hkl(2),1:diff_inc_hkl(3)))    ! Always a 3D array 
+!acsf_hkl(1:diff_inc_hkl(1),1:diff_inc_hkl(2),1:diff_inc_hkl(3)) &            ! Copy temporary acsf with Bragg into local acsf_hkl
+!  = acsf(1:diff_inc_hkl(1),1:diff_inc_hkl(2),1:diff_inc_hkl(3))              ! sub-array size is for Bragg only
+!acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))    ! Zero the full acsf array
+!
+!
+!  The triple loop runs over all Bragg reflections
+!  hkl contains the real valued vector from the left lower bottom corner to Bragg reflection HKL
+!  ih,ik,il are the indices of the Bragg reflection h,k,l in "acsf_hkl"
+!  vi_ij    are the coordinated of Bragg reflection h,k,l in "acsf"
+!  Only if these real valued indices are close enough to integer, the Bragg reflection is stored
+!write(*,'(a,3f8.2)') 'ECK 1 ',diff_eck_hkl(:,1)
+!write(*,'(a,3f8.2)') 'ECK 2 ',diff_eck_hkl(:,2)
+!write(*,'(a,3f8.2)') 'ECK 3 ',diff_eck_hkl(:,3)
+!write(*,'(a,3f8.2)') 'ECK 4 ',diff_eck_hkl(:,4)
+do h = nint(diff_eck_hkl(1,1)), nint(diff_eck_hkl(1,2))        ! Loop over H component all Bragg reflection
+   hkl(1) = h - eck(1,1)
+   ih     = h - nint(diff_eck_hkl(1,1)) + 1                    ! Index of H in acsf_hkl
+   do k = nint(diff_eck_hkl(2,1)), nint(diff_eck_hkl(2,3))     ! Loop over K component all Bragg reflection
+      hkl(2) = k - eck(2,1)
+      ik     = k - nint(diff_eck_hkl(2,1)) + 1                 ! Index of K in acsf_hkl
+      do l = nint(diff_eck_hkl(3,1)), nint(diff_eck_hkl(3,4))  ! Loop over L component all Bragg reflection
+         hkl(3) = l - eck(3,1)
+         il     = l - nint(diff_eck_hkl(3,1)) + 1              ! Index of L in acsf_hkl
+!
+         vi_ijk = matmul(vi_inv, hkl) + 1                      ! Calculate coordinates of HKL in full acsf
+         ii = nint(vi_ijk(1))
+         jj = nint(vi_ijk(2))
+         kk = nint(vi_ijk(3))
+         if(abs(vi_ijk(1)-ii)<EPS .and. abs(vi_ijk(2)-jj)<EPS .and. abs(vi_ijk(3)-kk)<EPS) then
+             csf(ii, jj, kk) = cmplx(0.0D0, 0.0D0, KIND=KIND(0.0D0))
+         endif
+      enddo
+   enddo
+enddo
+!
+end subroutine four_aver_finufft_n
 !
 !****************************************************************************************************
 !
@@ -1361,6 +1548,7 @@ real(kind=PREC_DP), dimension(:)    , allocatable ::outfield_1d
 !
 if(four_filter==FOUR_FILTER_LANCZOS) then
    cond_dim_b: if(is_dim_rec==3) then            ! 3-D crystal 3333333333333333333333333333
+      if(num(1)>four_width*2+1 .and. num(2)>four_width*2+1 .and. num(3)>four_width*2+1) then
       allocate( infield_3d(num(1), num(2), num(3)))
       allocate(outfield_3d(num(1), num(2), num(3)))
 !     ii = 0
@@ -1385,6 +1573,66 @@ if(four_filter==FOUR_FILTER_LANCZOS) then
       enddo
       deallocate( infield_3d)
       deallocate(outfield_3d)
+      else   ! Do 2D slices
+         if(num(3)<=four_width*2+1) then
+            allocate( infield_2d(num(1), num(2)))
+            allocate(outfield_2d(num(1), num(2)))
+            do k=1,num(3)
+               do i=1, num(1)
+                  do j=1, num(2)
+                     infield_2d(i,j) = dsi(i,j,k)
+                  enddo
+               enddo
+               call do_lanczos(four_rscale, four_damp, four_width, num(1:2), infield_2d,   &
+                            num(1:2), outfield_2d, .true.)
+               do i=1, num(1)
+                  do j=1, num(2)
+                     dsi(i,j,k) = outfield_2d(i,j) 
+                  enddo
+               enddo
+            enddo
+            deallocate( infield_2d)
+            deallocate(outfield_2d)
+         elseif(num(2)<=four_width*2+1) then
+            allocate( infield_2d(num(1), num(3)))
+            allocate(outfield_2d(num(1), num(3)))
+            do j=1,num(2)
+               do i=1, num(1)
+                  do k=1, num(3)
+                     infield_2d(i,k) = dsi(i,j,k)
+                  enddo
+               enddo
+               call do_lanczos(four_rscale, four_damp, four_width, num(1:3:2), infield_2d,   &
+                            num(1:3:2), outfield_2d, .true.)
+               do i=1, num(1)
+                  do k=1, num(3)
+                     dsi(i,j,k) = outfield_2d(i,k) 
+                  enddo
+               enddo
+            enddo
+            deallocate( infield_2d)
+            deallocate(outfield_2d)
+         elseif(num(1)<=four_width*2+1) then
+            allocate( infield_2d(num(2), num(3)))
+            allocate(outfield_2d(num(2), num(3)))
+            do i=1,num(1)
+               do j=1, num(2)
+                  do k=1, num(3)
+                     infield_2d(j,k) = dsi(i,j,k)
+                  enddo
+               enddo
+               call do_lanczos(four_rscale, four_damp, four_width, num(2:3), infield_2d,   &
+                            num(2:3), outfield_2d, .true.)
+               do j=1, num(2)
+                  do k=1, num(3)
+                     dsi(i,j,k) = outfield_2d(j,k) 
+                  enddo
+               enddo
+            enddo
+            deallocate( infield_2d)
+            deallocate(outfield_2d)
+         endif
+      endif
    elseif(is_dim_rec==2) then  cond_dim_b
       allocate( infield_2d(num(1), num(2)))
       allocate(outfield_2d(num(1), num(2)))

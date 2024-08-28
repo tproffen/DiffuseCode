@@ -16,7 +16,7 @@ contains
 !
 !*******************************************************************************
 !
-subroutine four_strucf_1d(MAXATOMS, nat, icell, inc, MAXQXY, xpos, occ, iscales, scales, tcsf)
+subroutine four_strucf_1d(MAXATOMS, nat, icell, inc, MAXQXY, xpos, occ, iscales, lscales, scales, tcsf)
 !-
 !  Calculate a 1D-NUFFT via finufft
 !+
@@ -37,6 +37,7 @@ integer              , dimension(3)       , intent(in)  :: MAXQXY   ! Actual Rec
 real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: xpos     ! Actual atom coordinates
 real(kind=PREC_DP)                        , intent(in)  :: occ      ! Atom occupancies
 integer                                   , intent(in)  :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
+integer                                   , intent(in)  :: lscales  ! Scaling if scale > MAXSCALE
 real(kind=PREC_DP)                        , intent(in)  :: scales   ! Scaling
 complex(kind=PREC_DP), dimension(MAXQXY(1),1,1)  , intent(out) :: tcsf     ! Resulting structure factor
 !
@@ -50,13 +51,15 @@ complex(kind=PREC_DP), dimension(:), allocatable :: cj  ! Real space amplitudes 
 complex(kind=PREC_DP), dimension(:), allocatable :: fk  ! Complex structure factor
 !
 type(finufft_opts) :: opts
+integer :: iii
 !
 iflag = 1
 M   = nat
-N   = inc
+N   = (inc-1) * lscales          + 1
 allocate(xj(M))
 allocate(cj(M))
 allocate(fk(N))
+!
 xj = zpi*xpos(1:nat)/real(icell,kind=PREC_DP)*scales
 cj = cmplx(occ, 0.0D0)
 tol = 1d-9
@@ -65,7 +68,7 @@ call finufft_default_opts(opts)                            ! Use default options
 call finufft1d1(M, xj, cj, iflag, tol, N, fk, opts, ier)   ! Do 1D NUFFT
 !
 if(ier==0) then
-   tcsf(1:MAXQXY(1), 1, 1) = fk(1:N:iscales)
+   tcsf(1:MAXQXY(1), 1, 1) = fk( 1: N:lscales)
 endif
 !
 deallocate(xj)
@@ -76,7 +79,7 @@ end subroutine four_strucf_1d
 !
 !******************************************************************************
 !
-subroutine four_strucf_2d(MAXATOMS, nat, icell, inc, MAXQXY, xpos, ypos, occ, iscales, scales, tcsf)
+subroutine four_strucf_2d(MAXATOMS, nat, icell, inc, MAXQXY, xpos, ypos, occ, iscales, lscales, scales, tcsf)
 !-
 !  Calculate a 2D-NUFFT via finufft
 !+
@@ -96,6 +99,7 @@ real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: xpos     ! Actual ato
 real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: ypos     ! Actual atom coordinates
 real(kind=PREC_DP)                        , intent(in)  :: occ      ! Atom occupancies
 integer              , dimension(2)       , intent(in)  :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
+integer              , dimension(2)       , intent(in)  :: lscales  ! Scaling if scales > MAXSCALE
 real(kind=PREC_DP)   , dimension(2)       , intent(in)  :: scales   ! Scaling
 complex(kind=PREC_DP), dimension(MAXQXY(1), MAXQXY(2), 1)  , intent(out) :: tcsf     ! Resulting structure factor
 !
@@ -111,18 +115,20 @@ real(kind=PREC_DP)   , dimension(:), allocatable :: xj  ! Coordinates
 real(kind=PREC_DP)   , dimension(:), allocatable :: yj  ! Coordinates
 complex(kind=PREC_DP), dimension(:), allocatable :: cj  ! Real space amplitudes = 1*occ
 complex(kind=PREC_DP), dimension(:), allocatable :: fk  ! Complex structure factor
+complex(kind=PREC_DP), dimension(:,:), allocatable :: tt  ! Complex structure factor
 !
 type(finufft_opts) :: opts                  ! Use default options
 !
 iflag = 1
 M   = nat
-ms  = inc(1)
-mt  = inc(2)
+ms  = (inc(1)-1) * lscales(1) + 1
+mt  = (inc(2)-1) * lscales(2) + 1
 nj = ms*mt
 allocate(xj(M))
 allocate(yj(M))
 allocate(cj(M))
 allocate(fk(nj))
+allocate(tt(ms, mt))
 !
 xj = zpi*xpos(1:nat)/real(icell(1),kind=PREC_DP)*scales(1)
 yj = zpi*ypos(1:nat)/real(icell(2),kind=PREC_DP)*scales(2)
@@ -132,26 +138,38 @@ tol = 1d-9
 call finufft_default_opts(opts)
 call finufft2d1(M, xj, yj, cj, iflag, tol, ms, mt, fk, opts, ier)
 i = 0
-do h=1,ms, iscales(1)
-  hh = (h-1)/iscales(1) + 1
-  do k=1, mt, iscales(2)
-    kk = (k-1)/iscales(2) + 1
-!   i = i+1
-!   tcsf(i) = fk((k-1)*ms+h)
-    tcsf(hh,kk,1) = fk((k-1)*ms+h)
-  enddo
+!
+! Copy fk onto a 2D grid
+!
+do h=1, ms
+   do k=1, mt
+      tt(h,k) = fk((k-1)*ms+h)
+   enddo
+enddo
+!
+! Cut the 2D grid with steps of lscales(*)
+!
+hh = 0
+do h=1, ms, lscales(1)
+   hh = hh + 1
+   kk = 0
+   do k=1, mt, lscales(2)
+      kk = kk + 1
+      tcsf(hh,kk,1) = tt(h,k)
+   enddo
 enddo
 !
 deallocate(xj)
 deallocate(yj)
 deallocate(cj)
 deallocate(fk)
+deallocate(tt)
 !
 end subroutine four_strucf_2d
 !
 !******************************************************************************
 !
-subroutine four_strucf_3d(MAXATOMS, nat, icell, inc, MAXQXY, xpos, ypos, zpos, occ, iscales, scales, tcsf)
+subroutine four_strucf_3d(MAXATOMS, nat, icell, inc, MAXQXY, xpos, ypos, zpos, occ, iscales, lscales, scales, tcsf)
 !-
 !  Calculate a 3D-NUFFT via finufft
 !+
@@ -173,6 +191,7 @@ real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: ypos     ! Actual ato
 real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: zpos     ! Actual atom coordinates
 real(kind=PREC_DP)                        , intent(in)  :: occ      ! Atom occupancies
 integer              , dimension(3)       , intent(in)  :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
+integer              , dimension(3)       , intent(in)  :: lscales  ! Scaling if scale > MAXSCALE
 real   (kind=PREC_DP), dimension(3)       , intent(in)  :: scales   ! Scaleing
 complex(kind=PREC_DP), dimension(MAXQXY(1),MAXQXY(2),MAXQXY(3))  , intent(out) :: tcsf     ! Resulting structure factor
 !
@@ -189,6 +208,7 @@ real(kind=PREC_DP)   , dimension(:), allocatable :: yj  ! Coordinates
 real(kind=PREC_DP)   , dimension(:), allocatable :: zj  ! Coordinates
 complex(kind=PREC_DP), dimension(:), allocatable :: cj  ! Real space amplitudes = 1*occ
 complex(kind=PREC_DP), dimension(:), allocatable :: fk  ! Complex structure factor
+complex(kind=PREC_DP), dimension(:,:,:), allocatable :: ttcsf  ! Complex structure factor
 !
 type(finufft_opts) :: opts                  ! Use default options
 !
@@ -197,12 +217,16 @@ M   = nat
 ms  = inc(1)
 mt  = inc(2)
 mu  = inc(3)
+ms  = (inc(1)-1) * lscales(1) + 1
+mt  = (inc(2)-1) * lscales(2) + 1
+mu  = (inc(3)-1) * lscales(3) + 1
 nj = ms*mt*mu
 allocate(xj(M))
 allocate(yj(M))
 allocate(zj(M))
 allocate(cj(M))
 allocate(fk(nj))
+allocate(ttcsf(ms,mt,mu))
 !
 xj = zpi*xpos(1:nat)/real(icell(1),kind=PREC_DP)*scales(1)
 yj = zpi*ypos(1:nat)/real(icell(2),kind=PREC_DP)*scales(2)
@@ -213,17 +237,29 @@ tol = 1.0D-7
 call finufft_default_opts(opts)
 call finufft3d1(M, xj, yj, zj, cj, iflag, tol, ms, mt, mu, fk, opts, ier)
 !
+! copy fk ont 3D grid
+!
 i = 0
-do l=1, mu, iscales(3)
-   ll = (l-1)/iscales(3) + 1
-   do k=1, mt, iscales(2)
-      kk = (k-1)/iscales(2) + 1
-      do h=1,ms, iscales(1)
-         hh = (h-1)/iscales(1) + 1
+do l=1, mu
+   do k=1, mt
+      do h=1,ms
          i = i+1
-!      tcsf(i) = fk((l-1)*ms*mt+(k-1)*ms+h)
-!        tcsf(hh,kk,ll) = fk((l-1)*ms*mt+(k-1)*ms+h)
-         tcsf(hh,kk,ll) = fk(i)
+         ttcsf(h ,k ,l ) = fk(i)
+      enddo
+   enddo
+enddo
+!
+! Cut 3D gris at steps lscales(*)
+l = 0
+do ll=1,mu,lscales(3)
+   l = l + 1
+   k = 0
+   do kk=1,mt,lscales(2)
+      k = k + 1
+      h = 0
+      do hh=1,ms,lscales(1)
+         h = h + 1
+         tcsf(h,k,l) = ttcsf(hh,kk,ll)
       enddo
    enddo
 enddo
@@ -233,9 +269,13 @@ deallocate(yj)
 deallocate(zj)
 deallocate(cj)
 deallocate(fk)
+deallocate(ttcsf)
 !
 !
 end subroutine four_strucf_3d
+!
+!******************************************************************************
+!
 !
 !*******************************************************************************
 !
