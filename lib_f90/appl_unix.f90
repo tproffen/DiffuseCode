@@ -330,6 +330,7 @@ IF(standalone) THEN
    appl_dir_l = len_str (appl_dir) 
    i=INDEX(appl_dir(1:len_trim(appl_dir)-1),'/', .TRUE.)
    share_dir = appl_dir(1:i) // 'share/'
+   share_dir_l = len_str (share_dir)
    hlpfile = share_dir(1:share_dir_l) // pname(1:pname_l)//'.hlp'
    hlpfile_l = LEN(TRIM (hlpfile) )
    CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
