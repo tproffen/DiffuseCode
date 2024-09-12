@@ -95,8 +95,12 @@ add_custom_target(kuplothlp
 if (DIFFUSE_SHARED_LIB)
   install (TARGETS kuplot_all DESTINATION lib)
 endif (DIFFUSE_SHARED_LIB)
-install (FILES ${PGPLOT_DIR}/grfont.dat DESTINATION share)
-install (PROGRAMS ${PGSERVER} DESTINATION bin)
+
+option(INSTALL_PGPLOT "Switch to optionally install pgplot files" ON)
+if (INSTALL_PGPLOT)
+  install (FILES ${PGPLOT_DIR}/grfont.dat DESTINATION share)
+  install (PROGRAMS ${PGSERVER} DESTINATION bin)
+endif (INSTALL_PGPLOT)
 
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/kuplot/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION share/kuplot)
