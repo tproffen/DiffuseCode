@@ -131,7 +131,7 @@ if (DEBUG)
     set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -fwhole-file -fimplicit-none -pedantic -Wuninitialized -ffree-line-length-400")
   elseif (IFORT)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-    set (CMAKE_Fortan_FLAGS "-fPIC -cpp -check=all -g -O0 -backtrace")
+    set (CMAKE_Fortran_FLAGS "-fPIC -cpp -check=all -g -O0 -backtrace")
   endif (ISGNU)
 endif (DEBUG)
 
