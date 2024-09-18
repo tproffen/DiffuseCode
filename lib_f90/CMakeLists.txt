@@ -1,5 +1,9 @@
 # Create the lib_90 library for the command language
 
+#include_directories(${DIFFUSE_SOURCE_DIR}/forpy)
+#include_directories(${DIFFUSE_BINARY_DIR}/forpy)
+#link_directories(${DIFFUSE_BINARY_DIR}/forpy)
+
 set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               appl_unix.f90 arrays_mod.f90 blanks_mod.f90 berechne_mod.f90 
               ber_params_mod.f90 blockdat.f90 build_name_mod.f90
@@ -19,10 +23,11 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               gamma_mod.f90 gaussj_mod.f90 gen_mpi_mod.f90 global_data.f90
               hdf5_def.f90 
               length_string_mod.f90 lib_f90_config.f90 lib_f90_fftw3.f90 
-              lib_conv.f90 lib_functions.f90
+              lib_conv.f90 lib_forpython.f90 lib_functions.f90
               lib_get_var_type.f90  lib_global_flags.f90 
               lib_ik.f90 lib_lanczos.f90 lib_load.f90
-              lib_math.f90 lib_metric.f90 lib_f90_profile.f90 lib_timer.f90
+              lib_math.f90 lib_metric.f90 lib_nx_write.f90 
+              lib_f90_profile.f90 lib_timer.f90
               lib_timer_mod.f90 lib_trans.f90 
               lib_use_coor.f90 lib_weights.f90
               lib_write_debug.f90 lib_upd_mod.f90 
@@ -42,7 +47,9 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               sine_table.f90 spline_mod.f90 string_extract_mod.f90
               times_mod.f90 variable_mod.f90 wink_mod.f90 precision_mod.f90 
               memory.f90 support_mod.f90 
-              refine_params.f90)
+              refine_params.f90
+              forpy_mod.F90
+              )
 #             sockets_mod.f90
 
 #set (CSOURCES FCreadline.c csocket.c csup.c)
@@ -107,6 +114,8 @@ endif ()
 
 include_directories(${FFTW_INCLUDE_DIRS})
 
+#
+set (LIBS ${LIBS} ${DIFFUSE_LIBS})
 
 # This macro modified from http://www.cmake.org/pipermail/cmake/2010-November/041034.html
 # The date is returned in ISO8601 format
