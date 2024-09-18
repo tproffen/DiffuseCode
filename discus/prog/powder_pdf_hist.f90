@@ -684,7 +684,7 @@ pow_nn_partial = natom              ! Store composition
 !write(*,*) 'rsf.dat'
 !open(unit=77,file='rsf.dat', status='unknown')
 !do k=1, num(1)
-!  write(77,'(4g18.6e3)') 1.*k, rsf(k)
+!  write(77,'(4g18.6e3)') pow_qmin+(k-1)*pow_deltaq, rsf(k)
 !enddo
 !close(77)
 !read(*,*) k
