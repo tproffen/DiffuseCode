@@ -113,7 +113,7 @@ endif (DIFFUSE_SHARED_LIB)
 
 add_dependencies ( discus_suite_all diffev_all refine_all experi_all discus_all kuplot_all lib_f90 suitehlp)
 
-set (LIBS ${LIBS} discus_suite_all diffev_all refine_all experi_all discus_all kuplot_all ${LIBS_GRAPHIC} ${LIBS} ${LIBS_OPT} discus_suite_all )
+set (LIBS ${LIBS} discus_suite_all diffev_all refine_all experi_all discus_all kuplot_all lib_f90 ${LIBS_GRAPHIC} ${LIBS} ${LIBS_OPT} discus_suite_all )
 
 #add_library (discus_suite_full ${SOURCES_ALL} ${SOURCES_LOCAL})
 if (DIFFUSE_SHARE_LIB)
