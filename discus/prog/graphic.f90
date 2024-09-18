@@ -52,13 +52,14 @@ USE support_mod
 !
 use fourier_sup
 !
+use nx_write_mod
 use lib_trans_mod
 !                                                                       
 IMPLICIT none 
 LOGICAL, INTENT(IN) :: linverse
 !                                                                       
 INTEGER, PARAMETER :: maxp = 11 
-INTEGER, PARAMETER :: MAXFORM = 14
+INTEGER, PARAMETER :: MAXFORM = 16
 integer, parameter :: NEW = 0
 integer, parameter :: OLD = 1
 integer, parameter :: ADD = 2
@@ -122,7 +123,7 @@ DATA loname /  5,       6      ,  5      ,  4      ,  6      ,  4      , 3   ,  
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
                 'SHELXL List 5', 'SHELXL List 5 real HKL' ,             &
-                '3d', 'nexus', 'vtk', 'MRC', 'HDF5', 'XPLOR' /                                    
+                '3d', 'nexus', 'vtk', 'MRC', 'HDF5', 'XPLOR', 'vesta', 'common' /                                    
 !DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
 !              'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
 !              'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
@@ -351,7 +352,8 @@ main_if: IF (ier_num.eq.0) THEN
 !                                                                       
 !     ------Switch output type to HDF5  format   'hdf5'                
 !                                                                       
-               ELSEIF (str_comp(cpara(1), 'hdf5', 4, lpara(1), 4) ) THEN                                        
+               ELSEIF(str_comp(cpara(1), 'hdf5', 4, lpara(1), 4) .or. &
+                     str_comp(cpara(1), 'commo', 5, lpara(1), 5)) THEN                                        
                   if(lpresent(O_SCALE)) then
                      if(lpresent(O_MAXVAL)) then
                         ier_num = -6
@@ -373,6 +375,9 @@ main_if: IF (ier_num.eq.0) THEN
                         valmax = werte(O_MAXVAL)
                      endif
                      ityp = 13 
+                     if(str_comp(cpara(1), 'commo', 5, lpara(1), 5)) then
+                        ityp = 16 
+                     endif
                   ENDIF
                   endif
 !                                                                       
@@ -630,6 +635,38 @@ endif
                CALL xplor_write (value, laver)
             ELSEIF (ityp.eq.15) THEN
                CALL   grd_write (value, laver, cpatt, spatt, dpatt)
+            ELSEIF (ityp.eq.16) THEN                           ! HDF5 output
+               if(allocated(qvalues)) deallocate(qvalues)
+               allocate(qvalues(out_inc(1), out_inc(2), out_inc(3)))
+               l = 0                                                       ! Copy proper "value"
+               DO i = 1, out_inc(1)
+                  DO j = 1, out_inc(2)
+                     DO k = 1, out_inc(3)
+                        l = l + 1
+                        qvalues(i,j,k) = qval(i,j,k, value, i, j, laver)
+                     ENDDO
+                  ENDDO
+               ENDDO
+               qvalues = qvalues*out_scale
+               CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
+               IF (ier_num.eq.0) THEN 
+               CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
+                                 oname, loname, opara, lopara, lpresent, owerte)
+               if(lpresent(O_TRANS) .and.                                       &
+                  str_comp(opara(O_TRANS), 'yes', 3, lopara(O_trans),3)) then
+
+                  call lib_trans_menu(-1, value, laver, outfile, out_inc, out_eck, out_vi,            &
+                       cr_a0, cr_win, qvalues,VAL_PDF, VAL_3DPDF,       &
+                       new_outfile, new_inc, new_eck, new_vi, new_qvalues)
+!
+               else
+                  CALL nx_write_scattering(value, laver, outfile, out_inc, out_eck, out_vi, &
+                          out_extr_abs, out_extr_ord, out_extr_top,                     &
+                          cr_a0, cr_win, qvalues,val_pdf, val_3Dpdf, valmax,            &
+                          ier_num, ier_typ, ER_IO, ER_APPL)
+               endif
+               endif
+               deallocate(qvalues)
             ELSE 
                ier_num = - 9 
                ier_typ = ER_APPL 
