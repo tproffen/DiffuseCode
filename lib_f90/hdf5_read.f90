@@ -9,7 +9,10 @@ use hdf5_def_mod
 use precision_mod
 !
 private
-public hdf5_read
+public hdf5_read     ! Read the pure Yell/discus file format
+public nx_read_scattering   ! Read teh DiffuseDevelopers format via FORPY
+!
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
 CHARACTER(LEN=PREC_STRING)                            :: h5_infile         ! input file
 CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE :: h5_datasets       ! Names of the data set in file
@@ -55,6 +58,9 @@ SUBROUTINE hdf5_read(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,
                      lpresent, owerte,               &
                      node_number, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+!-
+!  Read the pure Yell / DISCUS file format from HDF5 in fortran directly
+!+
 !
 use hdf5
 use iso_c_binding
@@ -115,24 +121,24 @@ INTEGER(KIND=2), TARGET :: r_is_direct
 !INTEGER(KIND=2), DIMENSION(10), TARGET :: rstring
 !INTEGER(HSIZE_T) :: nummer
 !
-INTEGER, PARAMETER                          :: MAXW = 1
-INTEGER                                     :: ianz
-CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
-INTEGER                   , DIMENSION(MAXW) :: lpara
-REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
+!INTEGER, PARAMETER                          :: MAXW = 1
+!INTEGER                                     :: ianz
+!CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
+!INTEGER                   , DIMENSION(MAXW) :: lpara
+!REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP)        , DIMENSION(3)    :: steps     ! dummy steps in H, K, L
 INTEGER :: i,j,k                    ! Dummy loop indices
 !
-integer, parameter :: VAL_PDF   = 14
-integer, parameter :: VAL_3DPDF = 15
-integer :: value  ! Intensity = 1; VAL_PDF or VAL_3DPDF
+!integer, parameter :: VAL_PDF   = 14
+!integer, parameter :: VAL_3DPDF = 15
+!integer :: value  ! Intensity = 1; VAL_PDF or VAL_3DPDF
 !
 !                                                                          ! If data are transformed upon input use "new"
-character(len=PREC_STRING)                                :: new_outfile   ! New file name  from transformed HDF5 data
-integer                   , dimension(3)                  :: new_inc       ! New dimensions from transformed HDF5 data
-real(kind=PREC_DP)        , dimension(3,4)                :: new_eck       ! New corners    from transformed HDF5 data
-real(kind=PREC_DP)        , dimension(3,3)                :: new_vi        ! New vectors    from transformed HDF5 data
-real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: new_data      ! New data       from transformed HDF5 data
+!character(len=PREC_STRING)                                :: new_outfile   ! New file name  from transformed HDF5 data
+!integer                   , dimension(3)                  :: new_inc       ! New dimensions from transformed HDF5 data
+!real(kind=PREC_DP)        , dimension(3,4)                :: new_eck       ! New corners    from transformed HDF5 data
+!real(kind=PREC_DP)        , dimension(3,3)                :: new_vi        ! New vectors    from transformed HDF5 data
+!real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: new_data      ! New data       from transformed HDF5 data
 !
 real(kind=PREC_DP), dimension(3,3) :: temp_vi    ! Temporary copy
 integer :: extr_abs, extr_ord, extr_top
@@ -475,6 +481,628 @@ h5_corners(:,1) = h5_llims                                          ! Lower left
 h5_corners(:,2) = h5_corners(:,1) + (d5_dims(1)-1)* h5_vectors(:,1)   ! Lower right
 h5_corners(:,3) = h5_corners(:,1) + (d5_dims(2)-1)* h5_vectors(:,2)   ! Upper left
 h5_corners(:,4) = h5_corners(:,1) + (d5_dims(3)-1)* h5_vectors(:,3)   ! Top left
+!
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+call hdf5_trans_store &
+                    (infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
+                     lpresent, owerte,               &
+                     node_number, nndims, dims, &
+                     ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+write(*,*) ' DID NEW ROUTINE ', ier_num, ier_typ
+if(ier_num==0) return
+!QQ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!QQ! If requested transform into new orientation
+!QQ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!QQif(opara(O_TRANS)=='yes') then    ! Transform into different orientation
+!QQ   value = 1                      ! Assume Intensity in reciprocal space
+!QQ   if(h5_direct) value = VAL_PDF  ! Direct space 
+!QQ   call lib_trans_menu(0, value, .false., h5_infile, d5_dims, h5_corners, h5_vectors, h5_unit(1:3),    &
+!QQ           h5_unit(4:6), d5_data, VAL_PDF, VAL_3DPDF , &
+!QQ        new_outfile, new_inc, new_eck, new_vi, new_data)
+!QQ   deallocate(d5_data)
+!QQ   if(ier_num/=0) then
+!QQ!
+!QQ      if(allocated(h5_datasets)) deallocate(h5_datasets)
+!QQ      if(allocated(h5_data)) deallocate(h5_data)
+!QQ      if(allocated(d5_data)) deallocate(d5_data)
+!QQ      if(allocated(h5_sigma)) deallocate(h5_sigma)
+!QQ      if(allocated(d5_sigma)) deallocate(d5_sigma)
+!QQ      if(allocated(h5_x)) deallocate(h5_x)
+!QQ      if(allocated(h5_y)) deallocate(h5_y)
+!QQ      if(allocated(h5_z)) deallocate(h5_z)
+!QQ      if(allocated(h5_dx)) deallocate(h5_dx)
+!QQ      if(allocated(h5_dy)) deallocate(h5_dy)
+!QQ      if(allocated(h5_dz)) deallocate(h5_dz)
+!QQ      if(allocated(new_data)) deallocate(new_data)
+!QQ      return
+!QQ   endif
+!QQ   h5_infile     = new_outfile
+!QQ      infile     = new_outfile
+!QQ   h5_llims(1)   = new_eck(1,1)
+!QQ   h5_llims(2)   = new_eck(2,1)
+!QQ   h5_llims(3)   = new_eck(3,1)
+!QQ   h5_dims       = new_inc
+!QQ   d5_dims       = new_inc
+!QQ   h5_corners    = new_eck
+!QQ   h5_vectors    = new_vi
+!QQ   h5_steps_full = new_vi
+!QQ   h5_steps(1)   = new_vi(1,1)
+!QQ   h5_steps(2)   = new_vi(2,2)
+!QQ   h5_steps(3)   = new_vi(3,3)
+!QQ   allocate(d5_data(d5_dims(1), d5_dims(2), d5_dims(3)))
+!QQ   d5_data       = new_data
+!QQ   deallocate(new_data)
+!QQ   if(allocated(d5_sigma)) deallocate(d5_sigma)
+!QQ   allocate(d5_sigma(d5_dims(1), d5_dims(2), d5_dims(3)))
+!QQ   d5_sigma = 0.0    ! Currently sigmas are not treated properly
+!QQendif
+!QQ!
+!QQ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!QQ! Copy into KUPLOT array
+!QQ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!QQ!
+!QQ!write(*,*) ' D5_DIMS ', d5_dims, opara(O_LAYER)(1:6), INT((d5_dims(3)+1)/2), INT((d5_dims(3)  )/2)
+!QQIF(opara(O_LAYER)=='bottom') THEN
+!QQ   h5_layer = 1
+!QQELSEIF(opara(O_LAYER)=='middle') THEN
+!QQ   if(mod(d5_dims(3),2)==0) then
+!QQ      h5_layer = INT((d5_dims(3)+1)/2)
+!QQ   else
+!QQ      h5_layer = INT((d5_dims(3)+1)/2)
+!QQ   endif
+!QQELSEIF(opara(O_LAYER)=='top') THEN
+!QQ   h5_layer = d5_dims(3)
+!QQELSE
+!QQ   cpara(1) = opara(O_LAYER)
+!QQ   lpara(1) = lopara(O_LAYER)
+!QQ   ianz = 1
+!QQ   CALL ber_params (ianz, cpara, lpara, werte, maxw)
+!QQ   h5_layer = NINT(werte(1))
+!QQ   IF(h5_layer  <=0) THEN
+!QQ      ier_num = -71
+!QQ      ier_typ = ER_APPL
+!QQ      ier_msg(1) = 'Layer number <= 0'
+!QQ      ier_msg(2) = 'FILE '//h5_infile (1:LEN(ier_msg)-5)
+!QQ   ELSEIF(h5_layer  >  d5_dims(3)) THEN
+!QQ      ier_num = -71
+!QQ      ier_typ = ER_APPL
+!QQ      WRITE(ier_msg(1),'(a,i4)') 'Layer number > ', h5_layer
+!QQ      ier_msg(2) = 'FILE '//h5_infile (1:LEN(ier_msg)-5)
+!QQ   ENDIF
+!QQENDIF
+!QQ!
+!QQallocate(h5_x(1:d5_dims(1)))
+!QQallocate(h5_y(1:d5_dims(2)))
+!QQallocate(h5_z(1:d5_dims(3)))
+!QQallocate(h5_dx(1:d5_dims(1)))
+!QQallocate(h5_dy(1:d5_dims(2)))
+!QQallocate(h5_dz(1:d5_dims(3)))
+!QQh5_dx = 0.0D0
+!QQh5_dy = 0.0D0
+!QQh5_dz = 0.0D0
+!QQdo i=1, d5_dims(1)
+!QQ  h5_x(i) = h5_llims(1) + (i-1)*h5_steps_full(1,1)
+!QQenddo
+!QQdo i=1, d5_dims(2)
+!QQ  h5_y(i) = h5_llims(2) + (i-1)*h5_steps_full(2,2)
+!QQenddo
+!QQdo i=1, d5_dims(3)
+!QQ  h5_z(i) = h5_llims(3) + (i-1)*h5_steps_full(3,3)
+!QQenddo
+!QQ!
+!QQ!write(*,'(a,l2)') ' DIRECT ', h5_direct
+!QQ!write(*,'(a,i5)') ' LAYER  ', h5_layer
+!QQ!write(*,'(a,3i5)') ' nndims ',    nndims
+!QQ!write(*,'(a,3i5)') '   dims ', d5_dims
+!QQ!write(*,'(a,3l2)') ' GRID   ', h5_is_grid, h5_has_dxyz, h5_has_dval
+!QQ!write(*,'(a,3f12.5,3f8.1)') ' UNIT   ', h5_unit
+!QQ!write(*,'(a,3f12.5)') ' Vector1', h5_vectors(:,1)
+!QQ!write(*,'(a,3f12.5)') ' Vector2', h5_vectors(:,2)
+!QQ!write(*,'(a,3f12.5)') ' Vector3', h5_vectors(:,3)
+!QQ!write(*,'(a,3f12.5)') ' Steps 1', h5_steps_full(:,1)
+!QQ!write(*,'(a,3f12.5)') ' Steps 2', h5_steps_full(:,2)
+!QQ!write(*,'(a,3f12.5)') ' Steps 3', h5_steps_full(:,3)
+!QQ!write(*,'(a,3f12.5)') ' L L B  ', h5_corners(:,1)
+!QQ!write(*,'(a,3f12.5)') ' R L B  ', h5_corners(:,2)
+!QQ!write(*,'(a,3f12.5)') ' L U B  ', h5_corners(:,3)
+!QQ!write(*,'(a,3f12.5)') ' L L T  ', h5_corners(:,4)
+!QQ!write(*,'(a,3f12.5)') ' x X    ', h5_x(1), h5_x(d5_dims(1))
+!QQ!write(*,'(a,3f12.5)') ' y Y    ', h5_y(1), h5_y(d5_dims(2))
+!QQ!write(*,'(a,3f12.5)') ' z Z    ', h5_z(1), h5_z(d5_dims(3))
+!QQcall lib_get_use_coor(h5_vectors, h5_calc_coor, h5_use_coor)
+!QQif(ier_num==0) then
+!QQ!
+!QQ   call dgl5_new_node
+!QQ   node_number = dgl5_get_number()
+!QQ   nndims = 0
+!QQ   if(d5_dims(3)>1) nndims = nndims + 1
+!QQ   if(d5_dims(2)>1) nndims = nndims + 1
+!QQ   if(d5_dims(1)>1) nndims = nndims + 1
+!QQ   dims   = d5_dims
+!QQ   if(h5_direct) then
+!QQ      if(nndims==3) then
+!QQ         h5_data_type = H5_3D_DIRECT
+!QQ      elseif(nndims==2) then
+!QQ         h5_data_type = H5_2D_DIRECT
+!QQ      elseif(nndims==1) then
+!QQ         h5_data_type = H5_1D_DIRECT
+!QQ      endif
+!QQ   else
+!QQ      if(nndims==3) then
+!QQ         h5_data_type = H5_3D_RECI
+!QQ      elseif(nndims==2) then
+!QQ         h5_data_type = H5_2D_RECI
+!QQ      elseif(nndims==1) then
+!QQ         h5_data_type = H5_1D_RECI
+!QQ      endif
+!QQ   endif
+!QQ   call dgl5_set_node(h5_infile, h5_data_type, h5_layer, h5_direct, nndims, d5_dims ,         &
+!QQ                   h5_is_grid, h5_has_dxyz, h5_has_dval, h5_calc_coor, h5_use_coor, &
+!QQ                   h5_corners, h5_vectors,&
+!QQ                   h5_unit(1:3), h5_unit(4:6), h5_x, h5_y, h5_z, h5_dx, h5_dy,  &
+!QQ                   h5_dz,      d5_data               , d5_sigma, h5_llims,      &
+!QQ                   h5_steps, h5_steps_full)
+!QQelse
+!QQ   ndims = 0
+!QQ   dims  = 0
+!QQendif
+!QQ!
+!QQif(allocated(h5_datasets)) deallocate(h5_datasets)
+!QQif(allocated(h5_data)) deallocate(h5_data)
+!QQif(allocated(d5_data)) deallocate(d5_data)
+!QQif(allocated(h5_sigma)) deallocate(h5_sigma)
+!QQif(allocated(d5_sigma)) deallocate(d5_sigma)
+!QQif(allocated(h5_x)) deallocate(h5_x)
+!QQif(allocated(h5_y)) deallocate(h5_y)
+!QQif(allocated(h5_z)) deallocate(h5_z)
+!QQif(allocated(h5_dx)) deallocate(h5_dx)
+!QQif(allocated(h5_dy)) deallocate(h5_dy)
+!QQif(allocated(h5_dz)) deallocate(h5_dz)
+!
+END SUBROUTINE hdf5_read
+!
+!*******************************************************************************
+!
+subroutine nx_read_scattering(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
+                     lpresent, owerte,               &
+                     node_number, nndims, dims, &
+                     ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+!-
+! Read a NEXUS HDF5 file in the Diffuse Developers common file format via FORPY
+!+
+!
+use lib_forpython_mod
+use forpy_mod
+!
+use iso_fortran_env, only: real64
+use iso_c_binding, only:C_CHAR
+!
+implicit none
+!
+character(LEN=1024), intent(inout) :: infile
+integer            , intent(in) :: length
+integer            , intent(in) :: O_LAYER    ! Number optional parameter "layer:"
+integer            , intent(in) :: O_TRANS    ! Number optional parameter "trans:"
+integer            , intent(in) :: NOPTIONAL
+character(LEN=*)   , dimension(NOPTIONAL), intent(in) :: opara
+integer            , dimension(NOPTIONAL), intent(in) :: lopara
+LOGICAL            , dimension(NOPTIONAL), intent(in) :: lpresent
+real(KinD=PREC_DP) , dimension(NOPTIONAL), intent(in) :: owerte
+!
+integer, intent(out) :: node_number
+integer, intent(out) :: nndims
+integer, dimension(3), intent(out) :: dims
+integer,                            intent(out)   :: ier_num
+integer,                            intent(out)   :: ier_typ
+integer,                            intent(in )   :: idims
+character(LEN=*), dimension(idims), intent(inout) :: ier_msg    ! Error message
+integer,                            intent(in )   :: ER_APPL
+integer,                            intent(in )   :: ER_IO
+integer, intent(in)    :: output_io   ! KUPLOT array size
+!
+!                                                                          ! If data are transformed upon input use "new"
+!character(len=PREC_STRING)                                :: new_outfile   ! New file name  from transformed HDF5 data
+!integer                   , dimension(3)                  :: new_inc       ! New dimensions from transformed HDF5 data
+!real(kind=PREC_DP)        , dimension(3,4)                :: new_eck       ! New corners    from transformed HDF5 data
+!real(kind=PREC_DP)        , dimension(3,3)                :: new_vi        ! New vectors    from transformed HDF5 data
+!real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: new_data      ! New data       from transformed HDF5 data
+!
+!real(kind=PREC_DP), dimension(3,3) :: temp_vi    ! Temporary copy
+!integer :: extr_abs, extr_ord, extr_top
+!
+character(len=:), allocatable :: return_string
+!
+type(object )   :: p_infile           ! Output filename in python interface
+!
+type(tuple)     :: p_args             ! Tuple of arguments for  read_diffuse_scattering
+type(module_py) :: interface_module   ! python script name
+type(list)      :: paths_to_module    ! python script path
+type(object)    :: return_value       ! forpy return value
+type(tuple)     :: returned_tuple     ! All results as tuple
+!type(object)    :: temp2              ! temporary python tuple
+type(object)    :: temp, temp2        ! temporary python object 
+type(tuple)     :: temp_tuple         ! temporary python tuple
+type(ndarray)   :: temp_arr           ! temporary numpy array
+!
+real(kind=real64     ), dimension(:,:,:), pointer :: matrix_3d  ! Pointer to result of get_data
+real(kind=real64     ), dimension(:,:)  , pointer :: matrix_2d  ! Pointer to result of get_data
+real(kind=real64     ), dimension(:)    , pointer :: matrix_1d  ! Pointer to result of get_data
+!
+integer :: iarg
+integer :: ih,ik,il   ! Dummy loop arrays
+integer :: i ,j ,k    ! Dummy loop arrays
+character(len=PREC_STRING)  :: file_type   ! File type should be "Disorder scattering"
+character(len=PREC_STRING)  :: file_version! File version 
+character(len=PREC_STRING)  :: file_date   ! File date 
+character(len=PREC_STRING)  :: file_program! File program
+character(len=PREC_STRING)  :: file_author ! File author
+character(len=PREC_STRING)  :: signal      ! Data contain 'measurement', 'background' ,,, ,,,
+character(len=PREC_STRING)  :: radiation   ! Data were measured/calculated for this radiation
+character(len=PREC_STRING)  :: space       ! Data are 'reciprocal or 'direct'
+character(len=PREC_STRING)  :: value_type  ! Data contain this value type
+character(len=PREC_STRING)  :: axes        ! string with ["h", "k","l"] or so
+!integer                     :: isdim       ! Data is of this dimension 1, , 2, 3
+!integer, dimension(3)       :: hasdim      ! Data has these dimensions
+!real(kind=PREC_DP), dimension(:,:,:), allocatable :: ergebnis  ! input data
+!real(kind=PREC_DP), dimension(:,:,:), allocatable :: in_data  ! input data
+!real(kind=PREC_DP), dimension(3)                  :: lower_limits  ! Left_lower_bottom corner
+!real(kind=PREC_DP), dimension(3,3)                :: step_vectors  ! Left_lower_bottom corner
+!real(kind=PREC_DP), dimension(:)    , allocatable :: indices_abs   ! indeces along abscissa
+!real(kind=PREC_DP), dimension(:)    , allocatable :: indices_ord   ! indeces along ordinate
+!real(kind=PREC_DP), dimension(:)    , allocatable :: indices_top   ! indeces along top axis
+!real(kind=PREC_DP), dimension(6)                  :: unit_cell     ! unit_cell parameters
+!
+! TEMPORARY DEBUG
+!character(kind=C_CHAR, len=:), allocatable :: dname
+!
+!
+call forpy_start()                   ! If needed, start forpy
+!
+ier_num = cast(p_infile, infile(1:len_trim(infile)) )
+ier_num = tuple_create(p_args, 1)
+ier_num = p_args%setitem( 0, p_infile)
+!
+! Append current directory to paths
+!
+ier_num = get_sys_path(paths_to_module)
+ier_num = paths_to_module%append('.')!
+ier_num = import_py(interface_module, 'read_diffuse_scattering')
+ier_num = call_py(return_value, interface_module, 'read_diffuse_scattering', p_args)
+ier_num = cast(returned_tuple, return_value)   ! Get multiple returned objects
+!
+!  Get file type 
+!
+iarg = 0
+ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
+ier_num = cast(return_string, temp)
+file_type = return_string(1:len_trim(return_string))
+call temp%destroy
+!
+!  Get file version
+!
+iarg = 1
+ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
+ier_num = cast(return_string, temp)
+file_version = return_string(1:len_trim(return_string))
+call temp%destroy
+!
+!  Get file date
+!
+iarg = 2
+ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
+ier_num = cast(return_string, temp)
+file_date = return_string(1:len_trim(return_string))
+call temp%destroy
+!
+!  Get file program
+!
+iarg = 3
+ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
+ier_num = cast(return_string, temp)
+file_program = return_string(1:len_trim(return_string))
+call temp%destroy
+!
+!  Get file author
+!
+iarg = 4
+ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
+ier_num = cast(return_string, temp)
+file_author = return_string(1:len_trim(return_string))
+call temp%destroy
+!
+!  Get data dimension
+!
+iarg = 5
+ier_num = returned_tuple%getitem(temp, iarg)      !
+ier_num = cast(ndims, temp)
+call temp%destroy
+!
+!  Get actual dimensions
+!
+iarg = 6
+ier_num = returned_tuple%getitem(temp, iarg)      !
+ier_num = cast(temp_tuple, temp)
+call temp%destroy
+ier_num = temp_tuple%getitem(temp2, 0)      !
+ier_num = cast(d5_dims(1), temp2)
+call temp2%destroy
+ier_num = temp_tuple%getitem(temp2, 1)      !
+ier_num = cast(d5_dims(2), temp2)
+call temp2%destroy
+ier_num = temp_tuple%getitem(temp2, 2)      !
+ier_num = cast(d5_dims(3), temp2)
+call temp2%destroy
+!
+! Get actual data array
+!
+iarg = 7
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_3d,'C')
+allocate(d5_data(d5_dims(1), d5_dims(2), d5_dims(3)))
+do ih = 1, d5_dims(1)
+do ik = 1, d5_dims(2)
+do il = 1, d5_dims(3)
+   d5_data(ih, ik, il) = matrix_3d(il,ik,ih)
+enddo
+enddo
+enddo
+!deallocate(matrix_3d)
+nullify(matrix_3d)
+call temp%destroy
+call temp_arr%destroy
+!
+!write(*,*) ' Read  original   array 321 ', d5_data(3,2,1)
+!write(*,*)
+!write(*,*) ' Read  original   array llb ', d5_data(1         ,1         ,1         )
+!write(*,*) ' Read  original   array rlb ', d5_data(d5_dims(1),1         ,1         )
+!write(*,*) ' Read  original   array lub ', d5_data(1         ,d5_dims(2),1         )
+!write(*,*) ' Read  original   array rub ', d5_data(d5_dims(1),d5_dims(2),1         )
+!
+!write(*,*) ' Read  original   array llt ', d5_data(1         ,1         ,d5_dims(3))
+!write(*,*) ' Read  original   array rlt ', d5_data(d5_dims(1),1         ,d5_dims(3))
+!write(*,*) ' Read  original   array lut ', d5_data(1         ,d5_dims(2),d5_dims(3))
+!write(*,*) ' Read  original   array rut ', d5_data(d5_dims(1),d5_dims(2),d5_dims(3))
+!call get_data(iarg, returned_tuple, ergebnis, 'C')
+!
+! get signal
+!
+iarg = 8
+ier_num = returned_tuple%getitem(temp, iarg)     ! Get item into temporary object
+ier_num = cast(return_string, temp)
+signal = return_string(1:len_trim(return_string))
+call temp%destroy
+!
+! get radiation
+!
+iarg = 9
+ier_num = returned_tuple%getitem(temp, iarg)     ! Get item into temporary object
+ier_num = cast(return_string, temp)
+radiation = return_string(1:len_trim(return_string))
+call temp%destroy
+!
+! get space
+!
+iarg = 10
+ier_num = returned_tuple%getitem(temp, iarg)     ! Get item into temporary object
+ier_num = print_py(temp)
+ier_num = cast(return_string, temp)
+space = return_string(1:len_trim(return_string))
+if(    space=='direct' .or. space=='patterson') then
+   h5_direct = .true.
+elseif(space=='reciprocal') then
+   h5_direct = .false.
+endif
+call temp%destroy
+!
+! get value type 
+!
+iarg = 11
+ier_num = returned_tuple%getitem(temp, iarg)     ! Get item into temporary object
+ier_num = print_py(temp)
+ier_num = cast(return_string, temp)
+value_type = return_string(1:len_trim(return_string))
+call temp%destroy
+!
+! Get lower limits
+!
+iarg = 12
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_1d,'C')
+h5_llims = matrix_1d
+deallocate(matrix_1d)
+nullify(matrix_1d)
+call temp%destroy
+call temp_arr%destroy
+!
+! Get step vectors
+!
+iarg = 13
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_2d,'C')
+h5_steps_full = transpose(matrix_2d)
+call temp%destroy
+call temp_arr%destroy
+!
+!  Get axes string
+!
+iarg = 14
+ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
+ier_num = cast(return_string, temp)
+axes = return_string(1:len_trim(return_string))
+call temp%destroy
+!
+! Get indices along abscissa
+!
+iarg = 15
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_1d,'C')
+allocate(h5_x(ubound(matrix_1d,1)))
+h5_x = matrix_1d
+!deallocate(matrix_1d)
+nullify(matrix_1d)
+call temp%destroy
+call temp_arr%destroy
+!
+! Get indices along ordinate
+!
+iarg = 16
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_1d,'C')
+allocate(h5_y(ubound(matrix_1d,1)))
+h5_y = matrix_1d
+!deallocate(matrix_1d)
+nullify(matrix_1d)
+call temp%destroy
+call temp_arr%destroy
+!
+! Get indices along top_axis
+!
+iarg = 17
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_1d,'C')
+allocate(h5_z(ubound(matrix_1d,1)))
+h5_z = matrix_1d
+call temp%destroy
+call temp_arr%destroy
+!deallocate(matrix_1d)
+nullify(matrix_1d)
+!
+! Get unit cell parameters
+!
+iarg = 18
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_1d,'C')
+h5_unit(1:3) = matrix_1d
+!deallocate(matrix_1d)
+nullify(matrix_1d)
+call temp%destroy
+call temp_arr%destroy
+iarg = 19
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_1d,'C')
+h5_unit(4:6) = matrix_1d
+!deallocate(matrix_1d)
+nullify(matrix_1d)
+call temp%destroy
+call temp_arr%destroy
+!
+!
+call temp%destroy
+call temp_arr%destroy
+!
+!
+h5_is_grid  = .true.
+h5_has_dxyz = .false.
+h5_has_dval = .false.
+h5_steps(1) = (h5_x(d5_dims(1))-h5_x(1))/real(d5_dims(1)-1,PREC_DP)
+h5_steps(2) = (h5_y(d5_dims(2))-h5_y(1))/real(d5_dims(2)-1,PREC_DP)
+h5_steps(3) = (h5_z(d5_dims(3))-h5_z(1))/real(d5_dims(3)-1,PREC_DP)
+!Interim, no sigma
+if(allocated(h5_sigma)) then
+   allocate(d5_sigma(d5_dims(1), d5_dims(2), d5_dims(3)))
+   do i=1, d5_dims(1)
+      do j=1, d5_dims(2)
+         do k=1, d5_dims(3)
+            d5_sigma(i,j,k) = h5_sigma(k,j,i)
+         enddo
+      enddo
+   enddo
+endif
+!
+h5_vectors      = h5_steps_full
+h5_corners(:,1) = h5_llims                                          ! Lower left
+h5_corners(:,2) = h5_corners(:,1) + (d5_dims(1)-1)* h5_vectors(:,1)   ! Lower right
+h5_corners(:,3) = h5_corners(:,1) + (d5_dims(2)-1)* h5_vectors(:,2)   ! Upper left
+h5_corners(:,4) = h5_corners(:,1) + (d5_dims(3)-1)* h5_vectors(:,3)   ! Top left
+allocate(h5_dx(ubound(h5_x,1)))
+allocate(h5_dy(ubound(h5_y,1)))
+allocate(h5_dz(ubound(h5_z,1)))
+h5_dx = 0.0_PREC_DP
+h5_dy = 0.0_PREC_DP
+h5_dz = 0.0_PREC_DP
+h5_infile = infile
+!
+call hdf5_trans_store &
+                    (infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
+                     lpresent, owerte,               &
+                     node_number, nndims, dims, &
+                     ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+!
+end subroutine nx_read_scattering
+!
+!*******************************************************************************
+!
+subroutine hdf5_trans_store &
+                    (infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
+                     lpresent, owerte,               &
+                     node_number, nndims, dims, &
+                     ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+!+
+! Transform the h5 data set into new orientation 
+! place into kuplot data set
+!+
+!
+use ber_params_mod
+use lib_trans_mod
+use lib_data_types_mod
+use lib_use_coor_mod
+use precision_mod
+!
+implicit none
+!
+!
+CHARACTER(LEN=1024), INTENT(INOUT) :: infile
+INTEGER            , INTENT(IN) :: length
+INTEGER            , INTENT(IN) :: O_LAYER    ! Number optional parameter "layer:"
+INTEGER            , INTENT(IN) :: O_TRANS    ! Number optional parameter "trans:"
+INTEGER            , INTENT(IN) :: NOPTIONAL
+CHARACTER(LEN=*)   , DIMENSION(NOPTIONAL), INTENT(IN) :: opara
+INTEGER            , DIMENSION(NOPTIONAL), INTENT(IN) :: lopara
+LOGICAL            , DIMENSION(NOPTIONAL), INTENT(IN) :: lpresent
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL), INTENT(IN) :: owerte
+!
+integer, intent(out) :: node_number
+integer, intent(out) :: nndims
+integer, dimension(3), intent(out) :: dims
+INTEGER,                            INTENT(OUT)   :: ier_num
+INTEGER,                            INTENT(OUT)   :: ier_typ
+INTEGER,                            INTENT(IN )   :: idims
+CHARACTER(LEN=*), DIMENSION(idims), INTENT(INOUT) :: ier_msg    ! Error message
+INTEGER,                            INTENT(IN )   :: ER_APPL
+INTEGER,                            INTENT(IN )   :: ER_IO
+INTEGER, INTENT(IN)    :: output_io   ! KUPLOT array size
+!
+!
+INTEGER, PARAMETER                          :: MAXW = 1
+INTEGER                                     :: ianz
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
+INTEGER                   , DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
+!REAL(KIND=PREC_DP)        , DIMENSION(3)    :: steps     ! dummy steps in H, K, L
+integer :: i
+!
+integer, parameter :: VAL_PDF   = 14
+integer, parameter :: VAL_3DPDF = 15
+integer :: value  ! Intensity = 1; VAL_PDF or VAL_3DPDF
+!
+!                                                                          ! If data are transformed upon input use "new"
+character(len=PREC_STRING)                                :: new_outfile   ! New file name  from transformed HDF5 data
+integer                   , dimension(3)                  :: new_inc       ! New dimensions from transformed HDF5 data
+real(kind=PREC_DP)        , dimension(3,4)                :: new_eck       ! New corners    from transformed HDF5 data
+real(kind=PREC_DP)        , dimension(3,3)                :: new_vi        ! New vectors    from transformed HDF5 data
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: new_data      ! New data       from transformed HDF5 data
+!
+!real(kind=PREC_DP), dimension(3,3) :: temp_vi    ! Temporary copy
+!integer :: extr_abs, extr_ord, extr_top
+!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! If requested transform into new orientation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -526,7 +1154,6 @@ endif
 ! Copy into KUPLOT array
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-!write(*,*) ' D5_DIMS ', d5_dims, opara(O_LAYER)(1:6), INT((d5_dims(3)+1)/2), INT((d5_dims(3)  )/2)
 IF(opara(O_LAYER)=='bottom') THEN
    h5_layer = 1
 ELSEIF(opara(O_LAYER)=='middle') THEN
@@ -556,6 +1183,7 @@ ELSE
    ENDIF
 ENDIF
 !
+if(.not.allocated(h5_x)) then    ! HDF5_read dowes not, NX_read does 
 allocate(h5_x(1:d5_dims(1)))
 allocate(h5_y(1:d5_dims(2)))
 allocate(h5_z(1:d5_dims(3)))
@@ -574,6 +1202,7 @@ enddo
 do i=1, d5_dims(3)
   h5_z(i) = h5_llims(3) + (i-1)*h5_steps_full(3,3)
 enddo
+endif
 !
 !write(*,'(a,l2)') ' DIRECT ', h5_direct
 !write(*,'(a,i5)') ' LAYER  ', h5_layer
@@ -644,7 +1273,7 @@ if(allocated(h5_dx)) deallocate(h5_dx)
 if(allocated(h5_dy)) deallocate(h5_dy)
 if(allocated(h5_dz)) deallocate(h5_dz)
 !
-END SUBROUTINE hdf5_read
+end subroutine hdf5_trans_store
 !
 !*******************************************************************************
 !
