@@ -50,7 +50,7 @@ find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(FFTW REQUIRED)
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-find_package(PythonExtensions REQUIRED)
+#find_package(PythonExtensions REQUIRED)
 
 option(DIFFUSE_SHARED_LIB "If on build shared libraries" OFF)
 #
@@ -103,7 +103,7 @@ endif ()
 # Set common libraries
 
 set (DIFFUSE_LIBS ${READLINE_LIBRARY})
-set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ${FFTW_DOUBLE_LIB} ${FFTW_DOUBLE_OPENMP_LIB} ${PYTHON_LIBRARIES} ${PYLINK_LIBS})
+set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ${FFTW_DOUBLE_LIB} ${FFTW_DOUBLE_OPENMP_LIB} ${Python3_LIBRARIES} )
 
 # Set Compiler Flags
 
