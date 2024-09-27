@@ -99,7 +99,7 @@ use kuplot_global
 !
 USE ber_params_mod
 use lib_data_struc_h5
-use lib_nx_read_mod
+!use lib_nx_read_mod
 !
 IMPLICIT NONE
 !
