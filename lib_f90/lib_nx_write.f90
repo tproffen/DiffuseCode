@@ -50,28 +50,50 @@ integer                           , intent(in)  :: ER_APPL   ! Error type Applic
 !
 type(tuple)     :: p_args          ! Tuple of arguments for write_diffuse_scattering
 type(object )   :: p_outfile       ! Output filename in python interface
+type(object )   :: p_program       ! Output program  in python interface
+type(object )   :: p_author        ! Output author   in python interface
+type(object )   :: p_qvalues_dim   ! Data dimensionality in python interface
+type(object )   :: p_radiation     ! radiation type 
+type(object )   :: p_space         ! reciprocal, direct space
+type(object )   :: p_content       ! intensity, 3d-delta-PDF, etc
+type(object )   :: p_axes          ! axes labels ["h", "k","l"] etc
 type(ndarray)   :: p_qvalues       ! Intensities     in python interface
+type(ndarray)   :: p_lower_limits  ! Left_lower_bottom corner in python  interface
+type(ndarray)   :: p_step_vectors  ! Increment vi along abscissa python  interface
 type(ndarray)   :: p_h_indices     ! H indices       in python interface
 type(ndarray)   :: p_k_indices     ! K indices       in python interface
 type(ndarray)   :: p_l_indices     ! L indices       in python interface
-type(ndarray)   :: p_unit_cell     ! Unit cell param in python interface
+type(ndarray)   :: p_unit_cell_length  ! Unit cell length in python interface
+type(ndarray)   :: p_unit_cell_angle   ! Unit cell angles in python interface
 !
 type(module_py) :: interface_module   ! python script name
 type(list)      :: paths_to_module    ! python script path
 type(object)    :: return_value       ! forpy return value
 character(len=:), allocatable :: return_string         ! Result from forpy
 !
-integer :: i, j, k   ! Dummy indice(s)
+character(len=PREC_STRING) :: radiation
+character(len=PREC_STRING) :: space
+character(len=PREC_STRING) :: content
+character(len=PREC_STRING) :: axes
+integer :: i, j, k   ! Dummy indices
+integer :: qvalues_dim  ! Data dimensionality
 REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: values        ! Values in C sequence
 real(kind=PREC_DP), dimension(out_inc(extr_abs)) :: h_indices      ! Actual H indices along a*
 real(kind=PREC_DP), dimension(out_inc(extr_ord)) :: k_indices      ! Actual K indices along b*
 real(kind=PREC_DP), dimension(out_inc(extr_top)) :: l_indices      ! Actual L indices along c*
-real(kind=PREC_DP), dimension(6)                 :: unit_cell      ! Unit cell parameters
 !
+write(*,*) ' WRITE NX '
+qvalues_dim = 3     ! For right now fixed 3D
+radiation = 'xray'
+space     = 'reciprocal'
+content   = 'intensity'
+axes      = '["h", "k", "l"]'
+write(*,*) ' transpose axes ', out_inc
 !
 ! Transpose input values 
 !
 allocate(values(out_inc(3), out_inc(2), out_inc(1)))
+write(*,*) ' transpose axes ', ubound(qvalues), ubound(values)
 DO i = 1, out_inc(1)
    DO j = 1, out_inc(2)
       DO k = 1, out_inc(3)
@@ -79,42 +101,71 @@ DO i = 1, out_inc(1)
       ENDDO
    ENDDO
 ENDDO
+write(*,*) ' Wrote original   array 321 ', qvalues(3,2,1)
+write(*,*)
+write(*,*) ' Wrote original   array llb ', qvalues(1         ,1         ,1         )
+write(*,*) ' Wrote original   array rlb ', qvalues(out_inc(1),1         ,1         )
+write(*,*) ' Wrote original   array lub ', qvalues(1         ,out_inc(2),1         )
+write(*,*) ' Wrote original   array rub ', qvalues(out_inc(1),out_inc(2),1         )
+!
+write(*,*) ' Wrote original   array llt ', qvalues(1         ,1         ,out_inc(3))
+write(*,*) ' Wrote original   array rlt ', qvalues(out_inc(1),1         ,out_inc(3))
+write(*,*) ' Wrote original   array lut ', qvalues(1         ,out_inc(2),out_inc(3))
+write(*,*) ' Wrote original   array rut ', qvalues(out_inc(1),out_inc(2),out_inc(3))
 !
 ! Write full indices H, K, L along axes
 !
+write(*,*) ' extr_abs ', extr_abs, extr_ord, extr_top
 do i=1, out_inc(extr_abs)
    h_indices(i) = out_eck(1,1) + (i-1)*out_vi(extr_abs,1)
 enddo
-do i=1, out_inc(extr_abs)
+do i=1, out_inc(extr_ord)
    k_indices(i) = out_eck(2,1) + (i-1)*out_vi(extr_ord,2)
 enddo
-do i=1, out_inc(extr_abs)
+do i=1, out_inc(extr_top)
    l_indices(i) = out_eck(3,1) + (i-1)*out_vi(extr_top,3)
 enddo
-!
-unit_cell(1:3) = cr_a0
-unit_cell(4:6) = cr_win
 !
 call no_error
 call forpy_start()
 !
 !
-ier_num = cast(p_outfile, outfile(1:len_trim(outfile)) )
-ier_num = ndarray_create(p_qvalues  , values)
-ier_num = ndarray_create(p_h_indices, h_indices)
-ier_num = ndarray_create(p_k_indices, k_indices)
-ier_num = ndarray_create(p_l_indices, l_indices)
-ier_num = ndarray_create(p_unit_cell, unit_cell)
+ier_num = cast(          p_outfile,     outfile(1:len_trim(outfile)) )
+ier_num = cast(          p_program,     'DISCUS 6.17.02')
+ier_num = cast(          p_author,      'rbn')
+ier_num = cast(          p_qvalues_dim, qvalues_dim)
+ier_num = ndarray_create(p_qvalues,     qvalues)
+ier_num = cast(          p_radiation,   radiation(1:len_trim(radiation)) )
+ier_num = cast(          p_space,       space(1:len_trim(space)) )
+ier_num = cast(          p_content,     content(1:len_trim(content)) )
+ier_num = ndarray_create(p_lower_limits,out_eck(:,1))
+ier_num = ndarray_create(p_step_vectors,(out_vi))
+ier_num = cast          (p_axes        ,axes(1:len_trim(axes)))
+ier_num = ndarray_create(p_h_indices,   h_indices)
+ier_num = ndarray_create(p_k_indices,   k_indices)
+ier_num = ndarray_create(p_l_indices,   l_indices)
+ier_num = ndarray_create(p_unit_cell_length, cr_a0)
+ier_num = ndarray_create(p_unit_cell_angle,  cr_win)
 !
-!  Collect the six arguments into a tuple: args
+!  Collect the 16 arguments into a tuple: p_args
 !
-ier_num = tuple_create(p_args, 6)
-ier_num = p_args%setitem(0, p_outfile)
-ier_num = p_args%setitem(1, p_qvalues)
-ier_num = p_args%setitem(2, p_h_indices)
-ier_num = p_args%setitem(3, p_k_indices)
-ier_num = p_args%setitem(4, p_l_indices)
-ier_num = p_args%setitem(5, p_unit_cell)
+ier_num = tuple_create(p_args, 16)
+ier_num = p_args%setitem( 0, p_outfile)
+ier_num = p_args%setitem( 1, p_program)
+ier_num = p_args%setitem( 2, p_author)
+ier_num = p_args%setitem( 3, p_qvalues_dim)
+ier_num = p_args%setitem( 4, p_qvalues)
+ier_num = p_args%setitem( 5, p_radiation)
+ier_num = p_args%setitem( 6, p_space)
+ier_num = p_args%setitem( 7, p_content)
+ier_num = p_args%setitem( 8, p_lower_limits)
+ier_num = p_args%setitem( 9, p_step_vectors)
+ier_num = p_args%setitem(10, p_axes)
+ier_num = p_args%setitem(11, p_h_indices)
+ier_num = p_args%setitem(12, p_k_indices)
+ier_num = p_args%setitem(13, p_l_indices)
+ier_num = p_args%setitem(14, p_unit_cell_length)
+ier_num = p_args%setitem(15, p_unit_cell_angle)
 !ier_num = print_py(p_args)
 !
 ! Append current directory to paths
@@ -122,15 +173,28 @@ ier_num = p_args%setitem(5, p_unit_cell)
 ier_num = get_sys_path(paths_to_module)
 ier_num = paths_to_module%append('.')
 ier_num = import_py(interface_module, 'write_diffuse_scattering')
+write(*,*) ' ier_num C ', ier_num
 ier_num = call_py(return_value, interface_module, 'write_diffuse_scattering', p_args)
+write(*,*) ' ier_num D ', ier_num
 !
 call p_outfile%destroy
+call p_program%destroy
+call p_author%destroy
+call p_qvalues_dim%destroy
 call p_qvalues%destroy
+call p_radiation%destroy
+call p_space%destroy
+call p_content%destroy
+call p_lower_limits%destroy
+call p_step_vectors%destroy
+call p_axes%destroy
 call p_h_indices%destroy
 call p_k_indices%destroy
 call p_l_indices%destroy
-call p_unit_cell%destroy
+call p_unit_cell_length%destroy
+call p_unit_cell_angle%destroy
 call p_args%destroy
+call interface_module%destroy
 !
 end subroutine nx_write_scattering
 !
