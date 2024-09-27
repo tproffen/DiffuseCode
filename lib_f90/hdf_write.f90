@@ -91,9 +91,9 @@ TYPE(C_PTR)                            :: f_ptr           ! C-type pointer to da
 !
 CALL H5open_f(hdferr)                                     ! Open access to HDF5 stream
 IF(hdferr/=0) THEN
-   ier_num = -2
-   ier_typ = ER_IO
-   RETURN
+ier_num = -2
+ier_typ = ER_IO
+RETURN
 ENDIF
 !
 INQUIRE(FILE=outfile, EXIST=isda)                         ! If file exists, remove
@@ -308,6 +308,105 @@ write(output_io, '(a, 6(2x,f8.4))') ' Ordinate   : ', out_vi(:,2)
 write(output_io, '(a, 6(2x,f8.4))') ' Top axis   : ', out_vi(:,3)
 
 end subroutine gen_hdf5_show
+!
+!*****7*****************************************************************
+!
+subroutine gen_hdf5_nexus_scattering(value, laver, outfile, out_inc,       &
+                       out_eck, out_vi, extr_abs, extr_ord, extr_top,      &
+                       cr_a0, cr_win, qvalues, VAL_PDF, VAL_3DPDF, valmax, &
+                       ier_num, ier_typ, ER_IO, ER_APPL)
+!
+! Just in case the python h5py creates further trouble  to be developed 
+! no need at the moment 
+!
+use hdf5
+!
+use precision_mod
+!
+implicit none
+!
+!
+integer, intent(in) :: value
+logical, intent(in) :: laver
+character(LEN=200), intent(in) :: outfile
+integer, dimension(3)  , intent(in) :: out_inc
+real(kind=PREC_DP)   , dimension(3,4), intent(in) :: out_eck ! (3,4)
+real(kind=PREC_DP)   , dimension(3,3), intent(in) :: out_vi 
+integer                              , intent(in) :: extr_abs
+integer                              , intent(in) :: extr_ord
+integer                              , intent(in) :: extr_top
+real(kind=PREC_DP)   , dimension(3)  , intent(in) :: cr_a0
+real(kind=PREC_DP)   , dimension(3)  , intent(in) :: cr_win
+real(kind=PREC_DP)   , dimension(out_inc(1), out_inc(2), out_inc(3)), intent(in) :: qvalues
+integer                , intent(in) :: VAL_PDF
+integer                , intent(in) :: VAL_3DPDF
+real(KinD=PREC_DP)     , intent(IN)  :: valmax
+integer                , intent(out) :: ier_num
+integer                , intent(out) :: ier_typ
+integer                , intent(in) :: ER_IO
+integer                , intent(in) :: ER_APPL
+!
+integer :: hdferr   ! Error flag from HDF5
+character(len=PREC_STRING)             :: message
+character(len=PREC_STRING)             :: line            ! Generic string
+integer                                :: ier_cmd         ! Error at 
+integer                                :: exit_msg
+logical                                :: isda            ! Check if file is present
+!
+! Variable needed for HDF5
+!
+integer(kind=HID_T)                    :: file_id         ! file Indicator to HDF5
+integer(kind=HID_T)                    :: space           ! Communication between calls to HDF5
+integer(kind=HID_T)                    ::  grp_id         ! Group Indicator to HDF5
+integer(kind=HID_T)                    :: attr_id         ! Attribute Indicator to HDF5
+character(len=PREC_STRING)             :: grp_name
+character(len=PREC_STRING)             :: attr_name
+!
+write(*,*) ' in gen_hdf5_nexus_scattering ', outfile(1:LEN_TRIM(outfile))
+!
+call H5open_f(hdferr)                                     ! Open access to HDF5 stream
+if(hdferr/=0) then
+ier_num = -2
+ier_typ = ER_IO
+  return
+endif
+!
+!
+inquire(file=outfile, exist=isda)                         ! If file exists, remove
+if(ISDA) then
+   line = 'rm -f '//outfile(1:len_trim(outfile))
+   call execute_command_line(line, WAIT=.TRUE., &
+   CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
+endif
+!
+call H5Fcreate_f(outfile, H5F_ACC_TRUNC_f, file_id, hdferr)    ! Create output file
+if(hdferr/=0) then
+   ier_num = -2
+   ier_typ = ER_IO
+   return
+endif
+!
+!  Create the global attributes
+!
+!attr_name ='audit_conform_dict_name'
+!space = file_id
+!call H5Acreate_f(file_id, attr_name, H5T_STRING, space, attr_id, hdferr)
+!
+! Create the "scattering" group
+!
+grp_name = 'scattering'
+call H5Gcreate_f(file_id, grp_name, grp_id, hdferr)
+!
+attr_name ='NX_class'
+space =  grp_id
+call H5Acreate_f( grp_id, attr_name, H5T_STRING, space, attr_id, hdferr)
+call H5Gclose_f(grp_id , hdferr)
+!
+CALL H5Fclose_f(file_id , hdferr)
+!
+CALL h5close_f(hdferr)
+!
+end subroutine gen_hdf5_nexus_scattering
 !
 !*****7*****************************************************************
 !
