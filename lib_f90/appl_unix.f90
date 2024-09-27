@@ -431,7 +431,9 @@ ENDIF
             start_dir   = start_dir(1:start_dir_l) // '/'
             start_dir_l = start_dir_l + 1
          ENDIF
-         get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
+
+         WRITE(get_screen_file,'(a,a,i10.10)') tmp_dir(1:tmp_dir_l), '/discus_suite_screen.' , PID
+!        get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
          get_screen_size = 'xdpyinfo | grep dimensions > '//get_screen_file(1:len_trim(get_screen_file))
 !
          if(start_dir(1:4)=='/mnt') then
@@ -455,10 +457,12 @@ ENDIF
             start_dir_l = start_dir_l + 1
          ENDIF
          if(operating==OS_LINUX) then
-           get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
+           WRITE(get_screen_file,'(a,a,i10.10)') tmp_dir(1:tmp_dir_l), '/discus_suite_screen.' , PID
+!          get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
            get_screen_size = 'xdpyinfo | grep dimensions > '//get_screen_file(1:len_trim(get_screen_file))
          elseif(operating==OS_MACOSX) then
-           get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
+           WRITE(get_screen_file,'(a,a,i10.10)') tmp_dir(1:tmp_dir_l), '/discus_suite_screen.' , PID
+!          get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
            get_screen_size = 'xrandr -q | grep "\*" | awk ''{print " dimensions: " $1 " pixels"; }'' >' &
                              //get_screen_file(1:len_trim(get_screen_file))
          endif
@@ -507,6 +511,10 @@ if(ios==0) then
    read(line(i+1:i+j-1), *, iostat=ios) screen_size(1)
    iii=index(line(i+j+1:),' pix')
    read(line(i+j+1:i+j+1+iii-1), *, iostat=ios) screen_size(2)
+!
+   write(line,'(a,a)') 'rm -f ', get_screen_file
+   call execute_command_line(line, WAIT=.true., &
+     cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
 endif
 !                                                                       
 END SUBROUTINE appl_env                       
