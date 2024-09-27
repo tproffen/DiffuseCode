@@ -36,6 +36,26 @@ end subroutine forpy_start
 !
 !*******************************************************************************
 !
+subroutine set_module_path(module_path)!  , python_script)
+!-
+!  Add path to python modules
+!+
+!
+character(len=*), intent(in) :: module_path
+!character(len=*), intent(in) :: module_name
+!type(module_py) , intent(in) :: python_script
+!
+type(list)      :: paths_to_module    ! python script path
+type(object)    :: return_value       ! forpy return value
+!
+ier_num = get_sys_path(paths_to_module)
+ier_num = paths_to_module%append(module_path)
+!ier_num = import_py(python_script, module_name)
+!
+end subroutine set_module_path
+!
+!*******************************************************************************
+!
 subroutine forpy_finish()
 !-
 ! Deactivate forpy_mod
