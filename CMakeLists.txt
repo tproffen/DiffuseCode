@@ -29,7 +29,8 @@ endif (${CMAKE_Fortran_COMPILER} MATCHES "ifort")
 
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   # gfortran 2008 doesn't exist until gcc 4.6
-  exec_program(${CMAKE_Fortran_COMPILER} ARGS "-dumpversion" OUTPUT_VARIABLE _gf90_version_info)
+#  exec_program(${CMAKE_Fortran_COMPILER} ARGS "-dumpversion" OUTPUT_VARIABLE _gf90_version_info)
+  execute_process(COMMAND ${CMAKE_Fortran_COMPILER} ARGS "-dumpversion" OUTPUT_VARIABLE _gf90_version_info)
   if ( _gf90_version_info VERSION_LESS 4.6)
     message (SEND_ERROR "Too old of a version GNU  ${_gf90_version_info} (Need >=4.6).")
   endif( _gf90_version_info VERSION_LESS 4.6)
@@ -48,7 +49,7 @@ find_package(X11 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(FFTW REQUIRED)
-find_package(Python COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 find_package(PythonExtensions REQUIRED)
 
 option(DIFFUSE_SHARED_LIB "If on build shared libraries" OFF)
