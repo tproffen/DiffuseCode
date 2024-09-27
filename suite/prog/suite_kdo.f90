@@ -319,15 +319,15 @@ ELSE
          CALL suite_do_parallel (zeile, lcomm)
 !!!      CALL do_deallocate_appl (zeile, lcomm)
 !
-!     -- Test a simple jmol plot
+!     -- Test a simple forpy application
 !
    ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'testforpy', 9, lbef, 9) ) then
       call suite_test_forpy! (zeile, lcomm, lend)
 !
-!     -- Test a simple plot
+!     -- Test a simple jmol plot
 !
-   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'testplot', 8, lbef, 8) ) then
-      call suite_test_plot(zeile, lcomm, lend)
+   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'testjmol', 8, lbef, 8) ) then
+      call suite_test_jmol(zeile, lcomm, lend)
 !
 !     -- Test a simple plot
 !
@@ -574,6 +574,7 @@ call plot_test_jmol(pl_prog, pl_jmol)
 !
 line = 'plot:inter, kill:yes'
 lp = 20
+write(*,*) ' RUN JMOL '
 call plot_run(line, lp)
 !
 call plot_reset
