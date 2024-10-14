@@ -6,6 +6,7 @@ SUBROUTINE do_export(line, lp)
 !
 ! Exports a structure in different formats
 !
+use crystal_mod
 use update_cr_dim_mod
 !
 use errlist_mod
@@ -52,6 +53,12 @@ CALL get_params (line, ianz, cpara, lpara, MAXW, lp)
 IF (ier_num.ne.0) THEN
    RETURN
 ENDIF
+if(cr_natoms<1) then
+   ier_num = -198     ! Empty structure
+   ier_typ = ER_APPL
+   ier_msg(1) = 'No export performed as structure is emty'
+   return
+endif
 !
 CALL update_cr_dim
 !                                                                       
@@ -248,6 +255,8 @@ USE wyckoff_mod
 USE build_name_mod
 use charact_mod
 USE errlist_mod
+use lib_errlist_func
+use element_data_mod
 USE param_mod
 USE precision_mod
 USE support_mod
@@ -262,6 +271,7 @@ integer            ,                  intent(in)    :: ncycle
 !
 INTEGER, PARAMETER :: IWR = 35
 integer, parameter :: MAXMASK = 4
+real(kind=PREC_DP), parameter :: TOL = 0.001
 !
 CHARACTER(LEN=    PREC_STRING            )      :: ofile = ' '
 CHARACTER(LEN=    PREC_STRING            )      :: line = ' '
@@ -269,6 +279,7 @@ CHARACTER(LEN=    PREC_STRING            )      :: names = ' '
 CHARACTER(LEN=    PREC_STRING            )      :: units = ' '
 CHARACTER(LEN=19)        :: origfile = ' '
 CHARACTER(LEN= 5)        :: befehl   = 'lcell'
+integer :: is_cond   ! return condition from element guess work
 INTEGER                  :: i, j, k, l,i1, i2
 INTEGER                  :: length
 INTEGER                  :: lbef
@@ -338,7 +349,14 @@ ELSE
 ENDIF
 IF(cr_spcgr_set(1:1)=='P') lattice = 1    ! Requires the alternative setting 
 IF(cr_spcgr_set(1:1)=='I') lattice = 2    ! to get the correct centering in the
-IF(cr_spcgr_set(1:1)=='R') lattice = 3    ! orthorhombic space groups
+                                          ! orthorhombic space groups
+IF(cr_spcgr_set(1:1)=='R') then
+   if(abs(cr_win(3)-120.0_PREC_DP)<TOL) then
+      lattice = 3    ! rhombohedral space group, hexagonal setting
+   else
+      lattice = 1    ! rhombohedral space group, rhombohedral setting
+   endif
+endif
 IF(cr_spcgr_set(1:1)=='F') lattice = 4
 IF(cr_spcgr_set(1:1)=='A') lattice = 5
 IF(cr_spcgr_set(1:1)=='B') lattice = 6
@@ -412,30 +430,35 @@ IF(ier_num/=0) THEN
    RETURN
 ENDIF
 !
-! Reduce names to unique atom names
+! Reduce names to unique chemical element names
 !
 ALLOCATE(unique_n_atoms(1:cr_nscat))
 ALLOCATE(unique_names(1:cr_nscat))
 unique_n = 1
-atom_name= cr_at_lis(1)(1:2)
-i1 = iachar(  atom_name(2:2))
-if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
-unique_names(1)   = atom_name(1:2)
-!unique_names(1)   = cr_at_lis(1)(1:2)
+!atom_name= cr_at_lis(1)(1:2)
+!i1 = iachar(  atom_name(2:2))
+!if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
+call guess_element(atom_name, is_cond, cr_at_lis(1), scat_equ=cr_scat_equ(1),   &
+                                                     scat_equ_name=cr_at_equ(1))
+unique_names(1)   = atom_name(1:2)       ! Chemical element name only
 unique_n_atoms(1) = n_atoms(2,1)
 loop_types: DO i=2, cr_nscat
    DO j=1,unique_n
-      atom_name= cr_at_lis(i)(1:2)
-      i1 = iachar(  atom_name(2:2))
-      if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
-      IF(unique_names(j) == atom_name(1:2)) THEN  ! Previous name
+!     atom_name= cr_at_lis(i)(1:2)
+!     i1 = iachar(  atom_name(2:2))
+!     if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
+      call guess_element(atom_name, is_cond, cr_at_lis(i), scat_equ=cr_scat_equ(i),   &
+                                                           scat_equ_name=cr_at_equ(i))
+      if(unique_names(j) == atom_name(1:2)) then  ! Previous name
          unique_n_atoms(j) = unique_n_atoms(j) + n_atoms(2,i)
          CYCLE loop_types
       ENDIF
    ENDDO
-   atom_name= cr_at_lis(i)(1:2)
-   i1 = iachar(  atom_name(2:2))
-   if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
+!  atom_name= cr_at_lis(i)(1:2)
+!  i1 = iachar(  atom_name(2:2))
+!  if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
+   call guess_element(atom_name, is_cond, cr_at_lis(i), scat_equ=cr_scat_equ(i),   &
+                                                        scat_equ_name=cr_at_equ(i))
    unique_n = unique_n + 1
    unique_names(unique_n) = atom_name(1:2)
    unique_n_atoms(unique_n) = n_atoms(2,i)
@@ -459,37 +482,65 @@ allocate(shelx_types(1:cr_natoms))
 shelx_names(:) = ' '
 shelx_types(:) = 0
 shelx_n = 0
-loop_shelx: DO i=1,cr_natoms
+!!loop_shelx_o: DO i=1,cr_natoms
+!!   l = shelx_n
+!!   DO j=l,1,-1
+!!      atom_name= cr_at_lis(cr_iscat(1,i))(1:2)
+!!      i1 = iachar(  atom_name(2:2))
+!!      if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
+!!!     IF(cr_at_lis(cr_iscat(1,i))(1:2) == shelx_names(j)(1:2)) THEN
+!!      IF(atom_name               (1:2) == shelx_names(j)(1:2)) THEN
+!!         shelx_n = shelx_n + 1
+!!!        shelx_names(i)(1:2) = cr_at_lis(cr_iscat(1,i))(1:2)
+!!         shelx_names(i)(1:2) = atom_name(1:2)
+!!         shelx_names(i)(3:3) = shelx_names(j)(3:3)
+ !!        i1 = iachar(shelx_names(i)(2:2))
+!!         if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))  shelx_names(i)(2:2) = '0'
+!!         shelx_types(shelx_n)      = cr_iscat(1,i)
+!!         read(shelx_names(j)(3:4),'(i2)') k
+!!         write(shelx_names(i)(3:4),'(i2.2)') k + 1
+!!         CYCLE loop_shelx_o
+!!      ENDIF
+!!   ENDDO
+!!   shelx_n = shelx_n + 1
+!!   shelx_names(shelx_n)(1:2) = cr_at_lis(cr_iscat(1,i))(1:2)
+!!   shelx_names(shelx_n)(3:4) = '01'
+!!   i1 = iachar(shelx_names(shelx_n)(2:2))
+!!   if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))  shelx_names(shelx_n)(2:2) = '0'
+!!   shelx_types(shelx_n)      = cr_iscat(1,i)
+!!ENDDO loop_shelx_o
+shelx_names(:) = ' '
+shelx_types(:) = 0
+shelx_n = 0
+loop_shelx: do i=1,cr_natoms
    l = shelx_n
-   DO j=l,1,-1
-      atom_name= cr_at_lis(cr_iscat(1,i))(1:2)
-      i1 = iachar(  atom_name(2:2))
-      if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
-!     IF(cr_at_lis(cr_iscat(1,i))(1:2) == shelx_names(j)(1:2)) THEN
-      IF(atom_name               (1:2) == shelx_names(j)(1:2)) THEN
-         shelx_n = shelx_n + 1
-!        shelx_names(i)(1:2) = cr_at_lis(cr_iscat(1,i))(1:2)
-         shelx_names(i)(1:2) = atom_name(1:2)
-         shelx_names(i)(3:3) = shelx_names(j)(3:3)
-         i1 = iachar(shelx_names(i)(2:2))
-         if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))  shelx_names(i)(2:2) = '0'
-         shelx_types(shelx_n)      = cr_iscat(1,i)
-         read(shelx_names(j)(3:4),'(i2)') k
-         write(shelx_names(i)(3:4),'(i2.2)') k + 1
-         CYCLE loop_shelx
-      ENDIF
-   ENDDO
+   do j=l,1,-1                              ! Count previous names backwards
+      atom_name = cr_at_lis(cr_iscat(1,i))
+      if(atom_name == shelx_names(j)) then  ! Found previous name, augment a new name
+         if(len_trim(atom_name)< 4) then    ! Previous atom name is short enough
+            shelx_n = shelx_n + 1
+            shelx_names(shelx_n) = atom_name   ! New atom name is identical but:
+            shelx_types(shelx_n) = cr_iscat(1,i)
+            read(shelx_names(j)(4:4),'(i1)') k
+            write(shelx_names(shelx_n)(4:4),'(i1)') k+1 ! We increment a number at digit 4
+            cycle loop_shelx
+         else                               ! Error previous atom name is 4 characters as well!
+            ier_num = 10
+            ier_typ = ER_APPL
+            ier_msg(1) = 'Atom ' //atom_name//' occurs multiple times in unit cell'
+            ier_msg(2) = 'Edit SHELXL instruction file to avoid error'
+            call errlist
+         endif
+      endif
+   enddo
    shelx_n = shelx_n + 1
-   shelx_names(shelx_n)(1:2) = cr_at_lis(cr_iscat(1,i))(1:2)
-   shelx_names(shelx_n)(3:4) = '01'
-   i1 = iachar(shelx_names(shelx_n)(2:2))
-   if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))  shelx_names(shelx_n)(2:2) = '0'
+   shelx_names(shelx_n) = cr_at_lis(cr_iscat(1,i))
    shelx_types(shelx_n)      = cr_iscat(1,i)
-ENDDO loop_shelx
+enddo loop_shelx
 !
 DO i=1,shelx_n
    DO j=1,4
-      IF(shelx_names(i)(j:j) == ' ') shelx_names(i)(j:j) = '0'
+      IF(shelx_names(i)(j:j) == ' ' .and. len_trim(shelx_names(i))>j) shelx_names(i)(j:j) = '0'
    ENDDO
 ENDDO
 !
@@ -519,7 +570,11 @@ ELSEIF(cr_spcgr(1:1)=='A' .OR. cr_spcgr(1:1)=='B' .OR.         &
 ELSEIF(cr_spcgr(1:1)=='F' ) THEN
    j =spc_n / 4                           ! Only need the first quarter symmetry operations
 ELSEIF(cr_spcgr(1:1)=='R' ) THEN
+   if(abs(cr_win(3)-120.0_PREC_DP)<TOL) then
    j =spc_n / 3                           ! Only need the first third symmetry operations
+   else
+      j = spc_n
+   endif
 ENDIF
 IF(.NOT.cr_acentric) j = j / 2            ! Centrosymmetric need the first half only
 DO i=2, j                                 ! Omit identity x,y,z
@@ -638,7 +693,7 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: vec
    biso = cr_dw(cr_iscat(1,i))/8./REAL(pi**2)
 if(abs(cr_prin(4,1,cr_iscat(3,i))-cr_prin(4,2,cr_iscat(3,i)))>TOL  .or.  &
    abs(cr_prin(4,1,cr_iscat(3,i))-cr_prin(4,3,cr_iscat(3,i)))>TOL      ) then
-   write(IWR, 2510) shelx_names(i), stype, cr_pos(:,i), occup, cr_anis_full(1:2,cr_iscat(3,i))
+   write(IWR, 2510) shelx_names(i)(1:4), stype, cr_pos(:,i), occup, cr_anis_full(1:2,cr_iscat(3,i))
    write(IWR, 2511) cr_anis_full(3:6,cr_iscat(3,i))
 else
    WRITE(IWR,2500) shelx_names(i), stype, cr_pos(:,i), occup,biso
