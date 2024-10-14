@@ -69,7 +69,7 @@ type(ndarray)   :: p_unit_cell_angle   ! Unit cell angles in python interface
 type(module_py) :: interface_module   ! python script name
 type(list)      :: paths_to_module    ! python script path
 type(object)    :: return_value       ! forpy return value
-character(len=:), allocatable :: return_string         ! Result from forpy
+!character(len=:), allocatable :: return_string         ! Result from forpy
 !
 character(len=PREC_STRING) :: radiation
 character(len=PREC_STRING) :: space
