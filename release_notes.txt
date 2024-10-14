@@ -1,4 +1,22 @@
 6.17.03  DRAFT
+
+DISCUS
+  GENERAL     Added guess work to interpret atom names like "O22", "H1N" etc to
+              extract pure chemicl element. If successful this can replace the
+              'scat H1N, H' instruction.
+  import      SHELX: The "LATT" and "SYMM" instructions are interpreted to yield
+                     the corresponding space group symbol
+  export      SHELX: Improved Atom names, Fixed export of rhombohedral systems 
+                     with non-heagonal axes
+  read        'free' and 'spcgr' within unit cell file can now use the 
+                     optional "origin:2" parameter
+  spacegroup  can now use the optional "origin:2" parameter
+KUPLOT
+  load        Added option to "csv":  "separator:[4,4,4,8,8]" will read files with
+              fixed column widths.
+REFINE
+  run         Improved internal R-value calculation for HKL lists. 
+              Missing Bragg reflections are now properly omitted
 6.17.02  RELEASE 2024_08_29
 
 DISCUS
