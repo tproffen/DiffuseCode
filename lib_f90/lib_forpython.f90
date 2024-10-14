@@ -12,6 +12,7 @@ logical :: forpy_isactive = .false.
 private
 public  forpy_active  !  logical function; TRUE if forpy_initialize was done
 public  forpy_start   !  Subroutine      ; Initialize forpy_mod
+public  forpy_finish  !  Subroutine      ; Finalize  forpy_mod
 !
 contains
 !
