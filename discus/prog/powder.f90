@@ -20,6 +20,7 @@ USE diffuse_mod
 USE crystal_mod 
 USE diffuse_mod 
 USE fourier_sup
+use guess_atoms_mod
 USE phases_mod
 USE phases_set_mod
 USE powder_mod 
@@ -63,9 +64,10 @@ INTEGER :: lp, length, lbef
 INTEGER :: indxg
 LOGICAL :: lend
 !
-integer, parameter :: NOPTIONAL = 1
+integer, parameter :: NOPTIONAL = 2
 integer, parameter :: O_TABLE   = 1
-character(LEN=   9), dimension(NOPTIONAL) :: oname   !Optional parameter names
+integer, parameter :: O_FILE    = 2
+character(LEN=  10), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -73,11 +75,11 @@ logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
 integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
 !
-data oname  / 'table'  /
-data loname /  2       /
-opara  =  (/ 'waas  ' /)   ! Always provide fresh default values
-lopara =  (/  4       /)
-owerte =  (/  0.0     /)
+data oname  / 'table', 'file'  /
+data loname /  5     ,  4      /
+opara  =  (/ 'waas      ', 'discus.tsc' /)   ! Always provide fresh default values
+lopara =  (/  4          ,  10 /)
+owerte =  (/  0.0        ,  0.0 /)
 !
 MAXW = MAX(MIN_PARA,MAXSCAT+1)
 !                                                                       
@@ -183,11 +185,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
 !     ----run transformation 'run'                                      
 !                                                                       
                ELSEIF(str_comp(befehl, 'run', 2, lbef, 3)) THEN 
+                  call guess_atom_all
                   call powder_run(zeile, lp)
 !                                                                       
 !     ----show current parameters 'show'                                
 !                                                                       
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
+                  call guess_atom_all
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_table, diff_power) 
                   IF(str_comp(cpara(1), 'scat', 4, lpara(1), 4)) THEN
@@ -235,7 +239,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                        oname, loname, opara, lopara, lpresent, owerte)
                   endif
-                  if(opara(O_TABLE)=='waas') diff_table= RAD_WAAS
+                  if(opara(O_TABLE)=='waas') then
+                     diff_table= RAD_WAAS
+                  elseif(opara(O_TABLE)=='discamb') then
+                     diff_table= RAD_DISC
+                     diff_file = opara(O_FILE)
+                  endif
 !                                                                       
 !     ------unknown command                                             
 !                                                                       
@@ -356,11 +365,13 @@ pow_deltaq_c = pow_deltaq
 IF(ier_num==0) THEN
    IF(.NOT.pha_multi) pha_frac(1) = 1.0E0
 !
-      IF(pow_four_type.eq.POW_DEBYE) THEN 
+      if(pow_four_type.eq.POW_DEBYE) then 
          CALL pow_pdf_hist
-      ELSE
+      elseif(pow_four_type==POW_COMPL) then
          CALL powder_complete 
-      ENDIF
+      elseif(pow_four_type==POW_NUFFT) then
+         CALL powder_nufft 
+      endif
    call powder_run_post
 ENDIF 
 pow_qmin = pow_qmin_u ! Restore user settings
@@ -1114,18 +1125,19 @@ ELSEIF (str_comp (cpara (1) , 'sl', 2, lpara (1) , 2) ) THEN
 !                                                                       
 !     Switch Fourier type between normal Fourier and DEBYE calculation  
 !                                                                       
-ELSEIF (str_comp (cpara (1) , 'calc', 1, lpara (1) , 4) ) THEN 
-            IF (ianz.ge.2) THEN 
-               IF (str_comp (cpara (2) , 'complete', 1, lpara (2) , 8) )    &
-               THEN                                                     
-                  pow_four_type = POW_COMPL 
-               ELSEIF (str_comp (cpara (2) , 'debye', 1, lpara (2) , 5) ) THEN                                                   
-                     pow_four_type = POW_DEBYE 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
+elseif(str_comp(cpara(1), 'calc', 1, lpara(1), 4) ) then 
+    if(ianz.ge.2) then 
+       if(str_comp(cpara(2), 'complete', 1, lpara(2), 8)) then
+          pow_four_type = POW_COMPL 
+       elseif(str_comp(cpara(2), 'debye', 1, lpara(2), 5)) then                                                   
+          pow_four_type = POW_DEBYE 
+       elseif(str_comp(cpara(2), 'nufft', 1, lpara(2), 5)) then                                                   
+          pow_four_type = POW_NUFFT 
+       endif 
+    else 
+       ier_num = - 6 
+       ier_typ = ER_COMM 
+    endif 
 !                                                                       
 !------ Switch Fourier mode between normal Fourier and Stacking         
 !       Fault 'four'                                                    
@@ -2394,6 +2406,158 @@ WRITE (output_io, 4000) ss
  8888 FORMAT    ('Current number = ',i10) 
  8889 FORMAT    ('Maximum number = ',i10) 
       END SUBROUTINE powder_complete                
+!
+!*****7*****************************************************************
+!
+subroutine powder_nufft
+!-
+! Calculates a powder pattern via NUFFT on a 3D grid
+!+
+!
+use crystal_mod
+use diffuse_mod
+use discus_allocate_appl_mod
+use fourier_sup
+use fourier_menu
+use phases_mod
+use phases_set_mod
+use powder_mod
+use powder_tables_mod
+!
+use lib_metric_mod
+use precision_mod
+use wink_mod
+!
+implicit none
+!
+integer :: n_pkt
+integer :: n_nscat
+integer :: n_pha
+integer :: ih,ik,il
+integer                     :: itth    ! Index in powder pattern on Q-scale
+integer     , dimension(3)  :: n_qxy   ! required size in reciprocal space this run
+real(PREC_DP), dimension(3) :: hkl
+real(PREC_DP)               :: dstar   ! 2.*sin(theta)/lambda
+real(PREC_DP)               :: q       ! 2PI*2.*sin(theta)/lambda
+real(PREC_DP)               :: inten   ! Calculated intensity
+real(PREC_DP)               :: xstart  ! q-scale start 
+real(PREC_DP)               :: xdelta  ! q-scale steps
+!
+!  Set maximum HKL
+!
+pow_hkl_max(1) = real((int(cr_a0(1) * pow_ds_max/pow_hkl_del(1))+1)*pow_hkl_del(1), PREC_DP)
+pow_hkl_max(2) = real((int(cr_a0(2) * pow_ds_max/pow_hkl_del(1))+1)*pow_hkl_del(2), PREC_DP)
+pow_hkl_max(3) = real((int(cr_a0(3) * pow_ds_max/pow_hkl_del(1))+1)*pow_hkl_del(3), PREC_DP)
+!
+!  Set all single crystal Fourier settings  at +-H; +-K; +-L
+!
+eck(1,1) = -pow_hkl_max(1)    ! Corner left lower bottom
+eck(2,1) = -pow_hkl_max(2)    ! -H -K -L
+eck(3,1) = -pow_hkl_max(3)
+!
+eck(1,2) =  pow_hkl_max(1)    ! Corner right lower bottom
+eck(2,2) = -pow_hkl_max(2)    ! +H -K -L
+eck(3,2) = -pow_hkl_max(3)
+!
+eck(1,3) = -pow_hkl_max(1)    ! Corner left upper bottom
+eck(2,3) =  pow_hkl_max(2)    ! -H +K -L
+eck(3,3) = -pow_hkl_max(3)
+!
+eck(1,4) = -pow_hkl_max(1)    ! Corner left lower top
+eck(2,4) = -pow_hkl_max(2)    ! -H -K +L
+eck(3,4) =  pow_hkl_max(3)
+!
+vi = 0.0_PREC_DP
+vi(1,1) = pow_hkl_del(1)      ! Increment vectors parallel a*, b*, c*
+vi(2,2) = pow_hkl_del(2)
+vi(3,3) = pow_hkl_del(3)
+!
+inc(1) = nint(2.0_PREC_DP*pow_hkl_max(1)/pow_hkl_del(1)) + 1
+inc(2) = nint(2.0_PREC_DP*pow_hkl_max(2)/pow_hkl_del(2)) + 1
+inc(3) = nint(2.0_PREC_DP*pow_hkl_max(3)/pow_hkl_del(3)) + 1
+!
+four_tech = FOUR_NUFFT
+!diff_table= RAD_WAAS
+!
+!  Set details of scattering 
+call dlink(ano, lambda, rlambda, renergy, l_energy,                             &
+           diff_radiation, diff_table, diff_power)
+!
+call four_show(.true.)
+!
+! If needed allocate arrays Fourier and Powder and Phases
+!
+if(any(inc/=ubound(csf))) then
+   n_qxy = inc
+   CALL alloc_diffuse_four (n_qxy )
+   if(ier_num/=0) return
+endif
+if(cr_nscat/=ubound(cfact,2)) then
+   call alloc_diffuse_scat(cr_nscat)
+   if(ier_num/=0) return
+endif
+if(cr_natoms/=ubound(xat,1)) then
+   call alloc_diffuse_atom(cr_natoms)
+   if(ier_num/=0) return
+endif
+!
+n_pkt = NINT((pow_qmax+pow_deltaq  -pow_qmin  )/pow_deltaq  ) + 2
+n_nscat = MAX(UBOUND(pow_f2,2), MAXSCAT, DIF_MAXSCAT)
+IF(n_pkt /= ubound(pow_qsp,1) .or.cr_nscat/=ubound(pow_f2,2)) then
+   CALL alloc_powder ( n_pkt, cr_nscat )
+ENDIF
+!
+IF(n_pkt > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN
+   n_pha   = PHA_MAXPHA
+   n_qxy   = MAX(PHA_MAXPTS,  n_qxy)
+   n_nscat = MAX(PHA_MAXSCAT, cr_nscat)
+   CALL alloc_phases(n_pha ,(/n_pkt,1,1/), n_nscat)
+ENDIF
+!
+call powder_getatoms    ! Needed for weights etc   ! Needed for weights etc
+!
+!     reset powder diagramm                                             
+!                                                                       
+pow_npkt = n_pkt            ! set actual number of powder data points
+pow_qsp(:)    = 0.0D0   ! 0:POW_MAXPKT
+pow_f2aver(:) = 0.0D0   ! 0:POW_MAXPKT
+pow_faver2(:) = 0.0D0   ! 0:POW_MAXPKT
+pow_nreal     = 0
+pow_u2aver    = 0.0
+!
+call four_run_nufft     ! Do single crystal Fourier via NUFFT
+!
+do il=1, inc(3)
+   do ik=1, inc(2)
+      do ih=1, inc(1)
+         hkl(1) = eck(1,1) + vi(1,1)*(ih-1) + vi(1,2)*(ik-1) + vi(1,3)*(il-1)
+         hkl(2) = eck(2,1) + vi(2,1)*(ih-1) + vi(2,2)*(ik-1) + vi(2,3)*(il-1)
+         hkl(3) = eck(3,1) + vi(3,1)*(ih-1) + vi(3,2)*(ik-1) + vi(3,3)*(il-1)
+         dstar = lib_blen(cr_rten, hkl) 
+         q = zpi * dstar
+         if( pow_qmin <= q .and. q <= (pow_qmax+pow_deltaq) ) then
+            itth = nint( (q - pow_qmin) / pow_deltaq )
+            inten = dsi(ih,ik,il)
+            if(pow_pref) then
+               inten = inten * DBLE(calc_preferred (hkl,         &
+               pow_pref_type, pow_pref_hkl, pow_pref_g1,         &
+               pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))
+            endif
+            pow_qsp(itth) = pow_qsp(itth) + inten
+         endif
+      enddo
+   enddo
+enddo
+write(*,*) ' POWDER ', maxval(pow_qsp)
+read(*,*) ih
+!
+xstart = pow_qmin  /zpi
+xdelta = pow_deltaq/zpi
+! messes up cfact
+CALL powder_stltab(n_pkt, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+!
+!
+end subroutine powder_nufft
 !
 !*****7*****************************************************************
 !
