@@ -9330,6 +9330,8 @@
    This produces a list that consists of the (3x4) symmetry matrices.
 2  spacegroup
 !p spacegroup {<spacegroup_name>|<spacegroup_nummer>} [, <origin_choice>}
+!p origin:<origin_choice>
+!p setting:<setting>
 
    Sets the space group for the current structure.
    Be careful with this command, as DISCUS will blindly set the space group!
