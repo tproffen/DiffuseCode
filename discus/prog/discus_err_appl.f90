@@ -13,11 +13,14 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-196,IO=8)
+      PARAMETER    (IU=-199,IO=10)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -181) /                          &
+     &  'Several space groups match symmetry          ', & !-199 ! discus
+     &  'Structure contains no atoms                  ', & !-198 ! discus
+     &  'DISCAMB file is missing                      ', & !-197 ! discus
      &  'More than 192 symmetry elements              ', & !-196 ! discus
      &  'Invalid anisotropic ADPs                     ', & !-195 ! discus
      &  'Resolution vector has a sigma of zero        ', & !-194 ! discus
@@ -243,7 +246,9 @@ USE lib_errlist_func
      &  'Element charge was dropped',                    & ! ! +5  ! discus
      &  'Element name is unknown',                       & ! ! +6  ! discus
      &  'Last cent and keep will be used',               & ! ! +7  ! discus
-     &  'Occupancies in input file are ignored!'         & ! ! +8  ! discus
+     &  'Occupancies in input file are ignored!',        & ! ! +8  ! discus
+     &  'No chemical element name detected       ',      & ! ! +9
+     &  'Previous atom has identical name        '       & ! ! +10
      &           /
 !
       if (ier_typ.eq.ER_RMC) then
@@ -453,7 +458,7 @@ USE lib_errlist_func
       /                                 
       DATA ERROR (  0: io) /                             &
       ' ',                                               & ! !  0
-      'CHEM quick and turned off!               '        & ! !  1
+      'CHEM quick and turned off!              '         & ! !  1
       /                                 
 !                                                                       
       CALL disp_error ('CHEM', error, iu, io) 
