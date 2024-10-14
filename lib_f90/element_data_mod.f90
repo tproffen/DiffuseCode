@@ -9,6 +9,8 @@ IMPLICIT NONE
    PUBLIC PER_MAX_WAVE   ! Number of wave length symbols
    PUBLIC symbf          ! Translate Atom name into index in per_name etc
    PUBLIC get_ordi       ! Get Element Ordinal number
+   PUBLIC get_element    ! Get Element name as in Periodic table, no charge
+   PUBLIC guess_element    ! Guess Element name as in Periodic table, no charge
    PUBLIC get_mass       ! Get Element mass
    PUBLIC get_wave       ! Get wavelength in Angstroem
    PUBLIC get_sym_length ! Get Wave length symbols and wavelength table
@@ -64,6 +66,26 @@ IMPLICIT NONE
         'AC3+','TH  ','TH4+','PA  ','U   ','U3+ ','U4+ ','U6+ ','NP  ','NP3+','NP4+','NP6+','PU  ','PU3+',&
         'PU4+','PU6+','AM  ','CM  ','BK  ','CF  ','E1- ','POSI','XAXI','YAXI','ZAXI','CENT','XDIM','YDIM',&
         'ZDIM' &
+        /)
+!
+   CHARACTER  (LEN=4), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_element = (/ &
+        'VOID','H   ','H   ','H   ','D   ','D   ','HE  ','LI  ','LI  ','BE  ','BE  ','B   ','C   ','C   ',&
+        'N   ','O   ','O   ','O   ','F   ','F   ','NE  ','NA  ','NA  ','MG  ','MG  ','AL  ','AL  ','SI  ',&
+        'SI  ','SI  ','P   ','S   ','CL  ','CL  ','AR  ','K   ','K   ','CA  ','CA  ','SC  ','SC  ','TI  ',&
+        'TI  ','TI  ','TI  ','V   ','V   ','V   ','V   ','CR  ','CR  ','CR  ','MN  ','MN  ','MN  ','MN  ',&
+        'FE  ','FE  ','FE  ','CO  ','CO  ','CO  ','NI  ','NI  ','NI  ','CU  ','CU  ','CU  ','ZN  ','ZN  ',&
+        'GA  ','GA  ','GE  ','GE  ','AS  ','SE  ','BR  ','BR  ','KR  ','RB  ','RB  ','SR  ','SR  ','Y   ',&
+        'Y   ','ZR  ','ZR  ','NB  ','NB  ','NB  ','MO  ','MO  ','MO  ','MO  ','TC  ','RU  ','RU  ','RU  ',&
+        'RH  ','RH  ','RH  ','PD  ','PD  ','PD  ','AG  ','AG  ','AG  ','CD  ','CD  ','IN  ','IN  ','SN  ',&
+        'SN  ','SN  ','SB  ','SB  ','SB  ','TE  ','I   ','I   ','XE  ','CS  ','CS  ','BA  ','BA  ','LA  ',&
+        'LA  ','CE  ','CE  ','CE  ','PR  ','PR  ','PR  ','ND  ','ND  ','PM  ','PM  ','SM  ','SM  ','EU  ',&
+        'EU  ','EU  ','GD  ','GD  ','TB  ','TB  ','DY  ','DY  ','HO  ','HO  ','ER  ','ER  ','TM  ','TM  ',&
+        'YB  ','YB  ','YB  ','LU  ','LU  ','HF  ','HF  ','TA  ','TA  ','W   ','W   ','RE  ','OS  ','OS  ',&
+        'IR  ','IR  ','IR  ','PT  ','PT  ','PT  ','AU  ','AU  ','AU  ','HG  ','HG  ','HG  ','TL  ','TL  ',&
+        'TL  ','PB  ','PB  ','PB  ','BI  ','BI  ','BI  ','PO  ','AT  ','RN  ','FR  ','RA  ','RA  ','AC  ',&
+        'AC  ','TH  ','TH  ','PA  ','U   ','U   ','U   ','U   ','NP  ','NP  ','NP  ','NP  ','PU  ','PU  ',&
+        'PU  ','PU  ','AM  ','CM  ','BK  ','CF  ','VOID','VOID','VOID','VOID','VOID','VOID','VOID','VOID',&
+        'VOID' &
         /)
    REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fa1 = (/ &
           0.000000,  0.493002,  0.489918,  0.897661,  0.493002,  0.897661,  0.873400,  1.128200,  0.696800,  1.591900,&
@@ -1754,6 +1776,121 @@ endif
 get_ordi = per_ordi(j)
 !
 end function 
+!
+!*******************************************************************************
+!
+character(len=4) function get_element(el_name, el_number) result(at_name)
+!
+implicit none
+!
+character (len=*),           intent(in)   :: el_name
+integer          , optional, intent(in)   :: el_number
+!
+integer :: j
+!
+j = 0
+!
+if(present(el_number)) then
+   j = el_number
+else
+   call symbf(el_name, j)
+endif
+!
+if(j>0) then
+   at_name = per_element(j)
+else
+   at_name = 'NONE'
+endif
+!
+end function  get_element
+!
+!*******************************************************************************
+!
+subroutine guess_element(at_name, is_cond, el_name, el_number, scat_equ, scat_equ_name)
+!-
+!  Guess element name for atom types like H1N1, H22 etc.
+!+
+!
+use charact_mod
+use lib_element_status_mod
+use string_convert_mod
+!
+implicit none
+!
+character(len=4)           , intent(out)  :: at_name       ! Chemical element name
+integer                    , intent(out)  :: is_cond       ! Return condition
+character (len=*),           intent(in)   :: el_name
+integer          , optional, intent(in)   :: el_number
+logical          , optional, intent(in)   :: scat_equ      ! Atom is assigned to equivalent element
+character(len=*) , optional, intent(in)   :: scat_equ_name ! Atom is assigned to this element
+!
+!integer, parameter :: IS_FAIL       = -1
+!integer, parameter :: IS_NEUTRAL    =  1
+!integer, parameter :: IS_ION        =  2
+!integer, parameter :: IS_EQUIVALENT =  3
+!integer, parameter :: IS_GUESS      =  4
+character(len=4) :: trial   ! attempt at atom name
+integer :: i, j, k
+!
+j = 0
+!
+cond_number: if(present(el_number)) then
+   j = el_number
+else cond_number
+   if(present(scat_equ)) then               ! Optional scat_equ  is present
+      if(scat_equ) then                     ! Atom is assigned to equivalent name
+         if(present(scat_equ_name)) then    ! Equivalent atom name
+            call symbf(scat_equ_name, j)    ! Equivalent name should work
+            if(j>0) then
+               at_name = per_element(j)
+               is_cond = IS_EQUIVALENT
+               return                       ! Success
+            endif
+         else
+            at_name = 'NONE'                ! Failure, equivalent name is missing!
+         endif
+      endif
+   endif
+   call symbf(el_name, j)                   ! Try use provided name, might just work
+endif cond_number
+!
+cond_guess: if(j>0) then                    ! el_number was present or equivalent successful
+   at_name = per_element(j)
+   is_cond = IS_NEUTRAL
+else cond_guess                             ! Need for guesswork ... ...
+   k = len_trim(el_name)
+   cond_ion: if(el_name(k:k)=='+' .or. el_name(k:k)=='-') then  ! Try ion
+      if(k>2) then             ! Sufficient digits for N3-, Ba2+ etc
+         trial = el_name(1:k-2)
+      elseif(k==2) then
+         exit cond_ion         ! Too short, try guess work
+      endif
+      call symbf(trial, j)
+      if(j>0) then
+         at_name = per_element(j)
+         is_cond = IS_ION
+         return
+      endif
+   endif cond_ion
+   trial = el_name
+   call do_cap(trial)   ! Make sure its upper case
+   loop_abc: do i=1,k             ! Find first non-ABC 
+      if(.not. (iachar(trial(i:i))>=aa .and. iachar(trial(i:i))<=zz)) then
+         trial(i:4) = ' '
+         exit loop_abc
+      endif
+   enddo loop_abc
+   call symbf(trial, j)
+   if(j>0) then
+      at_name = per_element(j)
+      is_cond = IS_GUESS
+   else
+      at_name = 'NONE'
+      is_cond = IS_FAIL
+   endif
+endif cond_guess
+!
+end subroutine guess_element
 !
 !*******************************************************************************
 !
