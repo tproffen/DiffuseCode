@@ -2831,9 +2831,9 @@ REAL(kind=PREC_DP), dimension(4,rec_max_sym) :: h ! (4, rec_max_sym)
 !                                                                       
 !     Set up a general reflection                                       
 !                                                                       
-      h (1, 1) = 0.1 
-      h (2, 1) = 0.2 
-      h (3, 1) = 0.3 
+      h (1, 1) = 0.1456
+      h (2, 1) = 0.2093
+      h (3, 1) = 0.3756
       h (4, 1) = 0.0 
       DO i = 1, 4 
       DO j = 1, 4 
@@ -3140,6 +3140,100 @@ loop_main: do                    ! Loop over all atoms in first unit cell
 enddo loop_main
 !
 end subroutine get_is_sym
+!
+!*****7*************************************************************************
+!
+subroutine sym_mat_to_spacegroup(n_mat, sym_mat, space_group, space_number, &
+           space_origin, space_setting)
+!-
+!  Interpret a list of symmetry matrices  to get the space group
+!+
+!
+use generate_mod
+use spcgr_mod
+!
+use errlist_mod
+use precision_mod
+!
+implicit none
+!
+integer                                , intent(in)  :: n_mat
+real(kind=PREC_DP), dimension(4,4,192) , intent(in)  :: sym_mat    ! all symmetry matrices
+character(len=*)                       , intent(out) :: space_group
+integer                                , intent(out) :: space_number
+integer                                , intent(out) :: space_origin
+character(len=3)                       , intent(out) :: space_setting
+!
+real(KIND=PREC_DP), parameter :: TOL = 0.0001
+integer :: i,j, k   ! Dummy indices
+integer :: n_pos
+integer, dimension(314) :: i_pos
+integer :: num_g
+integer, dimension(ng) :: local_gener
+character(len=3), dimension(6) :: csetting
+!
+data csetting /'abc', 'bac', 'cab', 'cba', 'bca', 'acb'/
+!
+num_g = 0
+loop_matrix: do i=1, n_mat        ! Loop over all symmetry matrices
+   loop_gener: do j=1, ng         ! Number of generators in I.T.
+      if(all(abs(sym_mat(1:3,1:4, i)-generators(1:3,1:4,j))<TOL)) then
+         num_g = num_g + 1
+         local_gener(num_g) = j
+         cycle loop_matrix
+      endif
+   enddo loop_gener
+enddo loop_matrix
+!write(*,*) ' NUMBER of possible Generators ', num_g
+!write(*,*) ' GENS ', local_gener(1:num_g)
+!
+n_pos = 0
+i_pos = 0
+loop_space: do i=1, SPCGR_MAX                ! compare to all space groups
+   if(n_mat == spcgr_num_sym(i)) then      ! Correct number of symmetery elements
+      loop_gen:do j=1, generspcgr(0,i)              
+         loop_local: do k=1, num_g
+            if(generspcgr(j,i)==local_gener(k)) then ! found agreement
+               cycle loop_gen
+            endif
+         enddo loop_local
+         cycle loop_space          ! a generator is missing, try next group
+      enddo loop_gen
+      n_pos = n_pos + 1
+      i_pos(n_pos) = i
+!      write(*,*) ' Possible space group ', i 
+   endif
+enddo loop_space
+if(n_pos==0) then
+   ier_msg(1) = 'No matching space group found '
+   ier_msg(2) = 'Check shelx instruction file'
+   ier_num = -7
+   ier_typ = ER_APPL
+   space_group   = 'P1'
+   space_number  = 1
+   space_origin  = 1
+   space_setting = 'abc'
+elseif(n_pos>=2) then
+!  write(*,*) ' Two space groups     ', i_pos(1:n_pos)
+   if(i_pos(2)< 231 ) then    ! Regular spacegroup is doubled 
+      ier_num = -199
+      ier_typ = ER_APPL
+      ier_msg(1) = 'Possible space groups'
+      write(ier_msg(2), '(a)') (spcgr_name(i)(1:len_trim(spcgr_name(i))),' ',i=1,n_pos)
+      ier_msg(3) = 'Check shelx instruction file'
+   endif
+   space_group   = spcgr_name(i_pos(1))
+   space_number  = i_pos(1)
+   space_origin  = spcgr_origin(i_pos(1))
+   space_setting = csetting(1)
+else
+   space_group   = spcgr_name(i_pos(1))
+   space_number  = i_pos(1)
+   space_origin  = spcgr_origin(i_pos(1))
+   space_setting = csetting(1)
+endif
+!
+end subroutine sym_mat_to_spacegroup
 !
 !*****7*************************************************************************
 !
