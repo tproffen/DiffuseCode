@@ -222,7 +222,7 @@ ENDIF stack
 ! Place powder pattern into appropriate phase entry
 !
 !write(*,*) ' FOUR_MODE ', pow_four_type, pow_four_type.eq.POW_COMPL
-IF (pow_four_type.eq.POW_COMPL) THEN                 ! Complete powder patterm, normalizer is 1
+IF (pow_four_type.eq.POW_COMPL .or. pow_four_type==POW_NUFFT) THEN                 ! Complete powder patterm, normalizer is 1
 !write(*,*) ' WRITE COMPL INTO PHA_POWDER ', pha_curr, pha_nreal(pha_curr), pha_ncreal(pha_curr), cr_v
 !write(*,*) ' COPY ', npkt
 !open(66, file='POWDER/phases.place', status='unknown')
@@ -416,7 +416,7 @@ l_all_debye    = .TRUE.
 !write(*,*) ' ADDING UP ', pha_n, pha_nreal(:), pha_calc(:), '; ', POW_COMPL
 DO i=1,pha_n
    IF(pha_nreal(i)>0.0) THEN
-   IF(pha_calc(i) == POW_COMPL) THEN           ! Complete calculation mode
+   IF(pha_calc(i) == POW_COMPL .or. pow_four_type==POW_NUFFT) THEN           ! Complete calculation mode
      l_all_debye    = .false.
 !
 !     Prepare intensity output
@@ -896,7 +896,7 @@ fq = fq * faver2 + fu
 !read(*,*) k
 !return
 !
-IF(pha_calc(pha_curr) == POW_COMPL) THEN           ! Complete calculation mode
+IF(pha_calc(pha_curr) == POW_COMPL .or. pow_four_type==POW_NUFFT) THEN           ! Complete calculation mode
    DO k=0, npkt
       q = k*pow_deltaq + pow_qmin
 !     fq(k) = pha_powder(k, pha_curr)/q**2 /EXP(-0.5*(u2aver*u2aver_scale)*q**2)
