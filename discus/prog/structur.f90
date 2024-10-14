@@ -79,28 +79,31 @@ LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
 LOGICAL          :: l_site     = .FALSE.    ! Treat atoms on different sites as different types?
 logical, dimension(0:MAXMASK) :: uni_mask           ! Mask for unique atom types
 REAL(KIND=PREC_DP) :: r_identical = 0.00001_PREC_DP
-INTEGER, PARAMETER :: NOPTIONAL = 6
-integer, parameter :: O_OCC     = 2
-INTEGER, PARAMETER :: O_SETTING = 4
-INTEGER, PARAMETER :: O_SITE    = 5
-INTEGER, PARAMETER :: O_UNIQUE  = 6
+INTEGER, PARAMETER :: NOPTIONAL  = 7
+integer, parameter :: O_RADIUS   = 1
+integer, parameter :: O_ORIGIN   = 2
+integer, parameter :: O_OCC      = 3
+integer, parameter :: O_TOLERATE = 4
+INTEGER, PARAMETER :: O_SETTING  = 5
+INTEGER, PARAMETER :: O_SITE     = 6
+INTEGER, PARAMETER :: O_UNIQUE   = 7
 CHARACTER(LEN=   9)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: NCALC = 1 ! Number of values to calculate 
+INTEGER, PARAMETER                        :: NCALC = 2 ! Number of values to calculate 
 !
 !
 !                                                                       
 !
-DATA oname  / 'radius' , 'occupancy', 'identical', 'setting', 'site'   ,'unique'/
-DATA loname /  9       ,  9         ,  6         ,  7       ,  4       , 6      /
+DATA oname  / 'radius' , 'origin'   , 'occupancy', 'identical', 'setting', 'site'   ,'unique'/
+DATA loname /  6       ,  6         ,  9         ,  6         ,  7       ,  4       , 6      /
 !
-opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  '/)   ! Always provide fresh default values
-lopara =  (/  6        ,  6         ,  6         ,  6       ,  6       ,  4      /)
-owerte =  (/  1.0E-5   ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    /)
+opara  =  (/ '1.0E-5'  , '1.0000'   , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  '/)   ! Always provide fresh default values
+lopara =  (/  6        ,  6         ,  6         ,  6         ,  6       ,  6       ,  4      /)
+owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    /)
 !
 !
 !                                                                       
@@ -187,9 +190,9 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !
 !      --Get optional parameters
 !
-         opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '   , 'abc   ' , 'equal ', 'biso  ' /)   ! Always provide fresh default values
-         lopara =  (/  6        ,  6         ,  6         ,  6       ,  6      ,  4       /)
-         owerte =  (/  1.0D-5   ,  0.0D0     ,  0.0D0     ,  0.0D0   ,  0.0D0  ,  0.0D0   /)
+         opara  =  (/ '1.0E-5'  , '1.0000'   , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  '/)   ! Always provide fresh default values
+         lopara =  (/  6        ,  6         ,  6         ,  6         ,  6       ,  6       ,  4      /)
+         owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    /)
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, lpresent, owerte)
          IF(ier_num/=0) GOTO 8888              ! Jump to handle error messages, amd macro conditions
@@ -236,8 +239,8 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !                                                                       
          IF (str_comp (befehl, 'cell',  1, lbef, 4) .or. &
              str_comp (befehl, 'lcell', 1, lbef, 5)      ) THEN                                    
-            l_identical = str_comp (opara(3), 'tolerate', 5, lopara(3), 8)
-            r_identical = owerte(1)
+            l_identical = str_comp (opara(O_TOLERATE), 'tolerate', 5, lopara(O_TOLERATE), 8)
+            r_identical = owerte(O_RADIUS)
             IF(opara(O_OCC)=='clear')  THEN
                occupancy = 0
             ELSEIF(opara(O_OCC)=='apply')  THEN
@@ -268,6 +271,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
          ELSEIF (str_comp (befehl, 'free', 1, lbef, 4) ) THEN 
 !           CALL do_readfree(befehl,lbef,ianz, maxw, cpara, lpara)
             CALL do_readfree(            ianz, maxw, cpara, lpara, &
+                             nint(owerte(O_ORIGIN)),               &
                              opara(O_SETTING), lopara(O_SETTING))
 !                                                                       
 !     read an old structure 'stru'                                      
@@ -946,7 +950,7 @@ cr_nscat= new_scat
 END SUBROUTINE differ_site
 !********************************************************************** 
 !
-SUBROUTINE do_readfree(ianz, maxw, cpara, lpara, c_set, l_set)
+SUBROUTINE do_readfree(ianz, maxw, cpara, lpara, origin, c_set, l_set)
 !
 USE chem_mod
 USE crystal_mod
@@ -965,6 +969,7 @@ INTEGER         ,                  INTENT(INOUT) :: ianz
 INTEGER         ,                  INTENT(IN   ) :: MAXW
 CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER         , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+INTEGER         ,                  INTENT(IN   ) :: origin
 CHARACTER(LEN=*),                  INTENT(IN   ) :: c_set
 INTEGER         ,                  INTENT(IN   ) :: l_set
 !
@@ -973,6 +978,7 @@ INTEGER  :: iianz
 !
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: wwerte
+!
 !
 CALL rese_cr 
 cr_name = 'freely created structure' 
@@ -1015,6 +1021,9 @@ ELSEIF (ianz==6 .OR. ianz==7 .OR. ianz==8) THEN
             ier_typ = ER_APPL 
             ier_msg (1) = 'Error reading origin choice indicator'
          ENDIF
+      elseif(origin/=0) then
+         spcgr_ianz = 1
+         spcgr_para = origin
       ELSE
          spcgr_para = 1
          spcgr_ianz = 0
@@ -1076,6 +1085,7 @@ use atom_line_mod
 USE discus_config_mod 
 USE discus_allocate_appl_mod
 USE crystal_mod 
+use guess_atoms_mod
 USE molecule_mod 
 USE prop_para_mod
 USE discus_save_mod 
@@ -1542,6 +1552,9 @@ IF(lcontent) THEN
       ENDDO
    ENDDO
 ENDIF 
+!
+call guess_atom_all
+!                                                                       
 !                                                                       
 !     ENDIF 
 !                                                                       
@@ -1912,6 +1925,8 @@ END SUBROUTINE struc_mole_header
 !           this subroutine reads an old structur.                      
 !+                                                                      
 !
+use guess_atoms_mod
+!
 use precision_mod
 USE support_mod
 !
@@ -1994,6 +2009,8 @@ REAL(kind=PREC_DP), dimension(0:MAXSCAT) :: as_occ(0:MAXSCAT)
             ier_msg(1) = 'Structure ' // strucfile
          ENDIF 
       ENDIF 
+!
+call guess_atom_all
 !                                                                       
       CLOSE (ist) 
       IF (ier_num.eq. -49) THEN 
@@ -2064,26 +2081,27 @@ INTEGER,  PARAMETER :: maxw = 22
 !DBG      real            spcgr_para                                    
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !
-INTEGER, PARAMETER :: NOPTIONAL = 3
+INTEGER, PARAMETER :: NOPTIONAL = 4
 INTEGER, PARAMETER :: O_TYPE    = 1
-INTEGER, PARAMETER :: O_VALUES  = 2
-INTEGER, PARAMETER :: O_SETTING = 3
+INTEGER, PARAMETER :: O_ORIGIN  = 2
+INTEGER, PARAMETER :: O_VALUES  = 3
+INTEGER, PARAMETER :: O_SETTING = 4
 CHARACTER(LEN=   7)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
 !                                                                       
 !                                                                       
 !
-DATA oname  / 'type   ', 'value  ','setting' /
-DATA loname /  4       ,  5       , 7        /
+DATA oname  / 'type   ', 'origin ', 'value  ','setting' /
+DATA loname /  4       ,  6       ,  5       , 7        /
 !
-opara  =  (/ '0.00'       , '0.00'       , 'abc ' /)   ! Always provide fresh default values
-lopara =  (/  4           ,  4           ,  3     /)
-owerte =  (/  0.00_PREC_DP, 0.00_PREC_DP, 0.0_PREC_DP /)
+opara  =  (/ '0.00'       , '1.00'       , '0.00'       , 'abc ' /)   ! Always provide fresh default values
+lopara =  (/  4           ,  4           ,  4           ,  3     /)
+owerte =  (/  0.00_PREC_DP, 1.00_PREC_DP ,  0.00_PREC_DP, 0.0_PREC_DP /)
 !
 cr_occ(:) = 1.0_PREC_DP  !! WORK OCC
       xx_nscat = 0 
@@ -2189,6 +2207,9 @@ sym_add_n = 0
                lpara (1) = lpara (2) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                spcgr_para = nint (werte (1) ) 
+            elseif(lpresent(O_ORIGIN)) then
+               spcgr_ianz = 1 
+               spcgr_para = nint(owerte(O_ORIGIN))
             ENDIF 
             IF (ier_num.ne.0) THEN 
                ier_num = - 47 
@@ -3222,12 +3243,13 @@ INTEGER :: length
 !
 CHARACTER(LEN= 200) :: hostfile  ! original structure file name
 !
-INTEGER, PARAMETER :: NOPTIONAL = 5
+INTEGER, PARAMETER :: NOPTIONAL = 6
 INTEGER, PARAMETER :: O_METRIC  = 1
 INTEGER, PARAMETER :: O_SPACE   = 2
 INTEGER, PARAMETER :: O_SORT    = 3
 INTEGER, PARAMETER :: O_ATOM    = 4     ! For LAMMPS
 integer, parameter :: O_UNIQUE  = 5
+integer, parameter :: O_NAMES   = 6
 CHARACTER(LEN=   6)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -3236,8 +3258,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique'   /
-DATA loname /  6,        5     ,  4    ,  4    ,  6         /
+DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique',  'name'   /
+DATA loname /  6,        5     ,  4    ,  4    ,  6      ,   4       /
 !
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_a0
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_win
@@ -3258,9 +3280,9 @@ logical                       :: l_not_full = .true.
 LOGICAL :: lout = .FALSE.
 !
 !
-opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'biso  ' /)   ! Always provide fresh default values
-lopara =  (/  6,        6      ,  6      ,  6      ,  6       /)
-owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0     /)
+opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'biso  ', 'chem  ' /)   ! Always provide fresh default values
+lopara =  (/  6,        6      ,  6      ,  6      ,  6      ,  6       /)
+owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0     /)
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
 IF (ier_num.ne.0) THEN 
@@ -3300,7 +3322,7 @@ IF (ianz.ge.1) THEN
       IF (ianz >= 2) THEN 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          IF (ier_num.ne.0) return 
-         CALL ins2discus (ianz, cpara, lpara, MAXW, ofile) 
+         CALL ins2discus (ianz, cpara, lpara, MAXW, opara(O_NAMES), ofile) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -3470,13 +3492,14 @@ END SUBROUTINE do_import
 !
 !*****7**************************************************************** 
 !
-SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, ofile) 
+SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, c_names, ofile) 
 !-                                                                      
 !     converts a SHELXL "ins" or "res" file to DISCUS                   
 !+                                                                      
 USE ber_params_mod
 USE blanks_mod
 USE build_name_mod
+use lib_errlist_func
 USE get_params_mod
 USE lib_length
 use string_convert_mod
@@ -3487,11 +3510,12 @@ USE support_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
-INTEGER                             , INTENT(INOUT) :: ianz 
-INTEGER                             , INTENT(IN)    :: MAXW 
-CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara ! (MAXW) 
-INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara ! (MAXW) 
-CHARACTER(LEN=*)                    , INTENT(OUT)   :: ofile 
+INTEGER                             , INTENT(INOUT) :: ianz    ! Number of parameters to construct file name
+INTEGER                             , INTENT(IN)    :: MAXW    ! Array sizes
+CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara   ! File name (parameters)
+INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara   ! Length file name parameters
+character(len=*)                    , intent(in)    :: c_names ! "chem" or "shelx" flag to interpret names
+CHARACTER(LEN=*)                    , INTENT(OUT)   :: ofile   ! Resulting output file
 !                                                                       
 real(kind=PREC_DP), parameter :: TOL = 0.00005_PREC_DP
 INTEGER, PARAMETER :: NFV = 50 
@@ -3502,7 +3526,7 @@ REAL(KIND=PREC_DP), dimension(MAXW) :: werte
 !                                                                       
 INTEGER, PARAMETER :: shelx_num = 61       ! Number of SHELX commands to ignore 
 CHARACTER(len=4), dimension(shelx_num) :: shelx_ign ! (1:shelx_num) 
-CHARACTER(len=2), dimension(20)        :: c_atom    ! Atom types 
+CHARACTER(len=4), dimension(:), allocatable  :: c_atom    ! Atom types 
 !      CHARACTER(4) command 
 !CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE :: eadp_names
 CHARACTER(len=80)  :: line1 
@@ -3540,9 +3564,12 @@ INTEGER ifv
 !INTEGER   :: MAX_EADP
 !INTEGER   :: n_eadp
 LOGICAL :: lmole     ! If true we are reading a molecule
+logical :: lshelx_names  ! Use atom names from actual list instead of Chemical names
+integer :: n_mat     ! Number space group matrices
 REAL(KIND=PREC_DP)                 :: z
 REAL(KIND=PREC_DP), dimension(6)   :: latt      !Lattice parameters in input file
 REAL(KIND=PREC_DP), dimension(3,4) :: gen       ! Generator matrices constructed from 'SYMM' commands
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: spc_mat ! Space group matrices constructed from 'SYMM' commands
 REAL(KIND=PREC_DP), dimension(NFV) :: fv        ! SHELX free variables
 !REAL(KIND=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: eadp_values
 !
@@ -3552,6 +3579,12 @@ CHARACTER (LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(MAXP) :: ccpara     ! Par
 INTEGER             , DIMENSION(MAXP) :: llpara
 REAL(KIND=PREC_DP)  , DIMENSION(MAXP) :: wwerte
 !                                                                       
+integer             :: ispace         ! 'spcgr' line in structure
+character(len=20)   :: space_group    ! As determined from input file
+integer             :: space_number
+integer             :: space_origin   ! Origin choice 1 or 2
+character(len=3)    :: space_setting  ! 'abc' , etc
+logical             :: lspace_group   ! use generators of space group symbol
 !                                                                       
 DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
 'BOND', 'BUMP', 'CGLS', 'CHIV', 'CONF', 'CONN', 'DAMP', 'DANG',   &
@@ -3565,6 +3598,7 @@ DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
 fv = 0.0_PREC_DP
 !                                                                       
 lmole    = .false. 
+ispace   = 2        ! Default line for space group symbol   
 !
 ntyp      = 0
 ntyp_prev = 0
@@ -3590,6 +3624,16 @@ IF (ier_num /= 0) THEN
    close(IRD)
    RETURN
 ENDIF 
+lshelx_names = c_names =='shelx'
+!
+allocate(spc_mat(4,4,192))
+spc_mat = 0.0_PREC_DP
+spc_mat(1,1,1) = 1.0_PREC_DP     ! Identity element
+spc_mat(2,2,1) = 1.0_PREC_DP
+spc_mat(3,3,1) = 1.0_PREC_DP
+spc_mat(4,4,1) = 1.0_PREC_DP
+n_mat  = 1                       ! We have one matrix
+n_mat  = 1                       ! We have one matrix
 !
 ! Read file once to determine line numbers
 !
@@ -3600,6 +3644,9 @@ loop_count: do
    lcontent = lcontent + 1
 enddo loop_count
 close(ird)
+!
+allocate(c_atom(lcontent))  ! We have at most this many different atom types
+!
 open(unit=IRD, file=infile, status='old')  ! Simplified open as we know file exists
 allocate(content(lcontent))
 j = 0
@@ -3610,7 +3657,7 @@ loop_read: do
    if(line1(1:4) == ' ')   cycle loop_read  ! Empty line, skip
    if(line1(1:3) == 'REM') cycle loop_read  ! Remark == comment, ignore
    icont = index (line1, '=')
-   if(icont>0) then
+   if(icont>0 .and. index(line1, '==')==0 .and. line1(1:4)/='TITL') then
       read(IRD, '(a)', iostat=ios) line2   ! Read a short line
       if(is_iostat_end(ios)) then
           close(IRD)
@@ -3740,8 +3787,12 @@ loop_header: do jc=1, ifvar
         gen (3, 4) = werte (3) 
         is = is + 1
         WRITE (structure(is), 2600) ( (gen (i, j), j = 1, 4), i = 1, 3) 
+        n_mat = n_mat +1
+        spc_mat(1:3,1:4, n_mat) = gen
+        spc_mat(  4,  4, n_mat) = 1.0_PREC_DP
      ENDIF 
   elseif(content(jc)(1:4) == 'SFAC') then          ! SFAC
+     if(.not. lshelx_names) then                   ! Only if chemical names are requested
      line = content(jc)(6:len_trim(content(jc)))
      call do_cap(line)
      length = len_trim(line)
@@ -3778,6 +3829,7 @@ loop_header: do jc=1, ifvar
            ENDIF
         ENDIF 
      ENDDO atom_search1
+     endif
   elseif(content(jc)(1:4) == 'FVAR') then          ! FVAR
      line = content(jc)(6:len_trim(content(jc)))
      call do_cap(line)
@@ -3793,26 +3845,58 @@ loop_header: do jc=1, ifvar
      exit loop_header
   endif
 enddo loop_header
+call ins2discus_symmetry(centering, n_mat, spc_mat, ubound(structure,1), structure, &
+     space_group, space_number, space_origin, space_setting )
+if(ier_num/=0) then
+   lspace_group = .false.   ! Use generateors from file
+!   ier_msg(1) = 'Could not determine space group'
+   if(all(abs(latt(4:6)-90.0_PREC_DP)<TOL) .and. &
+      (n_mat==4 .or. n_mat==8 .or. n_mat==16  .or. n_mat==32)) then
+      call no_error    ! Assume orthorhombic, non-standard setting
+   else
+      return
+   endif
+else
+   write(structure(ispace),'(3a,i1,2a)')  'spcgr ',space_group(1:len_trim(space_group)), &
+   ', origin:', space_origin, ', setting:', space_setting
+   lspace_group = .true.  ! Use space group symbol
+endif
 !
 ! Initial loop over atoms, establish the number of different ADPs for each chemical atom type
 !
 natoms = ihklf - ifvar - 1   ! We have at most this many atoms == lines from FVAR to HKLF
-allocate(uij_l(6,ntyp, natoms))
-allocate(uij_at(6    , natoms))
-allocate(posit(3,      natoms))
-allocate(nanis(ntyp))
+if(lshelx_names) then              ! SHELX names or chemical names
+   ntyp = 0
+   allocate(uij_l(6,natoms, natoms))
+   allocate(uij_at(6      , natoms))
+   allocate(posit(3,        natoms))
+   allocate(nanis(natoms))
+else
+   allocate(uij_l(6,ntyp, natoms))
+   allocate(uij_at(6    , natoms))
+   allocate(posit(3,      natoms))
+   allocate(nanis(ntyp))
+endif
 nanis = 0
 uij_l = 0.0_PREC_DP
 posit = 0.0_PREC_DP
 iatom = 0
+iscat = 0
 loop_atoms: do jc=ifvar +1, ihklf-1
    if(content(jc)(1:4) == 'MOLE') cycle loop_atoms
    line = content(jc)(5:len_trim(content(jc)))
    call do_cap(line)
    length = len_trim(line)
    call get_params_blank(line, iianz, ccpara, llpara, MAXP, length)
+   wwerte = 0.0_PREC_DP
    call ber_params(iianz, ccpara, llpara, wwerte, MAXP) 
-   iscat = nint(wwerte(1))
+   if(lshelx_names) then
+      iscat = iscat + 1
+      ntyp  = ntyp  + 1
+      c_atom(iscat) = content(jc)(1:4)
+   else
+      iscat = nint(wwerte(1))
+   endif
    do j=2,11                     ! Check Free variables
       ifv = nint(wwerte(i)/10._PREC_DP)
       IF(ifv.gt.1) THEN
@@ -3872,6 +3956,7 @@ structure(is)(64:123) = '    Property,  MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk
 !  Second loop over atoms, add coordinates to structure, add molecule info
 lmole = .false.                     ! We are not inside a molecule
 iatom = 0
+iscat = 0
 loop_atoms_set: do jc=ifvar +1, ihklf-1
    if(content(jc)(1:4) == 'MOLE') then  ! Start of a (new) molecule
       if(lmole) then                    ! We were inside a molecule
@@ -3888,7 +3973,13 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
    length = len_trim(line)
    call get_params_blank(line, iianz, ccpara, llpara, MAXP, length)
    call ber_params(iianz, ccpara, llpara, wwerte, MAXP) 
-   iscat = nint(wwerte(1))
+!  iscat = nint(wwerte(1))
+   if(lshelx_names) then
+      iscat = iscat + 1
+      c_atom(iscat) = content(jc)(1:4)
+   else
+      iscat = nint(wwerte(1))
+   endif
    is = is + 1
    ianis = 1    ! Default to 1st ADP
    loop_anis_set: do j=1,nanis(iscat)    ! Compare to all previous ADP for this scattering type
@@ -3898,12 +3989,15 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
       endif
    enddo loop_anis_set
 !  form_string = '3(1x,f14.6,'','')'
-   write(structure(is),'(a2,2x, 3(1x,f14.6,'',''),f14.6)') c_atom(iscat), posit(:,iatom), &
+   write(structure(is),'(a4, 3(1x,f14.6,'',''),f14.6)') c_atom(iscat), posit(:,iatom), &
          real(iscat + 0.01_PREC_DP*ianis, kind=PREC_DP)
    structure(is)(67:123) = ',       1,       0,       0,   1.000000, _,   0,   0,   0'
 enddo loop_atoms_set
 loop_write: do j=1, 2*lcontent
    if(structure(j) /= ' ') then
+      if(structure(j)(1:5) == 'gener' .and. lspace_group) then
+         cycle loop_write              ! space group is used, skip generators
+      endif
       write(iwr,'(a)') structure(j)(1:len_trim(structure(j)))
    endif
 enddo loop_write
@@ -3917,6 +4011,7 @@ deallocate(posit)
 deallocate(uij_l)
 deallocate(uij_at)
 deallocate(nanis)
+deallocate(c_atom)
 !                                                                       
  1000 FORMAT    (a) 
  2000 FORMAT    ('title ',a) 
@@ -3954,6 +4049,195 @@ deallocate(nanis)
  4000 FORMAT    (a) 
 !                                                                       
 END SUBROUTINE ins2discus                     
+!
+!*****7**************************************************************** 
+!
+subroutine ins2discus_symmetry(centering, n_mat, sym_mat, N_STRU, structure,&
+           space_group, space_number, space_origin, space_setting)
+!-
+! Build all symmetry matrices 
+!+
+!
+use spcgr_apply
+!
+use precision_mod
+!
+implicit none
+!
+integer                                , intent(in)    :: centering  ! Shelx centering number
+integer                                , intent(inout) :: n_mat      ! Number symmetry matriced
+real(kind=PREC_DP), dimension(4,4,192) , intent(inout) :: sym_mat    ! all symmetry matrices
+integer                                , intent(in)    :: N_STRU     ! Number lines in structure
+character(len=*)  , dimension(1:N_STRU), intent(in)    :: structure  ! Content discus file
+character(len=20)                      , intent(out)   :: space_group
+integer                                , intent(out)   :: space_number
+integer                                , intent(out)   :: space_origin
+character(len=3)                       , intent(out)   :: space_setting
+!
+integer :: n_mat_orig               ! Original number of matrices
+integer :: n_mat_cent               ! number of matrices after centrosymmetry
+real(kind=PREC_DP), dimension(4,4) :: cent ! Centering matrix
+!integer :: i
+!
+n_mat_orig = n_mat
+n_mat_cent = n_mat
+!
+if(centering> 0) then               ! Centrosymmetric structure; apply -1
+   cent = 0.0_PREC_DP
+   cent(1,1) = -1.0_PREC_DP
+   cent(2,2) = -1.0_PREC_DP
+   cent(3,3) = -1.0_PREC_DP
+   cent(4,4) =  1.0_PREC_DP
+!
+   call apply_center(n_mat_orig, n_mat, cent, sym_mat)
+   n_mat_cent = n_mat_cent * 2
+   n_mat      = n_mat_cent
+endif
+!
+if(abs(centering) == 1) then        ! Primitive
+   continue
+elseif(abs(centering) == 2) then    ! I-centered
+   cent = 0.0_PREC_DP
+   cent(1,1) =  1.0_PREC_DP
+   cent(2,2) =  1.0_PREC_DP
+   cent(3,3) =  1.0_PREC_DP
+   cent(4,4) =  1.0_PREC_DP
+   cent(1,4) =  0.5_PREC_DP
+   cent(2,4) =  0.5_PREC_DP
+   cent(3,4) =  0.5_PREC_DP
+!
+   call apply_center(n_mat_cent, n_mat, cent, sym_mat)
+   n_mat      = n_mat + n_mat_cent
+elseif(abs(centering) == 3) then    ! R-centered
+   cent = 0.0_PREC_DP
+   cent(1,1) =  1.0_PREC_DP
+   cent(2,2) =  1.0_PREC_DP
+   cent(3,3) =  1.0_PREC_DP
+   cent(4,4) =  1.0_PREC_DP
+   cent(1,4) =  2.0_PREC_DP/3.0_PREC_DP
+   cent(2,4) =  1.0_PREC_DP/3.0_PREC_DP
+   cent(3,4) =  1.0_PREC_DP/3.0_PREC_DP
+!
+   call apply_center(n_mat_cent, n_mat, cent, sym_mat)
+   n_mat      = n_mat + n_mat_cent
+!
+   call apply_center(n_mat_cent, n_mat, cent, sym_mat)
+   n_mat      = n_mat + n_mat_cent
+elseif(abs(centering) == 4) then    ! F-centered
+   cent = 0.0_PREC_DP
+   cent(1,1) =  1.0_PREC_DP
+   cent(2,2) =  1.0_PREC_DP
+   cent(3,3) =  1.0_PREC_DP
+   cent(4,4) =  1.0_PREC_DP
+   cent(1,4) =  0.0_PREC_DP
+   cent(2,4) =  0.5_PREC_DP
+   cent(3,4) =  0.5_PREC_DP
+!
+   call apply_center(n_mat_cent, n_mat, cent, sym_mat)
+   n_mat      = n_mat + n_mat_cent
+!
+   cent = 0.0_PREC_DP
+   cent(1,1) =  1.0_PREC_DP
+   cent(2,2) =  1.0_PREC_DP
+   cent(3,3) =  1.0_PREC_DP
+   cent(4,4) =  1.0_PREC_DP
+   cent(1,4) =  0.5_PREC_DP
+   cent(2,4) =  0.0_PREC_DP
+   cent(3,4) =  0.5_PREC_DP
+!
+   call apply_center(n_mat_cent, n_mat, cent, sym_mat)
+   n_mat      = n_mat + n_mat_cent
+!
+   cent = 0.0_PREC_DP
+   cent(1,1) =  1.0_PREC_DP
+   cent(2,2) =  1.0_PREC_DP
+   cent(3,3) =  1.0_PREC_DP
+   cent(4,4) =  1.0_PREC_DP
+   cent(1,4) =  0.5_PREC_DP
+   cent(2,4) =  0.5_PREC_DP
+   cent(3,4) =  0.0_PREC_DP
+!
+   call apply_center(n_mat_cent, n_mat, cent, sym_mat)
+   n_mat      = n_mat + n_mat_cent
+elseif(abs(centering) == 5) then    ! A-centered
+   cent = 0.0_PREC_DP
+   cent(1,1) =  1.0_PREC_DP
+   cent(2,2) =  1.0_PREC_DP
+   cent(3,3) =  1.0_PREC_DP
+   cent(4,4) =  1.0_PREC_DP
+   cent(1,4) =  0.0_PREC_DP
+   cent(2,4) =  0.5_PREC_DP
+   cent(3,4) =  0.5_PREC_DP
+!
+   call apply_center(n_mat_cent, n_mat, cent, sym_mat)
+   n_mat      = n_mat + n_mat_cent
+elseif(abs(centering) == 6) then    ! B-centered
+   cent = 0.0_PREC_DP
+   cent(1,1) =  1.0_PREC_DP
+   cent(2,2) =  1.0_PREC_DP
+   cent(3,3) =  1.0_PREC_DP
+   cent(4,4) =  1.0_PREC_DP
+   cent(1,4) =  0.5_PREC_DP
+   cent(2,4) =  0.0_PREC_DP
+   cent(3,4) =  0.5_PREC_DP
+!
+   call apply_center(n_mat_cent, n_mat, cent, sym_mat)
+   n_mat      = n_mat + n_mat_cent
+elseif(abs(centering) == 7) then    ! C-centered
+   cent = 0.0_PREC_DP
+   cent(1,1) =  1.0_PREC_DP
+   cent(2,2) =  1.0_PREC_DP
+   cent(3,3) =  1.0_PREC_DP
+   cent(4,4) =  1.0_PREC_DP
+   cent(1,4) =  0.5_PREC_DP
+   cent(2,4) =  0.5_PREC_DP
+   cent(3,4) =  0.0_PREC_DP
+!
+   call apply_center(n_mat_cent, n_mat, cent, sym_mat)
+   n_mat      = n_mat + n_mat_cent
+endif
+!do i=1, n_mat 
+!   write(*,'(i5,2x,a1,3f4.0,a,f5.1,a2)') i, '(',sym_mat(1,1:3,i), '  ', sym_mat(1,4,i), ' )'
+!   write(*,'(i5,2x,a1,3f4.0,a,f5.1,a2)') i, '(',sym_mat(2,1:3,i), '  ', sym_mat(2,4,i), ' )'
+!   write(*,'(i5,2x,a1,3f4.0,a,f5.1,a2)') i, '(',sym_mat(3,1:3,i), '  ', sym_mat(3,4,i), ' )'
+!   write(*,*)
+!enddo
+call sym_mat_to_spacegroup(n_mat, sym_mat, space_group, space_number, space_origin, space_setting)
+!
+end subroutine ins2discus_symmetry
+!
+!*****7**************************************************************** 
+!
+subroutine apply_center(n_mat_orig, n_mat_inse, cent, sym_mat)
+!-
+!  Apply centering matrix to all matrices 1:n_mat_orig ad insert after n_mat_inse
+!+
+!
+use precision_mod
+!
+implicit none
+!
+integer, intent(in)  :: n_mat_orig   ! Current original matrices
+integer, intent(in)  :: n_mat_inse   ! Current insert point
+real(kind=PREC_DP), dimension(4,4), intent(in) :: cent
+real(kind=PREC_DP), dimension(4,4, 192), intent(inout) :: sym_mat
+
+integer :: i,j   ! Dummy indices
+real(kind=PREC_DP), dimension(4,4) :: mat
+!
+do i=1, n_mat_orig
+   mat = matmul(cent, sym_mat(1:4,1:4,i))
+   do j= 1, 3
+      if(mat(j,4)>=1.0_PREC_DP) then
+         mat(j,4) = mat(j,4) - real(int(mat(j,4)), kind=PREC_DP)
+      elseif(mat(j,4)< 0.0_PREC_DP) then
+         mat(j,4) = mat(j,4) + real(int(mat(j,4)), kind=PREC_DP)
+      endif
+   enddo
+   sym_mat(:,:,n_mat_inse+i) = mat
+enddo
+!
+end subroutine apply_center
 !
 !*****7**************************************************************** 
 !
@@ -7407,6 +7691,7 @@ USE gen_add_mod
 USE sym_add_mod
 USE wyckoff_mod
 USE errlist_mod
+USE ber_params_mod
 USE get_params_mod
 USE precision_mod
 USE take_param_mod
@@ -7423,40 +7708,62 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER :: ianz
 !
-INTEGER, PARAMETER :: NOPTIONAL = 1
-INTEGER, PARAMETER :: O_SETTING = 1
+INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: O_ORIGIN  = 1
+INTEGER, PARAMETER :: O_SETTING = 2
 CHARACTER(LEN=   7)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !                                                                       
 !
-DATA oname  / 'setting' /
-DATA loname /  7        /
+DATA oname  / 'origin ', 'setting' /
+DATA loname /  6       ,  7        /
 !
-opara  =  (/ 'abc' /)   ! Always provide fresh default values
-lopara =  (/  3   /)
-owerte =  (/  0.0 /)
+opara  =  (/ '1  ', 'abc' /)   ! Always provide fresh default values
+lopara =  (/  1   ,  3   /)
+owerte =  (/  1.0 ,  0.0 /)
 !
+spcgr_para = owerte(O_ORIGIN)
+spcgr_ianz = 2
+werte = 0.0D0
+ianz  = 1
+cpara = ' '
+lpara = 0
 !
 CALL get_params (line, ianz, cpara, lpara, maxw, length)
 IF(ianz>=1) THEN                   ! At least one parameter
+!  Optionally get setting
+   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                     oname, loname, opara, lopara, lpresent, owerte)
    cr_spcgr= cpara(1)(1:lpara(1))  ! Set space group name
+   if(lpresent(O_ORIGIN)) then
+      if(nint(owerte(O_ORIGIN))==2) then
+         spcgr_para = 2
+         spcgr_ianz = 2
+      elseif(nint(owerte(O_ORIGIN))==1) then
+         spcgr_para = 1
+         spcgr_ianz = 1
+      endif
+   else
    IF(ianz==2) THEN
+      cpara(1) = '0'
+      lpara(1) = 1
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
       spcgr_para = NINT(werte(2))  ! Set origin choice parameter
       spcgr_ianz = 2
    ELSE
       spcgr_ianz = 1
    ENDIF
-   werte (1) = spcgr_para 
-!  Optionally get setting
-   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                     oname, loname, opara, lopara, lpresent, owerte)
+   endif
+   ianz = 1
+   werte(1) = spcgr_para 
    cr_set = opara(O_SETTING)(1:MIN(3,lopara(O_SETTING)))
-   CALL spcgr_no (spcgr_ianz, MAXW, werte) 
+!  CALL spcgr_no (spcgr_ianz, MAXW, werte) 
+   CALL spcgr_no (ianz, MAXW, werte) 
    IF(ier_num/=0) RETURN
    spc_n     = 1     ! reset spcgr
    gen_add_n = 0     ! No additional generators
