@@ -34,7 +34,7 @@ CONTAINS
 !                                                                       
       DO i = 1, SPCGR_MAX 
       spcgr_num (i, 1) = i 
-      spcgr_num (i, 2) = 0 
+      spcgr_num (i, 2) = i 
       ENDDO 
 !                                                                       
 !     The triclinic space groups                                        
@@ -524,7 +524,7 @@ CONTAINS
       spcgr_syst (248) = MONOCLINIC_C 
                                                                         
       spcgr_name (249)  = 'A1n1            ' 
-      spcgr_syst (259) = MONOCLINIC_B 
+      spcgr_syst (249) = MONOCLINIC_B 
                                                                         
       spcgr_name (250)  = 'I1a1            ' 
       spcgr_syst (250) = MONOCLINIC_B 
@@ -631,7 +631,10 @@ CONTAINS
 
       spcgr_name (314)  = 'Ccce            ' 
       spcgr_num (314, 1) =  68 
+      spcgr_num (314, 2) = 279 
+      spcgr_num (315, 1) = 279 
       spcgr_syst (314) = ORTHORHOMBIC 
+      spcgr_syst (315) = ORTHORHOMBIC 
                                                                         
       END SUBROUTINE spcgr_setup                    
 END MODULE spcgr_setup_mod
