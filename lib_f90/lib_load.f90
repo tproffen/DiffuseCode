@@ -115,7 +115,7 @@ allocate(sigma   ( maxhkl(1)-minhkl(1)+1, maxhkl(2)-minhkl(2)+1, maxhkl(3)-minhk
 allocate(weight  ( maxhkl(1)-minhkl(1)+1, maxhkl(2)-minhkl(2)+1, maxhkl(3)-minhkl(3)+1))
 !
 observed = 0.0D0
-sigma    = 0.0D0
+sigma    = -10000.0D0    ! Flag all points as missing
 weight   = 0
 !
 open(unit=IRD, file=infile, iostat=ios)
@@ -136,9 +136,13 @@ read_loop: do i=1, nhkl
     inte_range(2) = max(inte_range(2), inte)
      sig_range(2) = max( sig_range(2),  sig)
     if(inte>3.0D0*abs(sig)) nobs = nobs + 1
-    weight(jhkl(1), jhkl(2), jhkl(3)) = weight(jhkl(1), jhkl(2), jhkl(3)) + 1
     observed(jhkl(1), jhkl(2), jhkl(3)) = observed(jhkl(1), jhkl(2), jhkl(3)) + inte
-    sigma   (jhkl(1), jhkl(2), jhkl(3)) = sigma   (jhkl(1), jhkl(2), jhkl(3)) + abs(sig)
+    if(weight  (jhkl(1), jhkl(2), jhkl(3)) ==0) then 
+       sigma   (jhkl(1), jhkl(2), jhkl(3)) = abs(sig)
+    else
+       sigma   (jhkl(1), jhkl(2), jhkl(3)) = sigma   (jhkl(1), jhkl(2), jhkl(3)) + abs(sig)
+    endif
+    weight  (jhkl(1), jhkl(2), jhkl(3)) = weight  (jhkl(1), jhkl(2), jhkl(3)) + 1
 !
 enddo read_loop
 !
@@ -159,7 +163,7 @@ if(lout) then
    write(output_io,'(a, 3i6)')    '  Minimum hkl  ', minhkl
    write(output_io,'(a, 3i6)')    '  Maximum hkl  ', maxhkl
    write(output_io,'(a, 2f12.4)') '  Intensity range ', inte_range
-   write(output_io,'(a, 2f12.4)') '  Intensity range ',  sig_range
+   write(output_io,'(a, 2f12.4)') '  Sigma     range ',  sig_range
    write(output_io,*)
 endif
 !
