@@ -35,8 +35,8 @@ INTEGER, PRIVATE    ::  i
 INTEGER, PRIVATE    ::  j
 !
 INTEGER, DIMENSION(ng)       :: generpower         ! (ng)
-INTEGER, DIMENSION(0:ig,309) :: generspcgr         ! (0:ig,309) 
-INTEGER, DIMENSION(0:ig,309) :: generspcgr_center  ! (0:ig,309) 
+INTEGER, DIMENSION(0:ig,315) :: generspcgr         ! (0:ig,309) 
+INTEGER, DIMENSION(0:ig,315) :: generspcgr_center  ! (0:ig,309) 
 REAL(kind=PREC_DP), DIMENSION(4,4,0:ng) :: generators         ! (4,4,0:ng) 
 !                                                                       
 !------      List of all generator matrizes used in I.T. Vol. A         
@@ -2962,6 +2962,52 @@ REAL(kind=PREC_DP), DIMENSION(4,4,0:ng) :: generators         ! (4,4,0:ng)
 !      #  6: -1                   0,0,0                                 
 !      #  4:  t  (1/2, 1/2, 1/2)                                        
 !                                                                       
+!      # 310 = 39 , Aem2 = Abm2                                                     
+      DATA (generspcgr(i,310),i=0,7)                                    &
+     &      / 3, 29, 77,  3,  0,  0,  0,  0/                            
+!      # 29:  2                   0,0,z                                 
+!      # 77:  m                   x,1/4,z                               
+!      #  3:  t  (0  , 1/2, 1/2)                                        
+!                                                                       
+!      # 311 = 41 , Aea2 = Aba2                                                     
+      DATA (generspcgr(i,311),i=0,7)                                    &
+     &      / 3, 29, 79,  3,  0,  0,  0,  0/                            
+!      # 29:  2                   0,0,z                                 
+!      # 79:  a                   x,1/4,z                               
+!      #  3:  t  (0  , 1/2, 1/2)                                        
+!                                                                       
+!      # 312 = 64 , Cmce 0 Cmca                                                     
+      DATA (generspcgr(i,312),i=0,7)                                    &
+     &      / 4, 38, 25,  6,  1,  0,  0,  0/                            
+!      # 38:  2  (  0,   0, 1/2)  0,1/4,z                               
+!      # 25:  2  (  0, 1/2,   0)  0,y,1/4                               
+!      #  6: -1                   0,0,0                                 
+!      #  1:  t  (1/2, 1/2,   0)                                        
+!                                                                       
+!      # 313 = 67 , Cmme = Cmma                                                     
+      DATA (generspcgr(i,313),i=0,7)                                    &
+     &      / 4, 32, 21,  6,  1,  0,  0,  0/                            
+!      # 32:  2                   0,1/4,z                               
+!      # 21:  2  (  0, 1/2,   0)  0,y,0                                 
+!      #  6: -1                   0,0,0                                 
+!      #  1:  t  (1/2, 1/2,   0)                                        
+!                                                                       
+!      # 314 = 68 , Ccce = Ccca                                                     
+      DATA (generspcgr(i,314),i=0,7)                                    &
+     &      / 4, 33, 13,  8,  1,  0,  0,  0/                            
+!      # 33:  2                   1/4,1/4,z                             
+!      # 13:  2                   0,y,0                                 
+!      #  8: -1                   0,1/4,1/4                             
+!      #  1:  t  (1/2, 1/2,   0)                                        
+!                                                                       
+!      # 315 = 313 , Ccca, #  68, origin choice 2                             
+      DATA (generspcgr(i,315),i=0,7)                                    &
+     &      / 4, 30, 17,  6,  1,  0,  0,  0/                            
+!      # 30:  2                   1/4,0,z                               
+!      # 17:  2                   0,y,1/4                               
+!      #  6: -1                   0,0,0                                 
+!      #  1:  t  (1/2, 1/2,   0)                                        
+!                                                                       
 !                                                                       
 !------      Original list, with centering generators first             
 !                                                                       
@@ -5178,5 +5224,57 @@ REAL(kind=PREC_DP), DIMENSION(4,4,0:ng) :: generators         ! (4,4,0:ng)
 !      #  6: -1                   0,0,0                                 
 !                                                                       
 !      # 309 , Ibmm, #  74, nonstandard Imma                            
+      DATA (generspcgr_center(i,309),i=0,7)                                    &
+     &      / 4,  4, 98, 35,  6,  0,  0,  0/                            
+!      #  4:  t  (1/2, 1/2, 1/2)                                        
+!      # 98:  2  (  0,   0,   0)  x,  0,1/4                             
+!      # 35:  2  (  0,   0, 1/2)  0,0,z                                 
+!      #  6: -1                   0,0,0                                 
+!                                                                       
+!      # 310 = 39 , Aem2 = Abm2                                                     
+      DATA (generspcgr_center(i,310),i=0,7)                                    &
+     &      / 3,  3, 29, 77,  0,  0,  0,  0/                            
+!      #  3:  t  (0  , 1/2, 1/2)                                        
+!      # 29:  2                   0,0,z                                 
+!      # 77:  m                   x,1/4,z                               
+!                                                                       
+!      # 311 = 41 , Aea2 = Aba2                                                     
+      DATA (generspcgr_center(i,311),i=0,7)                                    &
+     &      / 3,  3, 29, 79,  0,  0,  0,  0/                            
+!      #  3:  t  (0  , 1/2, 1/2)                                        
+!      # 29:  2                   0,0,z                                 
+!      # 79:  a                   x,1/4,z                               
+!                                                                       
+!      # 312 = 64 , Cmce 0 Cmca                                                     
+      DATA (generspcgr_center(i,312),i=0,7)                                    &
+     &      / 4,  1, 38, 25,  6,  0,  0,  0/                            
+!      #  1:  t  (1/2, 1/2,   0)                                        
+!      # 38:  2  (  0,   0, 1/2)  0,1/4,z                               
+!      # 25:  2  (  0, 1/2,   0)  0,y,1/4                               
+!      #  6: -1                   0,0,0                                 
+!                                                                       
+!      # 313 = 67 , Cmme = Cmma                                                     
+      DATA (generspcgr_center(i,313),i=0,7)                                    &
+     &      / 4,  1, 32, 21,  6,  0,  0,  0/                            
+!      #  1:  t  (1/2, 1/2,   0)                                        
+!      # 32:  2                   0,1/4,z                               
+!      # 21:  2  (  0, 1/2,   0)  0,y,0                                 
+!      #  6: -1                   0,0,0                                 
+!                                                                       
+!      # 314 = 68 , Ccce = Ccca                                                     
+      DATA (generspcgr_center(i,314),i=0,7)                                    &
+     &      / 4,  1, 33, 13,  8,  0,  0,  0/                            
+!      #  1:  t  (1/2, 1/2,   0)                                        
+!      # 33:  2                   1/4,1/4,z                             
+!      # 13:  2                   0,y,0                                 
+!      #  8: -1                   0,1/4,1/4                             
+!                                                                       
+!      # 315 = 313 , Ccca, #  68, origin choice 2                             
+      DATA (generspcgr_center(i,315),i=0,7)                                    &
+     &      / 4,  1, 30, 17,  6,  0,  0,  0/                            
+!      #  1:  t  (1/2, 1/2,   0)                                        
+!      # 30:  2                   1/4,0,z                               
+!      # 17:  2                   0,y,1/4                               
+!      #  6: -1                   0,0,0                                 
 !                                                                       
 END MODULE generate_mod
