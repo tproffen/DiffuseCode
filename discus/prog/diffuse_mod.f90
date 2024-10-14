@@ -107,6 +107,7 @@ INTEGER                                 ::  diff_radiation = RAD_XRAY
 INTEGER                                 ::  diff_table     = RAD_INTER
 INTEGER                                 ::  diff_power     = 4
 character(len=PREC_STRING)              ::  diff_file      = ' '
+character(len=PREC_STRING)              ::  diff_trust     = ' '
 real(kind=prec_dp)                      ::  diff_exti = 0.0
 REAL(kind=PREC_DP), DIMENSION(1:3, 1:4) ::  eck      = reshape((/ 0.0, 0.0,  0.0, &    ! (hkl, corner_number)
                                                                   5.0, 0.0,  0.0, &
