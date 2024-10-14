@@ -34,8 +34,15 @@ subroutine discamb_alloc_list(nscat)
 implicit none
 !
 integer, intent(in) :: nscat
+integer :: i
 !
-if(associated(disc_list)) deallocate(disc_list)
+if(associated(disc_list)) then
+   do i=1, ubound(disc_list,1)
+     deallocate(disc_list(i)%isymm)
+     deallocate(disc_list(i)%four_form_tsc)
+   enddo
+   deallocate(disc_list)
+endif
 allocate(disc_list(nscat))
 !
 end subroutine discamb_alloc_list
@@ -76,6 +83,9 @@ loop_atoms: do i=1, cr_natoms
    disc_nsymm(cr_iscat(1,i),0) = disc_nsymm(cr_iscat(1,i),0) + 1
    disc_nsymm(cr_iscat(1,i),disc_nsymm(cr_iscat(1,i),0)) = cr_iscat(2,i)
 enddo loop_atoms
+!do i=0,cr_nscat
+!  write(*,*) i,' | ', disc_nsymm(i,0), ' : ', disc_nsymm(i,1:disc_nsymm(i,0))
+!enddo
 !
 do i=1, cr_nscat
    if(allocated(disc_list(i)%isymm)) deallocate(disc_list(i)%isymm)
@@ -117,7 +127,7 @@ end subroutine discamb_find_nsymm
 !
 !**********************************************************************
 !
-subroutine discamb_read(tscfile)
+subroutine discamb_read(tscfile, trust)
 !-
 !  Read the user provided file with atomic form factors from DISCAMB
 !+
@@ -135,10 +145,11 @@ use support_mod
 implicit none
 !
 character(len=*), intent(in) :: tscfile    ! Input file
+character(len=*), intent(in) :: trust      ! Input file
 !character(len=PREC_STRING)   :: tscfile    ! Input file
 !
 integer, parameter :: IRD=33
-real(kind=PREC_DP), parameter :: TOL = 0.01_PREC_DP
+!real(kind=PREC_DP), parameter :: TOL = 0.01_PREC_DP
 !
 character(len=PREC_STRING) :: line
 character(len=PREC_STRING) :: string
@@ -148,19 +159,55 @@ integer                   , dimension(:), allocatable :: lpara
 integer :: DIM_CPARA        ! Array size
 integer :: ios              ! IO signal
 integer :: i, ii,jj,kk,l    ! Dummy index
+integer :: j
 integer :: length           ! string lengths
 integer :: nr               ! Line number
 integer :: nhdr             ! header Line number
+integer :: ntotal           ! total lines in input file
 integer :: num_scatterers   ! Number of different atoms types in tscfile
+integer, dimension(3) ::   ihkl   !            (hkl)
+integer, dimension(3) :: maxhkl   ! Maximum abs(hkl)
+logical :: ldata   ! got DATA: line
 
 real(kind=PREC_DP), dimension(3)   :: hkl
-real(kind=PREC_DP), dimension(3)   :: uvw
 real(kind=PREC_DP), dimension(3,3) :: viinv  ! inverse of vi matrix
 real(kind=PREC_DP)               :: a,b    ! real, imag part
 !complex(KIND=PREC_DP), dimension(:,:,:,:), allocatable :: four_form_tsc
 !
+if(associated(disc_list) .and. trust=='use') then 
+   return                  ! We can trust the old tsc file
+endif
 call discamb_alloc_list(cr_nscat)
 call discamb_find_nsymm
+!
+call oeffne(IRD, tscfile, 'old')
+if(ier_num /=0) then
+   ier_msg(1) = 'DISCAMB file does not exist'
+   ier_msg(2) = 'FILE: '//tscfile(1:len_trim(tscfile))
+   return
+endif
+!
+nr = 0
+maxhkl = 0
+ldata  = .false.
+loop_init: do
+   read(IRD, '(a)', iostat=ios) line
+   if(is_iostat_end(ios)) exit loop_init
+   nr = nr + 1
+   if(line(1:5)=='DATA:') then
+      ldata = .true.
+      cycle loop_init
+   endif
+   if(ldata) then        ! We got the data line, read hkls
+      read(line,*) ihkl
+      maxhkl(1) = max(maxhkl(1),abs(ihkl(1)))
+      maxhkl(2) = max(maxhkl(2),abs(ihkl(2)))
+      maxhkl(3) = max(maxhkl(3),abs(ihkl(3)))
+   endif
+enddo loop_init
+ntotal = nr
+close(IRD) 
+!write(*,*) ' TOTAL LINE NUMBERS ' , ntotal, ' HKL ', maxhkl
 !
 call oeffne(IRD, tscfile, 'old')
 if(ier_num /=0) then
@@ -202,7 +249,7 @@ loop_header: do
 enddo loop_header
 ! Analyse that TSC names match 'cr_at_lis' WORK
 if(allocated(four_form_tsc)) deallocate(four_form_tsc)
-allocate(four_form_tsc(num(1), num(2), num(3), num_scatterers))
+allocate(four_form_tsc(-maxhkl(1):maxhkl(1), -maxhkl(2):maxhkl(2), -maxhkl(3):maxhkl(3), num_scatterers))
 !
 !  Read remaining header
 !
@@ -240,32 +287,101 @@ loop_values: do                        ! Read actual values
    do i=1, 3
       read(cpara(i),*) hkl(i)
    enddo
-   hkl = hkl - eck(:,1)            ! Subtract lower left bottom corner
-   uvw = matmul(viinv, hkl)
-   if(all(uvw-nint(uvw)<TOL)) then   ! All indices are integer
-      ii = nint(uvw(1)) + 1
-      jj = nint(uvw(2)) + 1
-      kk = nint(uvw(3)) + 1
-      if(ii>0 .and. ii<=num(1) .and. jj>0 .and. jj<=num(2) .and. kk>0 .and. kk<=num(3)) then ! Within range
-         l = l+1
-         do i=1, num_scatterers
-            read(cpara(i+3), *) a,b
-            four_form_tsc(ii,jj,kk, i) = cmplx(a,b, kind=PREC_DP)
-         enddo
-      endif
-   endif
+   ii = nint(hkl(1))
+   jj = nint(hkl(2))
+   kk = nint(hkl(3))
+   do i=1, num_scatterers
+      read(cpara(i+3), *) a,b
+      four_form_tsc(ii,jj,kk, i) = cmplx(a,b, kind=PREC_DP)
+   enddo
+!if(abs(ii)==1 .and. abs(jj)==1 .and. abs(kk)==1) then
+!write(*,'(3i4, 2f10.6)') ii,jj,kk, real(four_form_tsc(ii,jj,kk, 1)), imag(four_form_tsc(ii,jj,kk, 1))
+!endif
+!  hkl = hkl - eck(:,1)            ! Subtract lower left bottom corner
+!  uvw = matmul(viinv, hkl)
+!  if(all(uvw-nint(uvw)<TOL)) then   ! All indices are integer
+!     ii = nint(uvw(1)) + 1
+!     jj = nint(uvw(2)) + 1
+!     kk = nint(uvw(3)) + 1
+!     if(ii>0 .and. ii<=num(1) .and. jj>0 .and. jj<=num(2) .and. kk>0 .and. kk<=num(3)) then ! Within range
+!        l = l+1
+!        do i=1, num_scatterers
+!           read(cpara(i+3), *) a,b
+!           four_form_tsc(ii,jj,kk, i) = cmplx(a,b, kind=PREC_DP)
+!        enddo
+!     endif
+!  endif
 enddo loop_values
+four_form_tsc(0,0,0, :) = cmplx(1., 1.)
 !
 close(unit=IRD)
+!do kk=-maxhkl(3), maxhkl(3)
+!do jj=-maxhkl(2), maxhkl(2)
+!do ii=-maxhkl(1), maxhkl(1)
+!do i=1, num_scatterers
+!if( abs(real(four_form_tsc(ii,jj,kk,i)))<0.000001 .or. &
+!    abs(imag(four_form_tsc(ii,jj,kk,i)))<0.000001     ) then
+!write(*,'(3i4, 2f9.6)') ii,jj,kk, four_form_tsc(ii,jj,kk,i)
+!endif
+!enddo
+!enddo
+!enddo
+!enddo
+!write(*,*) ' ZEROS ', any(abs(real(four_form_tsc(:,:,:,:)))<0.000001)
+!write(*,*) ' ZEROS ', any(abs(imag(four_form_tsc(:,:,:,:)))<0.000001)
 !
 call discamb_set_form_tsc(cr_nscat)
 !write(*,*) ' FOUND SCATTERERS ', num_scatterers
 !write(*,*) ' FOUND POINTS     ', nr -1 - nhdr, l
-!write(*,'(a,8(''('',f12.6,'','',f12.6,'')''))') ' LAST ', four_form_tsc(num(1),num(2),num(3), :)
+!write(*,'(a,8(''('',f12.6,'','',f12.6,'')''))') ' LAST ', four_form_tsc(num(1),num(2),num(3), 1:min(8,num_scatterers))
+
+i= 1  ! ATOM TYPE 1
+!do j=1, disc_list(i)%isymm(0)
+!  write(*,'(i4, 4(2x,2f10.6))') j, &
+!real(disc_list(i)%four_form_tsc( 1, 1,1   , j)), &
+!imag(disc_list(i)%four_form_tsc( 1, 1,1   , j)), &
+!real(disc_list(i)%four_form_tsc(-1, 1,1   , j)), &
+!imag(disc_list(i)%four_form_tsc(-1, 1,1   , j)), &
+!real(disc_list(i)%four_form_tsc( 1,-1,1   , j)), &
+!imag(disc_list(i)%four_form_tsc( 1,-1,1   , j)), &
+!real(disc_list(i)%four_form_tsc(-1,-1,1   , j)), &
+!imag(disc_list(i)%four_form_tsc(-1,-1,1   , j))
+!enddo
+!write(*,*)
+
+!do j=1, disc_list(i)%isymm(0)
+!  write(*,'(i4, 4(2x,2f10.6))') j, &
+!real(disc_list(i)%four_form_tsc( 1, 1,-1  , j)), &
+!imag(disc_list(i)%four_form_tsc( 1, 1,-1  , j)), &
+!real(disc_list(i)%four_form_tsc(-1, 1,-1  , j)), &
+!imag(disc_list(i)%four_form_tsc(-1, 1,-1  , j)), &
+!real(disc_list(i)%four_form_tsc( 1,-1,-1  , j)), &
+!imag(disc_list(i)%four_form_tsc( 1,-1,-1  , j)), &
+!real(disc_list(i)%four_form_tsc(-1,-1,-1  , j)), &
+!imag(disc_list(i)%four_form_tsc(-1,-1,-1  , j))
+!enddo
+!write(*,*) ' SEARCH FOR ZEROS '
+!do kk=-maxhkl(3), maxhkl(3)
+!do jj=-maxhkl(2), maxhkl(2)
+!do ii=-maxhkl(1), maxhkl(1)
+!do i=1, num_scatterers
+!do j=1,4
+!if( abs(real(disc_list(i)%four_form_tsc(ii,jj,kk,j)))<0.000001 .or. &
+!    abs(imag(disc_list(i)%four_form_tsc(ii,jj,kk,j)))<0.000001     ) then
+!!write(*,'(2i6,3i4, 2f9.6)') i, j, ii,jj,kk, disc_list(i)%four_form_tsc(ii,jj,kk,j)
+!endif
+!enddo
+!enddo
+!enddo
+!enddo
+!enddo
+!write(*,*) ' ZEROS ',  any(abs(real(disc_list(1)%four_form_tsc(:,:,:,1:4)))<0.000001)
+!write(*,*) ' ZEROS ',  any(abs(imag(disc_list(1)%four_form_tsc(:,:,:,1:4)))<0.000001)
 deallocate(cpara)
 deallocate(lpara)
 !deallocate(four_form_tsc)
 cr_is_anis = .true.
+!read(*,*) nr
 !
 end subroutine discamb_read
 !
@@ -287,7 +403,113 @@ integer, intent(in) :: nscat    ! Number of scattering types
 real(kind=PREC_DP), parameter :: TOL = 0.01_PREC_DP!
 !
 integer :: i,j   ! Dummy loop index
+integer :: h,k,l   ! Dummy loop index
+integer :: hl,kl,ll ! Lower bound
+integer :: hh,kh,lh ! upper bound
+integer :: ii,jj,kk ! Dummy indices
+real(kind=PREC_DP), dimension(3)   :: veca, uvw    ! vectors
+real(kind=PREC_DP), dimension(3,3) :: sym   ! Symmetry matrix
+!real(kind=PREC_DP), dimension(3,3) :: viinv ! Inverse matrix to vsteps reciprocal space
+!
+!call matinv(vi, viinv)
+!
+hl = lbound(four_form_tsc,1)
+kl = lbound(four_form_tsc,2)
+ll = lbound(four_form_tsc,3)
+hh = ubound(four_form_tsc,1)
+kh = ubound(four_form_tsc,2)
+lh = ubound(four_form_tsc,3)
+!write(*,*) ' LIMITS ' , hl,kl,ll,  hh,kh,lh
+loop_scat: do i=1, nscat
+   allocate(disc_list(i)%four_form_tsc(hl:hh, kl:kh, ll:lh, disc_list(i)%isymm(0)))
+   disc_list(i)%four_form_tsc(:,:,:,1) = four_form_tsc(:,:,:,i)
+!write(*,*)
+!write(*,'(a,2i3, 8f10.6)') ' iscat',i, 1, disc_list(i)%four_form_tsc(6,6,6,1), &
+!                                          disc_list(i)%four_form_tsc(8,6,6,1), &
+!                                          disc_list(i)%four_form_tsc(6,8,6,1), &
+!                                          disc_list(i)%four_form_tsc(8,8,6,1)
+!write(*,'(a,2i3, 8f10.6)') ' iscat',i, 1, disc_list(i)%four_form_tsc(6,6,8,1), &
+!                                          disc_list(i)%four_form_tsc(8,6,8,1), &
+!                                          disc_list(i)%four_form_tsc(6,8,8,1), &
+!                                          disc_list(i)%four_form_tsc(8,8,8,1)
+!
+   loop_sym: do j=2, disc_list(i)%isymm(0)     ! Loop over all symmetry operations 
+      sym = spc_mat(1:3,1:3, disc_list(i)%isymm(j))
+!if(i==1) then   ! Atom type 1
+!write(*,'(a, 3f5.2)') ' symm(1,:) ', sym(1,:)
+!write(*,'(a, 3f5.2)') ' symm(2,:) ', sym(2,:)
+!write(*,'(a, 3f5.2)') ' symm(3,:) ', sym(3,:)
+!endif
+      do l=ll, lh                    ! Loop over all points in reciprocal space
+         veca(3) = l
+         do k=kl, kh    
+            veca(2) = k
+            do h=hl, hh    
+               veca(1) = h
+               uvw = matmul(veca, sym)
+!if(i==1) then   ! Atom type 1
+!if(abs(h)==11 .and. abs(k)==13 .and. abs(l)==14) then
+!write(*,'(3i4, 3i4,l3)') h,k,l, nint(uvw), all(abs(uvw-nint(uvw))<TOL)
+!endif
+!endif
+               if(all(abs(uvw-nint(uvw))<TOL)) then   ! All indices are integer
+                  ii = nint(uvw(1))
+                  jj = nint(uvw(2))
+                  kk = nint(uvw(3))
+                  if(ii>=hl .and. ii<=hh .and. jj>=kl.and. jj<=kh .and. kk>=ll.and. kk<=lh) then ! Within range
+!if(h==6 .and. k==6 .and. l==6) then
+!write(*,'(a,3i3,3i3,3(2x,3f6.2))') 'VALID ', h,k,l, ii,jj,kk, veca, vecb, uvw
+!endif
+
+                     disc_list(i)%four_form_tsc(h,k,l   , j) = disc_list(i)%four_form_tsc(ii,jj,kk,1)
+                  endif
+               endif
+            enddo
+         enddo
+      enddo
+!write(*,'(a,2i3, 4f10.6, i6)') ' iscat',i, 1, disc_list(i)%four_form_tsc(6,6,6,1), disc_list(i)%four_form_tsc(num(1)-5,num(2)-5,num(3)-7,1), m
+!write(*,'(a,2i3, 8f10.6)') ' iscat',i, j, disc_list(i)%four_form_tsc(6,6,6,j), &
+!                                          disc_list(i)%four_form_tsc(8,6,6,j), &
+!                                          disc_list(i)%four_form_tsc(6,8,6,j), &
+!                                          disc_list(i)%four_form_tsc(8,8,6,j)
+   enddo loop_sym
+!disc_list(i)%four_form_tsc(0,0,0,:) = cmplx(1.,1.)
+!write(*,*)
+!write(*,*) ' ZEROS ', i, any(abs(real(disc_list(i)%four_form_tsc(:,:,:,1  )))<0.000001),  &
+!                         any(abs(imag(disc_list(i)%four_form_tsc(:,:,:,1  )))<0.000001),  &
+!' ',&
+!                         any(abs(real(disc_list(i)%four_form_tsc(:,:,:,2  )))<0.000001),  &
+!                         any(abs(imag(disc_list(i)%four_form_tsc(:,:,:,2  )))<0.000001),  &
+!' ',&
+!                         any(abs(real(disc_list(i)%four_form_tsc(:,:,:,3  )))<0.000001),  &
+!                         any(abs(imag(disc_list(i)%four_form_tsc(:,:,:,3  )))<0.000001),  &
+!' ',&
+!                         any(abs(real(disc_list(i)%four_form_tsc(:,:,:,4  )))<0.000001),  &
+!                         any(abs(imag(disc_list(i)%four_form_tsc(:,:,:,4  )))<0.000001)
+enddo loop_scat
+!
+end subroutine discamb_set_form_tsc
+!
+!*******************************************************************************
+!
+!
+subroutine old_discamb_set_form_tsc(nscat)
+!-
+!  Copy the initial atomic form factors into the full table, apply symmetry
+!+
+use crystal_mod
+use diffuse_mod
+use wyckoff_mod
+!
+use matrix_mod
+!
+integer, intent(in) :: nscat    ! Number of scattering types
+!
+real(kind=PREC_DP), parameter :: TOL = 0.01_PREC_DP!
+!
+integer :: i,j   ! Dummy loop index
 integer :: h,k,l,m ! Dummy loop index
+integer :: il,jl,kl ! Dummy indices
 integer :: ii,jj,kk ! Dummy indices
 real(kind=PREC_DP), dimension(3)   :: veca, vecb, uvw    ! vectors
 real(kind=PREC_DP), dimension(3,3) :: sym   ! Symmetry matrix
@@ -296,8 +518,15 @@ real(kind=PREC_DP), dimension(3,3) :: viinv ! Inverse matrix to vsteps reciproca
 !
 call matinv(vi, viinv)
 !
+il = lbound(four_form_tsc,1)
+jl = lbound(four_form_tsc,2)
+kl = lbound(four_form_tsc,3)
+ii = ubound(four_form_tsc,1)
+jj = ubound(four_form_tsc,2)
+kk = ubound(four_form_tsc,3)
 loop_scat: do i=1, nscat
-   allocate(disc_list(i)%four_form_tsc(num(1), num(2), num(3), disc_list(i)%isymm(0)))
+!   allocate(disc_list(i)%four_form_tsc(num(1), num(2), num(3), disc_list(i)%isymm(0)))
+   allocate(disc_list(i)%four_form_tsc(il:ii, jl:jj, kl:kk, disc_list(i)%isymm(0)))
    disc_list(i)%four_form_tsc(:,:,:,1) = four_form_tsc(:,:,:,i)
 !write(*,*)
 !write(*,'(a,2i3, 8f10.6)') ' iscat',i, 1, disc_list(i)%four_form_tsc(6,6,6,1), &
@@ -350,7 +579,7 @@ loop_scat: do i=1, nscat
 !write(*,*)
 enddo loop_scat
 !
-end subroutine discamb_set_form_tsc
+end subroutine old_discamb_set_form_tsc
 !
 !*******************************************************************************
 !
