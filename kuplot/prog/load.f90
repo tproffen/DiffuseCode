@@ -504,7 +504,7 @@ LOGICAL zz_mod
 INTEGER ifiles
 integer :: node_number
 !
-INTEGER, PARAMETER :: NOPTIONAL = 9
+INTEGER, PARAMETER :: NOPTIONAL =  9
 !INTEGER, PARAMETER :: O_SKIP      = 1
 !INTEGER, PARAMETER :: O_COLX      = 2
 !INTEGER, PARAMETER :: O_COLY      = 3
@@ -522,14 +522,14 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
 !
-DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'layer', 'separator', 'decimal', 'trans'  /
-DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  5     ,  9         ,  7       ,  5       /
+DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'layer', 'separator', 'decimal', 'trans' /
+DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  5     ,  9         ,  7       ,  5      /
 opara  =  (/ '25.000', '1.0000', '2.0000', '0.0000', '0.0000', 'middle',        &
-             ';     ', 'period', 'no    '   /)   ! Always provide fresh default values
+             ';     ', 'period', 'no    '             /)   ! Always provide fresh default values
 lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,        &
-              6      ,  6      ,  2   /)
+              6      ,  6      ,  2           /)
 owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,        &
-             0.0     ,  0.0,      0.0 /)
+             0.0     ,  0.0,      0.0           /)
 !
 !
 allocate(cpara(maxw))
@@ -547,6 +547,8 @@ IF (ier_num.ne.0) then
    deallocate(cpara)
    return
 endif 
+!
+!
 IF (ianz.ge.2) then 
 !                                                                       
 !------- -get file typ                                                  
@@ -720,7 +722,7 @@ IF (ianz.ge.2) then
 !                                                                       
       fform (iz) = unter (1:2)
       IF (unter.eq.'XY') then 
-         CALL read_xy (ifil, ianz, werte, maxw) 
+         CALL read_xy (ifil, ianz, werte, maxw ) 
       ELSEIF (unter.eq.'XX') then 
          CALL read_xx (ifil) 
       ELSEIF (unter.eq.'CR') then 
@@ -1072,18 +1074,19 @@ allocate(np(maxarray))
 !                                                                       
       END SUBROUTINE read_ext                       
 !*****7**************************************************************** 
-      SUBROUTINE read_xyz (ifil, ianz, werte, maxw, dens, zz_mod) 
+!
+SUBROUTINE read_xyz (ifil, ianz, werte, maxw, dens, zz_mod) 
 !+                                                                      
 !     Load xyz files ..                                                 
 !-                                                                      
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
 use kuplot_show_mod
 !
 USE precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 INTEGER, intent(in) :: ifil 
 INTEGER, intent(in) :: ianz 
@@ -3459,7 +3462,7 @@ INTEGER, intent(out) :: bid (nbank)
       END FUNCTION gsas_no_banks                    
 !*****7**************************************************************** 
 !
-SUBROUTINE read_xy (ifil, ianz, werte, maxw) 
+SUBROUTINE read_xy(ifil, ianz, werte, maxw) 
 !+                                                                      
 !     Load x,y or x,y,dx,dy files                                       
 !-                                                                      
@@ -3489,6 +3492,7 @@ INTEGER :: nr, nval, iwex, iwey, iwdx, iwdy, iski
 INTEGER :: i, maxpp 
 INTEGER :: ios      ! I/O status
 INTEGER :: length   ! Character string length
+!
 !                                                                       
 !------ Get correct column numbers                                      
 !                                                                       
@@ -3635,6 +3639,8 @@ USE charact_mod
       USE kuplot_mod 
 use kuplot_show_mod
 !
+use ber_params_mod
+use get_params_mod
 USE precision_mod
 !
 IMPLICIT NONE
@@ -3669,9 +3675,14 @@ INTEGER             :: nr
 INTEGER             :: maxpp
 !INTEGER, DIMENSION(2,4) :: sections
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: limits
+real(kind=PREC_DP), dimension(MAXW) :: werte
+!
+logical :: l_nowidths
 !
 ! Interpret the optional parameters into local variables
 !
+l_nowidths = .true.
+i = len_trim(opara(O_SEPARATOR))
 isep = 0
 IF(opara(O_SEPARATOR)==';' .OR. opara(O_SEPARATOR)=='semicolon' ) THEN
    isep = IACHAR(';')
@@ -3683,11 +3694,28 @@ ELSEIF(opara(O_SEPARATOR)(1:3)=='tab' ) THEN
    isep = 9
 ELSEIF(opara(O_SEPARATOR)(1:5)=='blank' ) THEN
    isep = blank1
+elseif(opara(O_SEPARATOR)(1:1) == '[' .and. opara(O_SEPARATOR)(i:i) == ']') then
+   line = opara(O_SEPARATOR)(2:i-1)
+   length = len_trim(line)
+   call get_params (line, ianz, cpara, lpara, maxw, length) 
+   if(ier_num/=0) return
+   call ber_params (ianz, cpara, lpara, werte, maxw) 
+   allocate(limits(2,ianz))
+   limits = 0
+   limits(1,1) = 1
+   limits(2,1) = nint(werte(1))
+   do i=2, ianz
+      limits(1,i) = limits(2,i-1) + 1
+      limits(2,i) = limits(2,i-1) + nint(werte(i))
+   enddo
+   l_nowidths = .false.
 ELSE
    ier_num = -6
    ier_typ = ER_FORT
    ier_msg(1) = 'Unknown separator'
+   return
 ENDIF
+!
 !
 iskip  = NINT(owerte(O_SKIP))
 icolx  = NINT(owerte(O_COLX))
@@ -3722,6 +3750,7 @@ body: DO
    READ(ifil,'(a)', IOSTAT=ios) line
    length = LEN_TRIM(line)
    IF(ios/=0) EXIT body             ! Error, finish read
+   if(l_nowidths) then
    IF(isep==blank1) THEN
       CALL rem_leading_bl(line,length)
       CALL rem_dbl_bl(line,length)
@@ -3748,6 +3777,7 @@ body: DO
          j = j+1
       ENDIF
    ENDDO
+   endif
 !
    IF(opara(O_DECIMAL)=='comma') THEN
       DO i=1, length
@@ -3783,9 +3813,12 @@ body: DO
       ier_typ = ER_APPL 
       RETURN 
    ENDIF 
+   if(l_nowidths) then
    DEALLOCATE(limits)
+   endif
 !
 ENDDO body
+if(allocated(limits)) deallocate(limits)
 !
 ! Record data set length and show data
 !

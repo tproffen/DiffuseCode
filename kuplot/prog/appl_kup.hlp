@@ -2087,6 +2087,9 @@
               "comma"
               "tab"
               "space" Will take as separator a string of blank(s)
+              "[4,4,4,8,8]" An explicit list of columns widths
+                            The number of elements in [...] must be at 
+                            least as large as the actual columns in the file
    decimal: Character that separates the fractional part of numeric data
             Defaults to a "period", as used in most English speaking areas
               "comma" reads a numerical field "12,34" as 12.34
