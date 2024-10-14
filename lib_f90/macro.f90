@@ -502,7 +502,7 @@ IMPLICIT none
 CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: laenge
 !
-CHARACTER(LEN=PREC_STRING) :: zeile
+CHARACTER(LEN=PREC_STRING) :: zeile, zeile2
 CHARACTER(LEN=PREC_STRING), DIMENSION(1) :: string
 INTEGER :: ndol, nexcl, nquote1, nquote2
 INTEGER :: lpar
@@ -638,11 +638,11 @@ nocomment: IF (line(1:1) /= '#' .AND. line (1:1) /=  '!' .AND. laenge /= 0) THEN
             ENDIF
 !
             IF(.NOT.lblock_read .AND. mac_tree_active%params(n_par)(1:6)=='value(') THEN   ! Evaluate the parametere
-               zeile = mac_tree_active%params(n_par)(7:lpar-1)
+               zeile2 = mac_tree_active%params(n_par)(7:lpar-1)
                lpar   = lpar-2
-               CALL do_eval(zeile, lpar, .FALSE.)
+               CALL do_eval(zeile2, lpar, .FALSE.)
                IF(ier_num/=0) RETURN
-               line (ndol:ndol+lpar-1) = zeile(1:lpar)
+               line (ndol:ndol+lpar-1) = zeile2(1:lpar)
             ELSE
                line (ndol:ndol+lpar-1) = mac_tree_active%params(n_par)(1:lpar)
             ENDIF
