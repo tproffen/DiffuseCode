@@ -303,8 +303,8 @@ INTEGER              :: k ! Dummy loop variable
 integer :: tid
 integer :: nthreads
 logical :: lserial
-character(len=PREC_STRING) :: string
-integer :: iix
+!character(len=PREC_STRING) :: string
+!integer :: iix
 !
 tid = 0
 nthreads = 1
@@ -2011,6 +2011,8 @@ loopix: do iix=1, data_dim(1)
 !
       if(data_sigma(iix,iiy,iiz)>0.0D0) then
          sig2i =1./(data_sigma(iix,iiy,iiz)*data_sigma(iix,iiy,iiz))
+      elseif(data_sigma(iix,iiy,iiz)<-1000.0D0) then
+         cycle loopiz
       else
          sig2i = 1.0e-9
       endif
@@ -2081,15 +2083,17 @@ sumn = 0.0
 !
 DO iiz = 1, ref_dim(3)
 DO iiy = 1, ref_dim(2)
-   DO iix = 1, ref_dim(1)
+   loop_inner: DO iix = 1, ref_dim(1)
       IF(ref_sigma(iix,iiy,iiz)> 0.0) THEN
          wght = 1./(ref_sigma(iix,iiy,iiz))**2
-      ELSE
+      elseif(ref_sigma(iix,iiy,iiz)<-1000.0) then
+         cycle loop_inner
+      else
          wght = 1.0
       ENDIF
       sumz = sumz + wght*(ref_data(iix,iiy, iiz)-refine_calc(iix,iiy, iiz))**2
       sumn = sumn + wght*(ref_data(iix,iiy, iiz)                     )**2
-   ENDDO
+   ENDDO loop_inner
 ENDDO
 ENDDO
 !endif cond_type
@@ -2148,10 +2152,12 @@ sumn = 0.0
 do j=-2, 2
 DO iiz = 1, ref_dim(3)
 DO iiy = 1, ref_dim(2)
-   DO iix = 1, ref_dim(1)
+   loop_inner: DO iix = 1, ref_dim(1)
       IF(ref_sigma(iix,iiy,iiz)> 0.0) THEN
          wght = 1./(ref_sigma(iix,iiy,iiz))**2
-      ELSE
+      elseif(ref_sigma(iix,iiy,iiz)<-1000.0) then
+         cycle loop_inner
+      else
          wght = 1.0
       ENDIF
 if(j==0) then
@@ -2160,7 +2166,7 @@ else
       sumz = sumz + wght*(ref_data(iix,iiy, iiz)-refine_tttt(iix,iiy, iiz,j))**2
 endif
       sumn = sumn + wght*(ref_data(iix,iiy, iiz)                     )**2
-   ENDDO
+   ENDDO loop_inner
 ENDDO
 ENDDO
 !endif cond_type

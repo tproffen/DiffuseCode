@@ -148,7 +148,7 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
          ALLOCATE(ref_y     (ref_dim(2)))
          ALLOCATE(ref_z     (ref_dim(3)))
          ref_data  =  0.0D0
-         ref_sigma = -1.0D0
+         ref_sigma = -10000.0D0     ! Flags a missing data point
          i1 =  (ref_dim(1)-1)/2 + nint(ik1_x(1)) + 1
          j1 =  (ref_dim(2)-1)/2 + nint(ik1_y(1)) + 1
          k1 =  (ref_dim(3)-1)/2 + nint(ik1_z(1)) + 1
@@ -159,7 +159,7 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
 !        ref_sigma(i1:i2, j1:j2, k1:k2) = ik1_sigma
          ref_data                       = ik1_data
          ref_sigma                      = ik1_sigma
-         where(ref_sigma<=0.0D0) 
+         where(ref_sigma<=0.0D0 .and. ref_sigma>-1000.0D0) 
             ref_sigma = 9D19
          end where
 !        do iix=1,ref_dim(1)
