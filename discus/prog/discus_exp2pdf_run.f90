@@ -319,7 +319,7 @@ if(.not. exp_comp_current) then     ! We cannot use current structure
    cpara(7)   = 'abc'
    lpara(7)   = 3
    ianz = 6
-   call do_readfree(ianz, maxw, cpara, lpara, cpara(7), lpara(7))
+   call do_readfree(ianz, maxw, cpara, lpara, 1, cpara(7), lpara(7))
    CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,      &
         cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
         cr_fmat, cr_cartesian,                                      &
