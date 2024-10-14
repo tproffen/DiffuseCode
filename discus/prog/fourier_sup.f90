@@ -109,7 +109,7 @@ enddo
 IF (ier_num.ne.0) return 
 !
 if(diff_table==RAD_DISC) then
-   call discamb_read(diff_file)
+   call discamb_read(diff_file, diff_trust)
    call four_dbwtab
    ldiscamb = .TRUE.
 else
@@ -311,11 +311,12 @@ END SUBROUTINE four_run
 !
 subroutine four_run_nufft
 !-
-!  Interface to Non-uniform FFT 
+!  Interface to Non-uniform FFT , form factors are from IT or Waasmeier
 !+
 !
 use crystal_mod
 use diffuse_mod
+use discamb_mod
 use four_finufft 
 USE fourier_conv_mod
 use fourier_lmn_mod
@@ -345,6 +346,7 @@ integer, dimension(3) :: NQXYZ    ! Actual data points in FFT array
 logical, dimension(3) :: ll_dim   ! This dimension is not flat
 logical, dimension(3) :: ll_dim_rec   ! This reciprocal dimension is not flat
 logical               :: four_is_new  ! The reciprocal space dimensions have changed
+logical :: ldiscamb     ! Aspherical atomic form factor is used
 !
 integer              , dimension(3)              :: lscales  ! Scaling if iscale > MAXSCALE
 integer              , dimension(3)              :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
@@ -370,7 +372,7 @@ data c_hkl  /'h', 'k', 'l'/
 !
 ss = seknds (0.0) 
 !
-call four_cexpt 
+!call four_cexpt 
 !
 is_dim = 0           ! Assume zero dimensional crystal
 ll_dim = .false.     ! Assume all dimensions to be flat
@@ -403,10 +405,6 @@ do j=1,3
             exit loop_scale
          endif
       enddo loop_scale
-!     iscales(j) = int((scales(j)+EPS)/MAXSCALE) + 1      ! Adapt iscales to smallest possible integer
-!if(j==3) iscales(j) = 10
-!     scales(j)  = scales(j) / real(iscales(j),kind=PREC_DP) ! Corrrect scales> iscales*scales=original_scales
-!     idims(j)   = iscales(j)*(inc(j)-1)+1                ! Adapt data points for FINUFFT
    else
       lscales(j) = 1
       iscales(j) = nint(scales(j))                        ! Scales is small enough
@@ -464,22 +462,21 @@ do i=1,3
    endif
 enddo
 !
-! Calculate average structure factor
-!
-!if(fave > 0.0D0) then
-!   call four_aver_finufft(is_dim, ll_dim)
-!   if(ier_num/=0) return
-!else
-!!
-!   acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
-!endif
-!                                                                                                                                              
 !------ preset some values                                              
 !                                                                       
 call four_layer(four_is_new)   ! copy eck, vi
 call fourier_lmn(eck,vi,inc,lmn,off_shift)
 call four_stltab               ! set up sin(theta)/lambda table
-call four_formtab              ! Calculate atomic form factors
+!call four_formtab              ! Calculate atomic form factors
+!
+if(diff_table==RAD_DISC) then
+   call discamb_read(diff_file, diff_trust)
+   call four_dbwtab
+   ldiscamb = .TRUE.
+else
+   call four_formtab
+   ldiscamb = .FALSE.
+endif
 !
 !  Clear Fourier arrays 
 !
@@ -645,34 +642,7 @@ deallocate(fcsf)
 if(fave > 0.0D0) then
    call four_aver_finufft_n(is_dim, ll_dim)
 endif
-!AV!if(fave > 0.0D0) then
-!AV!   call four_aver_finufft(is_dim, ll_dim)
-!AV!write(*,*) ' DONE  FINUFFT 2D AVERAGE', ier_num
-!AV!   if(ier_num/=0) return
-!AV!else
-!AV!   acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0))
-!AV!endif
-!write(*,*) '  CSF ', maxval(real( csf)), maxval(imag( csf))
-!write(*,*) 'csf   ', csf(1,1,1)
-!write(*,*) 'csf   ', csf(2,2,2)
-!write(*,*) 'csf   ', csf(20,20,20)
-!write(*,*) 'csf   ', csf(21,21,21)
-!i = (num(1)+1)/2
-!j = (num(2)+1)/2
-!k = (num(3)+1)/2
-!write(*,*) ' ikl cent      ', i,j,k
-!do k=1, num(3)
-!write(*,*) ' SUBTRACT  CSF ',csf(i,j,k) , i,j,k
-!enddo
-!k = (num(3)+1)/2
-!write(*,*) ' SUBTRACT ACSF ',acsf(i,j,k)
-!write(*,*) '  CSF ' , ubound( csf)
-!write(*,*) ' ACSF ' , ubound(acsf)
-!write(*,*) 'csf   ', csf( 1, 1,11) , acsf( 1, 1,11)
-!write(*,*) 'csf   ', csf( 1, 6,11) , acsf( 1, 6,11)
-!write(*,*) 'csf   ', csf(11,11,11) , acsf(11,11,11)
-!write(*,*) 'csf   ', csf(21,21,21) , acsf(21,21,21)
-!csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) - acsf(1:num(1),1:num(2),1:num(3))
+!
 do i=1, num(1)
    do j=1, num(2)
       do k=1, num(3)
@@ -681,18 +651,6 @@ do i=1, num(1)
       enddo
    enddo
 enddo
-!write(*,*) ' DELTA ', (num(1)-1)/4, (num(2)-1)/4, (num(3)-1)/4
-!do i=1, num(1), (num(1)-1)/4
-!   do j=1, num(2), (num(2)-1)/4
-!      do k=1, num(3), (num(3)-1)/4
-!         dsi(i,j,k) =     0.0D0
-!      enddo
-!   enddo
-!enddo
-!
-!call four_weight               ! Correct the relative weight of Bragg and diffuse
-!call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
-!                    four_filter, FOUR_FILTER_LANCZOS, dsi)
 !
 call four_weight               ! Correct the relative weight of Bragg and diffuse
 call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
@@ -701,72 +659,6 @@ if(fave==0.0D0) then
    call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
                        four_filter, FOUR_FILTER_LANCZOS, dsi3d)
 endif
-!if(four_filter==FOUR_FILTER_LANCZOS) then
-!   cond_dim_b: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
-!      allocate( infield_3d(num(1), num(2), num(3)))
-!      allocate(outfield_3d(num(1), num(2), num(3)))
-!      ii = 0
-!      do i=1, num(1)
-!         do j=1, num(2)
-!            do k=1, num(3)
-!               ii = ii + 1
-!               infield_3d(i,j,k) = dsi(i,j,k)
-!            enddo
-!         enddo
-!      enddo
-!      call do_lanczos(four_rscale, four_damp, four_width, num, infield_3d,   &
-!                   num, outfield_3d, .true.)
-!      ii = 0
-!      do i=1, num(1)
-!         do j=1, num(2)
-!            do k=1, num(2)
-!               ii = ii + 1
-!               dsi(i,j,k) = outfield_3d(i,j,k) 
-!            enddo
-!         enddo
-!      enddo
-!      deallocate( infield_3d)
-!      deallocate(outfield_3d)
-!   elseif(is_dim==2) then  cond_dim_b
-!      allocate( infield_2d(num(1), num(2)))
-!      allocate(outfield_2d(num(1), num(2)))
-!      ii = 0
-!      do i=1, num(1)
-!         do j=1, num(2)
-!            ii = ii + 1
-!            infield_2d(i,j) = dsi(i,j,1)
-!         enddo
-!      enddo
-!      call do_lanczos(four_rscale, four_damp, four_width, num(1:2), infield_2d,   &
-!                   num(1:2), outfield_2d, .true.)
-!      ii = 0
-!      do i=1, num(1)
-!         do j=1, num(2)
-!            ii = ii + 1
-!            dsi(i,j,1) = outfield_2d(i,j) 
-!         enddo
-!      enddo
-!      deallocate( infield_2d)
-!      deallocate(outfield_2d)
-!   elseif(is_dim==1) then  cond_dim_b
-!      allocate( infield_1d(num(1)))
-!      allocate(outfield_1d(num(1)))
-!      ii = 0
-!      do i=1, num(1)
-!         ii = ii + 1
-!         infield_1d(i) = dsi(i,1,1)
-!      enddo
-!      call do_lanczos(four_rscale, four_damp, four_width, num(1), infield_1d,   &
-!                   num(1), outfield_1d, .true.)
-!      ii = 0
-!      do i=1, num(1)
-!         ii = ii + 1
-!         dsi(i,1,1) = outfield_1d(i) 
-!      enddo
-!      deallocate( infield_1d)
-!      deallocate(outfield_1d)
-!   endif cond_dim_b
-!endif
 !
 call four_conv           ! Convolute diffraction pattern
 call four_accumulate
@@ -781,6 +673,389 @@ endif
  4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
 !
 end subroutine four_run_nufft
+!
+!**********************************************************************
+!
+subroutine four_run_nufft_discamb
+!-
+!  Interface to Non-uniform FFT , form factors are from DISCAMB
+!+
+!
+use crystal_mod
+use diffuse_mod
+use discamb_mod
+use four_finufft 
+USE fourier_conv_mod
+use fourier_lmn_mod
+use symmetrize_mod
+!
+use do_lanczos_mod
+use errlist_mod
+use param_mod
+use precision_mod
+use prompt_mod
+use support_mod
+use lib_write_mod
+!
+implicit none
+!
+real(kind=PREC_DP), parameter :: EPS=1.0D-8
+real(kind=PREC_DP), parameter :: MAXSCALE=3.0D0      ! Maximum scale allowed by FINUFFT
+integer               :: i, j, k, l  ! Dummy index
+integer               :: ii       ! Dummy index
+integer               :: iscat    ! Dummy scattering type
+integer               :: ianis    ! Loop indec ADP type
+integer               :: isym     ! Loop ovre Symmetries
+integer, dimension(:), allocatable :: nat      ! Atom number
+integer               :: is_dim   ! Crystal is of this dimension
+integer               :: is_dim_rec   ! Diffraction pattern is of this dimension
+integer, dimension(3) :: ncells   ! Number unit cells in relevant region
+integer, dimension(3) :: idims    ! Number of data points in FFT
+integer, dimension(3) :: NQXYZ    ! Actual data points in FFT array
+logical, dimension(3) :: ll_dim   ! This dimension is not flat
+logical, dimension(3) :: ll_dim_rec   ! This reciprocal dimension is not flat
+logical               :: four_is_new  ! The reciprocal space dimensions have changed
+logical :: ldiscamb     ! Aspherical atomic form factor is used
+!
+integer              , dimension(3)              :: lscales  ! Scaling if iscale > MAXSCALE
+integer              , dimension(3)              :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
+real(kind=PREC_DP)   , dimension(3)              :: scales  ! Scaling if DELTA (hkl) /= 1/cr_icc
+real(kind=PREC_DP)   , dimension(3)              :: shift   ! Shift atom positions towards Center of mass
+real(KIND=PREC_DP) :: ss                                    ! Timing variable
+real(kind=PREC_DP)   , dimension(:,:), allocatable :: xpos    ! atom coordinates, fractional
+real(kind=PREC_DP)   , dimension(:,:), allocatable :: ypos    ! atom coordinates, fractional
+real(kind=PREC_DP)   , dimension(:,:), allocatable :: zpos    ! atom coordinates, fractional
+complex(kind=PREC_DP), dimension(:,:,:), allocatable :: fcsf    ! complex structure factor from FINUFFT
+!
+integer, dimension(:,:), allocatable :: four_list
+!
+!real(kind=PREC_DP)   , dimension(:    ), allocatable :: infield_1d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:,:  ), allocatable :: infield_2d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:,:,:), allocatable :: infield_3d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:    ), allocatable ::outfield_1d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:,:  ), allocatable ::outfield_2d    ! input into LANCZOS
+!real(kind=PREC_DP)   , dimension(:,:,:), allocatable ::outfield_3d    ! input into LANCZOS
+!
+character(len=1), dimension(3) :: c_hkl
+character(len=8), dimension(3) :: c_axes
+data c_axes /'abscissa', 'ordinate', 'top axis'/
+data c_hkl  /'h', 'k', 'l'/
+!
+ss = seknds (0.0) 
+!
+!call four_cexpt 
+!
+is_dim = 0           ! Assume zero dimensional crystal
+ll_dim = .false.     ! Assume all dimensions to be flat
+do i=1,3
+   if((cr_dim(i,2)-cr_dim(i,1)>eps .and. cr_icc(i)>1) .or. abs(vi(i,i))>eps ) then
+      is_dim = is_dim + 1                    ! Found a non-flat dimension
+      ll_dim(i) = .true.                     ! dimension i is non-flat
+   endif
+enddo
+!write(*,*) ' DIMENSION ', is_dim, ll_dim
+is_dim = 3
+ll_dim = .true.
+!                                                         ! Get point ratio for reciprocal space
+idims = 1                                                 ! Default to 1 data point along each axis in reciprocal space
+iscales = 1                                               ! Default to scale 1
+lscales = 1                                               ! Default to scale 1
+scales(1) = abs(vi(1,1)*real(cr_icc(1), kind=PREC_DP))    ! Currently parallel a*!
+scales(2) = abs(vi(2,2)*real(cr_icc(2), kind=PREC_DP))    ! Currently parallel b*!
+scales(3) = abs(vi(3,3)*real(cr_icc(3), kind=PREC_DP))    ! Currently parallel c*!
+!write(*,'(a,4f5.1,3i5,3i5)') ' scales ', scales, MAXSCALE
+do j=1,3
+   if(scales(j)>MAXSCALE) then                            ! Scales must be < MAXSCALE
+      ii = nint(scales(j))
+      loop_scale: do l=2, ii
+         if(scales(j)/l<=MAXSCALE .and. (abs(scales(j)/l - int(scales(j)/l))<0.01D0)) then
+            lscales(j) = l
+            scales(j)  = scales(j)/l
+            iscales(j) = nint(scales(j))
+            idims(j)   = iscales(j)*(inc(j)-1)+1
+            exit loop_scale
+         endif
+      enddo loop_scale
+   else
+      lscales(j) = 1
+      iscales(j) = nint(scales(j))                        ! Scales is small enough
+      idims(j)   = iscales(j)*(inc(j)-1)+1                ! == idims = inc
+   endif
+   idims(j) = inc(j)
+enddo
+!write(*,'(a,4f5.1,3i5,3i5, 3i5)') ' scales ', scales, MAXSCALE, iscales,idims, lscales
+!
+!  Error checks: Scale = cr_icc*vi must be integer
+!                1/vi              must be integer
+if(fave/=0.0D0) then
+   do i=1, 3
+      if(abs(    abs(vi(i,i)*real(cr_icc(i), kind=PREC_DP))-                        &
+            nint(abs(vi(i,i)*real(cr_icc(i), kind=PREC_DP))))>0.0D0) then
+        if(abs(scales(i)-nint(scales(i)))>EPS) then
+           ier_num = -186
+           ier_typ = ER_APPL
+           ier_msg(1) = 'Increment vector along ' // c_axes(i)
+           return
+        endif
+         if(abs(1.D0/vi(i,i)-nint(1.D0/(vi(i,i))))>EPS ) then
+            ier_num = -187
+            ier_typ = ER_APPL
+            ier_msg(1) = 'Increment vector along ' // c_axes(i)
+            write(ier_msg(2),'(a7, a1, a4,f10.6)') '1/step(',c_hkl(i),') = ',1.D0/vi(i,i)
+            return
+         endif
+         if(mod(inc(i),2)==1) then
+            j = 1
+         else
+            j = 0
+         endif
+         if(abs(eck(i,1) + (inc(i)-j)/2*vi(i,i))>EPS) then  
+            ier_num = -188
+            ier_typ = ER_APPL
+            ier_msg(1) = 'Increment vector along ' // c_axes(i)
+            write(ier_msg(2), '(a17,a1,a3,f10.6)') 'Shift corners by ', c_hkl(i),  &
+                              ' = ',eck(i,1) + (inc(i)-j)/2*vi(i,i)
+            return
+         endif
+      endif
+   enddo
+endif
+!
+NQXYZ   = inc
+call four_layer(four_is_new)   ! copy eck, vi
+call fourier_lmn(eck,vi,inc,lmn,off_shift)
+is_dim_rec = 0           ! Assume zero dimensional cwreciprocal spacecrystal
+ll_dim_rec = .false.     ! Assume all dimensions to be flat
+do i=1,3
+   if(num(i)>1) then
+      is_dim_rec = is_dim_rec + 1                    ! Found a non-flat dimension
+      ll_dim_rec(i) = .true.                     ! dimension i is non-flat
+   endif
+enddo
+!
+!------ preset some values                                              
+!                                                                       
+call four_layer(four_is_new)   ! copy eck, vi
+call fourier_lmn(eck,vi,inc,lmn,off_shift)
+call four_stltab               ! set up sin(theta)/lambda table
+!call four_formtab              ! Calculate atomic form factors
+!
+if(diff_table==RAD_DISC) then
+   call discamb_read(diff_file, diff_trust)
+   call four_dbwtab
+   ldiscamb = .TRUE.
+else
+   call four_formtab
+   ldiscamb = .FALSE.
+endif
+!
+!  Clear Fourier arrays 
+!
+csf(1:num(1),1:num(2),1:num(3))  = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
+dsi(1:num(1),1:num(2),1:num(3))  = 0.0d0
+!
+!------------------------------------------------------------------------------------------------------------------------------------------------------
+!
+shift(1) = -real(int((cr_dim(1,2)+cr_dim(1,1))*0.5D0), kind=PREC_DP)
+shift(2) = -real(int((cr_dim(2,2)+cr_dim(2,1))*0.5D0), kind=PREC_DP)
+shift(3) = -real(int((cr_dim(3,2)+cr_dim(3,1))*0.5D0), kind=PREC_DP)
+!
+! Loops over atom types, symmetries that generated these atoms, different ADPs
+!
+loop_atoms_disc: DO iscat = 1, cr_nscat       ! Loop over all atom types
+         loop_symm: do k=1,disc_list(iscat)%isymm(0) ! Loop over all symmetries that generated thes atom types
+            isym = disc_list(iscat)%isymm(k)
+            loop_discamb_ianis: do j=1, four_list(iscat,0)     ! Loop over all different ADPs
+               ianis = four_list(iscat,j)
+enddo loop_discamb_ianis
+enddo loop_symm
+enddo loop_atoms_disc
+!
+cond_dim: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
+!
+   allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
+!
+   allocate(nat (             0:cr_nscat))
+   allocate(xpos(1:cr_natoms, 0:cr_nscat))
+   allocate(ypos(1:cr_natoms, 0:cr_nscat))
+   allocate(zpos(1:cr_natoms, 0:cr_nscat))
+   ncells = cr_icc
+   xpos = 0.0D0
+   ypos = 0.0D0
+   zpos = 0.0D0
+   nat = 0
+   loop_atom3: do i=1, cr_natoms               ! Loop over all atoms
+      k = cr_iscat(1,i)
+      nat(k) = nat(k) + 1
+      xpos(nat(k),k) = cr_pos(1,i) + shift(1)
+      ypos(nat(k),k) = cr_pos(2,i) + shift(2)
+      zpos(nat(k),k) = cr_pos(3,i) + shift(3)
+   enddo loop_atom3
+   loop_scat3:do iscat=1,cr_nscat                 ! Loop over all atom types
+!
+      call four_strucf_3d(cr_natoms, nat(iscat), ncells, idims, NQXYZ, &
+                         xpos(:,iscat), ypos(:,iscat),     &
+                         zpos(:,iscat), cr_occ(iscat),iscales, lscales, scales, fcsf)
+      call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
+      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))  ! Add to complex structure factor
+   enddo loop_scat3
+   deallocate(nat)
+   deallocate(xpos)
+   deallocate(ypos)
+   deallocate(zpos)
+elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 222222222222222222222222
+   allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
+  ! 
+   j = findloc(inc   , 1      , 1)      ! Find     flat dimension in reciprocal space
+   if(j==3) then             ! 3 is flat, set dimension 3 to 1
+      lscales(3) = 1
+      iscales(3) = 1
+      scales(3)  = 1
+      idims(3)   = 1
+   elseif(j==2) then         ! 2 is flat, 1 remains, 3 is copied down to 2
+      lscales(2) = iscales(3)
+      lscales(3) = 1
+      iscales(2) = iscales(3)
+      iscales(3) = 1
+      scales(2)  = scales(3)
+      scales(3)  = 1
+      idims(2)   = idims(3)
+      idims(3)   = 1
+   elseif(j==1) then         ! 1 is flat, 2;3 each copied down one element
+      lscales(1) = iscales(2)
+      lscales(2) = iscales(3)
+      lscales(3) = 1
+      iscales(1) = iscales(2)
+      iscales(2) = iscales(3)
+      iscales(3) = 1
+      scales(1)  = scales(2)
+      scales(2)  = scales(3)
+      scales(3)  = 1
+      idims(1)   = idims(2)
+      idims(2)   = idims(3)
+      idims(3)   = 1
+   endif
+   idims(3) = 1
+   j = findloc(ll_dim, .false., 1)      ! Find     flat dimension in direct space
+   allocate(nat (             0:cr_nscat))
+   allocate(xpos(1:cr_natoms, 0:cr_nscat))
+   allocate(ypos(1:cr_natoms, 0:cr_nscat))
+   allocate(zpos(1:cr_natoms, 0:cr_nscat))
+   xpos = 0.0D0
+   ypos = 0.0D0
+   zpos = 0.0D0
+   nat = 0
+   loop_atom2: do i=1, cr_natoms               ! Loop over all atoms
+      k = cr_iscat(1,i)
+      nat(k) = nat(k) + 1
+      xpos(nat(k),k) = cr_pos(1,i) + shift(1)
+      ypos(nat(k),k) = cr_pos(2,i) + shift(2)
+      zpos(nat(k),k) = cr_pos(3,i) + shift(3)
+   enddo loop_atom2
+   loop_scat2:do iscat=1,cr_nscat                 ! Loop over all atom types
+!
+      fcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
+!
+      if(j==3) then                               ! x-y crystal
+         ncells(1) = cr_icc(1)
+         ncells(2) = cr_icc(2)
+         ncells(3) = 1
+         call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
+                             xpos(:,iscat), ypos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
+      elseif(j==2) then                           ! x-z crystal
+         ncells(1) = cr_icc(1)
+         ncells(2) = cr_icc(3)
+         ncells(3) = 1
+         call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
+                             xpos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
+      elseif(j==3) then                           ! y-z crystal
+         ncells(1) = cr_icc(2)
+         ncells(2) = cr_icc(3)
+         ncells(3) = 1
+         call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
+                             ypos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
+      endif
+!call tofile((/num(1),num(2)/),'nufft_2d.dat',real(fcsf(:,:,1),kind=PREC_DP),(/-4.0D0, -4.0D0/),(/-0.1D0, -0.1D0/))
+      call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
+!                                                ! Add to complex structure factor
+      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))
+   enddo loop_scat2
+!
+   deallocate(nat)
+   deallocate(xpos)
+   deallocate(ypos)
+   deallocate(zpos)
+!
+elseif(is_dim==1) then cond_dim                   ! 1-D crystal 11111111111111111111111
+   !
+   allocate(fcsf(1:inc(1),1:inc(2),1:inc(3))) 
+   j = findloc(ll_dim, .true., 1)                 ! Find non-flat dimension
+   allocate(nat(0:cr_nscat))
+   allocate(xpos(1:cr_natoms, 0:cr_nscat))
+!
+      nat = 0
+      xpos = 0.0D0
+      loop_atom1: do i=1, cr_natoms               ! Loop over all atoms
+         k = cr_iscat(1,i)
+         nat(k) = nat(k) + 1                         ! Increment atom number
+         xpos(nat(k),k) = cr_pos(j,i) + shift(j)    ! Copy atoms
+      enddo loop_atom1
+   loop_scat1:do iscat=1,cr_nscat                 ! Loop over all atom types
+      !
+      fcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
+      !
+      call four_strucf_1d(cr_natoms, nat(iscat), cr_icc(j), idims(j), NQXYZ, xpos(:,iscat),     &
+                          cr_occ(iscat),iscales(j), lscales(j), scales(j), fcsf)
+      call tcsf_form(iscat, .true., NQXYZ, fcsf)  ! Multiply with atomic form factor
+!                                                 ! Add to complex structure factor
+      !
+      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))   ! And yet, here we go again to num(i).
+      !
+   enddo loop_scat1
+   deallocate(nat)
+   deallocate(xpos)
+!
+endif cond_dim
+!
+deallocate(fcsf)          
+!
+!
+! Calculate average structure factor
+!
+if(fave > 0.0D0) then
+   call four_aver_finufft_n(is_dim, ll_dim)
+endif
+!
+do i=1, num(1)
+   do j=1, num(2)
+      do k=1, num(3)
+         dsi(i,j,k) = max(0.0D0, dble(csf(i,j,k) * conjg(csf(i,j,k))))! &
+!                              - dble(acsf(i,j,k) * conjg(acsf(i,j,k))))
+      enddo
+   enddo
+enddo
+!
+call four_weight               ! Correct the relative weight of Bragg and diffuse
+call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
+                    four_filter, FOUR_FILTER_LANCZOS, dsi)
+if(fave==0.0D0) then
+   call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
+                       four_filter, FOUR_FILTER_LANCZOS, dsi3d)
+endif
+!
+call four_conv           ! Convolute diffraction pattern
+call four_accumulate
+!
+ss = seknds (ss) 
+if(four_log) then 
+   write(output_io, 4000) ss 
+   res_para(1) = ss
+   res_para(0) = 1
+endif 
+!
+ 4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
+!
+end subroutine four_run_nufft_discamb
 !
 !**********************************************************************
 !**********************************************************************

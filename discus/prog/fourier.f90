@@ -24,6 +24,7 @@ USE external_four
 use fourier_conv_mod
 USE fourier_sup
 USE fourier_reset_mod
+use guess_atoms_mod
 USE get_iscat_mod
 USE modify_mod
 USE output_mod 
@@ -78,17 +79,19 @@ INTEGER              :: n_natoms ! required no of atoms
 INTEGER              :: four_dim ! Dimension of Fourier that was calculated
 INTEGER, DIMENSION(3):: csize
 LOGICAL              :: ldim 
+logical              :: lexist   ! Test if file exists
 logical              :: ltop_c = .false. ! the top left corner coordinates have been defined
 logical              :: ltop_n = .false. ! the top left corner point number has been defined
 REAL(kind=PREC_DP)   , DIMENSION(3)::  divis
 REAL(kind=PREC_DP)   , DIMENSION(3)::  rhkl
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 5
+INTEGER, PARAMETER :: NOPTIONAL = 6
 !INTEGER, PARAMETER :: O_MODE    = 1   ! used in subroutines
 !INTEGER, PARAMETER :: O_SYMM    = 2   ! used in subroutines
 INTEGER, PARAMETER :: O_TABLE   = 3
 !INTEGER, PARAMETER :: O_TECHN   = 4   ! used in subroutines
 INTEGER, PARAMETER :: O_FILE    = 5
+INTEGER, PARAMETER :: O_TRUST   = 6
 CHARACTER(LEN=   9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -97,12 +100,12 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'mode', 'symm'  , 'table', 'technique', 'file'/
-DATA loname /  4    ,  4      ,  5     ,  9         ,  4    /
+DATA oname  / 'mode', 'symm'  , 'table', 'technique', 'file', 'trust'/
+DATA loname /  4    ,  4      ,  5     ,  9         ,  4    ,  5     /
 opara  =  (/ '0.0000    ', '0.0000    ', 'waas      ', 'turbo     ' , &
-             'discus.tsc'/) ! Always provide fresh default values
-lopara =  (/  6      ,  6      ,  4      ,  5       ,  10         /)
-owerte =  (/  0.0D0  ,  0.0D0  ,  0.0D0  ,  0.0D0   ,  0.0D0      /)
+             'discus.tsc', 'read      '/) ! Always provide fresh default values
+lopara =  (/  6      ,  6      ,  4      ,  5       ,  10     , 4       /)
+owerte =  (/  0.0D0  ,  0.0D0  ,  0.0D0  ,  0.0D0   ,  0.0D0  , 0.00D0  /)
 !
 !
 !
@@ -692,6 +695,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
 !                ENDIF
 !              ENDIF
 !              IF (inc (1) * inc (2) * inc(3) .le.MAXQXY) then 
+               call guess_atom_all
                if(inc(1)<=MAXQXY(1) .and. inc(2)<=MAXQXY(2) .and. inc(3)<=MAXQXY(3)) then
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_table, diff_power) 
@@ -706,7 +710,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                         if(four_tech == FOUR_TURBO) then
                            CALL four_run 
                         elseif(four_tech == FOUR_NUFFT) then
-                           call four_run_nufft
+                           if(diff_table==RAD_DISC) then
+                              call four_run_nufft_discamb
+!                                  four_run_nufft_discamb
+                           else
+                              call four_run_nufft
+                           endif
                         endif
                      ENDIF 
                   ELSE 
@@ -808,6 +817,7 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
 !     Show the current settings for the Fourier 'show'                  
 !                                                                       
             ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
+               call guess_atom_all
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num == 0) THEN 
                   IF(str_comp(cpara(1), 'scat', 4, lpara(1), 4)) THEN
@@ -947,6 +957,13 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
                elseif(opara(O_TABLE)(1:4)=='disc') then
                   diff_table= RAD_DISC
                   diff_file = opara(O_FILE)
+                  diff_trust = opara(O_TRUST)
+                  inquire(file=diff_file, exist=lexist)
+                  if(.not.lexist) then
+                     ier_num = -197
+                     ier_typ = ER_APPL
+                     ier_msg(1) = 'File '//diff_file(1:len_trim(diff_file))
+                  endif
                endif
 !                                                                       
 !     set a zone axis pattern calculation
