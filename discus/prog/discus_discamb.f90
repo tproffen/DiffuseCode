@@ -207,7 +207,6 @@ loop_init: do
 enddo loop_init
 ntotal = nr
 close(IRD) 
-!write(*,*) ' TOTAL LINE NUMBERS ' , ntotal, ' HKL ', maxhkl
 !
 call oeffne(IRD, tscfile, 'old')
 if(ier_num /=0) then
