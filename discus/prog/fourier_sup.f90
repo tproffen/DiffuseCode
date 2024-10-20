@@ -163,11 +163,11 @@ loop_lots: DO nlot = 1, nlots
       lform = .FALSE.
       is_anis = .TRUE.
       loop_atoms_disc: DO iscat = 1, cr_nscat       ! Loop over all atom types
-         loop_symm: do k=1,disc_list(iscat)%isymm(0) ! Loop over all symmetries that generated thes atom types
+         loop_symm: do k=1,disc_list(iscat)%isymm(0) ! Loop over all symmetries that generated these atom types
             isym = disc_list(iscat)%isymm(k)
             loop_discamb_ianis: do j=1, four_list(iscat,0)     ! Loop over all different ADPs
                ianis = four_list(iscat,j)
-               call four_getatm_discamb(iscat, isym, ianis, ilots, lbeg, ncell) 
+               call four_getatm_discamb(iscat, isym, ianis, ilots, lbeg, ncell)
                call four_strucf(iscat, lform, ldiscamb, cr_is_anis, k, ianis, fnum) 
 !                                                                       
 !------ --- Add this part of the structur factor to the total           
@@ -320,6 +320,7 @@ use discamb_mod
 use four_finufft 
 USE fourier_conv_mod
 use fourier_lmn_mod
+use fourier_form_generic
 use symmetrize_mod
 !
 use do_lanczos_mod
@@ -332,9 +333,12 @@ use lib_write_mod
 !
 implicit none
 !
+logical           , parameter :: lnufft = .TRUE.
+logical           , parameter :: lform  = .TRUE.
 real(kind=PREC_DP), parameter :: EPS=1.0D-8
 real(kind=PREC_DP), parameter :: MAXSCALE=3.0D0      ! Maximum scale allowed by FINUFFT
 integer               :: i, j, k, l  ! Dummy index
+integer               :: jflat    ! Indicator for flat dimensions
 integer               :: ii       ! Dummy index
 integer               :: iscat    ! Dummy scattering type
 integer, dimension(:), allocatable :: nat      ! Atom number
@@ -358,21 +362,12 @@ real(kind=PREC_DP)   , dimension(:,:), allocatable :: ypos    ! atom coordinates
 real(kind=PREC_DP)   , dimension(:,:), allocatable :: zpos    ! atom coordinates, fractional
 complex(kind=PREC_DP), dimension(:,:,:), allocatable :: fcsf    ! complex structure factor from FINUFFT
 !
-!real(kind=PREC_DP)   , dimension(:    ), allocatable :: infield_1d    ! input into LANCZOS
-!real(kind=PREC_DP)   , dimension(:,:  ), allocatable :: infield_2d    ! input into LANCZOS
-!real(kind=PREC_DP)   , dimension(:,:,:), allocatable :: infield_3d    ! input into LANCZOS
-!real(kind=PREC_DP)   , dimension(:    ), allocatable ::outfield_1d    ! input into LANCZOS
-!real(kind=PREC_DP)   , dimension(:,:  ), allocatable ::outfield_2d    ! input into LANCZOS
-!real(kind=PREC_DP)   , dimension(:,:,:), allocatable ::outfield_3d    ! input into LANCZOS
-!
 character(len=1), dimension(3) :: c_hkl
 character(len=8), dimension(3) :: c_axes
 data c_axes /'abscissa', 'ordinate', 'top axis'/
 data c_hkl  /'h', 'k', 'l'/
 !
 ss = seknds (0.0) 
-!
-!call four_cexpt 
 !
 is_dim = 0           ! Assume zero dimensional crystal
 ll_dim = .false.     ! Assume all dimensions to be flat
@@ -382,17 +377,19 @@ do i=1,3
       ll_dim(i) = .true.                     ! dimension i is non-flat
    endif
 enddo
-!write(*,*) ' DIMENSION ', is_dim, ll_dim
-is_dim = 3
-ll_dim = .true.
+!is_dim = 3
+!ll_dim = .true.
+jflat  = 3
 !                                                         ! Get point ratio for reciprocal space
-idims = 1                                                 ! Default to 1 data point along each axis in reciprocal space
+idims   = 1                                               ! Default to 1 data point along each axis in reciprocal space
 iscales = 1                                               ! Default to scale 1
 lscales = 1                                               ! Default to scale 1
 scales(1) = abs(vi(1,1)*real(cr_icc(1), kind=PREC_DP))    ! Currently parallel a*!
 scales(2) = abs(vi(2,2)*real(cr_icc(2), kind=PREC_DP))    ! Currently parallel b*!
 scales(3) = abs(vi(3,3)*real(cr_icc(3), kind=PREC_DP))    ! Currently parallel c*!
-!write(*,'(a,4f5.1,3i5,3i5)') ' scales ', scales, MAXSCALE
+!
+!write(*,*) ' SCALES ', scales
+!
 do j=1,3
    if(scales(j)>MAXSCALE) then                            ! Scales must be < MAXSCALE
       ii = nint(scales(j))
@@ -412,7 +409,7 @@ do j=1,3
    endif
    idims(j) = inc(j)
 enddo
-!write(*,'(a,4f5.1,3i5,3i5, 3i5)') ' scales ', scales, MAXSCALE, iscales,idims, lscales
+!write(*,*) ' SCALES ', scales
 !
 !  Error checks: Scale = cr_icc*vi must be integer
 !                1/vi              must be integer
@@ -453,7 +450,7 @@ endif
 NQXYZ   = inc
 call four_layer(four_is_new)   ! copy eck, vi
 call fourier_lmn(eck,vi,inc,lmn,off_shift)
-is_dim_rec = 0           ! Assume zero dimensional cwreciprocal spacecrystal
+is_dim_rec = 0           ! Assume zero dimensional reciprocal space crystal
 ll_dim_rec = .false.     ! Assume all dimensions to be flat
 do i=1,3
    if(num(i)>1) then
@@ -467,16 +464,9 @@ enddo
 call four_layer(four_is_new)   ! copy eck, vi
 call fourier_lmn(eck,vi,inc,lmn,off_shift)
 call four_stltab               ! set up sin(theta)/lambda table
-!call four_formtab              ! Calculate atomic form factors
 !
-if(diff_table==RAD_DISC) then
-   call discamb_read(diff_file, diff_trust)
-   call four_dbwtab
-   ldiscamb = .TRUE.
-else
-   call four_formtab
-   ldiscamb = .FALSE.
-endif
+call four_formtab              ! Define atomic form factors Independent atom model
+ldiscamb = .FALSE.             ! DISCAMB is done in run_nufft_discamb
 !
 !  Clear Fourier arrays 
 !
@@ -488,48 +478,20 @@ dsi(1:num(1),1:num(2),1:num(3))  = 0.0d0
 shift(1) = -real(int((cr_dim(1,2)+cr_dim(1,1))*0.5D0), kind=PREC_DP)
 shift(2) = -real(int((cr_dim(2,2)+cr_dim(2,1))*0.5D0), kind=PREC_DP)
 shift(3) = -real(int((cr_dim(3,2)+cr_dim(3,1))*0.5D0), kind=PREC_DP)
-cond_dim: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
 !
-   allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
+!  Check dimensionality of crystal
 !
-   allocate(nat (             0:cr_nscat))
-   allocate(xpos(1:cr_natoms, 0:cr_nscat))
-   allocate(ypos(1:cr_natoms, 0:cr_nscat))
-   allocate(zpos(1:cr_natoms, 0:cr_nscat))
-   ncells = cr_icc
-   xpos = 0.0D0
-   ypos = 0.0D0
-   zpos = 0.0D0
-   nat = 0
-   loop_atom3: do i=1, cr_natoms               ! Loop over all atoms
-      k = cr_iscat(1,i)
-      nat(k) = nat(k) + 1
-      xpos(nat(k),k) = cr_pos(1,i) + shift(1)
-      ypos(nat(k),k) = cr_pos(2,i) + shift(2)
-      zpos(nat(k),k) = cr_pos(3,i) + shift(3)
-   enddo loop_atom3
-   loop_scat3:do iscat=1,cr_nscat                 ! Loop over all atom types
-!
-      call four_strucf_3d(cr_natoms, nat(iscat), ncells, idims, NQXYZ, &
-                         xpos(:,iscat), ypos(:,iscat),     &
-                         zpos(:,iscat), cr_occ(iscat),iscales, lscales, scales, fcsf)
-      call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
-      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))  ! Add to complex structure factor
-   enddo loop_scat3
-   deallocate(nat)
-   deallocate(xpos)
-   deallocate(ypos)
-   deallocate(zpos)
-elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 222222222222222222222222
-   allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
+cond_find_dim: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
+   continue
+elseif(is_dim==2) then cond_find_dim
   ! 
-   j = findloc(inc   , 1      , 1)      ! Find     flat dimension in reciprocal space
-   if(j==3) then             ! 3 is flat, set dimension 3 to 1
+   jflat = findloc(inc   , 1      , 1)      ! Find     flat dimension in reciprocal space
+   if(jflat==3) then             ! 3 is flat, set dimension 3 to 1
       lscales(3) = 1
       iscales(3) = 1
       scales(3)  = 1
       idims(3)   = 1
-   elseif(j==2) then         ! 2 is flat, 1 remains, 3 is copied down to 2
+   elseif(jflat==2) then         ! 2 is flat, 1 remains, 3 is copied down to 2
       lscales(2) = iscales(3)
       lscales(3) = 1
       iscales(2) = iscales(3)
@@ -538,7 +500,7 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
       scales(3)  = 1
       idims(2)   = idims(3)
       idims(3)   = 1
-   elseif(j==1) then         ! 1 is flat, 2;3 each copied down one element
+   elseif(jflat==1) then         ! 1 is flat, 2;3 each copied down one element
       lscales(1) = iscales(2)
       lscales(2) = iscales(3)
       lscales(3) = 1
@@ -553,15 +515,59 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
       idims(3)   = 1
    endif
    idims(3) = 1
-   j = findloc(ll_dim, .false., 1)      ! Find     flat dimension in direct space
-   allocate(nat (             0:cr_nscat))
-   allocate(xpos(1:cr_natoms, 0:cr_nscat))
-   allocate(ypos(1:cr_natoms, 0:cr_nscat))
-   allocate(zpos(1:cr_natoms, 0:cr_nscat))
-   xpos = 0.0D0
-   ypos = 0.0D0
-   zpos = 0.0D0
-   nat = 0
+   jflat = findloc(ll_dim, .false., 1)      ! Find     flat dimension in direct space
+   if(jflat==3) then                               ! x-y crystal
+      ncells(1) = cr_icc(1)
+      ncells(2) = cr_icc(2)
+      ncells(3) = 1
+   elseif(jflat==2) then                           ! x-z crystal
+      ncells(1) = cr_icc(1)
+      ncells(2) = cr_icc(3)
+      ncells(3) = 1
+   elseif(jflat==3) then                           ! y-z crystal
+      ncells(1) = cr_icc(2)
+      ncells(2) = cr_icc(3)
+      ncells(3) = 1
+   endif
+elseif(is_dim==1) then cond_find_dim
+   jflat = findloc(ll_dim, .true., 1)                 ! Find non-flat dimension
+endif cond_find_dim
+!
+allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
+!
+allocate(nat (             0:cr_nscat))
+allocate(xpos(1:cr_natoms, 0:cr_nscat))
+allocate(ypos(1:cr_natoms, 0:cr_nscat))
+allocate(zpos(1:cr_natoms, 0:cr_nscat))
+ncells = cr_icc
+xpos = 0.0D0
+ypos = 0.0D0
+zpos = 0.0D0
+nat = 0
+!write(*,*) ' DIMENSION ', is_dim, ncells
+!
+cond_dim: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
+!
+   loop_atom3: do i=1, cr_natoms               ! Loop over all atoms
+      k = cr_iscat(1,i)
+      nat(k) = nat(k) + 1
+      xpos(nat(k),k) = cr_pos(1,i) + shift(1)
+      ypos(nat(k),k) = cr_pos(2,i) + shift(2)
+      zpos(nat(k),k) = cr_pos(3,i) + shift(3)
+   enddo loop_atom3
+   loop_scat3:do iscat=1,cr_nscat                 ! Loop over all atom types
+!
+      call four_strucf_3d(cr_natoms, nat(iscat), ncells, idims, NQXYZ, &
+                         xpos(:,iscat), ypos(:,iscat),     &
+                         zpos(:,iscat), cr_occ(iscat),iscales, lscales, scales, fcsf)
+      call tcsf_form_generic(lnufft, ldiscamb, lform , cr_is_anis, iscat, 1   , 1     , num, fcsf)
+!                                                 ! Add to complex structure factor
+      !
+      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + &
+                                       fcsf(1:num(1),1:num(2),1:num(3))   ! 
+   enddo loop_scat3
+elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 222222222222222222222222
+!
    loop_atom2: do i=1, cr_natoms               ! Loop over all atoms
       k = cr_iscat(1,i)
       nat(k) = nat(k) + 1
@@ -573,69 +579,63 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
 !
       fcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
 !
-      if(j==3) then                               ! x-y crystal
+      if(jflat==3) then                               ! x-y crystal
          ncells(1) = cr_icc(1)
          ncells(2) = cr_icc(2)
          ncells(3) = 1
          call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
                              xpos(:,iscat), ypos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
-      elseif(j==2) then                           ! x-z crystal
+      elseif(jflat==2) then                           ! x-z crystal
          ncells(1) = cr_icc(1)
          ncells(2) = cr_icc(3)
          ncells(3) = 1
          call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
                              xpos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
-      elseif(j==3) then                           ! y-z crystal
+      elseif(jflat==3) then                           ! y-z crystal
          ncells(1) = cr_icc(2)
          ncells(2) = cr_icc(3)
          ncells(3) = 1
          call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
                              ypos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
       endif
-!call tofile((/num(1),num(2)/),'nufft_2d.dat',real(fcsf(:,:,1),kind=PREC_DP),(/-4.0D0, -4.0D0/),(/-0.1D0, -0.1D0/))
-      call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
-!                                                ! Add to complex structure factor
-      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))
+      call tcsf_form_generic(lnufft, ldiscamb, lform , cr_is_anis, iscat, 1   , 1     , num, fcsf)
+!                                                 ! Add to complex structure factor
+      !
+      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + &
+                                       fcsf(1:num(1),1:num(2),1:num(3))   ! 
    enddo loop_scat2
 !
-   deallocate(nat)
-   deallocate(xpos)
-   deallocate(ypos)
-   deallocate(zpos)
-!
 elseif(is_dim==1) then cond_dim                   ! 1-D crystal 11111111111111111111111
-   !
-   allocate(fcsf(1:inc(1),1:inc(2),1:inc(3))) 
-   j = findloc(ll_dim, .true., 1)                 ! Find non-flat dimension
-   allocate(nat(0:cr_nscat))
-   allocate(xpos(1:cr_natoms, 0:cr_nscat))
 !
       nat = 0
       xpos = 0.0D0
       loop_atom1: do i=1, cr_natoms               ! Loop over all atoms
          k = cr_iscat(1,i)
          nat(k) = nat(k) + 1                         ! Increment atom number
-         xpos(nat(k),k) = cr_pos(j,i) + shift(j)    ! Copy atoms
+         xpos(nat(k),k) = cr_pos(jflat,i) + shift(jflat)    ! Copy atoms
       enddo loop_atom1
    loop_scat1:do iscat=1,cr_nscat                 ! Loop over all atom types
       !
       fcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
       !
-      call four_strucf_1d(cr_natoms, nat(iscat), cr_icc(j), idims(j), NQXYZ, xpos(:,iscat),     &
-                          cr_occ(iscat),iscales(j), lscales(j), scales(j), fcsf)
-      call tcsf_form(iscat, .true., NQXYZ, fcsf)  ! Multiply with atomic form factor
+      call four_strucf_1d(cr_natoms, nat(iscat), cr_icc(jflat), idims(jflat), NQXYZ, xpos(:,iscat),     &
+                          cr_occ(iscat),iscales(jflat), lscales(jflat), scales(jflat), fcsf)
+      call tcsf_form_generic(lnufft, ldiscamb, lform , cr_is_anis, iscat, 1   , 1     , num, fcsf)
 !                                                 ! Add to complex structure factor
       !
-      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))   ! And yet, here we go again to num(i).
+      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + &
+                                       fcsf(1:num(1),1:num(2),1:num(3))   ! 
       !
    enddo loop_scat1
-   deallocate(nat)
-   deallocate(xpos)
 !
 endif cond_dim
 !
-deallocate(fcsf)          
 !
+deallocate(nat)
+deallocate(xpos)
+deallocate(ypos)
+deallocate(zpos)
+deallocate(fcsf)          
 !
 ! Calculate average structure factor
 !
@@ -686,6 +686,7 @@ use diffuse_mod
 use discamb_mod
 use four_finufft 
 USE fourier_conv_mod
+use fourier_form_generic
 use fourier_lmn_mod
 use symmetrize_mod
 !
@@ -699,9 +700,12 @@ use lib_write_mod
 !
 implicit none
 !
+logical           , parameter :: lnufft = .TRUE.
+logical           , parameter :: lform  = .TRUE.
 real(kind=PREC_DP), parameter :: EPS=1.0D-8
 real(kind=PREC_DP), parameter :: MAXSCALE=3.0D0      ! Maximum scale allowed by FINUFFT
 integer               :: i, j, k, l  ! Dummy index
+integer               :: jflat    ! Index for flat dimension
 integer               :: ii       ! Dummy index
 integer               :: iscat    ! Dummy scattering type
 integer               :: ianis    ! Loop indec ADP type
@@ -717,6 +721,8 @@ logical, dimension(3) :: ll_dim_rec   ! This reciprocal dimension is not flat
 logical               :: four_is_new  ! The reciprocal space dimensions have changed
 logical :: ldiscamb     ! Aspherical atomic form factor is used
 !
+integer :: lbeg (3)
+integer :: ncell     ! Dummy for getatm_discamb
 integer              , dimension(3)              :: lscales  ! Scaling if iscale > MAXSCALE
 integer              , dimension(3)              :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
 real(kind=PREC_DP)   , dimension(3)              :: scales  ! Scaling if DELTA (hkl) /= 1/cr_icc
@@ -747,6 +753,8 @@ ss = seknds (0.0)
 !
 is_dim = 0           ! Assume zero dimensional crystal
 ll_dim = .false.     ! Assume all dimensions to be flat
+jflat = 3            ! Assume z is flat dimensio
+!
 do i=1,3
    if((cr_dim(i,2)-cr_dim(i,1)>eps .and. cr_icc(i)>1) .or. abs(vi(i,i))>eps ) then
       is_dim = is_dim + 1                    ! Found a non-flat dimension
@@ -754,8 +762,6 @@ do i=1,3
    endif
 enddo
 !write(*,*) ' DIMENSION ', is_dim, ll_dim
-is_dim = 3
-ll_dim = .true.
 !                                                         ! Get point ratio for reciprocal space
 idims = 1                                                 ! Default to 1 data point along each axis in reciprocal space
 iscales = 1                                               ! Default to scale 1
@@ -824,7 +830,7 @@ endif
 NQXYZ   = inc
 call four_layer(four_is_new)   ! copy eck, vi
 call fourier_lmn(eck,vi,inc,lmn,off_shift)
-is_dim_rec = 0           ! Assume zero dimensional cwreciprocal spacecrystal
+is_dim_rec = 0           ! Assume zero dimensional reciprocal spacecrystal
 ll_dim_rec = .false.     ! Assume all dimensions to be flat
 do i=1,3
    if(num(i)>1) then
@@ -835,6 +841,8 @@ enddo
 !
 !------ preset some values                                              
 !                                                                       
+!     Determine for each atom type the list of ADPs 
+call four_nanis(cr_natoms, cr_nscat, cr_nanis, ubound(cr_iscat,1), ubound(cr_iscat,2), cr_iscat, four_list)
 call four_layer(four_is_new)   ! copy eck, vi
 call fourier_lmn(eck,vi,inc,lmn,off_shift)
 call four_stltab               ! set up sin(theta)/lambda table
@@ -860,17 +868,126 @@ shift(1) = -real(int((cr_dim(1,2)+cr_dim(1,1))*0.5D0), kind=PREC_DP)
 shift(2) = -real(int((cr_dim(2,2)+cr_dim(2,1))*0.5D0), kind=PREC_DP)
 shift(3) = -real(int((cr_dim(3,2)+cr_dim(3,1))*0.5D0), kind=PREC_DP)
 !
+cond_find_dim: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
+   continue
+elseif(is_dim==2) then cond_find_dim
+  ! 
+   jflat = findloc(inc   , 1      , 1)      ! Find     flat dimension in reciprocal space
+   if(jflat==3) then             ! 3 is flat, set dimension 3 to 1
+      lscales(3) = 1
+      iscales(3) = 1
+      scales(3)  = 1
+      idims(3)   = 1
+   elseif(jflat==2) then         ! 2 is flat, 1 remains, 3 is copied down to 2
+      lscales(2) = iscales(3)
+      lscales(3) = 1
+      iscales(2) = iscales(3)
+      iscales(3) = 1
+      scales(2)  = scales(3)
+      scales(3)  = 1
+      idims(2)   = idims(3)
+      idims(3)   = 1
+   elseif(jflat==1) then         ! 1 is flat, 2;3 each copied down one element
+      lscales(1) = iscales(2)
+      lscales(2) = iscales(3)
+      lscales(3) = 1
+      iscales(1) = iscales(2)
+      iscales(2) = iscales(3)
+      iscales(3) = 1
+      scales(1)  = scales(2)
+      scales(2)  = scales(3)
+      scales(3)  = 1
+      idims(1)   = idims(2)
+      idims(2)   = idims(3)
+      idims(3)   = 1
+   endif
+   idims(3) = 1
+   jflat = findloc(ll_dim, .false., 1)      ! Find     flat dimension in direct space
+   if(jflat==3) then                               ! x-y crystal
+      ncells(1) = cr_icc(1)
+      ncells(2) = cr_icc(2)
+      ncells(3) = 1
+   elseif(jflat==2) then                           ! x-z crystal
+      ncells(1) = cr_icc(1)
+      ncells(2) = cr_icc(3)
+      ncells(3) = 1
+   elseif(jflat==3) then                           ! y-z crystal
+      ncells(1) = cr_icc(2)
+      ncells(2) = cr_icc(3)
+      ncells(3) = 1
+   endif
+elseif(is_dim==1) then cond_find_dim
+   jflat = findloc(ll_dim, .true., 1)                 ! Find non-flat dimension
+endif cond_find_dim
+!
+allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
+allocate(nat (             0:cr_nscat))
+allocate(xpos(1:cr_natoms, 0:cr_nscat))
+allocate(ypos(1:cr_natoms, 0:cr_nscat))
+allocate(zpos(1:cr_natoms, 0:cr_nscat))
+ncells = cr_icc
+xpos = 0.0D0
+ypos = 0.0D0
+zpos = 0.0D0
+nat = 0
+!
 ! Loops over atom types, symmetries that generated these atoms, different ADPs
 !
 loop_atoms_disc: DO iscat = 1, cr_nscat       ! Loop over all atom types
-         loop_symm: do k=1,disc_list(iscat)%isymm(0) ! Loop over all symmetries that generated thes atom types
-            isym = disc_list(iscat)%isymm(k)
-            loop_discamb_ianis: do j=1, four_list(iscat,0)     ! Loop over all different ADPs
-               ianis = four_list(iscat,j)
-enddo loop_discamb_ianis
-enddo loop_symm
+   loop_symm: do k=1,disc_list(iscat)%isymm(0) ! Loop over all symmetries that generated these atom types
+      isym = disc_list(iscat)%isymm(k)
+      loop_discamb_ianis: do j=1, four_list(iscat,0)     ! Loop over all different ADPs
+         ianis = four_list(iscat,j)
+         call four_getatm_discamb(iscat, isym, ianis, ilots, lbeg, ncell)
+         nat(iscat ) =nxat
+!
+         cond_dims: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
+            xpos(1:nxat,iscat) = xat(1:nxat,1) + shift(1)
+            ypos(1:nxat,iscat) = xat(1:nxat,2) + shift(2)
+            zpos(1:nxat,iscat) = xat(1:nxat,3) + shift(3)
+            call four_strucf_3d(cr_natoms, nat(iscat), ncells, idims, NQXYZ, &
+                                xpos(:,iscat), ypos(:,iscat), zpos(:,iscat),    &
+                                cr_occ(iscat),iscales, lscales, scales, fcsf)
+!
+         elseif(is_dim==2) then cond_dims         ! 2-D crystal 2222222222222222222222222222
+            xpos(1:nxat,iscat) = xat(1:nxat,1) + shift(1)
+            ypos(1:nxat,iscat) = xat(1:nxat,2) + shift(2)
+            zpos(1:nxat,iscat) = xat(1:nxat,3) + shift(3)
+            if(jflat==3) then                               ! x-y crystal
+               call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
+                             xpos(:,iscat), ypos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
+            elseif(jflat==2) then                           ! x-z crystal
+               call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
+                             xpos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
+            elseif(jflat==3) then                           ! y-z crystal
+               call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
+                             ypos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
+            endif
+!
+         elseif(is_dim==1) then cond_dims         ! 1-D crystal 1111111111111111111111111111
+            xpos(1:nxat,iscat) = xat(1:nxat,jflat) + shift(jflat)
+            call four_strucf_1d(cr_natoms, nat(iscat), cr_icc(jflat), idims(jflat), NQXYZ, xpos(:,iscat),     &
+                          cr_occ(iscat),iscales(jflat), lscales(jflat), scales(jflat), fcsf)
+         endif cond_dims
+!
+         call tcsf_form_generic(lnufft, ldiscamb, lform, cr_is_anis, iscat, &
+              isym, ianis , num, fcsf)
+!                                              ! Add to complex structure factor
+         csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + &
+                                          fcsf(1:num(1),1:num(2),1:num(3))   ! 
+!
+      enddo loop_discamb_ianis
+   enddo loop_symm
 enddo loop_atoms_disc
 !
+deallocate(nat)
+deallocate(xpos)
+deallocate(ypos)
+deallocate(zpos)
+!
+! Code till next "!+#+#+#+#+#+#+" is obsolete, covered above,  to be deleted after tests
+!
+is_dim = 0
 cond_dim: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
 !
    allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
@@ -896,7 +1013,9 @@ cond_dim: if(is_dim==3) then            ! 3-D crystal 33333333333333333333333333
       call four_strucf_3d(cr_natoms, nat(iscat), ncells, idims, NQXYZ, &
                          xpos(:,iscat), ypos(:,iscat),     &
                          zpos(:,iscat), cr_occ(iscat),iscales, lscales, scales, fcsf)
-      call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
+!     call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
+!     call tcsf_form_generic(lnufft, ldiscamb, lform, is_anis, iscat, isym, ientry, num, fcsf)
+      call tcsf_form_generic(lnufft, ldiscamb, lform, cr_is_anis, iscat, isym, ianis , num, fcsf)
       csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))  ! Add to complex structure factor
    enddo loop_scat3
    deallocate(nat)
@@ -976,7 +1095,8 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
                              ypos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), lscales(1:2), scales(1:2), fcsf)
       endif
 !call tofile((/num(1),num(2)/),'nufft_2d.dat',real(fcsf(:,:,1),kind=PREC_DP),(/-4.0D0, -4.0D0/),(/-0.1D0, -0.1D0/))
-      call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
+!     call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
+      call tcsf_form_generic(lnufft, ldiscamb, lform, cr_is_anis, iscat, isym, ianis , num, fcsf)
 !                                                ! Add to complex structure factor
       csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))
    enddo loop_scat2
@@ -1006,16 +1126,19 @@ elseif(is_dim==1) then cond_dim                   ! 1-D crystal 1111111111111111
       !
       call four_strucf_1d(cr_natoms, nat(iscat), cr_icc(j), idims(j), NQXYZ, xpos(:,iscat),     &
                           cr_occ(iscat),iscales(j), lscales(j), scales(j), fcsf)
-      call tcsf_form(iscat, .true., NQXYZ, fcsf)  ! Multiply with atomic form factor
+!     call tcsf_form(iscat, .true., NQXYZ, fcsf)  ! Multiply with atomic form factor
+      call tcsf_form_generic(lnufft, ldiscamb, lform, cr_is_anis, iscat, isym, ianis , num, fcsf)
 !                                                 ! Add to complex structure factor
       !
-      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))   ! And yet, here we go again to num(i).
+      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + &
+                                       fcsf(1:num(1),1:num(2),1:num(3))   ! 
       !
    enddo loop_scat1
    deallocate(nat)
    deallocate(xpos)
 !
 endif cond_dim
+!+#+#+#+#+#+#+
 !
 deallocate(fcsf)          
 !
@@ -2289,7 +2412,7 @@ endif  cond_lots
 end subroutine four_getatm_anis
 !**********************************************************************
 !
-subroutine four_getatm_discamb(iscat, isym, ianis, lots, lbeg, ncell) 
+subroutine four_getatm_discamb(iscat, isym, ianis, lots, lbeg, ncell)
 !+                                                                      
 !     This routine creates an atom list of atoms of type 'iscat'        
 !     which are within the current lot.                                 
@@ -2803,7 +2926,9 @@ endif
 !
 lredo  = .false.
 if(allocated(four_dbw)) then
-   if(cr_nanis /= old_nanis .or. cr_nanis /= ubound(four_dbw,4)) then 
+   if(cr_nanis /= old_nanis .or. cr_nanis /= ubound(four_dbw,4).or. &
+      ubound(four_dbw,1)/=num(1) .or. ubound(four_dbw,2)/=num(1) .or. &
+      ubound(four_dbw,3)/=num(3)                   ) then 
       lredo = .true.
    endif
    if(lredo) then
@@ -2819,7 +2944,6 @@ else
    lredo = .true.
 endif
 if(.not.ldbw) then
-!write(*,*) ' Debey-Waller is off'
    four_dbw = 1.0D0
    return
 endif
