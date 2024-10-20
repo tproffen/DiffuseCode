@@ -2370,6 +2370,8 @@ loop_h: DO ih = h_start, h_end
       ENDIF 
 !
 ENDDO  loop_h
+if(.not. l_ano) pow_qsp = pow_qsp*2.0_PREC_DP   !  Correct for half volume calculation
+!write(*,*) ' POWDER COMPLETE ', maxval(pow_qsp)
 !i = ubound(pow_qsp,1)
 !call tofile(i, 'POWDER/pow_qsp.dat', pow_qsp, 0.0D0, 0.001D0)
 !
@@ -2525,7 +2527,13 @@ pow_faver2(:) = 0.0D0   ! 0:POW_MAXPKT
 pow_nreal     = 0
 pow_u2aver    = 0.0
 !
-call four_run_nufft     ! Do single crystal Fourier via NUFFT
+!write(*,*) ' POWDER NUFFT '
+if(diff_table==RAD_DISC) then
+   call four_run_nufft_discamb  ! Do single crystal Fourier via NUFFT DISCAMB version
+else
+   call four_run_nufft     ! Do single crystal Fourier via NUFFT
+endif
+
 !
 do il=1, inc(3)
    do ik=1, inc(2)
@@ -2548,8 +2556,7 @@ do il=1, inc(3)
       enddo
    enddo
 enddo
-write(*,*) ' POWDER ', maxval(pow_qsp)
-read(*,*) ih
+!write(*,*) ' POWDER NUFFT  ', maxval(pow_qsp)
 !
 xstart = pow_qmin  /zpi
 xdelta = pow_deltaq/zpi
