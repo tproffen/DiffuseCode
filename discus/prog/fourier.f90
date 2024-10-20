@@ -712,7 +712,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                         elseif(four_tech == FOUR_NUFFT) then
                            if(diff_table==RAD_DISC) then
                               call four_run_nufft_discamb
-!                                  four_run_nufft_discamb
                            else
                               call four_run_nufft
                            endif
