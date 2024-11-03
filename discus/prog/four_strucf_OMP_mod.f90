@@ -190,7 +190,9 @@ ENDDO
 !write(*,*) ' fnum         ', fnum
 !write(*,*) '  num         ', num
 !write(*,*) '  inc         ', inc
+!write(*,*) ' GEOMETRY ', minval(real(tcsf)), maxval(real(tcsf))
 call tcsf_form_generic(lnufft, ldiscamb, lform, is_anis, iscat, isym, ientry, fnum, tcsf)
+!write(*,*) ' WT FORM  ', minval(real(tcsf)), maxval(real(tcsf))
 !if(ldiscamb) then 
 !   call tcsf_form_discamb(iscat, isym, ientry, fnum)
 !elseif(lform) then 
