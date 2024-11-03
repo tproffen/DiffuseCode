@@ -3243,13 +3243,14 @@ INTEGER :: length
 !
 CHARACTER(LEN= 200) :: hostfile  ! original structure file name
 !
-INTEGER, PARAMETER :: NOPTIONAL = 6
+INTEGER, PARAMETER :: NOPTIONAL = 7
 INTEGER, PARAMETER :: O_METRIC  = 1
 INTEGER, PARAMETER :: O_SPACE   = 2
 INTEGER, PARAMETER :: O_SORT    = 3
 INTEGER, PARAMETER :: O_ATOM    = 4     ! For LAMMPS
 integer, parameter :: O_UNIQUE  = 5
 integer, parameter :: O_NAMES   = 6
+integer, parameter :: O_REFINE  = 7
 CHARACTER(LEN=   6)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -3258,8 +3259,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique',  'name'   /
-DATA loname /  6,        5     ,  4    ,  4    ,  6      ,   4       /
+DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique',  'name', 'refine'   /
+DATA loname /  6,        5     ,  4    ,  4    ,  6      ,   4    ,  6         /
 !
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_a0
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_win
@@ -3280,9 +3281,9 @@ logical                       :: l_not_full = .true.
 LOGICAL :: lout = .FALSE.
 !
 !
-opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'biso  ', 'chem  ' /)   ! Always provide fresh default values
-lopara =  (/  6,        6      ,  6      ,  6      ,  6      ,  6       /)
-owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0     /)
+opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'biso  ', 'chem  ', 'no    ' /)   ! Always provide fresh default values
+lopara =  (/  6,        6      ,  6      ,  6      ,  6      ,  6      ,  6       /)
+owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0     /)
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
 IF (ier_num.ne.0) THEN 
@@ -3322,7 +3323,8 @@ IF (ianz.ge.1) THEN
       IF (ianz >= 2) THEN 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          IF (ier_num.ne.0) return 
-         CALL ins2discus (ianz, cpara, lpara, MAXW, opara(O_NAMES), ofile) 
+         if(lpresent(O_REFINE)) opara(O_NAMES) = 'shelx'
+         CALL ins2discus (ianz, cpara, lpara, MAXW, opara(O_NAMES), opara(O_REFINE), ofile) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -3492,7 +3494,7 @@ END SUBROUTINE do_import
 !
 !*****7**************************************************************** 
 !
-SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, c_names, ofile) 
+SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, c_names, c_refine, ofile) 
 !-                                                                      
 !     converts a SHELXL "ins" or "res" file to DISCUS                   
 !+                                                                      
@@ -3515,12 +3517,15 @@ INTEGER                             , INTENT(IN)    :: MAXW    ! Array sizes
 CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara   ! File name (parameters)
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara   ! Length file name parameters
 character(len=*)                    , intent(in)    :: c_names ! "chem" or "shelx" flag to interpret names
+character(len=*)                    , intent(in)    :: c_refine! "no" or "yes" flag to write refine files
 CHARACTER(LEN=*)                    , INTENT(OUT)   :: ofile   ! Resulting output file
 !                                                                       
 real(kind=PREC_DP), parameter :: TOL = 0.00005_PREC_DP
 INTEGER, PARAMETER :: NFV = 50 
 integer, parameter :: IRD = 34
 integer, parameter :: IWR = 35
+integer, parameter :: IDI = 36
+integer, parameter :: IRE = 37
 !                                                                       
 REAL(KIND=PREC_DP), dimension(MAXW) :: werte
 !                                                                       
@@ -3533,6 +3538,9 @@ CHARACTER(len=80)  :: line1
 CHARACTER(len=80)  :: line2 
 CHARACTER(len=160) :: line 
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ofile))) :: infile          ! Input file name
+character(len=PREC_STRING) :: discus_file          ! Main discus macro
+character(len=PREC_STRING) :: refine_file          ! Main refine macro
+character(len=PREC_STRING) :: hkl_file             ! Reflection data file
 character(len=160), dimension(:), allocatable :: content      ! Complete content of Shelx file
 character(len=256), dimension(:), allocatable :: structure    ! Complete DISCUS result
 integer :: lcontent   ! Number of lines in content
@@ -3553,7 +3561,7 @@ real(kind=PREC_DP), dimension(:,:)  , allocatable :: posit   ! List of all Atom 
 real(kind=PREC_DP), dimension(:,:)  , allocatable :: uij_at  ! Current uij, list as per atom
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: uij_l   ! List of all Uij
 !
-INTEGER i, j, k, jj , l
+INTEGER i, j, k, jj , l,m
 INTEGER ix, iy, iz, idot 
 INTEGER ntyp , ntyp_prev
 INTEGER length, lp 
@@ -3566,7 +3574,9 @@ INTEGER ifv
 LOGICAL :: lmole     ! If true we are reading a molecule
 logical :: lshelx_names  ! Use atom names from actual list instead of Chemical names
 integer :: n_mat     ! Number space group matrices
+REAL(KIND=PREC_DP)                 :: P_exti    ! Extrinction parameter
 REAL(KIND=PREC_DP)                 :: z
+REAL(KIND=PREC_DP)                 :: rlambda   ! Wave length
 REAL(KIND=PREC_DP), dimension(6)   :: latt      !Lattice parameters in input file
 REAL(KIND=PREC_DP), dimension(3,4) :: gen       ! Generator matrices constructed from 'SYMM' commands
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: spc_mat ! Space group matrices constructed from 'SYMM' commands
@@ -3691,7 +3701,7 @@ loop_header: do jc=1, ifvar
      structure(2) = 'spcgr P1'
      is = 2
   elseif(content(jc)(1:4) == 'CELL') then          ! CELL
-     read(content(jc)(6:len_trim(content(jc))),*) z, latt
+     read(content(jc)(6:len_trim(content(jc))),*) rlambda, latt
      is = is + 1
      write(structure(is), '(a,6(2x,f12.5:,'',''))') 'cell ', latt
   elseif(content(jc)(1:4) == 'LATT') then          ! LATT
@@ -3830,6 +3840,9 @@ loop_header: do jc=1, ifvar
         ENDIF 
      ENDDO atom_search1
      endif
+  elseif(content(jc)(1:4) == 'EXTI') then          ! FVAR
+     line = content(jc)(6:len_trim(content(jc)))
+     read(line,*,end=777, err=777) P_exti
   elseif(content(jc)(1:4) == 'FVAR') then          ! FVAR
      line = content(jc)(6:len_trim(content(jc)))
      call do_cap(line)
@@ -3884,6 +3897,11 @@ iatom = 0
 iscat = 0
 loop_atoms: do jc=ifvar +1, ihklf-1
    if(content(jc)(1:4) == 'MOLE') cycle loop_atoms
+   if(content(jc)(1:4) == 'EXTI') then          ! EXTI
+      line = content(jc)(6:len_trim(content(jc)))
+      read(line,*,end=777, err=777) P_exti
+      cycle loop_atoms
+   endif
    line = content(jc)(5:len_trim(content(jc)))
    call do_cap(line)
    length = len_trim(line)
@@ -3915,6 +3933,30 @@ loop_atoms: do jc=ifvar +1, ihklf-1
    uij_l(:,iscat, nanis(iscat)) = uij_at(:,iatom)    ! Store new Uij
 enddo loop_atoms
 !
+!===============================================================================
+if(c_refine=='yes') then
+!  Write main discus macro
+!
+   i= len_trim(ofile)-5
+   discus_file = ofile(1:i)//'_main.mac'
+   refine_file = 'refine_'//ofile(1:i)//'.mac'
+   hkl_file    = infile(1:len_trim(infile)-4)//'.hkl'
+   open(unit=IDI, file=discus_file, status='unknown')
+   open(unit=IRE, file=refine_file, status='unknown')
+!
+   i= len_trim(ofile)
+   write(IDI,'(a )') 'branch discus'
+   write(IDI,'(a )') 'read'
+   write(IDI,'(2a)') '  stru ', ofile(1:i)
+!
+   write(IRE,'(a )') 'refine'
+   write(IRE,'(a )') 'rese'
+   write(IRE,'(2a)') 'data hklf4, ',hkl_file(1:len_trim(hkl_file))
+   write(IRE,'(a,f9.4,a )') 'newpara P_scale, value:', fv(1), ', points:5, shift:0.01, status:free'
+endif
+!
+!===============================================================================
+!
 i = 5
 is = is + 1
 jj = 0
@@ -3925,22 +3967,42 @@ do iscat=1, ntyp
    do j=1,nanis(iscat)
       jj= jj + 1
       structure(is+2+jj)(1:4) = 'anis'
-      structure(is)(i+1:i+4) = c_atom(iscat)
-      structure(is)(i+5:i+5) = ','
-      structure(is+1)(i+1:i+5) = '1.00,'
-      write(structure(is+2)(i+1:i+5),'(f4.2,'','')') real(iscat + 0.01_PREC_DP*(j), kind=PREC_DP)
-      write(structure(is+2+jj)(6:22),'(a5,i3,a9)') 'type:',jj,', value:['
+      structure(is)(i+2:i+5) = c_atom(iscat)
+      structure(is)(i+6:i+6) = ','
+      structure(is+1)(i+1:i+6) = ' 1.00,'
+      write(structure(is+2)(i+1:i+7),'(f5.2,'','')') real(iscat + 0.01_PREC_DP*(j), kind=PREC_DP)
+      write(structure(is+2+jj)(6:23),'(a5,i3,a10)') 'type:',jj,', values:['
+      l = 1
       if(any(uij_l(2:6,iscat,j)>TOL)) then
          l = 6
       else
          l = 1
       endif
       loop_anis1:do k=1,l
-         write(structure(is+2+jj)(  23+(k-1)*10:  23+k*10),'(f9.6,a1)') uij_l(k,iscat, j), ','
+         write(structure(is+2+jj)(  24+(k-1)*10:  24+k*10),'(f9.6,a1)') uij_l(k,iscat, j), ','
       enddo loop_anis1
       k = len_trim(structure(is+2+jj))
       structure(is+2+jj)(k:k) = ']'
-      i = i + 5
+      i = i + 6
+!
+!===============================================================================
+      if(c_refine=='yes') then
+         if(l==1) then
+            write(IDI,'(a,i3,4a)') 'anis type:', jj,', values:[', 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1]'
+            write(IRE,'(4a,g15.8e3,a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1', &
+                          ', value:', uij_l(1,iscat, j), ', points:5, shift:0.030, status:free' 
+         elseif(l==6) then
+            write(IDI,'(a,i3,a,5(3a,i1.1,a2),3a)') 'anis type:', jj,', values:[', &
+                 ('U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',k,', ',k=1,5), &
+                  'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_6]'
+            do m=1,6
+            write(IRE,'(3a,i1.1,a,g15.8e3,a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m, &
+                          ', value:', uij_l(m,iscat, j), ', points:5, shift:0.030, status:free' 
+            enddo
+         endif
+      endif
+!
+!===============================================================================
    enddo
 enddo
 i=len_trim(structure(is))
@@ -3980,6 +4042,25 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
    else
       iscat = nint(wwerte(1))
    endif
+!
+!===============================================================================
+   if(c_refine=='yes') then
+      line = content(jc)(1:4)
+      i = len_trim(line)
+      write(IDI,'(a,i3,3a)') 'x[',iatom, '] = P_',line(1:i), '_x'
+      write(IDI,'(a,i3,3a)') 'y[',iatom, '] = P_',line(1:i), '_y'
+      write(IDI,'(a,i3,3a)') 'z[',iatom, '] = P_',line(1:i), '_z'
+!
+      write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_x, value:', &
+         posit(1, iatom), ', points:5, shift:0.030, status:free'
+      write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_y, value:', &
+         posit(2, iatom), ', points:5, shift:0.030, status:free'
+      write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_z, value:', &
+         posit(3, iatom), ', points:5, shift:0.030, status:free'
+   endif
+!
+!===============================================================================
+!
    is = is + 1
    ianis = 1    ! Default to 1st ADP
    loop_anis_set: do j=1,nanis(iscat)    ! Compare to all previous ADP for this scattering type
@@ -3992,6 +4073,7 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
    write(structure(is),'(a4, 3(1x,f14.6,'',''),f14.6)') c_atom(iscat), posit(:,iatom), &
          real(iscat + 0.01_PREC_DP*ianis, kind=PREC_DP)
    structure(is)(67:123) = ',       1,       0,       0,   1.000000, _,   0,   0,   0'
+!
 enddo loop_atoms_set
 loop_write: do j=1, 2*lcontent
    if(structure(j) /= ' ') then
@@ -4002,6 +4084,75 @@ loop_write: do j=1, 2*lcontent
    endif
 enddo loop_write
 close(IWR)
+!
+!
+!===============================================================================
+if(c_refine=='yes') then
+   i= len_trim(ofile)
+   write(IDI,'(a )') 'save'
+   write(IDI,'(2a)') '  outfile internal.',ofile(1:i)
+   write(IDI,'(a )') '  write all'
+   write(IDI,'(a )') '  run'
+   write(IDI,'(a )') 'exit'
+   write(IDI,'(a )') 'read'
+   write(IDI,'(2a)') '  cell internal.', ofile(1:i)
+   write(IDI,'(a )') 'fourier'
+   write(IDI,'(a )') '  xray table:waas'
+   write(IDI,'(a )') '  temp use'
+   write(IDI,'(a )') '  disp off'
+   write(IDI,'(a, f7.5 )') '  wvle ', rlambda
+   write(IDI,'(a )') '  set aver, 0'
+   if(P_exti> 0.00001) then
+      write(IDI,'(a )') '  set exti, P_exti'
+   endif
+   write(IDI,'(a )') '  set technique:turbo'
+   write(IDI,'(3a)') '  hkl in:',hkl_file(1:len_trim(hkl_file)), ', out:calc.hkl, scale:P_scale, style:hklf4'
+   write(IDI,'(a )') 'exit'
+   write(IDI,'(a )') 'branch kuplot'
+   write(IDI,'(a )') 'reset'
+   write(IDI,'(a )') 'load hklf4, calc.hkl'
+   write(IDI,'(a )') 'exit  ! Back to DISCUS'
+   write(IDI,'(a )') 'exit  ! Back to REFINE'
+   write(IDI,'(a )') 'finished'
+   close(IDI)
+!
+   open(IDI, file='k_fobs_fcalc.mac', status='unknown')
+   write(IDI,'(a )') 'reset'
+   write(IDI,'(3a)') 'load csv, ',hkl_file(1:len_trim(hkl_file)), ', colx:4, coly:5, separator:[4,4,4,8,8], skip:0'
+   write(IDI,'(a )') 'load csv, calc.hkl, colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
+   write(IDI,'(a )') 'ccal mul, wy, 1, 0.0'
+   write(IDI,'(a )') 'kcal add, 1, 2'
+   write(IDI,'(a )') 'kfra 1, 3'
+   write(IDI,'(a )') 'scale 0, max(xmax[3], ymax[3]), 0.0, max(xmax[3], ymax[3])'
+   write(IDI,'(a )') 'aver 1'
+   write(IDI,'(a )') 'mark'
+   write(IDI,'(a )') 'ltyp 3, 0'
+   write(IDI,'(a )') 'mtyp 3, 3'
+   write(IDI,'(a )') 'fnam off'
+   write(IDI,'(a )') 'fset 2'
+   write(IDI,'(a )') 'grid on'
+   write(IDI,'(a )') 'achx Iobs'
+   write(IDI,'(a )') 'achy Icalc'
+   write(IDI,'(a )') 'mcol 3, black'
+   write(IDI,'(a )') 'plot'
+   write(IDI,'(3a)') 'load csv, ',hkl_file(1:len_trim(hkl_file)), ', colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
+   write(IDI,'(a )') 'load csv, calc.hkl, colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
+   write(IDI,'(a )') 'rval 3,4, dat'
+   write(IDI,'(a )') 'exit '
+   close(IDI)
+!
+   if(P_exti> 0.00001) then
+      write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:5, shift:0.03, status:free'
+   else
+      write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:5, shift:0.03, status:fixed'
+   endif
+   write(IRE,'(a )') 'set cycle,   5'
+   write(IRE,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10'
+   write(IRE,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_fobs_fcalc.mac'
+   write(IRE,'(a )') 'exit  ! Back to SUITE'
+   close(IRE)
+endif
+!===============================================================================
 !
 !===============================================================================
 900 continue                       ! Target for serious errors
