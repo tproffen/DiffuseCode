@@ -159,7 +159,6 @@ integer                   , dimension(:), allocatable :: lpara
 integer :: DIM_CPARA        ! Array size
 integer :: ios              ! IO signal
 integer :: i, ii,jj,kk,l    ! Dummy index
-integer :: j
 integer :: length           ! string lengths
 integer :: nr               ! Line number
 integer :: nhdr             ! header Line number
@@ -170,6 +169,7 @@ integer, dimension(3) :: maxhkl   ! Maximum abs(hkl)
 logical :: ldata   ! got DATA: line
 
 real(kind=PREC_DP), dimension(3)   :: hkl
+real(kind=PREC_DP), dimension(3,3) :: vi_user! User copy  vi matrix
 real(kind=PREC_DP), dimension(3,3) :: viinv  ! inverse of vi matrix
 real(kind=PREC_DP)               :: a,b    ! real, imag part
 !complex(KIND=PREC_DP), dimension(:,:,:,:), allocatable :: four_form_tsc
@@ -215,9 +215,16 @@ if(ier_num /=0) then
    return
 endif
 !
+vi_user = vi    ! Create backup
+if(inc(3)==1) vi(3,3) = 1.0
+if(inc(2)==1) vi(2,2) = 1.0
+if(inc(1)==1) vi(1,1) = 1.0
+!
+!
 call matinv(vi, viinv)
 if(ier_num/=0) then
    ier_msg(1) = 'Matrix of increment vectors, all parallel?'
+   vi = vi_user     ! use  backup
    return
 endif
 nr=0
@@ -229,6 +236,7 @@ loop_header: do
       ier_num = -3
       ier_typ = ER_IO
       close(IRD)
+   vi = vi_user     ! use  backup
       return
    endif
    if(index(line, 'SCATTERERS:') > 0) then   ! Found "SCATTERERS" line
@@ -260,6 +268,7 @@ loop_data: do                         ! Read remaining header until 'DATA:'
       ier_num = -3
       ier_typ = ER_IO
       close(IRD)
+   vi = vi_user     ! use  backup
       return
    endif
    if(index(line, 'DATA:') > 0) then   ! Found "DATA" line
@@ -378,6 +387,7 @@ i= 1  ! ATOM TYPE 1
 !write(*,*) ' ZEROS ',  any(abs(imag(disc_list(1)%four_form_tsc(:,:,:,1:4)))<0.000001)
 deallocate(cpara)
 deallocate(lpara)
+vi = vi_user     ! use  backup
 !deallocate(four_form_tsc)
 cr_is_anis = .true.
 !read(*,*) nr
@@ -418,7 +428,6 @@ ll = lbound(four_form_tsc,3)
 hh = ubound(four_form_tsc,1)
 kh = ubound(four_form_tsc,2)
 lh = ubound(four_form_tsc,3)
-!write(*,*) ' LIMITS ' , hl,kl,ll,  hh,kh,lh
 loop_scat: do i=1, nscat
    allocate(disc_list(i)%four_form_tsc(hl:hh, kl:kh, ll:lh, disc_list(i)%isymm(0)))
    disc_list(i)%four_form_tsc(:,:,:,1) = four_form_tsc(:,:,:,i)
