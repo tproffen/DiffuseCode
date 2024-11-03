@@ -3963,7 +3963,8 @@
 !p import "cif",<file[".cif"]>
 !p import "cmaker",<file[".xyz"]>
 !p import "lammps",<file>
-!p import "shelx",<file[".ins"]>
+!p import "shelx",<file[".ins"]> [, "names:shelx" | "names:chem"]
+!p                               [, "refine:no" | "refine:yes"]
 !p import "rmcprofile",<file[".cssr"]>
 !p           [, "sort:discus" ]
 !p import "cell",<file>
@@ -4009,20 +4010,28 @@
    the DISCUS cell format.
 3  shelx
 !p "shelx",<file{".ins"]>
+!p                        [, "names:shelx" | "names:chem"]
+!p                        [, "refine:no" | "refine:yes"]
 
    If the first parameter is "shelx" the input file is assumed to be a
    SHELX "*.ins" or "*.res" file. The extension ".ins" may be omitted.
    DISCUS will read the input file and create a file <file>".cell" in
    the DISCUS cell format.
-   The space group is always set to P1, since SHELX defines the individual
-   symmetry operations. 
-   The lattice is written into the DISCUS file as a generator.
-   The SHELX symmetry operations are written as individual generator operations
-   into the DISCUS file.
-   The atom names are taken from the SHELX "SFAC" instruction and used for
-   the individual atoms.
+   DISCUS will interpret the Lattice type and the symmetry instructions
+   to determine the space group. In the unlikely event of this failing, 
+   the space group is set to P1, and the SHELX symmetry instructions
+   are written as generators.
+   As default, the atom names are taken from the SHELX "SFAC" instruction
+   and used for the individual atoms. with the optional parameter
+   "names:shelx" the actual atom names that follow the "FVAR" instruction
+   are used instead. 
    Atom coordinates are properly interpreted including the use of SHELX free
    variables.
+
+   If the optional parameter "refine:yes" is present, DISCUS will write
+   the cell file, a REFINE main macro, a main DISCUS macro and a KUPLOT
+   macro ready to perform the equivalent refinement throught the REFINE
+   section.
 
    LIMITATIONS
    The "DISP" instruction is ignored.
@@ -4031,8 +4040,6 @@
    instructions are interpreted as atoms, unless they are valid SHELX 
    commands.
    The site occupation factors are ignored.
-   The anisotropic atomic displacement parameters are crudely replaced
-   by a very approximate isotropic U.
    Currently DISCUS does not recognize the internal symmetry of a molecule.
 3  rmcprofile
 
