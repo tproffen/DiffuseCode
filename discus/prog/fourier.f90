@@ -393,7 +393,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
 !     calculate at a SHELXL list of reciprocal points 'hkl'                     
 !                                                                       
             ELSEIF (str_comp (befehl, 'hkl', 2, lbef, 3) ) then 
+               call guess_atom_all
                call four_set_hkl(zeile, lp)
+!               CALL four_show  ( ltop_c )
 !                                                                       
 !     define the whole layer 'laye'                                     
 !                                                                       
@@ -1413,6 +1415,15 @@ IF (ano) then
 ELSE 
  WRITE (output_io, 1310) 'ignored' 
 ENDIF 
+if(four_symm) then
+   write(output_io, 1332)
+else
+   if(four_friedel) then
+      write(output_io, 1331)
+   else
+      write(output_io, 1330)
+   endif
+endif
 if(diff_exti>0.00_PREC_DP) then
    write(output_io, '(a,f6.4)') '   Exctinction Param. : ' , diff_exti
 else
@@ -1515,6 +1526,9 @@ ENDIF
 &          ' = ',F7.4,' A')                                        
 1300 FORMAT (  '   Temp. factors      : ',A) 
 1310 FORMAT (  '   Anomalous scat.    : ',A) 
+1330 FORMAT (  '   Symmetry averaging : Not applied ')
+1331 FORMAT (  '   Symmetry averaging : Friedel pairs merged')
+1332 FORMAT (  '   Symmetry averaging : All symmetry applied')
 1320 FORMAT (  '   Filter function    : Not applied ')
 1321 FORMAT (  '   Filter function    : Lanczos:  Width:', i5,' Damping:', f7.2, ' Scale:',f7.2) 
 1400 FORMAT (/,' Reciprocal layer     : ',/                            &
