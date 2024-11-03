@@ -1921,8 +1921,12 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 ! Extinction correction is calculated using Amplitude, which has been scaled to one unit cell
 ! Intensity written as (Amplitude*extinction)**2 * scale_factor
                qq = qval(i,j,l, 2    , i, j, laver) / cr_icc(1) / cr_icc(2) / cr_icc(3)
+               if(diff_exti>0.00001) then
                ext_cor = (1.0_PREC_DP/(1.0_PREC_DP + 0.001_PREC_DP * diff_exti * qq**2*rlambda**3/ &
                          sind(2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., h, NULLV))))**0.25_PREC_DP)!**2.0_PREC_DP
+               else
+                  ext_cor = 1.0_PREC_DP
+               endif
 !if(nint(h(1))==0 .and. nint(h(2))==0 .and. nint(h(3)) ==-1) then
 !write(*,*) h, qq, ext_cor, 2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., h, NULLV))
 !write(*,*) cr_icc, ' | ', value, qval (i,j,l, value, i, j, laver), qval (i,j,l, 2, i, j, laver)/ cr_icc (1) / cr_icc (2) / cr_icc (3)
