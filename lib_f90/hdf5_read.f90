@@ -10,7 +10,8 @@ use precision_mod
 !
 private
 public hdf5_read     ! Read the pure Yell/discus file format
-public nx_read_scattering   ! Read teh DiffuseDevelopers format via FORPY
+public nx_read_scattering_place   ! Read the DiffuseDevelopers format via FORPY
+                                  ! and place into global data structure
 !
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
@@ -488,7 +489,7 @@ call hdf5_trans_store &
                      lpresent, owerte,               &
                      node_number, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
-write(*,*) ' DID NEW ROUTINE ', ier_num, ier_typ
+!write(*,*) ' DID NEW ROUTINE ', ier_num, ier_typ
 if(ier_num==0) return
 !QQ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !QQ! If requested transform into new orientation
@@ -663,13 +664,15 @@ END SUBROUTINE hdf5_read
 !
 !*******************************************************************************
 !
-subroutine nx_read_scattering(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
+subroutine nx_read_scattering_place(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
                      node_number, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !-
 ! Read a NEXUS HDF5 file in the Diffuse Developers common file format via FORPY
 !+
+!
+use lib_nx_read_mod
 !
 use lib_forpython_mod
 use forpy_mod
@@ -700,36 +703,7 @@ integer,                            intent(in )   :: ER_APPL
 integer,                            intent(in )   :: ER_IO
 integer, intent(in)    :: output_io   ! KUPLOT array size
 !
-!                                                                          ! If data are transformed upon input use "new"
-!character(len=PREC_STRING)                                :: new_outfile   ! New file name  from transformed HDF5 data
-!integer                   , dimension(3)                  :: new_inc       ! New dimensions from transformed HDF5 data
-!real(kind=PREC_DP)        , dimension(3,4)                :: new_eck       ! New corners    from transformed HDF5 data
-!real(kind=PREC_DP)        , dimension(3,3)                :: new_vi        ! New vectors    from transformed HDF5 data
-!real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: new_data      ! New data       from transformed HDF5 data
 !
-!real(kind=PREC_DP), dimension(3,3) :: temp_vi    ! Temporary copy
-!integer :: extr_abs, extr_ord, extr_top
-!
-character(len=:), allocatable :: return_string
-!
-type(object )   :: p_infile           ! Output filename in python interface
-!
-type(tuple)     :: p_args             ! Tuple of arguments for  read_diffuse_scattering
-type(module_py) :: interface_module   ! python script name
-type(list)      :: paths_to_module    ! python script path
-type(object)    :: return_value       ! forpy return value
-type(tuple)     :: returned_tuple     ! All results as tuple
-!type(object)    :: temp2              ! temporary python tuple
-type(object)    :: temp, temp2        ! temporary python object 
-type(tuple)     :: temp_tuple         ! temporary python tuple
-type(ndarray)   :: temp_arr           ! temporary numpy array
-!
-real(kind=real64     ), dimension(:,:,:), pointer :: matrix_3d  ! Pointer to result of get_data
-real(kind=real64     ), dimension(:,:)  , pointer :: matrix_2d  ! Pointer to result of get_data
-real(kind=real64     ), dimension(:)    , pointer :: matrix_1d  ! Pointer to result of get_data
-!
-integer :: iarg
-integer :: ih,ik,il   ! Dummy loop arrays
 integer :: i ,j ,k    ! Dummy loop arrays
 character(len=PREC_STRING)  :: file_type   ! File type should be "Disorder scattering"
 character(len=PREC_STRING)  :: file_version! File version 
@@ -738,266 +712,34 @@ character(len=PREC_STRING)  :: file_program! File program
 character(len=PREC_STRING)  :: file_author ! File author
 character(len=PREC_STRING)  :: signal      ! Data contain 'measurement', 'background' ,,, ,,,
 character(len=PREC_STRING)  :: radiation   ! Data were measured/calculated for this radiation
-character(len=PREC_STRING)  :: space       ! Data are 'reciprocal or 'direct'
+character(len=PREC_STRING)  :: is_space       ! Data are 'reciprocal or 'direct'
 character(len=PREC_STRING)  :: value_type  ! Data contain this value type
 character(len=PREC_STRING)  :: axes        ! string with ["h", "k","l"] or so
-!integer                     :: isdim       ! Data is of this dimension 1, , 2, 3
-!integer, dimension(3)       :: hasdim      ! Data has these dimensions
-!real(kind=PREC_DP), dimension(:,:,:), allocatable :: ergebnis  ! input data
-!real(kind=PREC_DP), dimension(:,:,:), allocatable :: in_data  ! input data
-!real(kind=PREC_DP), dimension(3)                  :: lower_limits  ! Left_lower_bottom corner
-!real(kind=PREC_DP), dimension(3,3)                :: step_vectors  ! Left_lower_bottom corner
-!real(kind=PREC_DP), dimension(:)    , allocatable :: indices_abs   ! indeces along abscissa
-!real(kind=PREC_DP), dimension(:)    , allocatable :: indices_ord   ! indeces along ordinate
-!real(kind=PREC_DP), dimension(:)    , allocatable :: indices_top   ! indeces along top axis
-!real(kind=PREC_DP), dimension(6)                  :: unit_cell     ! unit_cell parameters
+character(len=PREC_STRING)  :: space_group ! Hermann-Mauguin Symbol
+integer                     :: symmetry_applied ! Data conform to symmetry
+integer                     :: symmetry_n_mat   ! Number of Symmetry matrices
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat ! Actual Symmetry matrices
 !
 ! TEMPORARY DEBUG
 !character(kind=C_CHAR, len=:), allocatable :: dname
 !
+call nx_read_scattering(infile, &
+file_type, file_version, file_date, file_program, file_author, &
+ndims, d5_dims, d5_data, &
+signal, radiation, is_space, value_type, &
+h5_llims, h5_steps_full, axes, &
+h5_x, h5_y, h5_z, &
+h5_unit(1:3), h5_unit(4:6), &
+space_group, symmetry_applied, symmetry_n_mat, symmetry_mat,    &
+ier_num &
+)
 !
-call forpy_start()                   ! If needed, start forpy
 !
-ier_num = cast(p_infile, infile(1:len_trim(infile)) )
-ier_num = tuple_create(p_args, 1)
-ier_num = p_args%setitem( 0, p_infile)
-!
-! Append current directory to paths
-!
-ier_num = get_sys_path(paths_to_module)
-ier_num = paths_to_module%append('.')!
-ier_num = import_py(interface_module, 'read_diffuse_scattering')
-ier_num = call_py(return_value, interface_module, 'read_diffuse_scattering', p_args)
-ier_num = cast(returned_tuple, return_value)   ! Get multiple returned objects
-!
-!  Get file type 
-!
-iarg = 0
-ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
-ier_num = cast(return_string, temp)
-file_type = return_string(1:len_trim(return_string))
-call temp%destroy
-!
-!  Get file version
-!
-iarg = 1
-ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
-ier_num = cast(return_string, temp)
-file_version = return_string(1:len_trim(return_string))
-call temp%destroy
-!
-!  Get file date
-!
-iarg = 2
-ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
-ier_num = cast(return_string, temp)
-file_date = return_string(1:len_trim(return_string))
-call temp%destroy
-!
-!  Get file program
-!
-iarg = 3
-ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
-ier_num = cast(return_string, temp)
-file_program = return_string(1:len_trim(return_string))
-call temp%destroy
-!
-!  Get file author
-!
-iarg = 4
-ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
-ier_num = cast(return_string, temp)
-file_author = return_string(1:len_trim(return_string))
-call temp%destroy
-!
-!  Get data dimension
-!
-iarg = 5
-ier_num = returned_tuple%getitem(temp, iarg)      !
-ier_num = cast(ndims, temp)
-call temp%destroy
-!
-!  Get actual dimensions
-!
-iarg = 6
-ier_num = returned_tuple%getitem(temp, iarg)      !
-ier_num = cast(temp_tuple, temp)
-call temp%destroy
-ier_num = temp_tuple%getitem(temp2, 0)      !
-ier_num = cast(d5_dims(1), temp2)
-call temp2%destroy
-ier_num = temp_tuple%getitem(temp2, 1)      !
-ier_num = cast(d5_dims(2), temp2)
-call temp2%destroy
-ier_num = temp_tuple%getitem(temp2, 2)      !
-ier_num = cast(d5_dims(3), temp2)
-call temp2%destroy
-!
-! Get actual data array
-!
-iarg = 7
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-ier_num = temp_arr%get_data(matrix_3d,'C')
-allocate(d5_data(d5_dims(1), d5_dims(2), d5_dims(3)))
-do ih = 1, d5_dims(1)
-do ik = 1, d5_dims(2)
-do il = 1, d5_dims(3)
-   d5_data(ih, ik, il) = matrix_3d(il,ik,ih)
-enddo
-enddo
-enddo
-!deallocate(matrix_3d)
-nullify(matrix_3d)
-call temp%destroy
-call temp_arr%destroy
-!
-!write(*,*) ' Read  original   array 321 ', d5_data(3,2,1)
-!write(*,*)
-!write(*,*) ' Read  original   array llb ', d5_data(1         ,1         ,1         )
-!write(*,*) ' Read  original   array rlb ', d5_data(d5_dims(1),1         ,1         )
-!write(*,*) ' Read  original   array lub ', d5_data(1         ,d5_dims(2),1         )
-!write(*,*) ' Read  original   array rub ', d5_data(d5_dims(1),d5_dims(2),1         )
-!
-!write(*,*) ' Read  original   array llt ', d5_data(1         ,1         ,d5_dims(3))
-!write(*,*) ' Read  original   array rlt ', d5_data(d5_dims(1),1         ,d5_dims(3))
-!write(*,*) ' Read  original   array lut ', d5_data(1         ,d5_dims(2),d5_dims(3))
-!write(*,*) ' Read  original   array rut ', d5_data(d5_dims(1),d5_dims(2),d5_dims(3))
-!call get_data(iarg, returned_tuple, ergebnis, 'C')
-!
-! get signal
-!
-iarg = 8
-ier_num = returned_tuple%getitem(temp, iarg)     ! Get item into temporary object
-ier_num = cast(return_string, temp)
-signal = return_string(1:len_trim(return_string))
-call temp%destroy
-!
-! get radiation
-!
-iarg = 9
-ier_num = returned_tuple%getitem(temp, iarg)     ! Get item into temporary object
-ier_num = cast(return_string, temp)
-radiation = return_string(1:len_trim(return_string))
-call temp%destroy
-!
-! get space
-!
-iarg = 10
-ier_num = returned_tuple%getitem(temp, iarg)     ! Get item into temporary object
-ier_num = print_py(temp)
-ier_num = cast(return_string, temp)
-space = return_string(1:len_trim(return_string))
-if(    space=='direct' .or. space=='patterson') then
+if(    is_space=='direct' .or. is_space=='patterson') then
    h5_direct = .true.
-elseif(space=='reciprocal') then
+elseif(is_space=='reciprocal') then
    h5_direct = .false.
 endif
-call temp%destroy
-!
-! get value type 
-!
-iarg = 11
-ier_num = returned_tuple%getitem(temp, iarg)     ! Get item into temporary object
-ier_num = print_py(temp)
-ier_num = cast(return_string, temp)
-value_type = return_string(1:len_trim(return_string))
-call temp%destroy
-!
-! Get lower limits
-!
-iarg = 12
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-ier_num = temp_arr%get_data(matrix_1d,'C')
-h5_llims = matrix_1d
-deallocate(matrix_1d)
-nullify(matrix_1d)
-call temp%destroy
-call temp_arr%destroy
-!
-! Get step vectors
-!
-iarg = 13
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-ier_num = temp_arr%get_data(matrix_2d,'C')
-h5_steps_full = transpose(matrix_2d)
-call temp%destroy
-call temp_arr%destroy
-!
-!  Get axes string
-!
-iarg = 14
-ier_num = returned_tuple%getitem(temp, iarg)      ! getitem does not allow getitem(p_arr, o)
-ier_num = cast(return_string, temp)
-axes = return_string(1:len_trim(return_string))
-call temp%destroy
-!
-! Get indices along abscissa
-!
-iarg = 15
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-ier_num = temp_arr%get_data(matrix_1d,'C')
-allocate(h5_x(ubound(matrix_1d,1)))
-h5_x = matrix_1d
-!deallocate(matrix_1d)
-nullify(matrix_1d)
-call temp%destroy
-call temp_arr%destroy
-!
-! Get indices along ordinate
-!
-iarg = 16
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-ier_num = temp_arr%get_data(matrix_1d,'C')
-allocate(h5_y(ubound(matrix_1d,1)))
-h5_y = matrix_1d
-!deallocate(matrix_1d)
-nullify(matrix_1d)
-call temp%destroy
-call temp_arr%destroy
-!
-! Get indices along top_axis
-!
-iarg = 17
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-ier_num = temp_arr%get_data(matrix_1d,'C')
-allocate(h5_z(ubound(matrix_1d,1)))
-h5_z = matrix_1d
-call temp%destroy
-call temp_arr%destroy
-!deallocate(matrix_1d)
-nullify(matrix_1d)
-!
-! Get unit cell parameters
-!
-iarg = 18
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-ier_num = temp_arr%get_data(matrix_1d,'C')
-h5_unit(1:3) = matrix_1d
-!deallocate(matrix_1d)
-nullify(matrix_1d)
-call temp%destroy
-call temp_arr%destroy
-iarg = 19
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-ier_num = temp_arr%get_data(matrix_1d,'C')
-h5_unit(4:6) = matrix_1d
-!deallocate(matrix_1d)
-nullify(matrix_1d)
-call temp%destroy
-call temp_arr%destroy
-!
-!
-call temp%destroy
-call temp_arr%destroy
-!
 !
 h5_is_grid  = .true.
 h5_has_dxyz = .false.
@@ -1036,7 +778,9 @@ call hdf5_trans_store &
                      node_number, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !
-end subroutine nx_read_scattering
+deallocate(symmetry_mat)
+!
+end subroutine nx_read_scattering_place
 !
 !*******************************************************************************
 !
