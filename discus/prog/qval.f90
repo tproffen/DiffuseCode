@@ -21,8 +21,11 @@ INTEGER, PARAMETER :: val_faver2b= 18
 INTEGER, PARAMETER :: val_faverb = 19
 !
 INTEGER, PARAMETER :: MAXVALS = 19
+INTEGER, PARAMETER :: MAXRADS =  3
 !
 CHARACTER(LEN=17) :: cvalue (0:MAXVALS)
+character(len=10), dimension(0:MAXVALS) :: cspace
+character(len=10), dimension(1:MAXRADS) :: cradiation
 !
 DATA cvalue / 'undefined        ', 'Intensity        ', 'Amplitude        ',&
               'Phase angle      ', 'Real Part        ', 'Imaginary Part   ',&
@@ -32,6 +35,30 @@ DATA cvalue / 'undefined        ', 'Intensity        ', 'Amplitude        ',&
               '3DPDF            ', '3DBETA           ', 'f2averb=<f^2>*DBW',&
               'faver2b=<f>^2*DBW', 'faverb = <F>     '                      &
             /
+data cspace / &
+'undefined ' , & !  0 'undefined     '
+'reciprocal' , & !  1 'Intensity     '
+'reciprocal' , & !  2 'Amplitude     '
+'reciprocal' , & !  3 'Phase angle   '
+'reciprocal' , & !  4 'Real Part     '
+'reciprocal' , & !  5 'Imaginary Part'
+'reciprocal' , & !  6 'Random Phase  '
+'reciprocal' , & !  7 'S(Q)          '
+'reciprocal' , & !  8 'F(Q)          '
+'reciprocal' , & !  9 'f2aver = <f^2>'
+'reciprocal' , & ! 10 'faver2 = <f>^2'
+'reciprocal' , & ! 11 'faver = <f>   '
+'reciprocal' , & ! 12 'Normalized Inten  '
+'reciprocal' , & ! 13 'I(Q)          '
+'patterson ' , & ! 14 'PDF           '
+'patterson ' , & ! 15 '3DPDF         '
+'patterson ' , & ! 16 '3DBETA        '
+'reciprocal' , & ! 17 'f2averb = <f^2>*DBW'
+'reciprocal' , & ! 18 'faver2b = <f>^2*DBW'
+'reciprocal'   & ! 19 'faverb = <F>       '
+/
+data cradiation / 'xray    ', 'neutron ', 'electron' /
+!
 CONTAINS
 !*****7*****************************************************************
 !
