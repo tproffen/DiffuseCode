@@ -174,6 +174,7 @@ use kuplot_init_devices_mod
 !                                                                       
       DO i = 1, maxkurvtot 
       lni (i) = .false. 
+      lh5 (i) = .false. 
       ikfirst (i) = .true. 
       ENDDO 
 !                                                                       
