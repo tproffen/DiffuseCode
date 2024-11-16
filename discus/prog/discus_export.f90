@@ -593,6 +593,7 @@ WRITE(IWR, 1900)             ! BOND $H
 WRITE(IWR, 2000)             ! FMAP 2
 WRITE(IWR, 2100)             ! PLAN 20
 WRITE(IWR, 2200)             ! ACTA
+WRITE(IWR, '(a)') 'LIST 6'   ! LIST 6
 WRITE(IWR, 2300)             ! WGHT
 if(diff_exti > 0.0_PREC_DP) write(IWR, '(a4,1x,f9.5)') 'EXTI',diff_exti ! EXTI
 WRITE(IWR, 2400)             ! FVAR
@@ -678,6 +679,12 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: vec
 !
    stype = 0
    loop_stype: DO j=1,unique_n
+      if(cr_scat_equ(i)) then
+         if(cr_at_equ(i)(1:2) == unique_names(j)(1:2)) then
+         stype = j
+         exit loop_stype
+         endif
+      else
       atom_name = cr_at_lis(cr_iscat(1,i))(1:2)
       i1 = iachar(  atom_name(2:2))
       if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
@@ -686,6 +693,7 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: vec
          stype = j
          EXIT loop_stype
       ENDIF
+      endif
    ENDDO loop_stype
    vec(:) = cr_pos(:,i)
    CALL get_wyckoff(vec,.FALSE.,1)
