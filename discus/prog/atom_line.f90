@@ -492,7 +492,7 @@ endif   if_style
 endif if_number
 at_natoms = at_natoms + 1
 at_names(at_natoms) = line(1:ibl-1)
-at_values(:,at_natoms) = werte
+at_values(:,at_natoms) = werte(1:22)
 !write(*,*) ' AT_LINE ', line(1:len_trim(line))
 !write(*,'(a,19f8.3)') ' Werte ', werte
 !
