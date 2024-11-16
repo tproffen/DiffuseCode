@@ -188,6 +188,7 @@ endif
 !write(*,*) 'alpha     ', lbound(refine_alpha), ubound(refine_alpha)
 !write(*,*) 'beta      ', lbound(refine_beta ), ubound(refine_beta )
 !write(*,*) 'do_plot   ', ref_do_plot, plmac(1:len_trim(plmac))
+!write(*,*) 'Para      ', refine_p(1:refine_par_n)
 CALL refine_mrq(linit, REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,     &
                 refine_params, ref_dim, ref_data, ref_sigma, ref_x, ref_y,      &
                 ref_z,                                                          &
