@@ -250,9 +250,12 @@ SUBROUTINE plot_cif (iff, lplot, do_spcgr)
 !+                                                                      
 USE discus_config_mod 
 USE crystal_mod 
+use guess_atoms_mod
 USE metric_mod
 USE modify_func_mod
 USE discus_plot_mod 
+use spcgr_mod
+use wyckoff_mod
 !
 use blanks_mod
 USE errlist_mod 
@@ -268,15 +271,19 @@ LOGICAL, INTENT(IN) :: lplot
 CHARACTER(LEN=*), INTENT(IN) :: do_spcgr
 !                                                                       
 REAL(kind=PREC_DP)   , PARAMETER   :: eightpisq = 8.*3.14159265**2
+real(kind=PREC_DP), parameter :: TOL = 0.0001_PREC_DP
 !                                                                       
 !                                                                       
 character(len=PREC_STRING) :: atom_l
 CHARACTER(LEN=16)     :: do_spcgr_w = 'P1'
 character(len=4)      :: atom_i
-REAL(kind=PREC_DP)    :: d, dist , shift
+REAL(kind=PREC_DP)    :: d, dist
+REAL(kind=PREC_DP),    DIMENSION(3) :: shift
 REAL(kind=PREC_DP),    DIMENSION(3) :: v
 INTEGER, DIMENSION(3) :: scalef
 INTEGER               :: i, j
+integer               :: ianis
+integer               :: do_system, do_number
 LOGICAL               :: lno_slice, latom 
 !                                                                       
 real(kind=PREC_DP), dimension(3) :: pl_uvw_local
@@ -290,7 +297,7 @@ IF(lplot) THEN
    scalef(1) =                INT((cr_dim(1,2)-cr_dim(1,1)))+2
    scalef(2) =                INT((cr_dim(2,2)-cr_dim(2,1)))+2
    scalef(3) =                INT((cr_dim(3,2)-cr_dim(3,1)))+2
-   shift     = 0.01
+   shift     = 0.01_PREC_DP - cr_dim (:, 1)
 ELSE
    DO i=1,3
       IF(NINT(cr_dim(i,2)-cr_dim(i,1))-(cr_dim(i,2)-cr_dim(i,1))== 0.000) THEN
@@ -299,12 +306,16 @@ ELSE
          scalef(i) =  INT((cr_dim(i,2)-cr_dim(i,1))) + 1
       ENDIF
    ENDDO
-   shift     = 0.00
+   shift     = 0.00_PREC_DP
 ENDIF
 IF(do_spcgr=='original') THEN
    do_spcgr_w = cr_spcgr   ! needs a copy as it is called with a fixed string from plot
+   do_system = cr_syst
+   do_number = cr_spcgrno
 else
    do_spcgr_w = do_spcgr
+   do_system = 1
+   do_number = 1
 ENDIF
 !
 WRITE (iff, 500) 
@@ -312,7 +323,18 @@ WRITE(iff,'(a,a,a)') '_data_chemical_name_common ''',cr_name(1:LEN_TRIM(cr_name)
 WRITE(iff,*)
 !
 WRITE (iff, 510) (cr_a0 (i) * scalef (i), i = 1, 3),  &
-                 (cr_win (i), i = 1, 3), do_spcgr_w
+                 (cr_win (i), i = 1, 3), space_group_crystal_system(do_system), do_number, do_spcgr_w
+write(iff, '(a)') 
+write(iff,  520)
+if(do_spcgr=='original') then     ! Plotting space is P1
+   do i=1, spc_n
+     write(iff,  530) '  ''', spc_xyz (i)(1:len_trim(spc_xyz(i))), ''''
+   enddo
+else
+   write(iff,'(a)') ' ''x, y, z'''
+endif
+write(iff, '(a)') 
+write(iff,  540)
 !                                                                       
 latom = .false. 
 !                                                                       
@@ -333,6 +355,8 @@ ELSE
       RETURN 
    ENDIF 
 ENDIF 
+!
+call guess_atom_all    ! Guess proper chemical name
 !                                                                       
 DO i = 1, cr_natoms 
 !                                                                       
@@ -365,25 +389,94 @@ DO i = 1, cr_natoms
 !     ------write atom position or projection onto abscissa/ordinate    
 !                                                                       
             DO j = 1, 3 
-               v (j) = cr_pos (j, i) + shift
+               v (j) = cr_pos (j, i) + shift(j)
             ENDDO 
 !                                                                       
 !     ------Write atom position in desired sequence of coordinates      
 !                                                                       
             latom = .true. 
-            atom_i = cr_at_lis(cr_iscat(1,i))
+            if(cr_scat_equ(cr_iscat(1,i))) then
+               atom_i =  cr_at_equ(i)         ! Use equivalent name
+            else
+               atom_i = cr_at_lis(cr_iscat(1,i))
+            endif
             call do_str(atom_i)               ! Remove non-character 
             write(atom_l,'(a,i8)') atom_i(1:len_trim(atom_i)), i
             j = len_trim(atom_l)
             call rem_bl(atom_l,j)
             WRITE (iff, 1000) atom_l(1:len_trim(atom_l)), atom_i,    &
-                ( (v (j) - cr_dim (j, 1) ) / scalef (j), j = 1, 3),  &
+                ( (v (j)                 ) / scalef (j), j = 1, 3),  &
                  cr_dw ( cr_iscat (1,i) )/eightpisq, ' Uiso ',         &
                  cr_occ(cr_iscat(1,i))
+!               ( (v (j) - cr_dim (j, 1) ) / scalef (j), j = 1, 3),  &
          ENDIF 
       ENDIF 
    ENDIF 
 ENDDO 
+!
+!  Write anisotropic Displacement parameters
+!
+cond_anis: if(any(abs(cr_prin(4,1,:)-cr_prin(4,2,:))>TOL  .or.  &
+                  abs(cr_prin(4,1,:)-cr_prin(4,3,:))>TOL      )) then
+write(iff, *)
+write(iff, 550)
+!                                                                       
+DO i = 1, cr_natoms 
+!                                                                       
+!     --Select atom if:                                                 
+!       type has been selected and                                      
+!            all atoms are selected                            or       
+!                                                                       
+   IF(check_select_status(i, pl_latom(cr_iscat(1,i)), cr_prop(i), pl_sel_prop) ) THEN
+!                                                                       
+!     --Check dimensions of plotting space                              
+!                                                                       
+      IF (pl_dim (1, 1) .le.cr_pos (1, i) .and.        &
+          cr_pos (1, i) .le.pl_dim (1, 2) .and.        &
+          pl_dim (2, 1) .le.cr_pos (2, i) .and.        &
+          cr_pos (2, i) .le.pl_dim (2, 2) .and.        &
+          pl_dim (3, 1) .le.cr_pos (3, i) .and.        &
+          cr_pos (3, i) .le.pl_dim (3, 2) ) then
+!                                                                       
+!     ------Determine distance to point in plot slice                   
+!                                                                       
+         DO j = 1, 3 
+            v (j) = cr_pos (j, i) - pl_vec (j) 
+         ENDDO 
+         dist = abs (skalpro (pl_uvw_local, v, cr_gten) ) / d 
+!                                                                       
+!     ------Write atom if inside slice or if slice has been deselected  
+!                                                                       
+         IF (dist.le.pl_width.or.lno_slice) then 
+!                                                                       
+!     ------write atom position or projection onto abscissa/ordinate    
+!                                                                       
+            DO j = 1, 3 
+               v (j) = cr_pos (j, i) + shift(j)
+            ENDDO 
+!                                                                       
+!     ------Write atom position in desired sequence of coordinates      
+!                                                                       
+            ianis = cr_iscat(3,i)
+            if(abs(cr_prin(4,1,ianis    )-cr_prin(4,2,ianis   ))>TOL  .or.  &
+               abs(cr_prin(4,1,ianis    )-cr_prin(4,3,ianis   ))>TOL      ) then
+!              latom = .true. 
+               if(cr_scat_equ(cr_iscat(1,i))) then
+                  atom_i =  cr_at_equ(i)         ! Use equivalent name
+               else
+                  atom_i = cr_at_lis(cr_iscat(1,i))
+               endif
+               call do_str(atom_i)               ! Remove non-character 
+               write(atom_l,'(a,i8)') atom_i(1:len_trim(atom_i)), i
+               j = len_trim(atom_l)
+               call rem_bl(atom_l,j)
+               write(iff, 2000) atom_l(1:len_trim(atom_l)), cr_anis_full(:,ianis)
+            endif
+         ENDIF 
+      ENDIF 
+   ENDIF 
+ENDDO 
+endif cond_anis
 !                                                                       
 IF (.not.latom) then 
    ier_num = - 58 
@@ -398,7 +491,14 @@ ENDIF
      &        '_cell_angle_alpha  ',f10.4,/                             &
      &        '_cell_angle_beta   ',f10.4,/                             &
      &        '_cell_angle_gamma  ',f10.4,//                            &
-     &        '_symmetry_space_group_name_H-M   ''',a,'''',//           &
+     &        '_space_group_crystal_system        ',a,/                 &
+     &        '_space_group_IT_number             ',i3,/                &
+     &        '_space_group_name_H-M_alt          ''',a,'''',//         &
+             )
+  520 format('loop_',/,                                                 &
+             ' _space_group_symop_operation_xyz')
+  530 format(3a)
+  540 format(                                                           &
      &        'loop_',/                                                 &
      &        '_atom_site_label',/                                      &
      &        '_atom_site_symbol',/                                     &
@@ -407,9 +507,19 @@ ENDIF
      &        '_atom_site_fract_z',/                                    &
      &        '_atom_site_u_iso_or_equiv',/                             &
      &        '_atom_site_adp_type',      /                             &
-     &        '_atom_site_occupancy'      /                             &
+     &        '_atom_site_occupancy'                                    &
              )                              
- 1000 FORMAT (a,3x,a,3x,3(f11.6,1x),4x,f8.6,a, f8.6) 
+  550 format ('loop_',/                     &
+              '_atom_site_aniso_label',/    &
+              '_atom_site_aniso_U_11',/     &
+              '_atom_site_aniso_U_22',/     &
+              '_atom_site_aniso_U_33',/     &
+              '_atom_site_aniso_U_23',/     &
+              '_atom_site_aniso_U_13',/     &
+              '_atom_site_aniso_U_12'       &
+             )
+ 1000 format(a, 3x,a,3x,3(f11.6,1x),4x,f8.6,a, f8.6) 
+ 2000 format(a4, 6f9.5)
 !
 END SUBROUTINE plot_cif                       
 !
