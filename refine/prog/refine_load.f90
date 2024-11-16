@@ -11,6 +11,7 @@ SUBROUTINE refine_load(LDATA, line, length)
 ! Loads the Data set and/or the Sigmas
 ! Either explicitly or with reference to a KUPLOT data set
 !
+use kuplot_mod
 use kuplot_load_mod
 !
 USE refine_control_mod
@@ -20,6 +21,7 @@ USE ber_params_mod
 USE get_params_mod
 USE precision_mod
 USE take_param_mod
+use lib_data_struc_h5
 !
 IMPLICIT NONE
 !
@@ -57,6 +59,12 @@ IF(line(1:6) == 'kuplot') THEN
       ref_csigma_u = string
    ENDIF
 ELSE                               ! Presume a "data xy, filename "
+   call dgl5_reset            ! Queitly reset global data storage
+   iz = 1                     ! Quiety clear all KUPLOT arrays
+   lni = .false.
+   lh5 = .false.
+   ikfirst = .true.
+   ku_ndims = 1
    IF(LDATA) THEN
       ref_load = line
       ref_kload = 0
@@ -124,6 +132,7 @@ IF(LDATA) THEN                         ! This is the data set
 ENDIF
 !
 !IF(lni(ndata)) THEN                    ! 2D data set
+write(*,*) 'KU_NDIMS ',ku_ndims(1:10)
 IF(ku_ndims(ndata)==3) THEN             ! 3D data set
 !
       call data2local(ndata   , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
