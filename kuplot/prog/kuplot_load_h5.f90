@@ -92,14 +92,13 @@ SUBROUTINE nexus_read_kuplot(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara,
                      lpresent, owerte, iz, ku_ndims,     &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, lout, output_io)
 !-
-!  Read a Nexus file format specified as teh common develoepers format
+!  Read a Nexus file format specified as the common developers format
 !+
 !
 use kuplot_global
 !
 USE ber_params_mod
 use lib_data_struc_h5
-!use lib_nx_read_mod
 !
 IMPLICIT NONE
 !
@@ -135,7 +134,7 @@ integer, dimension(3) :: dims  = 1
 dataname = ' '
 !
 
-call nx_read_scattering(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
+call nx_read_scattering_place(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
                      node_number,ndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
