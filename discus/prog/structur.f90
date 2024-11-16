@@ -2065,7 +2065,7 @@ INTEGER                                  , INTENT(OUT) :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
 !                                                                       
-INTEGER,  PARAMETER :: maxw = 22 
+INTEGER,  PARAMETER :: maxw = 50 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line, cpara (maxw) 
       CHARACTER(LEN=PREC_STRING) :: zeile 
@@ -2183,6 +2183,7 @@ sym_add_n = 0
 !     ----Space group symbol                                            
 !                                                                       
          ELSEIF (str_comp (befehl, 'spcgr', 1, lbef, 5) ) THEN 
+!           call rem_bl(zeile, lp)
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ianz.lt.1) THEN 
                ier_num = - 100 
@@ -2850,6 +2851,7 @@ USE crystal_mod
 USE spcgr_mod 
 USE spcgr_apply, ONLY : spcgr_get_setting
 !
+use blanks_mod
 USE ber_params_mod
 USE errlist_mod
 USE lib_errlist_func
@@ -2864,6 +2866,7 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN)    :: werte
 !                                                                       
 CHARACTER(LEN=   3), DIMENSION(6) :: setting 
 CHARACTER(LEN=PREC_STRING), DIMENSION(1) :: cpara 
+character(len=16)  , dimension(2) :: spcgr_noblank
 INTEGER            , DIMENSION(1) :: lpara 
 REAL(KIND=PREC_DP) , DIMENSION(1) :: rpara 
 !
@@ -2908,7 +2911,15 @@ ier_typ = ER_APPL
 !  Test regular tabulated space groups
 !
 DO i = 1, SPCGR_MAX 
-   IF(cr_spcgr == spcgr_name(i) ) THEN 
+   spcgr_noblank(1) = cr_spcgr
+   spcgr_noblank(2) = spcgr_name(i)
+   j = len_trim(spcgr_noblank(1))
+   call rem_bl(spcgr_noblank(1), j)
+   j = len_trim(spcgr_name(i))
+   call rem_bl(spcgr_noblank(2), j)
+!  IF(cr_spcgr == spcgr_name(i) ) THEN 
+   if(spcgr_noblank(1) == spcgr_noblank(2)) then
+      cr_spcgr   = spcgr_name(i)
       cr_spcgrno = spcgr_num (i, ii) 
       cr_syst = spcgr_syst (cr_spcgrno) 
       CALL no_error 
@@ -3501,6 +3512,7 @@ SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, c_names, c_refine, ofile)
 USE ber_params_mod
 USE blanks_mod
 USE build_name_mod
+use lib_conv_shelx_mod
 use lib_errlist_func
 USE get_params_mod
 USE lib_length
@@ -3529,7 +3541,7 @@ integer, parameter :: IRE = 37
 !                                                                       
 REAL(KIND=PREC_DP), dimension(MAXW) :: werte
 !                                                                       
-INTEGER, PARAMETER :: shelx_num = 61       ! Number of SHELX commands to ignore 
+INTEGER, PARAMETER :: shelx_num = 59       ! Number of SHELX commands to ignore 
 CHARACTER(len=4), dimension(shelx_num) :: shelx_ign ! (1:shelx_num) 
 CHARACTER(len=4), dimension(:), allocatable  :: c_atom    ! Atom types 
 !      CHARACTER(4) command 
@@ -3541,8 +3553,9 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(ofile))) :: infile          ! Input file name
 character(len=PREC_STRING) :: discus_file          ! Main discus macro
 character(len=PREC_STRING) :: refine_file          ! Main refine macro
 character(len=PREC_STRING) :: hkl_file             ! Reflection data file
+character(len=PREC_STRING) :: fcf_file             ! Reflection data file
 character(len=160), dimension(:), allocatable :: content      ! Complete content of Shelx file
-character(len=256), dimension(:), allocatable :: structure    ! Complete DISCUS result
+character(len=PREC_STRING), dimension(:), allocatable :: structure    ! Complete DISCUS result
 integer :: lcontent   ! Number of lines in content
 integer :: ios        ! I/O status
 integer :: ifvar      ! Line number of 'FVAR'
@@ -3583,6 +3596,7 @@ real(kind=PREC_DP), dimension(:,:,:), allocatable :: spc_mat ! Space group matri
 REAL(KIND=PREC_DP), dimension(NFV) :: fv        ! SHELX free variables
 !REAL(KIND=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: eadp_values
 !
+integer                               :: ilist      ! Number on LIST instruction
 INTEGER                               :: iianz      ! Dummy number of parameters
 INTEGER, PARAMETER                    :: MAXP  = 11 ! Dummy number of parameters
 CHARACTER (LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(MAXP) :: ccpara     ! Parameter needed for SFAC analysis
@@ -3598,9 +3612,9 @@ logical             :: lspace_group   ! use generators of space group symbol
 !                                                                       
 DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
 'BOND', 'BUMP', 'CGLS', 'CHIV', 'CONF', 'CONN', 'DAMP', 'DANG',   &
-'DEFS', 'DELU', 'DFIX', 'DISP',         'EQIV', 'EXTI', 'EXYZ',   &
+'DEFS', 'DELU', 'DFIX', 'DISP',         'EQIV',         'EXYZ',   &
 'FEND', 'FLAT', 'FMAP', 'FRAG', 'FREE', 'GRID', 'HFIX', 'HOPE',   &
-'HTAB', 'ISOR', 'L.S.', 'LAUE', 'LIST', 'MERG', 'MORE', 'MOVE',   &
+'HTAB', 'ISOR', 'L.S.', 'LAUE',         'MERG', 'MORE', 'MOVE',   &
 'MPLA', 'NCSY', 'OMIT', 'PART', 'PLAN', 'REM ', 'RESI', 'RTAB',   &
 'SADI', 'SAME', 'SHEL', 'SIMU', 'SIZE', 'SPEC', 'SUMP', 'STIR',   &
 'SWAT', 'TEMP', 'TIME', 'TWIN', 'UNIT', 'WGHT', 'WPDB', 'ZERR' /  
@@ -3609,6 +3623,7 @@ fv = 0.0_PREC_DP
 !                                                                       
 lmole    = .false. 
 ispace   = 2        ! Default line for space group symbol   
+ilist    = 0        ! Defaulkt to no LIST instruction
 !
 ntyp      = 0
 ntyp_prev = 0
@@ -3840,9 +3855,13 @@ loop_header: do jc=1, ifvar
         ENDIF 
      ENDDO atom_search1
      endif
-  elseif(content(jc)(1:4) == 'EXTI') then          ! FVAR
+  elseif(content(jc)(1:4) == 'EXTI') then          ! EXTI
      line = content(jc)(6:len_trim(content(jc)))
-     read(line,*,end=777, err=777) P_exti
+     read(line,*,end=888, err=888) P_exti
+888  continue
+  elseif(content(jc)(1:4) == 'LIST') then          ! LIST
+     line = content(jc)(6:len_trim(content(jc)))
+     read(line,*) ilist                            ! LIST number
   elseif(content(jc)(1:4) == 'FVAR') then          ! FVAR
      line = content(jc)(6:len_trim(content(jc)))
      call do_cap(line)
@@ -3899,7 +3918,8 @@ loop_atoms: do jc=ifvar +1, ihklf-1
    if(content(jc)(1:4) == 'MOLE') cycle loop_atoms
    if(content(jc)(1:4) == 'EXTI') then          ! EXTI
       line = content(jc)(6:len_trim(content(jc)))
-      read(line,*,end=777, err=777) P_exti
+      read(line,*,end=889, err=889) P_exti
+889   continue
       cycle loop_atoms
    endif
    line = content(jc)(5:len_trim(content(jc)))
@@ -3939,8 +3959,14 @@ if(c_refine=='yes') then
 !
    i= len_trim(ofile)-5
    discus_file = ofile(1:i)//'_main.mac'
-   refine_file = 'refine_'//ofile(1:i)//'.mac'
-   hkl_file    = infile(1:len_trim(infile)-4)//'.hkl'
+   refine_file = 'refine_'//ofile(1:i)//'_merged.mac'
+   if(ilist == 0) then
+      hkl_file = infile(1:len_trim(infile)-4)//'.hkl'
+      fcf_file = ' '
+   else
+      hkl_file = infile(1:len_trim(infile)-4)//'_merged.hkl'
+      fcf_file = infile(1:len_trim(infile)-4)//'.fcf'
+   endif
    open(unit=IDI, file=discus_file, status='unknown')
    open(unit=IRE, file=refine_file, status='unknown')
 !
@@ -4147,10 +4173,17 @@ if(c_refine=='yes') then
       write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:5, shift:0.03, status:fixed'
    endif
    write(IRE,'(a )') 'set cycle,   5'
-   write(IRE,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10'
+   write(IRE,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10, pshift:2.0, conf:1.0, lambda:65000.'
+   write(IRE,'(2a)') '#@', discus_file(1:len_trim(discus_file))
+   write(IRE,'( a)') '#branch kuplot'
+   write(IRE,'( a)') '#  @k_fobs_fcalc.mac'
    write(IRE,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_fobs_fcalc.mac'
    write(IRE,'(a )') 'exit  ! Back to SUITE'
    close(IRE)
+!
+   if(ilist >  0) then
+      call lib_convert_shelx(fcf_file, hkl_file)
+   endif
 endif
 !===============================================================================
 !
@@ -7187,7 +7220,7 @@ LOGICAL              , INTENT(IN)    :: l_cell         ! If true this is a 'cell
 integer              , intent(in)    :: MAXMASK
 logical, dimension(0:MAXMASK), intent(in)    :: uni_mask      !  User mask test (name, charge, b, occ)
 !
-INTEGER, PARAMETER                    :: MAXW = 22 
+INTEGER, PARAMETER                    :: MAXW = 50 
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW)  :: cpara (MAXW) 
 INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW) 
