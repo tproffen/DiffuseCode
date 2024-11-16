@@ -1069,6 +1069,9 @@ ELSE
          proz = .TRUE.
          IF(cpara(ianz)(2:2) == 'm') labs = .TRUE.
          ianz = ianz - 1
+      elseif(cpara(ianz)(1:3) == 'abs') THEN     ! Data in percent
+         labs = .true.
+         ianz = ianz - 1
       ELSE
          proz = .FALSE.
       ENDIF
