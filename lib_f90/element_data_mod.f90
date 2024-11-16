@@ -1885,8 +1885,24 @@ else cond_guess                             ! Need for guesswork ... ...
       at_name = per_element(j)
       is_cond = IS_GUESS
    else
-      at_name = 'NONE'
-      is_cond = IS_FAIL
+!     Try first two letters only
+      trial(3:4) = '  '
+      call symbf(trial, j)
+      if(j>0) then
+         at_name = per_element(j)
+         is_cond = IS_GUESS_2
+      else
+!     Try first letters only
+         trial(2:4) = '  '
+         call symbf(trial, j)
+         if(j>0) then
+            at_name = per_element(j)
+            is_cond = IS_GUESS_1
+         else
+            at_name = 'NONE'
+            is_cond = IS_FAIL
+         endif
+      endif
    endif
 endif cond_guess
 !
