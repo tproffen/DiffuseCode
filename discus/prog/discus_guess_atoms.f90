@@ -48,6 +48,14 @@ loop_main: do i=1, cr_nscat
       cr_scat_equ(i) = .true.       ! Automatically assign equivalent (neutral) atom name
       cr_at_equ(i)   = trial
       cycle loop_main
+   elseif(is_cond==IS_GUESS_2) then
+      cr_scat_equ(i) = .true.       ! Automatically assign equivalent (neutral) atom name
+      cr_at_equ(i)   = trial
+      cycle loop_main
+   elseif(is_cond==IS_GUESS_1) then
+      cr_scat_equ(i) = .true.       ! Automatically assign equivalent (neutral) atom name
+      cr_at_equ(i)   = trial
+      cycle loop_main
    elseif(is_cond==IS_FAIL) then
       ier_num = 9
       ier_typ = ER_APPL
