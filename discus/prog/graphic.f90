@@ -24,6 +24,7 @@ use powder_pdf_hist_mod  , only:pow_pdf_hist_prep_period
 use powder_out_partial_mod
 USE chem_aver_mod
 USE qval_mod
+use wyckoff_mod
 !
 USE ber_params_mod
 USE build_name_mod
@@ -660,10 +661,13 @@ endif
                        new_outfile, new_inc, new_eck, new_vi, new_qvalues)
 !
                else
-                  CALL nx_write_scattering(value, laver, outfile, out_inc, out_eck, out_vi, &
+                  i = 0
+                  if(four_symm) i = 1
+                  call nx_write_scattering(outfile, out_inc, out_eck, out_vi, &
                           out_extr_abs, out_extr_ord, out_extr_top,                     &
-                          cr_a0, cr_win, qvalues,val_pdf, val_3Dpdf, valmax,            &
-                          ier_num, ier_typ, ER_IO, ER_APPL)
+                          cr_a0, cr_win, qvalues, cvalue(value), cspace(value), cradiation(diff_radiation), &
+                          cr_spcgr, i, spc_n, spc_mat(1:3,1:4,1:spc_n),                 &
+                          ier_num)
                endif
                endif
                deallocate(qvalues)
