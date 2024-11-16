@@ -8,78 +8,83 @@ SAVE
 !
 INTEGER, PARAMETER  ::  SPCGR_MAX  =  315
 !
+character(len=12), dimension(9), parameter  ::  space_group_crystal_system = &
+   (/'triclinic   ', 'monoclinic  ', 'monoclinic  ', 'orthorhombic', 'tetragonal  ',  &
+     'trigonal    ', 'trigonal    ', 'hexagonal   ', 'cubic       ' /)
 CHARACTER(LEN=16), DIMENSION(SPCGR_MAX)     ::  spcgr_name      ! Normal space group name
 CHARACTER(LEN=16), DIMENSION(16:74    ,1:6) ::  spcgr_name_set  ! alternative setting in orthorhombic only
+CHARACTER(LEN=16), DIMENSION(SPCGR_MAX)     ::  spcgr_point     ! Point group name
+CHARACTER(LEN=16), DIMENSION(SPCGR_MAX)     ::  spcgr_laue      ! Laue  group name
 INTEGER          , DIMENSION(SPCGR_MAX,2)   ::  spcgr_num       ! Space group number
 INTEGER          , DIMENSION(SPCGR_MAX)     ::  spcgr_syst      ! Crystal system to which spce group belongs to
 integer          , dimension(SPCGR_MAX)     ::  spcgr_num_sym   ! Number of symmetry element each spacgroup
 integer          , dimension(SPCGR_MAX)     ::  spcgr_origin    ! Origin choice                   spacgroup
 INTEGER                                     :: i
 !
-!                                   abc        bac        cab        cba        bca        acb
-DATA (spcgr_name_set(16,i),i=1,6) /'P222   ', 'P222   ', 'P222   ', 'P222   ', 'P222   ', 'P222   '/
-DATA (spcgr_name_set(17,i),i=1,6) /'P2221  ', 'P2221  ', 'P2122  ', 'P2122  ', 'P2212  ', 'P2212  '/
-DATA (spcgr_name_set(18,i),i=1,6) /'P21212 ', 'P21212 ', 'P22121 ', 'P22121 ', 'P21221 ', 'P21221 '/
-DATA (spcgr_name_set(19,i),i=1,6) /'P212121', 'P212121', 'P212121', 'P212121', 'P212121', 'P212121'/
-DATA (spcgr_name_set(20,i),i=1,6) /'C2221  ', 'C2221  ', 'A2122  ', 'A2122  ', 'B2212  ', 'B2212  '/
-DATA (spcgr_name_set(21,i),i=1,6) /'C222   ', 'C222   ', 'A222   ', 'A222   ', 'B222   ', 'B222   '/
-DATA (spcgr_name_set(22,i),i=1,6) /'F222   ', 'F222   ', 'F222   ', 'F222   ', 'F222   ', 'F222   '/
-DATA (spcgr_name_set(23,i),i=1,6) /'I222   ', 'I222   ', 'I222   ', 'I222   ', 'I222   ', 'I222   '/
-DATA (spcgr_name_set(24,i),i=1,6) /'I212121', 'I212121', 'I212121', 'I212121', 'I212121', 'I212121'/
+!                                   abc           bac           cab           cba           bca           acb
+DATA (spcgr_name_set(16,i),i=1,6) /'P 2 2 2   ', 'P 2 2 2   ', 'P 2 2 2   ', 'P 2 2 2   ', 'P 2 2 2   ', 'P 2 2 2   '/
+DATA (spcgr_name_set(17,i),i=1,6) /'P 2 2 21  ', 'P 2 2 21  ', 'P 21 2 2  ', 'P 21 2 2  ', 'P 2 21 2  ', 'P 2 21 2  '/
+DATA (spcgr_name_set(18,i),i=1,6) /'P 21 21 2 ', 'P 21 21 2 ', 'P 2 21 21 ', 'P 2 21 21 ', 'P 21 2 21 ', 'P 21 2 21 '/
+DATA (spcgr_name_set(19,i),i=1,6) /'P 21 21 21', 'P 21 21 21', 'P 21 21 21', 'P 21 21 21', 'P 21 21 21', 'P 21 21 21'/
+DATA (spcgr_name_set(20,i),i=1,6) /'C 2 2 21  ', 'C 2 2 21  ', 'A 21 2 2  ', 'A 21 2 2  ', 'B 2 21 2  ', 'B 2 21 2  '/
+DATA (spcgr_name_set(21,i),i=1,6) /'C 2 2 2   ', 'C 2 2 2   ', 'A 2 2 2   ', 'A 2 2 2   ', 'B 2 2 2   ', 'B 2 2 2   '/
+DATA (spcgr_name_set(22,i),i=1,6) /'F 2 2 2   ', 'F 2 2 2   ', 'F 2 2 2   ', 'F 2 2 2   ', 'F 2 2 2   ', 'F 2 2 2   '/
+DATA (spcgr_name_set(23,i),i=1,6) /'I 2 2 2   ', 'I 2 2 2   ', 'I 2 2 2   ', 'I 2 2 2   ', 'I 2 2 2   ', 'I 2 2 2   '/
+DATA (spcgr_name_set(24,i),i=1,6) /'I 21 21 21', 'I 21 21 21', 'I 21 21 21', 'I 21 21 21', 'I 21 21 21', 'I 21 21 21'/
 !
-!                                   abc        bac        cab        cba        bca        acb
-DATA (spcgr_name_set(25,i),i=1,6) /'Pmm2   ', 'Pmm2   ', 'P2mm   ', 'P2mm   ', 'Pm2m   ', 'Pm2m   '/
-DATA (spcgr_name_set(26,i),i=1,6) /'Pmc21  ', 'Pcm21  ', 'P21ma  ', 'P21am  ', 'Pb21m  ', 'Pm21b  '/
-DATA (spcgr_name_set(27,i),i=1,6) /'Pcc2   ', 'Pcc2   ', 'P2aa   ', 'P2aa   ', 'Pb2b   ', 'Pb2b   '/
-DATA (spcgr_name_set(28,i),i=1,6) /'Pma2   ', 'Pbm2   ', 'P2mb   ', 'P2cm   ', 'Pc2m   ', 'Pm2a   '/
-DATA (spcgr_name_set(29,i),i=1,6) /'Pca21  ', 'Pbc21  ', 'P21ab  ', 'P21ca  ', 'Pc21b  ', 'Pb21a  '/
-DATA (spcgr_name_set(30,i),i=1,6) /'Pnc2   ', 'Pcn2   ', 'P2na   ', 'P2an   ', 'Pb2n   ', 'Pn2b   '/
-DATA (spcgr_name_set(31,i),i=1,6) /'Pmn21  ', 'Pnm21  ', 'P21mn  ', 'P21nm  ', 'Pn21m  ', 'Pm21n  '/
-DATA (spcgr_name_set(32,i),i=1,6) /'Pba2   ', 'Pba2   ', 'P2cb   ', 'P2cb   ', 'Pc2a   ', 'Pc2a   '/
-DATA (spcgr_name_set(33,i),i=1,6) /'Pna21  ', 'Pbn21  ', 'P21nb  ', 'P21cn  ', 'Pc21n  ', 'Pn21a  '/
-DATA (spcgr_name_set(34,i),i=1,6) /'Pnn2   ', 'Pnn2   ', 'P2nn   ', 'P2nn   ', 'Pn2n   ', 'Pn2n   '/
-DATA (spcgr_name_set(35,i),i=1,6) /'Cmm2   ', 'Cmm2   ', 'A2mm   ', 'A2mm   ', 'Bm2m   ', 'Bm2m   '/
-DATA (spcgr_name_set(36,i),i=1,6) /'Cmc21  ', 'Ccm21  ', 'A21ma  ', 'A21am  ', 'Bb21m  ', 'Bm21b  '/
-DATA (spcgr_name_set(37,i),i=1,6) /'Ccc2   ', 'Ccc2   ', 'A2aa   ', 'A2aa   ', 'Bb2b   ', 'Bb2b   '/
-DATA (spcgr_name_set(38,i),i=1,6) /'Amm2   ', 'Bmm2   ', 'B2mm   ', 'C2mm   ', 'Cm2m   ', 'Am2m   '/
-DATA (spcgr_name_set(39,i),i=1,6) /'Aem2   ', 'Bme2   ', 'B2em   ', 'C2me   ', 'Cm2e   ', 'Ae2m   '/
-DATA (spcgr_name_set(40,i),i=1,6) /'Ama2   ', 'Bbm2   ', 'B2mb   ', 'C2cm   ', 'Cc2m   ', 'Am2a   '/
-DATA (spcgr_name_set(41,i),i=1,6) /'Aea2   ', 'Bbe2   ', 'B2eb   ', 'C2ce   ', 'Cc2e   ', 'Ae2a   '/
-DATA (spcgr_name_set(42,i),i=1,6) /'Fmm2   ', 'Fmm2   ', 'F2mm   ', 'F2mm   ', 'Fm2m   ', 'Fm2m   '/
-DATA (spcgr_name_set(43,i),i=1,6) /'Fdd2   ', 'Fdd2   ', 'F2dd   ', 'F2dd   ', 'Fd2d   ', 'Fd2d   '/
-DATA (spcgr_name_set(44,i),i=1,6) /'Imm2   ', 'Imm2   ', 'I2mm   ', 'I2mm   ', 'Im2m   ', 'Im2m   '/
-DATA (spcgr_name_set(45,i),i=1,6) /'Iba2   ', 'Iba2   ', 'I2cb   ', 'I2cb   ', 'Ic2a   ', 'Ic2a   '/
-DATA (spcgr_name_set(46,i),i=1,6) /'Ima2   ', 'Ibm2   ', 'I2mb   ', 'I2cm   ', 'Ic2m   ', 'Im2a   '/
+!                                   a b c         b a c         c a b         c b a         b c a         a c b 
+DATA (spcgr_name_set(25,i),i=1,6) /'P m m 2   ', 'P m m 2   ', 'P 2m m    ', 'P 2m m    ', 'P m 2m    ', 'P m 2m    '/
+DATA (spcgr_name_set(26,i),i=1,6) /'P m c 21  ', 'P c m 21  ', 'P 21 m a  ', 'P 21 a m  ', 'P b 21 m  ', 'P m 21 b  '/
+DATA (spcgr_name_set(27,i),i=1,6) /'P c c 2   ', 'P c c 2   ', 'P 2a a    ', 'P 2a a    ', 'P b 2b    ', 'P b 2b    '/
+DATA (spcgr_name_set(28,i),i=1,6) /'P m a 2   ', 'P b m 2   ', 'P 2m b    ', 'P 2c m    ', 'P c 2m    ', 'P m 2a    '/
+DATA (spcgr_name_set(29,i),i=1,6) /'P c a 21  ', 'P b c 21  ', 'P 21 a b  ', 'P 21 c a  ', 'P c 21 b  ', 'P b 21 a  '/
+DATA (spcgr_name_set(30,i),i=1,6) /'P n c 2   ', 'P c n 2   ', 'P 2n a    ', 'P 2a n    ', 'P b 2n    ', 'P n 2b    '/
+DATA (spcgr_name_set(31,i),i=1,6) /'P m n 21  ', 'P n m 21  ', 'P 21 m n  ', 'P 21 n m  ', 'P n 21 m  ', 'P m 21 n  '/
+DATA (spcgr_name_set(32,i),i=1,6) /'P b a 2   ', 'P b a 2   ', 'P 2c b    ', 'P 2c b    ', 'P c 2a    ', 'P c 2a    '/
+DATA (spcgr_name_set(33,i),i=1,6) /'P n a 21  ', 'P b n 21  ', 'P 21 n b  ', 'P 21 c n  ', 'P c 21 n  ', 'P n 21 a  '/
+DATA (spcgr_name_set(34,i),i=1,6) /'P n n 2   ', 'P n n 2   ', 'P 2n n    ', 'P 2n n    ', 'P n 2n    ', 'P n 2n    '/
+DATA (spcgr_name_set(35,i),i=1,6) /'C m m 2   ', 'C m m 2   ', 'A 2m m    ', 'A 2m m    ', 'B m 2m    ', 'B m 2m    '/
+DATA (spcgr_name_set(36,i),i=1,6) /'C m c 21  ', 'C c m 21  ', 'A 21 m a  ', 'A 21 a m  ', 'B b 21 m  ', 'B m 21 b  '/
+DATA (spcgr_name_set(37,i),i=1,6) /'C c c 2   ', 'C c c 2   ', 'A 2a a    ', 'A 2a a    ', 'B b 2b    ', 'B b 2b    '/
+DATA (spcgr_name_set(38,i),i=1,6) /'A m m 2   ', 'B m m 2   ', 'B 2m m    ', 'C 2m m    ', 'C m 2m    ', 'A m 2m    '/
+DATA (spcgr_name_set(39,i),i=1,6) /'A e m 2   ', 'B m e 2   ', 'B 2e m    ', 'C 2m e    ', 'C m 2e    ', 'A e 2m    '/
+DATA (spcgr_name_set(40,i),i=1,6) /'A m a 2   ', 'B b m 2   ', 'B 2m b    ', 'C 2c m    ', 'C c 2m    ', 'A m 2a    '/
+DATA (spcgr_name_set(41,i),i=1,6) /'A e a 2   ', 'B b e 2   ', 'B 2e b    ', 'C 2c e    ', 'C c 2e    ', 'A e 2a    '/
+DATA (spcgr_name_set(42,i),i=1,6) /'F m m 2   ', 'F m m 2   ', 'F 2m m    ', 'F 2m m    ', 'F m 2m    ', 'F m 2m    '/
+DATA (spcgr_name_set(43,i),i=1,6) /'F d d 2   ', 'F d d 2   ', 'F 2d d    ', 'F 2d d    ', 'F d 2d    ', 'F d 2d    '/
+DATA (spcgr_name_set(44,i),i=1,6) /'I m m 2   ', 'I m m 2   ', 'I 2m m    ', 'I 2m m    ', 'I m 2m    ', 'I m 2m    '/
+DATA (spcgr_name_set(45,i),i=1,6) /'I b a 2   ', 'I b a 2   ', 'I 2c b    ', 'I 2c b    ', 'I c 2a    ', 'I c 2a    '/
+DATA (spcgr_name_set(46,i),i=1,6) /'I m a 2   ', 'I b m 2   ', 'I 2m b    ', 'I 2c m    ', 'I c 2m    ', 'I m 2a    '/
 !
-!                                   abc        bac        cab        cba        bca        acb
-DATA (spcgr_name_set(47,i),i=1,6) /'Pmmm   ', 'Pmmm   ', 'Pmmm   ', 'Pmmm   ', 'Pmmm   ', 'Pmmm   '/
-DATA (spcgr_name_set(48,i),i=1,6) /'Pnnn   ', 'Pnnn   ', 'Pnnn   ', 'Pnnn   ', 'Pnnn   ', 'Pnnn   '/
-DATA (spcgr_name_set(49,i),i=1,6) /'Pccm   ', 'Pccm   ', 'Pmaa   ', 'Pmaa   ', 'Pbmb   ', 'Pbmb   '/
-DATA (spcgr_name_set(50,i),i=1,6) /'Pban   ', 'Pban   ', 'Pncb   ', 'Pncb   ', 'Pcna   ', 'Pcna   '/
-DATA (spcgr_name_set(51,i),i=1,6) /'Pmma   ', 'Pmmb   ', 'Pbmm   ', 'Pcmm   ', 'Pmcm   ', 'Pmam   '/
-DATA (spcgr_name_set(52,i),i=1,6) /'Pnna   ', 'Pnnb   ', 'Pbnn   ', 'Pcnn   ', 'Pncn   ', 'Pnan   '/
-DATA (spcgr_name_set(53,i),i=1,6) /'Pmna   ', 'Pnmb   ', 'Pbmn   ', 'Pcnm   ', 'Pncm   ', 'Pman   '/
-DATA (spcgr_name_set(54,i),i=1,6) /'Pcca   ', 'Pccb   ', 'Pbaa   ', 'Pcaa   ', 'Pbcb   ', 'Pbab   '/
-DATA (spcgr_name_set(55,i),i=1,6) /'Pbam   ', 'Pbam   ', 'Pmcb   ', 'Pmcb   ', 'Pcma   ', 'Pcma   '/
-DATA (spcgr_name_set(56,i),i=1,6) /'Pccn   ', 'Pccn   ', 'Pnaa   ', 'Pnaa   ', 'Pbnb   ', 'Pbnb   '/
-DATA (spcgr_name_set(57,i),i=1,6) /'Pbcm   ', 'Pcam   ', 'Pmca   ', 'Pmab   ', 'Pbma   ', 'Pcmb   '/
-DATA (spcgr_name_set(58,i),i=1,6) /'Pnnm   ', 'Pnnm   ', 'Pmnn   ', 'Pmnn   ', 'Pnmn   ', 'Pnmn   '/
-DATA (spcgr_name_set(59,i),i=1,6) /'Pmmn   ', 'Pmmn   ', 'Pnmm   ', 'Pnmm   ', 'Pmnm   ', 'Pmnm   '/
-DATA (spcgr_name_set(60,i),i=1,6) /'Pbcn   ', 'Pcan   ', 'Pnca   ', 'Pnab   ', 'Pbna   ', 'Pcnb   '/
-DATA (spcgr_name_set(61,i),i=1,6) /'Pbca   ', 'Pcab   ', 'Pbca   ', 'Pcab   ', 'Pbca   ', 'Pcab   '/
-DATA (spcgr_name_set(62,i),i=1,6) /'Pnma   ', 'Pmnb   ', 'Pbnm   ', 'Pcmn   ', 'Pmcn   ', 'Pnam   '/
-DATA (spcgr_name_set(63,i),i=1,6) /'Cmcm   ', 'Ccmm   ', 'Amma   ', 'Amam   ', 'Bbmm   ', 'Bmmb   '/
-DATA (spcgr_name_set(64,i),i=1,6) /'Cmce   ', 'Ccme   ', 'Aema   ', 'Aeam   ', 'Bbem   ', 'Bmeb   '/
-DATA (spcgr_name_set(65,i),i=1,6) /'Cmmm   ', 'Cmmm   ', 'Ammm   ', 'Ammm   ', 'Bmmm   ', 'Bmmm   '/
-DATA (spcgr_name_set(66,i),i=1,6) /'Cccm   ', 'Cccm   ', 'Amaa   ', 'Amaa   ', 'Bbmb   ', 'Bbmb   '/
-DATA (spcgr_name_set(67,i),i=1,6) /'Cmme   ', 'Cmmb   ', 'Aemm   ', 'Acmm   ', 'Bmem   ', 'Bmam   '/
-DATA (spcgr_name_set(68,i),i=1,6) /'Ccce   ', 'Cccb   ', 'Aeaa   ', 'Acaa   ', 'Bbeb   ', 'Bbab   '/
-DATA (spcgr_name_set(69,i),i=1,6) /'Fmmm   ', 'Fmmm   ', 'Fmmm   ', 'Fmmm   ', 'Fmmm   ', 'Fmmm   '/
-DATA (spcgr_name_set(70,i),i=1,6) /'Fddd   ', 'Fddd   ', 'Fddd   ', 'Fddd   ', 'Fddd   ', 'Fddd   '/
-DATA (spcgr_name_set(71,i),i=1,6) /'Immm   ', 'Immm   ', 'Immm   ', 'Immm   ', 'Immm   ', 'Immm   '/
-DATA (spcgr_name_set(72,i),i=1,6) /'Ibam   ', 'Ibam   ', 'Imcb   ', 'Imcb   ', 'Icma   ', 'Icma   '/
-DATA (spcgr_name_set(73,i),i=1,6) /'Ibca   ', 'Icab   ', 'Ibca   ', 'Icab   ', 'Ibca   ', 'Icab   '/
-DATA (spcgr_name_set(74,i),i=1,6) /'Imma   ', 'Immb   ', 'Ibmm   ', 'Icmm   ', 'Imcm   ', 'Imam   '/
+!                                   a b c         b a c         c a b         c b a         b c a         a c b 
+DATA (spcgr_name_set(47,i),i=1,6) /'P m m m   ', 'P m m m   ', 'P m m m   ', 'P m m m   ', 'P m m m   ', 'P m m m   '/
+DATA (spcgr_name_set(48,i),i=1,6) /'P n n n   ', 'P n n n   ', 'P n n n   ', 'P n n n   ', 'P n n n   ', 'P n n n   '/
+DATA (spcgr_name_set(49,i),i=1,6) /'P c c m   ', 'P c c m   ', 'P m a a   ', 'P m a a   ', 'P b m b   ', 'P b m b   '/
+DATA (spcgr_name_set(50,i),i=1,6) /'P b a n   ', 'P b a n   ', 'P n c b   ', 'P n c b   ', 'P c n a   ', 'P c n a   '/
+DATA (spcgr_name_set(51,i),i=1,6) /'P m m a   ', 'P m m b   ', 'P b m m   ', 'P c m m   ', 'P m c m   ', 'P m a m   '/
+DATA (spcgr_name_set(52,i),i=1,6) /'P n n a   ', 'P n n b   ', 'P b n n   ', 'P c n n   ', 'P n c n   ', 'P n a n   '/
+DATA (spcgr_name_set(53,i),i=1,6) /'P m n a   ', 'P n m b   ', 'P b m n   ', 'P c n m   ', 'P n c m   ', 'P m a n   '/
+DATA (spcgr_name_set(54,i),i=1,6) /'P c c a   ', 'P c c b   ', 'P b a a   ', 'P c a a   ', 'P b c b   ', 'P b a b   '/
+DATA (spcgr_name_set(55,i),i=1,6) /'P b a m   ', 'P b a m   ', 'P m c b   ', 'P m c b   ', 'P c m a   ', 'P c m a   '/
+DATA (spcgr_name_set(56,i),i=1,6) /'P c c n   ', 'P c c n   ', 'P n a a   ', 'P n a a   ', 'P b n b   ', 'P b n b   '/
+DATA (spcgr_name_set(57,i),i=1,6) /'P b c m   ', 'P c a m   ', 'P m c a   ', 'P m a b   ', 'P b m a   ', 'P c m b   '/
+DATA (spcgr_name_set(58,i),i=1,6) /'P n n m   ', 'P n n m   ', 'P m n n   ', 'P m n n   ', 'P n m n   ', 'P n m n   '/
+DATA (spcgr_name_set(59,i),i=1,6) /'P m m n   ', 'P m m n   ', 'P n m m   ', 'P n m m   ', 'P m n m   ', 'P m n m   '/
+DATA (spcgr_name_set(60,i),i=1,6) /'P b c n   ', 'P c a n   ', 'P n c a   ', 'P n a b   ', 'P b n a   ', 'P c n b   '/
+DATA (spcgr_name_set(61,i),i=1,6) /'P b c a   ', 'P c a b   ', 'P b c a   ', 'P c a b   ', 'P b c a   ', 'P c a b   '/
+DATA (spcgr_name_set(62,i),i=1,6) /'P n m a   ', 'P m n b   ', 'P b n m   ', 'P c m n   ', 'P m c n   ', 'P n a m   '/
+DATA (spcgr_name_set(63,i),i=1,6) /'C m c m   ', 'C c m m   ', 'A m m a   ', 'A m a m   ', 'B b m m   ', 'B m m b   '/
+DATA (spcgr_name_set(64,i),i=1,6) /'C m c e   ', 'C c m e   ', 'A e m a   ', 'A e a m   ', 'B b e m   ', 'B m e b   '/
+DATA (spcgr_name_set(65,i),i=1,6) /'C m m m   ', 'C m m m   ', 'A m m m   ', 'A m m m   ', 'B m m m   ', 'B m m m   '/
+DATA (spcgr_name_set(66,i),i=1,6) /'C c c m   ', 'C c c m   ', 'A m a a   ', 'A m a a   ', 'B b m b   ', 'B b m b   '/
+DATA (spcgr_name_set(67,i),i=1,6) /'C m m e   ', 'C m m b   ', 'A e m m   ', 'A c m m   ', 'B m e m   ', 'B m a m   '/
+DATA (spcgr_name_set(68,i),i=1,6) /'C c c e   ', 'C c c b   ', 'A e a a   ', 'A c a a   ', 'B b e b   ', 'B b a b   '/
+DATA (spcgr_name_set(69,i),i=1,6) /'F m m m   ', 'F m m m   ', 'F m m m   ', 'F m m m   ', 'F m m m   ', 'F m m m   '/
+DATA (spcgr_name_set(70,i),i=1,6) /'F d d d   ', 'F d d d   ', 'F d d d   ', 'F d d d   ', 'F d d d   ', 'F d d d   '/
+DATA (spcgr_name_set(71,i),i=1,6) /'I m m m   ', 'I m m m   ', 'I m m m   ', 'I m m m   ', 'I m m m   ', 'I m m m   '/
+DATA (spcgr_name_set(72,i),i=1,6) /'I b a m   ', 'I b a m   ', 'I m c b   ', 'I m c b   ', 'I c m a   ', 'I c m a   '/
+DATA (spcgr_name_set(73,i),i=1,6) /'I b c a   ', 'I c a b   ', 'I b c a   ', 'I c a b   ', 'I b c a   ', 'I c a b   '/
+DATA (spcgr_name_set(74,i),i=1,6) /'I m m a   ', 'I m m b   ', 'I b m m   ', 'I c m m   ', 'I m c m   ', 'I m a m   '/
 !
 data spcgr_num_sym /                          &
   1,  2,  2,  2,  4,  2,  2,  4,  4,  4,   4,  8,  4,  4,  8,  4,  4,  4,  4,  8, & !   1   20
