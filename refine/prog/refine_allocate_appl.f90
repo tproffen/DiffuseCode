@@ -171,8 +171,8 @@ lstat = .TRUE.
 CALL alloc_arr ( refine_params  ,1,n_params, all_status, ' ')
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_fixed   ,1,n_params, all_status, ' ')
-lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!CALL alloc_arr ( refine_fixed   ,1,n_params, all_status, ' ')
+!lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
 CALL alloc_arr ( refine_range   ,1,n_params, 1, 2, all_status, 1.00000D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -180,8 +180,8 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 CALL alloc_arr ( refine_p       ,1,n_params, all_status, 1.00000D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000D0)
-lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000D0)
+!lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
 CALL alloc_arr ( refine_dp      ,1,n_params, all_status, 0.00000D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
