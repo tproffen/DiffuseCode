@@ -45,6 +45,8 @@ USE support_mod
 !  Do a serial loop over all CHILDREN*NINDIV
 !  Transfer the trial parameters to r[201...]
 !
+   run_mpi_senddata%ierr_msg_l = 80
+   run_mpi_senddata%ierr_msg_n =  7
    zeile = run_mpi_senddata%prog(1:run_mpi_senddata%prog_l)  ! Code branch program
    lzeile = run_mpi_senddata%prog_l
 !
