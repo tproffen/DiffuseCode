@@ -982,6 +982,7 @@ USE precision_mod
       USE crystal_mod 
       USE wyckoff_mod 
       USE unitcell_mod 
+use spcgr_mod, only: spcgr_point, spcgr_laue
 !                                                                       
       USE prompt_mod 
       IMPLICIT none 
@@ -1002,6 +1003,7 @@ IF(cr_syst==4) THEN
 ELSE
    WRITE (output_io, 2200) cr_spcgr, cr_spcgrno, cr_system (cr_syst) 
 ENDIF
+write(output_io, 2300) spcgr_point(cr_spcgrno), spcgr_laue(cr_spcgrno)
 !                                                                       
       DO is = 1, spc_n 
          CALL do_show_symmetry_single(is, mode)
@@ -1009,6 +1011,7 @@ ENDIF
 !
 2100 FORMAT(/,' Space group ',a16,' No.: ',i3,2x,a13,' Setting: ',a3, 1x, a16)
 2200 FORMAT(/,' Space group ',a16,' No.: ',i3,2x,a26) 
+2300 FORMAT(  ' Point group  ',a16,'Laue group ',a16) 
 !
   END SUBROUTINE do_show_symmetry
 !
