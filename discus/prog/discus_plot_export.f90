@@ -358,6 +358,7 @@ ENDIF
 !
 call guess_atom_all    ! Guess proper chemical name
 !                                                                       
+write(*,*) ' lplot ' , lplot
 DO i = 1, cr_natoms 
 !                                                                       
 !     --Select atom if:                                                 
@@ -400,9 +401,14 @@ DO i = 1, cr_natoms
             else
                atom_i = cr_at_lis(cr_iscat(1,i))
             endif
-            call do_str(atom_i)               ! Remove non-character 
-            write(atom_l,'(a,i8)') atom_i(1:len_trim(atom_i)), i
-            j = len_trim(atom_l)
+            if(lplot) then
+               call do_str(atom_i)               ! Remove non-character 
+               write(atom_l,'(a,i8)') atom_i(1:len_trim(atom_i)), i
+               j = len_trim(atom_l)
+            else
+               atom_l = cr_at_lis(cr_iscat(1,i))
+               j = len_trim(atom_l)
+            endif
             call rem_bl(atom_l,j)
             WRITE (iff, 1000) atom_l(1:len_trim(atom_l)), atom_i,    &
                 ( (v (j)                 ) / scalef (j), j = 1, 3),  &
@@ -461,13 +467,17 @@ DO i = 1, cr_natoms
             if(abs(cr_prin(4,1,ianis    )-cr_prin(4,2,ianis   ))>TOL  .or.  &
                abs(cr_prin(4,1,ianis    )-cr_prin(4,3,ianis   ))>TOL      ) then
 !              latom = .true. 
-               if(cr_scat_equ(cr_iscat(1,i))) then
-                  atom_i =  cr_at_equ(i)         ! Use equivalent name
+               if(lplot) then
+                  if(cr_scat_equ(cr_iscat(1,i))) then
+                     atom_i =  cr_at_equ(i)         ! Use equivalent name
+                  else
+                     atom_i = cr_at_lis(cr_iscat(1,i))
+                  endif
+                  call do_str(atom_i)               ! Remove non-character 
+                  write(atom_l,'(a,i8)') atom_i(1:len_trim(atom_i)), i
                else
-                  atom_i = cr_at_lis(cr_iscat(1,i))
+                  atom_l = cr_at_lis(cr_iscat(1,i))
                endif
-               call do_str(atom_i)               ! Remove non-character 
-               write(atom_l,'(a,i8)') atom_i(1:len_trim(atom_i)), i
                j = len_trim(atom_l)
                call rem_bl(atom_l,j)
                write(iff, 2000) atom_l(1:len_trim(atom_l)), cr_anis_full(:,ianis)
