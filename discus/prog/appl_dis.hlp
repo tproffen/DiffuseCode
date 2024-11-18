@@ -7492,6 +7492,7 @@
 !p set profile,"eta",<eta>
 !p set profile,"uvw",<u>,<v>,<w> ["fwhm:cagliotti" | "fwhm:area" | "fwhm:poly"]
 !p set profile,"asym",<a1>,<b1>,<a2>,<b2>
+!p set profile,"asym_i1",<a1_l>,<b1_l>,<a2_l>,<b2_l>
 !p set profile,"asym_l",<a1_l>,<b1_l>,<a2_l>,<b2_l>
 !p set profile,"asym_q",<a1_q>,<b1_q>,<a2_q>,<b2_q>
 !p set profile,"width",<width>
@@ -7540,8 +7541,11 @@
    FWHM = sqrt( u*Q**2 + v*Q + w)
 
    "asym"
-   The Asymmetry or the Pseudo-Voigt function is calculated according 
-   to the definition as in Fullprof.
+   The Asymmetry of the Pseudo-Voigt/Pearson VII function is 
+   calculated according to the definition as in Fullprof.
+
+   "asym_i1"
+   Inverse TTH/Q dependent varition of the asymmetry parameters
 
    "asym_l"
    Linear TTH/Q dependent varition of the asymmetry parameters
