@@ -310,7 +310,9 @@ use phases_mod
 USE phases_set_mod
 !
 use errlist_mod
+use prompt_mod
 use precision_mod
+use support_mod
 use wink_mod
 !
 implicit none
@@ -318,7 +320,10 @@ implicit none
 character(len=*), intent(inout) :: zeile
 integer         , intent(inout) :: lp
 !
+logical :: four_log_user   ! Store user setting for Fourier log
+!
 real(kind=PREC_DP) :: fwhm
+real(kind=PREC_DP) :: ss       ! time
 !
 !
 CALL dlink(ano, lambda, rlambda, renergy, l_energy, &
@@ -365,13 +370,21 @@ pow_deltaq_c = pow_deltaq
 IF(ier_num==0) THEN
    IF(.NOT.pha_multi) pha_frac(1) = 1.0E0
 !
+four_log_user = four_log
+four_log = .false.
+ss = seknds (0.0D0)
       if(pow_four_type.eq.POW_DEBYE) then 
          CALL pow_pdf_hist
       elseif(pow_four_type==POW_COMPL) then
          CALL powder_complete 
       elseif(pow_four_type==POW_NUFFT) then
-         CALL powder_nufft 
+         CALL powder_nufft (FOUR_NUFFT)
+      elseif(pow_four_type==POW_GRID) then
+         CALL powder_nufft (FOUR_TURBO)
       endif
+ss = seknds (ss )
+write(output_io, '('' Elapsed time      Powder : '',G13.6,'' sec'')') ss
+four_log = four_log_user
    call powder_run_post
 ENDIF 
 pow_qmin = pow_qmin_u ! Restore user settings
@@ -395,6 +408,8 @@ use phases_mod
 USE phases_set_mod
 !
 use errlist_mod
+use prompt_mod 
+!
 !
 implicit none
 !
@@ -1133,6 +1148,8 @@ elseif(str_comp(cpara(1), 'calc', 1, lpara(1), 4) ) then
           pow_four_type = POW_DEBYE 
        elseif(str_comp(cpara(2), 'nufft', 1, lpara(2), 5)) then                                                   
           pow_four_type = POW_NUFFT 
+       elseif(str_comp(cpara(2), 'grid', 1, lpara(2), 5)) then                                                   
+          pow_four_type = POW_grid 
        endif 
     else 
        ier_num = - 6 
@@ -1807,7 +1824,7 @@ pow_hkl_max (2) = cr_a0 (2) * pow_ds_max
 pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
 !                                                                       
 !
-ss = seknds (0.0D0) 
+!ss = seknds (0.0D0) 
 !                                                                       
 !     Set Fourier definitions                                           
 !                                                                       
@@ -2398,20 +2415,21 @@ CALL dealloc_powder_nmax ! was allocated in powder_getatoms
 !      CALL powder_f2aver ( cr_nscat , natom , cr_dw)
 !
 !
-ss = seknds (ss) 
-WRITE (output_io, 4000) ss 
+!ss = seknds (ss) 
+!WRITE (output_io, 4000) ss 
 !
 !                                                                       
- 4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
+! 4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
  5000 FORMAT     (' Currently at H = ',f9.4,'   (dH = ',f9.4,           &
      &                   ', maxH = ',f9.4,')')                          
  8888 FORMAT    ('Current number = ',i10) 
  8889 FORMAT    ('Maximum number = ',i10) 
-      END SUBROUTINE powder_complete                
+!
+END SUBROUTINE powder_complete                
 !
 !*****7*****************************************************************
 !
-subroutine powder_nufft
+subroutine powder_nufft(calc_mode)
 !-
 ! Calculates a powder pattern via NUFFT on a 3D grid
 !+
@@ -2431,6 +2449,8 @@ use precision_mod
 use wink_mod
 !
 implicit none
+!
+integer, intent(in) :: calc_mode
 !
 integer :: n_pkt
 integer :: n_nscat
@@ -2485,7 +2505,7 @@ four_tech = FOUR_NUFFT
 call dlink(ano, lambda, rlambda, renergy, l_energy,                             &
            diff_radiation, diff_table, diff_power)
 !
-call four_show(.true.)
+!call four_show(.true.)
 !
 ! If needed allocate arrays Fourier and Powder and Phases
 !
@@ -2527,11 +2547,14 @@ pow_faver2(:) = 0.0D0   ! 0:POW_MAXPKT
 pow_nreal     = 0
 pow_u2aver    = 0.0
 !
-!write(*,*) ' POWDER NUFFT '
+if(calc_mode==FOUR_NUFFT) then
 if(diff_table==RAD_DISC) then
    call four_run_nufft_discamb  ! Do single crystal Fourier via NUFFT DISCAMB version
 else
    call four_run_nufft     ! Do single crystal Fourier via NUFFT
+endif
+elseif(calc_mode==FOUR_TURBO) then
+   call four_run
 endif
 
 !
@@ -2556,7 +2579,6 @@ do il=1, inc(3)
       enddo
    enddo
 enddo
-!write(*,*) ' POWDER NUFFT  ', maxval(pow_qsp)
 !
 xstart = pow_qmin  /zpi
 xdelta = pow_deltaq/zpi

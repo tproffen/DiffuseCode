@@ -1272,16 +1272,16 @@ REAL(KIND=PREC_DP) :: pow_uuu_sum
 !
 REAL(KIND=PREC_DP)           :: ss       ! time
 !
-if(pow_profile==0) then
-WRITE (output_io, * ) ' Starting convolution'!, pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w
-endif
+!if(pow_profile==0) then
+!WRITE (output_io, * ) ' Starting convolution'!, pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w
+!endif
 ss = seknds (0.0)
 !
 xmin  = 0.0 
 xmax  = 0.0 
 xxmax = 0.0 
 xdel  = 0.0 
-IF (pow_four_type.eq.POW_COMPL .or. pow_four_type==POW_NUFFT) THEN 
+IF (pow_four_type.eq.POW_COMPL .or. pow_four_type==POW_NUFFT .or. pow_four_type==POW_GRID) THEN 
 !  IF (pow_axis.eq.POW_AXIS_Q) THEN 
       xmin = pow_qmin 
       xmax = pow_qmax 
@@ -1319,7 +1319,7 @@ ELSEIF (pow_four_type.eq.POW_DEBYE ) THEN
    npkt = MIN(num(1), POW_MAXPKT)
 ENDIF 
 !
-IF (.not.(pow_four_type == POW_COMPL .or. pow_four_type==POW_NUFFT)) THEN 
+IF (.not.(pow_four_type == POW_COMPL .or. pow_four_type==POW_NUFFT .or. pow_four_type==POW_GRID)) THEN 
 !                                                              
 !     This is a Debye calculation, copy rsf or csf into pow_conv
 !                                                              
@@ -1390,7 +1390,7 @@ elseif (pow_profile == POW_PROFILE_TOF) THEN
         pow_difa, pow_difb, pow_difc, pow_tzero, pow_tof_a0, pow_tof_a1,        &
         pow_tof_b0, pow_tof_b1, pow_tof_bq, pow_tof_s0, pow_tof_s1, pow_tof_s2, &
         pow_tof_sq, pow_tof_z, pow_tof_y, pow_tof_x, pow_tof_siz, pow_tof_str,  &
-        pow_four_type, POW_COMPL, POW_NUFFT, POW_DEBYE)
+        pow_four_type, POW_COMPL, POW_NUFFT, POW_GRID, POW_DEBYE)
 ENDIF 
 !open(77,file='POWDER/inte_conv.FQ',status='unknown')
 !DO j=0,npkt
@@ -1404,12 +1404,12 @@ ENDDO
 scalef = 1.0
 IF(pow_four_type.eq.POW_DEBYE) THEN
    scalef = pow_tmp_sum/pow_uuu_sum
-ELSEIF(pow_four_type==POW_COMPL .or. pow_four_type==POW_NUFFT) THEN
+ELSEIF(pow_four_type==POW_COMPL .or. pow_four_type==POW_NUFFT .or. pow_four_type==POW_GRID) THEN
    scalef = 1./xdel
 ENDIF
 pow_conv(:) = pow_conv(:) * scalef
 ss = seknds (ss) 
-WRITE (output_io, '(/,'' Elapsed time    : '',G13.6,'' sec'')') ss
+WRITE(output_io, '('' Elapsed time Convolution : '',G13.6,'' sec'')') ss
 !write(*,*) ' POST CONVOLUTE '
 !open(77,file='POWDER/post_conv.FQ',status='unknown')
 !DO j=0,npkt
@@ -1648,6 +1648,7 @@ INTEGER                      , INTENT(IN)    ::  pow_type   ! = 0==COMPl =1==DEB
 INTEGER, PARAMETER  :: POW_COMPL = 0
 INTEGER, PARAMETER  :: POW_DEBYE = 1
 INTEGER, PARAMETER  :: POW_NUFFT = 2
+INTEGER, PARAMETER  :: POW_GRID  = 3
 !                                                                       
 REAL(KIND=PREC_DP)                               :: fwhm
 REAL(KIND=PREC_DP), DIMENSION(0:POW_MAXPKT)      :: dummy
@@ -1684,7 +1685,7 @@ dummy = 0.0
 !
 !------ If COMPLETE, check for zeros, else do all points
 !
-IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT) THEN
+IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN
    DO i = 0, imax 
 !if(dat(i)>10.) write(*,'(i5,f7.3,f14.5)') i, tthmin + i*dtth, dat(i)
       dummy (i) = dat (i) * (psvgt (0) - psvgt (2 * i) ) 
@@ -1761,6 +1762,7 @@ INTEGER                                       , INTENT(IN)    :: pow_pr_fwhm   !
 INTEGER, PARAMETER  :: POW_COMPL = 0
 INTEGER, PARAMETER  :: POW_DEBYE = 1
 INTEGER, PARAMETER  :: POW_NUFFT = 2
+INTEGER, PARAMETER  :: POW_GRID  = 3
 INTEGER, PARAMETER  :: POW_PROFILE_CAGLIOTTI  = 1
 INTEGER, PARAMETER  :: POW_PROFILE_AREA       = 2
 !
@@ -1785,7 +1787,7 @@ imax = INT( (tthmax - tthmin) / dtth ) - 1
 !
 dummy = 0.0D0   ! dummy(:)
 
-IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT) THEN     ! Complete, check for zeros in DAT
+IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN     ! Complete, check for zeros in DAT
    main_pts: DO i = 0, imax 
 !
       fwhm = 0.00001D0
@@ -1949,6 +1951,7 @@ INTEGER                                       , INTENT(IN)    :: pow_pr_fwhm   !
 INTEGER, PARAMETER  :: POW_COMPL = 0
 INTEGER, PARAMETER  :: POW_DEBYE = 1
 INTEGER, PARAMETER  :: POW_NUFFT = 2
+INTEGER, PARAMETER  :: POW_GRID  = 3
 !INTEGER, PARAMETER  :: POW_PROFILE_CAGLIOTTI  = 1
 !INTEGER, PARAMETER  :: POW_PROFILE_AREA       = 2
 !
@@ -1971,7 +1974,7 @@ imax = INT( (tthmax - tthmin) / dtth ) - 1
 !
 dummy = 0.0D0   ! dummy(:)
 
-IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT) THEN     ! Complete, check for zeros in DAT
+IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN     ! Complete, check for zeros in DAT
    main_pts: DO i = 0, imax 
       if(dat(i) == 0.0D0) cycle main_pts
 !
@@ -2169,6 +2172,7 @@ INTEGER                         , INTENT(IN)    :: pow_pr_fwhm   ! == 1 for Cagl
 INTEGER, PARAMETER  :: POW_COMPL = 0
 INTEGER, PARAMETER  :: POW_DEBYE = 1
 INTEGER, PARAMETER  :: POW_NUFFT = 2
+INTEGER, PARAMETER  :: POW_GRID  = 3
 !INTEGER, PARAMETER  :: POW_PROFILE_CAGLIOTTI  = 1
 !INTEGER, PARAMETER  :: POW_PROFILE_AREA       = 2
 !
@@ -2192,9 +2196,10 @@ INTEGER :: max_ps
 !------ Now convolute                                                   
 !                                                                       
 imax = INT( (tthmax - tthmin) / dtth )
+write(*,*) ' IMAX ', imax, tthmin, tthmax, dtth
 dummy = 0.0D0
 !
-IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT) THEN
+IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN
    main_compl: DO i = 0, imax 
 !
       if(dat(i)==0.0D0) cycle main_compl
@@ -2295,6 +2300,7 @@ INTEGER                         , INTENT(IN)    :: pow_pr_fwhm   ! == 1 for Cagl
 INTEGER, PARAMETER  :: POW_COMPL = 0
 INTEGER, PARAMETER  :: POW_DEBYE = 1
 INTEGER, PARAMETER  :: POW_NUFFT = 2
+INTEGER, PARAMETER  :: POW_GRID  = 3
 !INTEGER, PARAMETER  :: POW_PROFILE_CAGLIOTTI  = 1
 !INTEGER, PARAMETER  :: POW_PROFILE_AREA       = 2
 !
@@ -2322,7 +2328,7 @@ INTEGER :: max_ps
 imax = INT( (tthmax - tthmin) / dtth )
 dummy = 0.0D0
 !
-IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT) THEN
+IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN
    main_compl: DO i = 0, imax 
 !
       if(dat(i)==0.0D0) cycle main_compl
@@ -2702,7 +2708,7 @@ END SUBROUTINE powder_conv_corrlin_old
 subroutine powder_conv_tof(dat, xxmin,xxmax, xxdel, pow_width, MAXPKT,          &
    difa, difb, difc, zero, alpha0, alpha1, beta0, beta1, betaq, sigma02,        &
    sigma12, sigma22, sigmaq, gamma0, gamma1, gamma2, gsize, gstrain,            &
-   pow_four_type, POW_COMPL, POW_NUFFT, POW_DEBYE)
+   pow_four_type, POW_COMPL, POW_NUFFT, POW_GRID, POW_DEBYE)
 !-
 !   Convolute with TOF profile function
 !+
@@ -2740,6 +2746,7 @@ real(kind=PREC_DP)                        , intent(in)    :: gstrain   ! [      
 integer                                   , INTENT(IN)    :: pow_four_type ! Complete or Debye
 integer                                   , INTENT(IN)    :: POW_COMPL     ! Complete or Debye
 integer                                   , INTENT(IN)    :: POW_NUFFT     ! Complete or Debye
+integer                                   , INTENT(IN)    :: POW_GRID      ! Complete or Debye
 integer                                   , INTENT(IN)    :: POW_DEBYE     ! Debye
 !
 integer :: i, j
@@ -2804,7 +2811,7 @@ conv = 0.0D0
 imax = int( ( xxmax -  xxmin) / xxdel )
 jmax = int(0.5/xxdel)
 !
-if(pow_four_type==POW_COMPL .or. pow_four_type==POW_NUFFT) then        ! Complete calculation
+if(pow_four_type==POW_COMPL .or. pow_four_type==POW_NUFFT .or. POW_FOUR_TYPE==POW_GRID) then        ! Complete calculation
    do i=0, imax
       if(dat(i) > 0.0D0) then            ! Non-zero data do convolution
          dval   = zpi/(xxmin + i*xxdel) ! D-value from Q
