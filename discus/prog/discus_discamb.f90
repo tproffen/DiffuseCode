@@ -10,6 +10,8 @@ module discamb_mod
 !
 use precision_mod
 !
+private
+!
 type :: disc_form
 !  private
    integer                                                :: iscat    ! The scattering type
@@ -22,6 +24,10 @@ type(disc_form), dimension(:), pointer :: disc_list => NULL()
 integer, dimension(:,:), allocatable   :: disc_nsymm          ! Number of symmetry operations for each scattering type
 !
 complex(kind=PREC_DP), dimension(:,:,:,:), allocatable :: four_form_tsc ! Form factors from DISCAMB as read
+integer, dimension(3), save :: maxhkl   ! Maximum abs(hkl)
+!
+public discamb_read
+public disc_list
 !
 contains
 !
@@ -38,8 +44,8 @@ integer :: i
 !
 if(associated(disc_list)) then
    do i=1, ubound(disc_list,1)
-     deallocate(disc_list(i)%isymm)
-     deallocate(disc_list(i)%four_form_tsc)
+     if(allocated(disc_list(i)%isymm))         deallocate(disc_list(i)%isymm)
+     if(allocated(disc_list(i)%four_form_tsc)) deallocate(disc_list(i)%four_form_tsc)
    enddo
    deallocate(disc_list)
 endif
@@ -165,7 +171,6 @@ integer :: nhdr             ! header Line number
 integer :: ntotal           ! total lines in input file
 integer :: num_scatterers   ! Number of different atoms types in tscfile
 integer, dimension(3) ::   ihkl   !            (hkl)
-integer, dimension(3) :: maxhkl   ! Maximum abs(hkl)
 logical :: ldata   ! got DATA: line
 
 real(kind=PREC_DP), dimension(3)   :: hkl
@@ -194,6 +199,40 @@ loop_init: do
    read(IRD, '(a)', iostat=ios) line
    if(is_iostat_end(ios)) exit loop_init
    nr = nr + 1
+   if(line(1:10)=='SCATTERERS') then  ! We got the list of atom names
+      length=len_trim(line)
+      jj = 0
+      ii = 13                         ! First non character after :
+      loop_types: do i = 13, length+1   ! Count all SCATTERERS, compare to atom names
+         if(line(i:i)==' ') then
+            jj = jj + 1
+            if(line(ii:i-1)/= cr_at_lis(jj)) then
+               ier_num = -201
+               ier_typ = ER_APPL
+               string = 'Crystal:'
+               do l=1, cr_nscat
+                  string(len_trim(string)+1:len_trim(string)+6) = ' ' // cr_at_lis(l)
+               enddo
+               l = len_trim(string)
+               ier_msg(1) = string(1:min(len(ier_msg),l))
+               write(ier_msg(2), '(2a)') 'TSC    : ', line(13:length)
+               close(IRD)
+               return
+            else
+               ii = i+1
+               cycle loop_types
+            endif
+         endif
+      enddo loop_types
+      if(jj /= cr_nscat) then          ! Number of scatterers differs from crystal structure
+         ier_num = -202
+         ier_typ = ER_APPL
+         write(ier_msg(1), '(a, i5)') 'Crystal structure ', cr_nscat
+         write(ier_msg(2), '(a, i5)') 'DISCAMB TSC file  ', jj
+         close(IRD)
+         return
+      endif
+   endif
    if(line(1:5)=='DATA:') then
       ldata = .true.
       cycle loop_init
@@ -207,6 +246,14 @@ loop_init: do
 enddo loop_init
 ntotal = nr
 close(IRD) 
+!
+if(any(maxhkl<int(diff_maxhkl))) then   ! User requested hkl limis outside tcs file!
+   ier_num = -200
+   ier_typ = ER_APPL
+   write(ier_msg(1),'(a,3i4)') 'Fourier  limits ', int(diff_maxhkl)
+   write(ier_msg(2),'(a,3i4)') 'TSC file limits ', maxhkl
+   return
+endif
 !
 call oeffne(IRD, tscfile, 'old')
 if(ier_num /=0) then
@@ -588,6 +635,27 @@ loop_scat: do i=1, nscat
 enddo loop_scat
 !
 end subroutine old_discamb_set_form_tsc
+!
+!*******************************************************************************
+!
+!subroutine discamb_check_hkl( hkl, ier_num )
+!!-
+!! Check if the user intended hkl max values are covered by discamb file
+!!+
+!!
+!use precision_mod
+!!
+!implicit none
+!!
+!real(kind=PREC_DP), dimension(3), intent(in) :: hkl  ! User maximum hkl
+!integer , intent(out) :: ier_num
+!!
+!ier_num = 0
+!if(any(maxhkl< int(hkl))) then
+!   ier_num = -1
+!endif
+!!
+!end subroutine discamb_check_hkl
 !
 !*******************************************************************************
 !
