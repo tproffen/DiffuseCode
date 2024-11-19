@@ -812,6 +812,7 @@ call fourier_lmn(eck,vi,inc,lmn,off_shift)
 call four_stltab               ! set up sin(theta)/lambda table
 !
 call discamb_read(diff_file, diff_trust)
+if(ier_num/=0) return
 call four_dbwtab
 ldiscamb = .TRUE.
 !
@@ -2509,6 +2510,9 @@ DO i = 1, 3
    vin (i) = vi  (i, 2) 
    win (i) = vi  (i, 3) 
 ENDDO 
+diff_maxhkl(1) = maxval(abs(eck(1,:)))
+diff_maxhkl(2) = maxval(abs(eck(2,:)))
+diff_maxhkl(3) = maxval(abs(eck(3,:)))
 !                                                                       
 DO i = 1, 3 
    num(i) = inc(i) 
