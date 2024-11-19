@@ -358,7 +358,6 @@ ENDIF
 !
 call guess_atom_all    ! Guess proper chemical name
 !                                                                       
-write(*,*) ' lplot ' , lplot
 DO i = 1, cr_natoms 
 !                                                                       
 !     --Select atom if:                                                 
@@ -397,7 +396,7 @@ DO i = 1, cr_natoms
 !                                                                       
             latom = .true. 
             if(cr_scat_equ(cr_iscat(1,i))) then
-               atom_i =  cr_at_equ(i)         ! Use equivalent name
+               atom_i =  cr_at_equ(cr_iscat(1,i))         ! Use equivalent name
             else
                atom_i = cr_at_lis(cr_iscat(1,i))
             endif
@@ -469,7 +468,7 @@ DO i = 1, cr_natoms
 !              latom = .true. 
                if(lplot) then
                   if(cr_scat_equ(cr_iscat(1,i))) then
-                     atom_i =  cr_at_equ(i)         ! Use equivalent name
+                     atom_i =  cr_at_equ(cr_iscat(1,i))         ! Use equivalent name
                   else
                      atom_i = cr_at_lis(cr_iscat(1,i))
                   endif
