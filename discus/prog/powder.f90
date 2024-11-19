@@ -337,7 +337,8 @@ pow_qmax_u = pow_qmax
 pow_deltaq_u=pow_deltaq
 pow_npkt_u  = nint((pow_qmax_u-pow_qmin_u)/pow_deltaq_u) + 1 ! save user number of points
 if(pow_profile/=0) then
-   fwhm = SQRT(MAX(ABS(pow_u*pow_qmax**2 + pow_v*pow_qmax + pow_w), 0.00001D0) ) 
+!  fwhm = SQRT(MAX(ABS(pow_u*pow_qmax**2 + pow_v*pow_qmax + pow_w), 0.00001D0) ) 
+   fwhm = powder_calc_fwhm_symm(1, pow_qmax, 1, pow_u,pow_v,pow_w, rlambda, pow_pr_fwhm)
 else
    fwhm = 0.0
 endif
@@ -382,6 +383,7 @@ ss = seknds (0.0D0)
       elseif(pow_four_type==POW_GRID) then
          CALL powder_nufft (FOUR_TURBO)
       endif
+   if(ier_num/=0) return
 ss = seknds (ss )
 write(output_io, '('' Elapsed time      Powder : '',G13.6,'' sec'')') ss
 four_log = four_log_user
@@ -1807,7 +1809,7 @@ REAL(kind=PREC_DP) :: u2, vv, ww
 REAL(kind=PREC_DP) :: aaa, bbb, ccc 
 REAL(kind=PREC_DP) :: llstartmini 
 REAL(kind=PREC_DP) :: llendmini 
-REAL(kind=PREC_DP) :: ss 
+!REAL(kind=PREC_DP) :: ss 
 !                                                                       
 !
 st_new_form = .TRUE.    ! We need new form factors from stack to be placed into phases
@@ -2548,14 +2550,15 @@ pow_nreal     = 0
 pow_u2aver    = 0.0
 !
 if(calc_mode==FOUR_NUFFT) then
-if(diff_table==RAD_DISC) then
-   call four_run_nufft_discamb  ! Do single crystal Fourier via NUFFT DISCAMB version
-else
-   call four_run_nufft     ! Do single crystal Fourier via NUFFT
-endif
+   if(diff_table==RAD_DISC) then
+      call four_run_nufft_discamb  ! Do single crystal Fourier via NUFFT DISCAMB version
+   else
+      call four_run_nufft     ! Do single crystal Fourier via NUFFT
+   endif
 elseif(calc_mode==FOUR_TURBO) then
    call four_run
 endif
+if(ier_num /=0 ) return
 
 !
 do il=1, inc(3)
