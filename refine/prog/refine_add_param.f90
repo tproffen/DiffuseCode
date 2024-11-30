@@ -78,7 +78,7 @@ INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to cal
 !
 DATA oname  / 'shift'  , 'points' ,  'value ' , 'status'  ,  'range' /
 DATA loname /  5       ,  6       ,   5       ,  6        ,   5      /
-opara  =  (/ '0.003000', '3.000000', '-1.00000', 'free    ',  '0.000000'/)   ! Always provide fresh default values
+opara  =  (/ '0.001000', '3.000000', '-1.00000', 'free    ',  '0.000000'/)   ! Always provide fresh default values
 lopara =  (/  8        ,  8        ,  8        ,  8        ,   8        /)
 owerte =  (/  0.00300  ,  3.0      ,  -1.0     ,  0.0      ,   0.0      /)
 !
