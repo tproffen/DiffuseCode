@@ -66,7 +66,7 @@ DO i=0,iqmin-1                       ! Augment straight line to q=0
 ENDDO
 !
 temp(iqmin:iqmin+npkt_wrt-1) = ywrt(1:npkt_wrt) ! Add actual powder pattern
-!open(77,file='POWDER/prae_fft.FQ',status='unknown')
+!open(77,file='POWDER/augm_fft.FQ',status='unknown')
 !DO i=0,iqmin+npkt_wrt-1
 !  write(77,'(2(2x,G17.7E3))') (i)*dq,temp(i)
 !enddo
