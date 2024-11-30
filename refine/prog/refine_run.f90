@@ -54,7 +54,7 @@ INTEGER                              :: i        ! Dummy loop parameter
 INTEGER                              :: ndata    ! number of data points
 INTEGER                              :: ianz     ! number of parameters
 LOGICAL                              :: lexist   ! File exists yes/no
-CHARACTER(LEN=MAX(PREC_STRING,LEN(line)))                  :: plmac    ! optional plot macro
+!CHARACTER(LEN=MAX(PREC_STRING,LEN(line)))                  :: plmac    ! optional plot macro
 LOGICAL                              :: ref_do_plot ! Do plot yes/no
 LOGICAL                              :: linit       ! Initialize mrq
 integer                              :: diffev_l_get_random_state  ! Copy of current random state
@@ -117,10 +117,10 @@ if(refine_log) then
 endif
 !
 ref_do_plot = .FALSE.
-plmac       = ' '
+refine_plot_mac       = ' '
 IF(opara(OPLOT) /= ' ') THEN
   ref_do_plot = .TRUE.
-  plmac       = opara(OPLOT)
+  refine_plot_mac       = opara(OPLOT)
 ENDIF
 !
 ALLOCATE(refine_calc  (ref_dim(1), ref_dim(2), ref_dim(3)))
@@ -187,7 +187,7 @@ endif
 !write(*,*) 'cl        ', lbound(refine_cl), ubound(refine_cl)
 !write(*,*) 'alpha     ', lbound(refine_alpha), ubound(refine_alpha)
 !write(*,*) 'beta      ', lbound(refine_beta ), ubound(refine_beta )
-!write(*,*) 'do_plot   ', ref_do_plot, plmac(1:len_trim(plmac))
+!write(*,*) 'do_plot   ', ref_do_plot, refine_plot_mac(1:len_trim(refine_plot_mac))
 !write(*,*) 'Para      ', refine_p(1:refine_par_n)
 CALL refine_mrq(linit, REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,     &
                 refine_params, ref_dim, ref_data, ref_sigma, ref_x, ref_y,      &
@@ -197,7 +197,7 @@ CALL refine_mrq(linit, REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,     
                 refine_chisqr, refine_conf, refine_lamda, refine_lamda_s,       &
                 refine_lamda_d, refine_lamda_u, refine_rval,                    &
                 refine_rexp, refine_p, refine_range, refine_shift, refine_nderiv,&
-                refine_dp, refine_cl, refine_alpha, refine_beta, ref_do_plot, plmac)
+                refine_dp, refine_cl, refine_alpha, refine_beta, ref_do_plot, refine_plot_mac)
 main:IF(ier_num==0) THEN
    refine_init = .FALSE.
 !
@@ -2457,7 +2457,7 @@ IF(ref_csigma/= ' ') THEN           ! sigma set was loaded
 ENDIF
 WRITE(IWR, '(a)') 'refine'
 WRITE(IWR, '(a)') '#'
-call write_header(IWR)          ! Write all accumulated header line
+call write_header(IWR, refine_mac, refine_plot_mac)          ! Write all accumulated header line
 WRITE(IWR, '(a)') '#'
 !
 ! Write refined values
@@ -2465,9 +2465,14 @@ WRITE(IWR, '(a)') '#'
 DO i=1, refine_par_n            ! Write values for all refined parametersWrite values for all refined parameters
    WRITE(IWR,'(a,a,G20.8E3,a, G20.8E3)') refine_params(i), ' = ', refine_p(i) , ' ! +- ', refine_dp(i)
 ENDDO
+call write_footer(IWR, refine_mac, refine_plot_mac)          ! Write all accumulated footer line
 !
 WRITE(IWR, '(a)') '#'
 WRITE(IWR, '(a,a)') '@',refine_mac(1:LEN_TRIM(refine_mac))
+if(refine_plot_mac /= ' ') then   ! User provided a plot macro
+   write(IWR, '(a)') 'branch kuplot'
+   write(IWR, '(a,a)') '  @',refine_plot_mac(1:LEN_TRIM(refine_plot_mac))
+endif
 WRITE(IWR, '(a)') '#'
 WRITE(IWR, '(a)') 'exit'
 !
@@ -2483,7 +2488,7 @@ OPEN(UNIT=IWR, FILE=nfile, STATUS='unknown')
 write(IWR, '(a)') 'refine'
 write(IWR, '(a)') 'reset'
 write(IWR, '(a)') '#'
-call write_header(IWR)       ! Write accumulated header lines
+call write_header(IWR, refine_mac, refine_plot_mac)       ! Write accumulated header lines
 write(IWR, '(a)') '#'
 if(ref_load_u /= ' ') then
    write(IWR, '(2a)') 'data ', ref_load_u(1:len_trim(ref_load_u))
@@ -2608,6 +2613,15 @@ if(refine_lamda_s_u .or. refine_lamda_u_u .or. refine_lamda_d_u) then  ! 'relax'
    length = len_trim(string)
    write(IWR, '(a)') string(1:length)
 endif
+call write_footer(IWR, refine_mac, refine_plot_mac)          ! Write all accumulated footer lines
+WRITE(IWR, '(a)') '#'
+WRITE(IWR, '(a,a)') '@',refine_mac(1:LEN_TRIM(refine_mac))
+if(refine_plot_mac /= ' ') then   ! User provided a plot macro
+   write(IWR, '(a)') 'branch kuplot'
+   write(IWR, '(a,a)') '  @',refine_plot_mac(1:LEN_TRIM(refine_plot_mac))
+endif
+WRITE(IWR, '(a)') '#'
+WRITE(IWR, '(a)') 'exit'
 write(IWR, '(a)') '#'
 write(IWR, '(a,a)') 'run ', ref_run_u(1:len_trim(ref_run_u))
 write(IWR, '(a)') '#'
