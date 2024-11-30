@@ -3588,7 +3588,6 @@ LOGICAL :: lmole     ! If true we are reading a molecule
 logical :: lshelx_names  ! Use atom names from actual list instead of Chemical names
 integer :: n_mat     ! Number space group matrices
 REAL(KIND=PREC_DP)                 :: P_exti    ! Extrinction parameter
-REAL(KIND=PREC_DP)                 :: z
 REAL(KIND=PREC_DP)                 :: rlambda   ! Wave length
 REAL(KIND=PREC_DP), dimension(6)   :: latt      !Lattice parameters in input file
 REAL(KIND=PREC_DP), dimension(3,4) :: gen       ! Generator matrices constructed from 'SYMM' commands
@@ -3669,6 +3668,7 @@ loop_count: do
    lcontent = lcontent + 1
 enddo loop_count
 close(ird)
+ihklf = lcontent  ! Default to this as last line
 !
 allocate(c_atom(lcontent))  ! We have at most this many different atom types
 !
@@ -4174,9 +4174,9 @@ if(c_refine=='yes') then
    endif
    write(IRE,'(a )') 'set cycle,   5'
    write(IRE,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10, pshift:2.0, conf:1.0, lambda:65000.'
-   write(IRE,'(2a)') '#@', discus_file(1:len_trim(discus_file))
-   write(IRE,'( a)') '#branch kuplot'
-   write(IRE,'( a)') '#  @k_fobs_fcalc.mac'
+   write(IRE,'(2a)') '@', discus_file(1:len_trim(discus_file))
+   write(IRE,'( a)') 'branch kuplot'
+   write(IRE,'( a)') '  @k_fobs_fcalc.mac'
    write(IRE,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_fobs_fcalc.mac'
    write(IRE,'(a )') 'exit  ! Back to SUITE'
    close(IRE)
