@@ -38,6 +38,7 @@ USE gen_mpi_mod
 USE get_params_mod
 USE kdo_all_mod
 USE learn_mod 
+use lib_learn
 USE lib_errlist_func
 USE lib_macro_func
 USE macro_mod
@@ -59,11 +60,12 @@ CHARACTER (LEN= *  ), INTENT(INOUT) :: line
 LOGICAL             , INTENT(  OUT) :: lend 
 INTEGER             , INTENT(INOUT) :: length 
 !
+CHARACTER (LEN=PREC_STRING)           :: string
 CHARACTER (LEN=MAX(PREC_STRING,LEN(line)))                  :: tohead  != ' '
 CHARACTER (LEN=MAX(PREC_STRING,LEN(line)))                  :: zeile   != ' '
 CHARACTER (LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara   != ' '
 CHARACTER (LEN=  10)                  :: befehl  = ' '
-INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
+INTEGER                               :: indxb, indxg, lcomm, lbef, indxt , len_string
 !INTEGER                               :: n_pop  ! dummy for allocation
 !INTEGER                               :: kid, indiv, nindiv
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
@@ -74,6 +76,7 @@ INTEGER                                :: ref_output_status
 !LOGICAL                               :: lexist
 !                                                                       
 logical :: add_header   ! Add this line to header
+logical :: add_footer   ! Add this line to footer
 REAL(kind=PREC_DP)  , DIMENSION(MAXW) :: werte = 0.0
 !                                                                       
 CALL no_error 
@@ -84,6 +87,7 @@ IF (line (1:1) .EQ.' ' .or. line (1:1) .eq.'#'.or. &
     line (1:1) .eq.'!' .or. length.eq.0           ) RETURN                                     
 !
 add_header = .TRUE.    ! Assume we want this in the header
+add_footer = .TRUE.    ! Assume we want this in the footer
 tohead     = line      ! Backup of full line
 !                                                                 
 !     Only the first 5 characters are significant. The command    
@@ -166,42 +170,53 @@ ELSE  is_math
    ELSEIF (str_comp (befehl, 'set', 3, lbef, 3) ) THEN  is_befehl
       CALL refine_set(zeile, length)
       add_header = .false.     ! No need in header
+      add_footer = .false.     ! No need in footer
 !
 !     -- define data set
 !
    ELSEIF (str_comp (befehl, 'data', 3, lbef, 4) ) THEN  is_befehl
       CALL refine_load(LDATA, zeile, length)
       add_header = .false.     ! No need in header
+      add_footer = .false.     ! No need in footer
 !
 !     -- define data set
 !
    ELSEIF (str_comp (befehl, 'sigma', 3, lbef, 5) ) THEN  is_befehl
       CALL refine_load(LSIGMA, zeile, length)
       add_header = .false.     ! No need in header
+      add_footer = .false.     ! No need in footer
 !                                                                 
 !     -- Finish command will be ignored
 !                                                                 
    ELSEIF (str_comp (befehl, 'finished', 3, lbef, 8) ) THEN  is_befehl
       CONTINUE
       add_header = .false.     ! No need in header
+      add_footer = .false.     ! No need in footer
 !                                                                 
 !     -- Fix a parameter
 !                                                                 
    ELSEIF (str_comp (befehl, 'fix', 3, lbef, 3) ) THEN  is_befehl
       CALL refine_fix(zeile, length)
       add_header = .false.     ! No need in header
+      add_footer = .false.     ! No need in footer
+!      refine_head_a = .false.  ! Turn header accumulation off
+!      refine_foot_a = .TRUE.   ! Start footer accumulation
 !                                                                 
 !     -- add a new parameter to the dimension                     
 !                                                                 
    ELSEIF (str_comp (befehl, 'newparam', 3, lbef, 8) ) THEN  is_befehl
       CALL refine_add_param(zeile, length)
       add_header = .false.     ! No need in header
+      add_footer = .false.     ! No need in footer
+      refine_head_a = .false.     ! Commands that follow are no longer added to header
+      refine_foot_a = .true.      ! Commands that follow are added to footer
 !                                                                 
 !     -- reset to system start 'reset'
 !                                                                 
    ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) THEN is_befehl
       CALL refine_do_reset
       add_header = .false.     ! No need in header
+      add_footer = .false.     ! No need in footer
 !
 !     -- start the refinement process
 !                                                                 
@@ -217,7 +232,9 @@ ELSE  is_math
          output_status = ref_output_status
       ENDIF
       add_header = .false.     ! No need in header
+      add_footer = .false.     ! No need in footer
       refine_head_a = .false.  ! Do not accumulate after run command
+      refine_foot_a = .false.  ! Do not accumulate after run command
 !                                                                 
 !-------  Show parameters 'show'                                  
 !                                                                 
@@ -228,6 +245,7 @@ ELSE  is_math
          CALL refine_do_show (zeile, lcomm) 
       ENDIF
       add_header = .false.     ! No need in header
+      add_footer = .false.     ! No need in footer
 !
 !-------- Copy dimension to global 'togloal'
 !
@@ -239,13 +257,16 @@ ELSE  is_math
 !                                                                       
    ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) THEN is_befehl
       CALL p_branch (zeile, lcomm, .FALSE., 0     )
+      add_header = .false.     ! Need in header
+      add_footer = .false.     ! Need in footer
+   elseif(str_comp (befehl, 'uvw', 3, lbef, 3)) THEN
+      call refine_constrain_temp(zeile, lcomm, .TRUE.)
       add_header = .false.     ! No need in header
-elseif(str_comp (befehl, 'uvw', 3, lbef, 3)) THEN
-call refine_constrain_temp(zeile, lcomm, .TRUE.)
+      add_footer = .false.     ! No need in footer
+   elseif(str_comp (befehl, 'eta', 3, lbef, 3)) THEN
+      call refine_constrain_temp(zeile, lcomm, .false.)
       add_header = .false.     ! No need in header
-elseif(str_comp (befehl, 'eta', 3, lbef, 3)) THEN
-call refine_constrain_temp(zeile, lcomm, .false.)
-      add_header = .false.     ! No need in header
+      add_footer = .false.     ! No need in footer
 !                                                                 
 !------   Try general commands                                    
 !                                                                 
@@ -260,11 +281,16 @@ ENDIF  is_math
 if(refine_head_a) then
    if(add_header) call accumulate_header(tohead)
 endif
+!
+if(refine_foot_a) then
+   if(add_footer) call accumulate_footer(tohead)
+endif
 !                                                                       
 if(ex_do_exit) lend = .true.   ! A global exit was flagged
 !
 if(lend) then
    refine_head_a = .TRUE.   ! Start accumulation again
+   refine_foot_a = .false.  ! Footer accumulation stated after newparam
 endif
 !
 END SUBROUTINE refine_mache_kdo                      
