@@ -105,6 +105,13 @@ enddo
 IF (ier_num.ne.0) return 
 !
 if(diff_table==RAD_DISC) then
+   diff_table=RAD_WAAS
+   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+                                    diff_radiation, diff_table, diff_power)
+   call four_formtab
+   diff_table=RAD_DISC
+   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+                                    diff_radiation, diff_table, diff_power)
    call discamb_read(diff_file, diff_trust)
    if(ier_num/=0) return
    call four_dbwtab
@@ -810,6 +817,14 @@ call four_nanis(cr_natoms, cr_nscat, cr_nanis, ubound(cr_iscat,1), ubound(cr_isc
 call four_layer(four_is_new)   ! copy eck, vi
 call fourier_lmn(eck,vi,inc,lmn,off_shift)
 call four_stltab               ! set up sin(theta)/lambda table
+!  For powder we need Waasmeier form factors anyway 
+diff_table=RAD_WAAS
+CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+                                    diff_radiation, diff_table, diff_power)
+call four_formtab
+CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+                                    diff_radiation, diff_table, diff_power)
+diff_table=RAD_DISC
 !
 call discamb_read(diff_file, diff_trust)
 if(ier_num/=0) return
@@ -2658,7 +2673,7 @@ DO iscat = 1, cr_nscat
       cfact     (iq, iscat) = cmplx (sb * (sf + sfp), sb * sfpp, KIND=KIND(0.0D0)) 
       cfact_pure(iq, iscat) = cmplx (     (sf + sfp),      sfpp, KIND=KIND(0.0D0)) 
    ENDDO 
-!write(*,*) ' Formfactor ', cfact_pure(0,iscat)
+!write(*,*) ' Formfactor ', iscat, cfact_pure(0,iscat)
 ENDDO 
 if(cr_is_anis) call four_dbwtab
 !                                                                       
