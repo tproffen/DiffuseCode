@@ -1627,7 +1627,7 @@ ELSEIF(str_comp(cpara(2), 'asym_i1', 7, lpara(2), 7)) THEN
       else
          ier_num = +1
          ier_typ = ER_COMM
-         ier_msg(1) 'Asymmetry parameters 3 and 4 are obsolete'
+         ier_msg(1) = 'Asymmetry parameters 3 and 4 are obsolete'
       endif
    ENDIF 
 ELSEIF(str_comp(cpara(2), 'asym_l', 6, lpara(2), 6)) THEN
@@ -1643,7 +1643,7 @@ ELSEIF(str_comp(cpara(2), 'asym_l', 6, lpara(2), 6)) THEN
       else
          ier_num = +1
          ier_typ = ER_COMM
-         ier_msg(1) 'Asymmetry parameters 3 and 4 are obsolete'
+         ier_msg(1) = 'Asymmetry parameters 3 and 4 are obsolete'
       endif
    ENDIF 
 ELSEIF(str_comp(cpara(2), 'asym_q', 6, lpara(2), 6)) THEN
@@ -1659,7 +1659,7 @@ ELSEIF(str_comp(cpara(2), 'asym_q', 6, lpara(2), 6)) THEN
       else
          ier_num = +1
          ier_typ = ER_COMM
-         ier_msg(1) 'Asymmetry parameters 3 and 4 are obsolete'
+         ier_msg(1) = 'Asymmetry parameters 3 and 4 are obsolete'
       endif
    ENDIF 
 ELSEIF(str_comp(cpara(2), 'asym', 4, lpara(2), 4)  &
@@ -1676,7 +1676,7 @@ ELSEIF(str_comp(cpara(2), 'asym', 4, lpara(2), 4)  &
       else
          ier_num = +1
          ier_typ = ER_COMM
-         ier_msg(1) 'Asymmetry parameters 3 and 4 are obsolete'
+         ier_msg(1) = 'Asymmetry parameters 3 and 4 are obsolete'
       endif
    ENDIF 
 ELSEIF (str_comp (cpara (2) , 'width', 2, lpara (2) , 5) ) THEN
