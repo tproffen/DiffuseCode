@@ -2,16 +2,22 @@
 
 DISCUS
   GENERAL     Added guess work to interpret atom names like "O22", "H1N" etc to
-              extract pure chemicl element. If successful this can replace the
+              extract pure chemical element. If successful this can replace the
               'scat H1N, H' instruction
   import      SHELX: The "LATT" and "SYMM" instructions are interpreted to yield
                      the corresponding space group symbol
                      Anisotropic ADP are interpreted
                      The extrinction parameter is interpreted
+                     optional "refine:yes" creates macros needed for refine
   export      SHELX: Improved Atom names, Fixed export of rhombohedral systems 
                      with non-heagonal axes
               CIF:   Impoved Symmetry information in header, includes list of 'x, y, z'
                      Included anisotropic ADP
+  powder      The asymmetry parameters 3 and 4 have become obsolete, since the 
+              parameters 'asym_1', asym_2' and 'asym_i1' take care of the
+              2Theta / Q dependence. Side effect is that values of the 
+              asymmetry parameters has changed to achieve an asymmetry.
+              Added an option to define the origin for a background polynomial
   read        'free' and 'spcgr' within unit cell file can now use the 
                      optional "origin:2" parameter
               the space group name in the cell file or on the 'free' command 
@@ -26,6 +32,7 @@ REFINE
               Missing Bragg reflections are now properly omitted
               Improved mixed lists of fixed and refined parameters, 
               Improved load to do proper KUPLOT reset
+              Improved default values of 'shift:' parameters to 0.001
 6.17.02  RELEASE 2024_08_29
 
 DISCUS
