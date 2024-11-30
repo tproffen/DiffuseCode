@@ -132,7 +132,6 @@ IF(LDATA) THEN                         ! This is the data set
 ENDIF
 !
 !IF(lni(ndata)) THEN                    ! 2D data set
-write(*,*) 'KU_NDIMS ',ku_ndims(1:10)
 IF(ku_ndims(ndata)==3) THEN             ! 3D data set
 !
       call data2local(ndata   , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
