@@ -60,13 +60,13 @@ data refine_spc_delta /   &      ! Default shifts if Parameter value is zero
 data refine_spc_shift /   &      ! Default relative shifts if "shift:" is omitted
      3.0D-4,   &   ! P_eta_l
      3.0D-5,   &   ! P_eta_q
-     3.0D-3,   &   ! P_biso
-     3.0D-3,   &   ! P_lat
+     1.0D-3,   &   ! P_biso
+     1.0D-3,   &   ! P_lat
      1.0D-1,   &   ! P_dia
-     3.0D-3,   &   ! P_eta
-     3.0D-3,   &   ! P_u
-     3.0D-3,   &   ! P_v
-     3.0D-3 /      ! P_w
+     1.0D-3,   &   ! P_eta
+     1.0D-3,   &   ! P_u
+     1.0D-3,   &   ! P_v
+     1.0D-3 /      ! P_w
 data refine_spc_nderiv /   &      ! Default derivative points if "points:" is omitted
      3     ,   &   ! P_eta_l
      3     ,   &   ! P_eta_q
