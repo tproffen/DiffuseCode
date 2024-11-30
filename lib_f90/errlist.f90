@@ -198,7 +198,7 @@ USE lib_length
 !
 !
        INTEGER, PARAMETER :: iu = -19
-       INTEGER, PARAMETER :: io =   0
+       INTEGER, PARAMETER :: io =   1
 !
        CHARACTER(LEN=45)  error(IU:IO)
 !
@@ -224,7 +224,8 @@ USE lib_length
      &  '       directory not defined '             & ! -1  ! io
      &       /
        DATA ERROR (  0: io) /                         &
-     &  ' '                                         & !  0  ! command
+     &  ' ',                                        & !  0  ! command
+     &  'Command has changed'                       & ! +1  ! command
      &       /
 !
        ERROR(-1)(1:6) = pname_cap(1:6)
