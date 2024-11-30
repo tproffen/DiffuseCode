@@ -92,7 +92,8 @@ REAL(kind=PREC_DP)       :: pow_period     =  0.000
 REAL(kind=PREC_DP)       :: pow_period_cut =  0.800
 !
 INTEGER                  :: pow_nback      = 0
-REAL(kind=PREC_DP)   , DIMENSION(0:5)  :: pow_back       = 0.0
+logical                  :: pow_back_q     = .true.
+REAL(kind=PREC_DP)   , DIMENSION(-1:5)  :: pow_back       = 0.0
 REAL(kind=PREC_DP)       :: pow_scale      = 1.0
 !
 REAL(kind=PREC_DP)   , DIMENSION(3)    :: pow_hkl_max    = 4.0
@@ -115,7 +116,7 @@ REAL(kind=PREC_DP)       :: pow_eta_q      =  0.0
 REAL(kind=PREC_DP)       :: pow_u          =  0.0
 REAL(kind=PREC_DP)       :: pow_v          =  0.0
 REAL(kind=PREC_DP)       :: pow_w          =  0.05
-REAL(kind=PREC_DP)   , DIMENSION(4,-1:2)  :: pow_asym       =  0.0D0
+REAL(kind=PREC_DP)   , DIMENSION(2,-1:2)  :: pow_asym       =  0.0D0
 REAL(kind=PREC_DP)       :: pow_width      = 20.0D0
 !
 REAL(kind=PREC_DP)       :: pow_ka21       =  0.0d0

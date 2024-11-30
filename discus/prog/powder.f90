@@ -456,6 +456,8 @@ CHARACTER(14) cfour (0:1)
 CHARACTER(28) ccalc (0:5) 
 CHARACTER(21) cpref (1:2) 
 CHARACTER(29) cprofile (0:4) 
+character(len=27), dimension(0:2), parameter :: ctable = (/ &
+ 'International Tables Vol. C', 'Waasmeier & Kirfel         ', 'Discamb                    '/)
 !                                                                       
 DATA cfour / 'normal Fourier', 'Stacking fault' / 
 DATA ccalc / 'rez. space integration     ', &
@@ -483,6 +485,9 @@ CALL pow_conv_limits
             WRITE (output_io, 1201) radiation, rlambda , renergy
          ELSE 
             WRITE (output_io, 1200) radiation, rlambda , renergy
+            if(diff_radiation==RAD_XRAY) then
+               WRITE (output_io, '(2a)') '   Atom form factors taken from: ' , ctable(diff_table)
+            endif
          ENDIF 
       ELSE 
          WRITE (output_io, 1210) radiation, lambda, rlambda 
@@ -676,10 +681,10 @@ endif
  2120 FORMAT    ( '       Profile U,V,W       : ',f10.5,2x,f10.5,2x,    &
      &                                                   f10.5)         
  2121 FORMAT    ( '       Profile Eta, q, l   : ',f10.5,2x,f10.5, 2x,f10.5) 
- 2219 FORMAT    ( '       Profile asym **-1   : ',4(f10.5,2x)) 
- 2220 FORMAT    ( '       Profile asymmetry   : ',4(f10.5,2x)) 
- 2221 FORMAT    ( '       Profile asym linear : ',4(f10.5,2x)) 
- 2222 FORMAT    ( '       Profile asym square : ',4(f10.5,2x)) 
+ 2219 FORMAT    ( '       Profile asym **-1   : ',2(f10.5,2x)) 
+ 2220 FORMAT    ( '       Profile asymmetry   : ',2(f10.5,2x)) 
+ 2221 FORMAT    ( '       Profile asym linear : ',2(f10.5,2x)) 
+ 2222 FORMAT    ( '       Profile asym square : ',2(f10.5,2x)) 
  2125 FORMAT    ( '       Profile width *FWHM : ',1(f10.5,2x)) 
  1240 FORMAT    ( '   dH, dK, dL              : ',3(f10.5,2x)) 
  1245 FORMAT    ( '   Corr. steps in TTH') 
@@ -743,18 +748,20 @@ INTEGER, PARAMETER :: MAXW = 20
 CHARACTER(LEN=*), INTENT(INOUT) :: zeile 
 INTEGER         , INTENT(INOUT) :: lcomm 
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_RCUT    = 1
-CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+INTEGER, PARAMETER :: O_ORIG_Q  = 2
+INTEGER, PARAMETER :: O_ORIG_T  = 3
+CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to calculate 
 !
-DATA oname  / 'rcut ' /
-DATA loname /  4      /
+DATA oname  / 'rcut ', 'qzero ', 'tthzero' /
+DATA loname /  4     ,  6      ,  7        /
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))  :: cpara (MAXW) 
 CHARACTER(LEN=PREC_STRING) :: symbol
@@ -764,29 +771,38 @@ INTEGER :: ianz
 INTEGER :: i 
 REAL(KIND=PREC_DP) :: werte (MAXW) 
 !                                                                       
-opara  =  (/ '0.0000000'  /)   ! Always provide fresh default values
-lopara =  (/  9           /)
-owerte =  (/  0.0         /)
+opara  =  (/ '0.0000000', '0.0000000', '0.0000000'  /)   ! Always provide fresh default values
+lopara =  (/  9         ,  9         ,  9           /)
+owerte =  (/  0.0       ,  0.00      ,  0.00        /)
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
 IF (ier_num /= 0) return
 !
 IF(str_comp(cpara(1), 'axis', 2, lpara(1), 4)) THEN 
          pow_axis = POW_AXIS_Q 
 ELSEIF (str_comp (cpara (1) , 'back', 2, lpara (1) , 4) ) THEN 
-         IF (ianz.ge.2) THEN 
-            cpara (1) = '0' 
-            lpara (1) = 1 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            IF (ier_num.eq.0) THEN 
-               DO i = 2, ianz 
-               pow_back (i - 2) = werte (i) 
-               ENDDO 
-               pow_nback = ianz - 2
-            ENDIF 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ENDIF 
+   IF (ianz.ge.2) THEN 
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, lpresent, owerte)
+      cpara (1) = '0' 
+      lpara (1) = 1 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.eq.0) THEN 
+         DO i = 2, ianz 
+            pow_back (i - 2) = werte (i) 
+         ENDDO 
+         pow_nback = ianz - 2
+         if(lpresent(O_ORIG_T)) then
+            pow_back(-1) = owerte(O_ORIG_T)
+            pow_back_q   = .false.
+         elseif(lpresent(O_ORIG_Q)) then
+            pow_back(-1) = owerte(O_ORIG_Q)
+            pow_back_q   = .true.
+         endif
+      ENDIF 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
 ELSEIF(str_comp(cpara(1), 'bragg', 2, lpara(1), 5)) THEN
          IF (ianz.eq.2) THEN 
             IF (str_comp(cpara(2), 'include', 1, lpara(2), 7) ) THEN
@@ -1605,8 +1621,14 @@ ELSEIF(str_comp(cpara(2), 'asym_i1', 7, lpara(2), 7)) THEN
    werte     = 0.0
    CALL ber_params (ianz, cpara, lpara, werte, maxw) 
    IF (ier_num.eq.0) THEN 
-      pow_asym(:       ,-1) = 0.0D0
-      pow_asym(1:ianz-2,-1) = werte (3:ianz) 
+      if(ianz==3 .or. ianz==4) then
+         pow_asym(:       ,-1) = 0.0D0
+         pow_asym(1:ianz-2,-1) = werte (3:ianz) 
+      else
+         ier_num = +1
+         ier_typ = ER_COMM
+         ier_msg(1) 'Asymmetry parameters 3 and 4 are obsolete'
+      endif
    ENDIF 
 ELSEIF(str_comp(cpara(2), 'asym_l', 6, lpara(2), 6)) THEN
    cpara (1) = '0' 
@@ -1615,8 +1637,14 @@ ELSEIF(str_comp(cpara(2), 'asym_l', 6, lpara(2), 6)) THEN
    lpara (2) = 1 
    CALL ber_params (ianz, cpara, lpara, werte, maxw) 
    IF (ier_num.eq.0) THEN 
-      pow_asym(:       ,1) = 0.0D0
-      pow_asym(1:ianz-2,1) = werte (3:ianz) 
+      if(ianz==3 .or. ianz==4) then
+         pow_asym(:       ,1) = 0.0D0
+         pow_asym(1:ianz-2,1) = werte (3:ianz) 
+      else
+         ier_num = +1
+         ier_typ = ER_COMM
+         ier_msg(1) 'Asymmetry parameters 3 and 4 are obsolete'
+      endif
    ENDIF 
 ELSEIF(str_comp(cpara(2), 'asym_q', 6, lpara(2), 6)) THEN
    cpara (1) = '0' 
@@ -1625,8 +1653,14 @@ ELSEIF(str_comp(cpara(2), 'asym_q', 6, lpara(2), 6)) THEN
    lpara (2) = 1 
    CALL ber_params (ianz, cpara, lpara, werte, maxw) 
    IF (ier_num.eq.0) THEN 
-      pow_asym(:       ,2) = 0.0D0
-      pow_asym(1:ianz-2,2) = werte (3:ianz) 
+      if(ianz==3 .or. ianz==4) then
+         pow_asym(:       ,2) = 0.0D0
+         pow_asym(1:ianz-2,2) = werte (3:ianz) 
+      else
+         ier_num = +1
+         ier_typ = ER_COMM
+         ier_msg(1) 'Asymmetry parameters 3 and 4 are obsolete'
+      endif
    ENDIF 
 ELSEIF(str_comp(cpara(2), 'asym', 4, lpara(2), 4)  &
        .AND.    lpara(2)<=4) THEN                                                     
@@ -1636,8 +1670,14 @@ ELSEIF(str_comp(cpara(2), 'asym', 4, lpara(2), 4)  &
    lpara (2) = 1 
    CALL ber_params (ianz, cpara, lpara, werte, maxw) 
    IF (ier_num.eq.0) THEN 
-      pow_asym(:       ,0) = 0.0D0
-      pow_asym(1:ianz-2,0) = werte (3:ianz) 
+      if(ianz==3 .or. ianz==4) then
+         pow_asym(:       ,0) = 0.0D0
+         pow_asym(1:ianz-2,0) = werte (3:ianz) 
+      else
+         ier_num = +1
+         ier_typ = ER_COMM
+         ier_msg(1) 'Asymmetry parameters 3 and 4 are obsolete'
+      endif
    ENDIF 
 ELSEIF (str_comp (cpara (2) , 'width', 2, lpara (2) , 5) ) THEN
    cpara (1) = '0' 
