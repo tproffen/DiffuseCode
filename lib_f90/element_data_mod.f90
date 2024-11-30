@@ -21,11 +21,16 @@ IMPLICIT NONE
    PUBLIC get_scat_elec  ! Get Electron scattering parameters
    PUBLIC get_ka21_inte  ! Get Ka2/Ka1 intensity ratio
    PUBLIC get_ka12_len   ! Get Ka2/Ka1 wave length ratio
+   PUBLIC get_kabe_inte  ! Get Ka2/Kb  intensity ratio
+   PUBLIC get_kabe_len   ! Get Ka2/Kb  wave length ratio
+   PUBLIC get_white_inte ! Get White radiation RIntensity ratio white/Ka1
+   PUBLIC get_white_abs  ! Get White radiation absorption edge
+   PUBLIC get_white_damp ! Get White radiation damping length
    PUBLIC get_wave_number! Get Wave length entry number
    PUBLIC PER_RAD_POWER  ! Number of Termins in f(sin(THETA)/lambda) = sum_i=1^N a(i) exp(-b(i)*s^2)
 !
    INTEGER, PARAMETER :: PER_MAXELEMENT = 225
-   INTEGER, PARAMETER :: PER_MAX_WAVE   =  50
+   INTEGER, PARAMETER :: PER_MAX_WAVE   =  60
    INTEGER, DIMENSION(1:3,0:2), PARAMETER :: PER_RAD_POWER = reshape((/ 4, 0, 5 , 5, 0, 5, 0,0,0/), (/3,3/))
 !
    integer           , dimension(1:PER_MAXELEMENT), parameter :: per_ordi = (/ &
@@ -1654,42 +1659,81 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
    CHARACTER  (LEN=4), DIMENSION(1:PER_MAX_WAVE), PARAMETER :: per_symwl = (/ &
-        'TIA1','TIA2','TIB ','TI  ','TI12',&
-        'CRA1','CRA2','CRB ','CR  ','CR12',&
-        'FEA1','FEA2','FEB ','FE  ','FE12',&
-        'COA1','COA2','COB ','CO  ','CO12',&
-        'CUA1','CUA2','CUB ','CU  ','CU12',&
-        'MOA1','MOA2','MOB ','MO  ','MO12',&
-        'AGA1','AGA2','AGB ','AG  ','AG12',&
-        'TAA1','TAA2','TAB ','TA  ','TA12',&
-        'WA1 ','WA2 ','WB  ','W   ','W12 ',&
-        'AUA1','AUA2','AUB ','AU  ','AU12' & 
+        'TIA1','TIA2','TIB ','TI  ','TI12','TI12',&
+        'CRA1','CRA2','CRB ','CR  ','CR12','CR12',&
+        'FEA1','FEA2','FEB ','FE  ','FE12','FE12',&
+        'COA1','COA2','COB ','CO  ','CO12','CO12',&
+        'CUA1','CUA2','CUB ','CU  ','CU12','CUNI',&
+        'MOA1','MOA2','MOB ','MO  ','MO12','MO12',&
+        'AGA1','AGA2','AGB ','AG  ','AG12','AG12',&
+        'TAA1','TAA2','TAB ','TA  ','TA12','TA12',&
+        'WA1 ','WA2 ','WB  ','W   ','W12 ','W12 ',&
+        'AUA1','AUA2','AUB ','AU  ','AU12','AU12' & 
         /)
 REAL(kind=PREC_DP)              , DIMENSION(1:PER_MAX_WAVE), PARAMETER :: per_wavel = (/ &
-          2.748410,  2.752070,  2.513810,  2.740000,  2.748410,&  ! Ti
-          2.289620,  2.293510,  2.084800,  2.290900,  2.289620,&  ! Cr
-          1.935970,  1.939910,  1.756530,  1.937300,  1.935970,&  ! Fe
-          1.788920,  1.792780,  1.620750,  1.780000,  1.788920,&  ! Co
-          1.540592,  1.544343,  1.392170,  1.541800,  1.540592,&  ! Cu
-          0.709260,  0.713543,  0.632253,  0.710700,  0.709260,&  ! Mo
-          0.559363,  0.563775,  0.497010,  0.560800,  0.559363,&  ! Ag
-          0.215484,  0.220290,  0.190076,  0.217090,  0.215484,&  ! Ta
-          0.208992,  0.213813,  0.184363,  0.210600,  0.208992,&  ! W 
-          0.180185,  0.185064,  0.158971,  0.181800,  0.180185 &  ! Au
+          2.748410,  2.752070,  2.513810,  2.740000,  2.748410,  2.748410,&  ! Ti
+          2.289620,  2.293510,  2.084800,  2.290900,  2.289620,  2.289620,&  ! Cr
+          1.935970,  1.939910,  1.756530,  1.937300,  1.935970,  1.935970,&  ! Fe
+          1.788920,  1.792780,  1.620750,  1.780000,  1.788920,  1.788920,&  ! Co
+          1.540592,  1.544343,  1.392170,  1.541800,  1.540592,  1.540592,&  ! Cu
+          0.709260,  0.713543,  0.632253,  0.710700,  0.709260,  0.709260,&  ! Mo
+          0.559363,  0.563775,  0.497010,  0.560800,  0.559363,  0.559363,&  ! Ag
+          0.215484,  0.220290,  0.190076,  0.217090,  0.215484,  0.215484,&  ! Ta
+          0.208992,  0.213813,  0.184363,  0.210600,  0.208992,  0.208992,&  ! W 
+          0.180185,  0.185064,  0.158971,  0.181800,  0.180185,  0.180185 &  ! Au
         /)
 !         1.540592,  1.544444,  1.392170,  1.541800,  1.540592,&  ! Cu
 !         1.540510,  1.544330,  1.392170,  1.541800,  1.540510,&  ! Cu
-   REAL(kind=PREC_DP), DIMENSION(1:PER_MAX_WAVE/5), PARAMETER :: per_ratio = (/ &
-          0.500000, &
-          0.500000, &
-          0.500000, &
-          0.500000, &
-          0.500000, &
-          0.500000, &
-          0.500000, &
-          0.500000, &
-          0.500000, &
-          0.500000  &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAX_WAVE/6), PARAMETER :: per_ratio_ka12 = (/ &
+          0.500000_PREC_DP, &
+          0.500000_PREC_DP, &
+          0.500000_PREC_DP, &
+          0.500000_PREC_DP, &
+          0.500000_PREC_DP, &
+          0.500000_PREC_DP, &
+          0.500000_PREC_DP, &
+          0.500000_PREC_DP, &
+          0.500000_PREC_DP, &
+          0.500000_PREC_DP  &
+         /)
+!
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAX_WAVE/6), PARAMETER :: per_ratio_beta = (/ &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.005000_PREC_DP, &  ! Cu
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP  &
+         /)
+!
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAX_WAVE/6), PARAMETER :: per_ratio_white = (/ &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000160_PREC_DP, &  ! Cu
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP, &
+          0.000000_PREC_DP  &
+         /)
+!
+   REAL(kind=PREC_DP), DIMENSION(1:(PER_MAX_WAVE/6)*2), PARAMETER :: per_wavel_white = (/ &
+          0.000000_PREC_DP, 0.000000_PREC_DP, &
+          0.000000_PREC_DP, 0.000000_PREC_DP, &
+          0.000000_PREC_DP, 0.000000_PREC_DP, &
+          0.000000_PREC_DP, 0.000000_PREC_DP, &
+          1.490000_PREC_DP, 1.560000_PREC_DP, &  ! Cu
+          0.000000_PREC_DP, 0.000000_PREC_DP, &
+          0.000000_PREC_DP, 0.000000_PREC_DP, &
+          0.000000_PREC_DP, 0.000000_PREC_DP, &
+          0.000000_PREC_DP, 0.000000_PREC_DP, &
+          0.000000_PREC_DP, 0.000000_PREC_DP  &
          /)
 !
 !  CHARACTER  (LEN=4), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_name = (/ &
@@ -2047,8 +2091,8 @@ INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
 !
 get_ka21_inte = 0.0
 IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
-   MOD(el_number, 5)==0) THEN
-   get_ka21_inte = per_ratio(el_number/5)
+   MOD(el_number-1, 6)==4) THEN
+   get_ka21_inte = per_ratio_ka12((el_number-1)/6 + 1)
 ENDIF
 !
 END FUNCTION get_ka21_inte
@@ -2063,12 +2107,104 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
 !
 get_ka12_len = 0.0
+
 IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
-   MOD(el_number, 5)==0) THEN
+   MOD(el_number-1, 6)==4) THEN
    get_ka12_len = per_wavel(el_number)/ per_wavel(el_number-3)
 ENDIF
 !
 END FUNCTION get_ka12_len
+!
+!*******************************************************************************
+!
+REAL(kind=PREC_DP)      FUNCTION get_kabe_inte(el_number)
+!
+!     Return Kb /Ka1  intensity ratio == ~ 0.005 for ..Ni or similar filter
+!
+IMPLICIT NONE
+INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
+!
+get_kabe_inte = 0.0
+IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
+   MOD(el_number-1, 6)==5) THEN
+!write(*,*) 'WAVE RATIO  ', per_ratio_beta((el_number-1)/6 + 1)
+   get_kabe_inte = per_ratio_beta((el_number-1)/6 + 1)
+ENDIF
+!
+END FUNCTION get_kabe_inte
+!
+!*******************************************************************************
+!
+REAL(kind=PREC_DP)      FUNCTION get_white_inte(el_number)
+!
+!     Return White/Ka1  intensity ratio == ~ 0.000160 for ..Ni or similar filter
+!
+IMPLICIT NONE
+INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
+!
+get_white_inte = 0.0
+IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
+   MOD(el_number-1, 6)==5) THEN
+!write(*,*) 'WAVE RATIO  ', per_ratio_beta((el_number-1)/6 + 1)
+   get_white_inte = per_ratio_white((el_number-1)/6 + 1)
+ENDIF
+!
+END FUNCTION get_white_inte
+!
+!*******************************************************************************
+!
+REAL(kind=PREC_DP)      FUNCTION get_kabe_len(el_number)
+!
+!     Return Ka1/kb  wave length ratio == < 1.0
+!
+IMPLICIT NONE
+INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
+!
+get_kabe_len = 0.0
+
+IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
+   MOD(el_number-1, 6)==5) THEN
+!write(*,*) 'WAVE LENGTH ', per_wavel(el_number) , per_wavel(el_number-3)
+   get_kabe_len = per_wavel(el_number)/ per_wavel(el_number-3)
+ENDIF
+!
+END FUNCTION get_kabe_len
+!
+!*******************************************************************************
+!
+REAL(kind=PREC_DP)      FUNCTION get_white_abs(el_number)
+!
+!     Return Ka1/kb  wave length ratio == < 1.0
+!
+IMPLICIT NONE
+INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
+!
+get_white_abs = 0.0
+
+IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
+   MOD(el_number-1, 6)==5) THEN
+   get_white_abs = per_wavel_white((el_number-1)/6*2 + 1)
+ENDIF
+!
+END FUNCTION get_white_abs
+!
+!*******************************************************************************
+!
+REAL(kind=PREC_DP)      FUNCTION get_white_damp(el_number)
+!
+!     Return Ka1/kb  wave length ratio == < 1.0
+!
+IMPLICIT NONE
+INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
+!
+get_white_damp = 0.0
+
+IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
+   MOD(el_number-1, 6)==5) THEN
+   get_white_damp = per_wavel_white((el_number-1)/6*2 + 2)
+ENDIF
+!
+END FUNCTION get_white_damp
 !
 !*******************************************************************************
 !
