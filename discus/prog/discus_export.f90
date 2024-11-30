@@ -679,8 +679,8 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: vec
 !
    stype = 0
    loop_stype: DO j=1,unique_n
-      if(cr_scat_equ(i)) then
-         if(cr_at_equ(i)(1:2) == unique_names(j)(1:2)) then
+      if(cr_scat_equ(cr_iscat(1,i))) then
+         if(cr_at_equ(cr_iscat(1,i))(1:2) == unique_names(j)(1:2)) then
          stype = j
          exit loop_stype
          endif
