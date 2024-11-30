@@ -307,6 +307,7 @@ REAL(KIND=PREC_DP) :: q                     ! Temporary number of real atoms per
 REAL(KIND=PREC_DP) :: ttheta                ! 2Theta
 real(kind=PREC_DP) :: sq_scale
 real(kind=PREC_DP) :: arg
+real(kind=PREC_DP) :: sq_aver
 !
 pow_f2aver(:)    = 0.0D0
 pow_faver2(:)    = 0.0D0
@@ -444,6 +445,7 @@ DO i=1,pha_n
                                     * lorentz(ttheta, q, pow_bangle, 0)!  &
 !                                   * polarisation(ttheta)
       ENDDO loop_sq
+!write(*,*) ' POWDER_SQ ', pow_sq(0), pow_sq(1), pow_sq(npkt)
 !     pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_fu    ))    ! Scale S(Q) onto absolute scale
 !
    ELSEIF(pha_calc(i) == POW_DEBYE) THEN           ! Complete calculation mode
@@ -513,6 +515,9 @@ if(l_all_complete) then                       ! Complete data calculation
       pow_sq(k) = 1.0D0 + (pow_sq(k) - pow_fu(k))/pow_faver2(k) 
       pow_sq(k) = pow_sq(k) / (1.0D0 + 0.5D0*pow_fu(k)/pow_faver2(k))
    enddo
+!   write(*,*) ' POWDER_fu ', pow_fu(0), pow_fu(1), pow_fu(npkt)
+!   write(*,*) ' POWDER_fq ', pow_faver2(0), pow_faver2(1), pow_faver2(npkt)
+!   write(*,*) ' POWDER_sq ', pow_sq(0), pow_sq(1), pow_sq(npkt)
 else                                          ! DEBYE calculation
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
 !write(*,*) ' DEBYE was     done  with conv ', deb_conv, .NOT.ldbw
@@ -541,6 +546,22 @@ ELSE
    ENDDO
 ENDIF
 endif                                       ! End complete / debye
+sq_aver = 0.0D0
+j = 0
+do k=0, npkt
+   q = ((k)*xdel + xmin)
+   if(q>18.0D0) then
+      sq_aver = sq_aver + pow_sq(k)
+      j = j +1
+   endif
+enddo
+if(j>50) then
+   sq_aver = sq_aver/real(j,kind=PREC_DP)
+else
+   sq_aver = 1.0_PREC_DP
+endif
+!write(*,*) ' SQ limit', sq_aver, j, npkt
+pow_sq = pow_sq/sq_aver
 !write(*,*) ' POW_U2AVER ', pow_u2aver
 !open(87,file='POWDER/multi_average.conv2', status='unknown')
 !do k= 0, npkt
