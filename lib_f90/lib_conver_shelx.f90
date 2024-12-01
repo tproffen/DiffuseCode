@@ -106,7 +106,6 @@ character(len=PREC_STRING)       :: line     !Input lines
 integer                          :: ios       ! input error signal
 integer, dimension(3)            :: hkl       ! Miller indices
 real(kind=PREC_DP), dimension(2) :: fobs      ! F(obs) sigma(Fobs)
-integer                          :: phase     ! Reflection phase angle
 !
 loop_header: do
    read(IRD,'(a)') line
@@ -141,7 +140,6 @@ character(len=PREC_STRING)       :: line     !Input lines
 integer                          :: ios       ! input error signal
 integer, dimension(3)            :: hkl       ! Miller indices
 real(kind=PREC_DP), dimension(3) :: fobs      ! F(obs) sigma(Fobs)
-integer                          :: phase     ! Reflection phase angle
 !
 loop_header: do
    read(IRD,'(a)') line
@@ -172,7 +170,6 @@ integer, intent(in) :: IRD
 integer, intent(in) :: IWR
 character(len=*), dimension(2), intent(in) :: initial   ! first two lines
 !
-character(len=PREC_STRING)       :: line     !Input lines
 integer                          :: ios       ! input error signal
 integer, dimension(3)            :: hkl       ! Miller indices
 real(kind=PREC_DP), dimension(2) :: fobs      ! F(obs) sigma(Fobs)
