@@ -60,12 +60,11 @@ CHARACTER (LEN= *  ), INTENT(INOUT) :: line
 LOGICAL             , INTENT(  OUT) :: lend 
 INTEGER             , INTENT(INOUT) :: length 
 !
-CHARACTER (LEN=PREC_STRING)           :: string
 CHARACTER (LEN=MAX(PREC_STRING,LEN(line)))                  :: tohead  != ' '
 CHARACTER (LEN=MAX(PREC_STRING,LEN(line)))                  :: zeile   != ' '
 CHARACTER (LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara   != ' '
 CHARACTER (LEN=  10)                  :: befehl  = ' '
-INTEGER                               :: indxb, indxg, lcomm, lbef, indxt , len_string
+INTEGER                               :: indxb, indxg, lcomm, lbef, indxt
 !INTEGER                               :: n_pop  ! dummy for allocation
 !INTEGER                               :: kid, indiv, nindiv
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
