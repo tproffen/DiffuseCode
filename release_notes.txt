@@ -1,5 +1,7 @@
 6.17.03  DRAFT
 
+6.18.00  RRELEASE 2024_12_01
+
 DISCUS
   GENERAL     Added guess work to interpret atom names like "O22", "H1N" etc to
               extract pure chemical element. If successful this can replace the
