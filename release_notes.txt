@@ -1,6 +1,17 @@
-6.17.03  DRAFT
+6.18.02  DRAFT
+6.18.01  RELEASE 2024_12_04
 
-6.18.00  RRELEASE 2024_12_01
+GENERAL
+  improved    conversion of shelx LIST 4/2 files
+  variables   Added system variables OPERATING, LINUX, MACOSX WINWSL to test operating system
+
+DISCUS
+  import      Improved handling of SHELX import, added a form:waas form:table flag
+              to fix form factor look up
+REFINE
+  run         BUG FIX, the "refine_new.res" file conteined an erroneous "exit"
+
+6.18.00  RELEASE 2024_12_01
 
 DISCUS
   GENERAL     Added guess work to interpret atom names like "O22", "H1N" etc to
