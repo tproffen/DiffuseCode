@@ -2620,8 +2620,6 @@ if(refine_plot_mac /= ' ') then   ! User provided a plot macro
    write(IWR, '(a)') 'branch kuplot'
    write(IWR, '(a,a)') '  @',refine_plot_mac(1:LEN_TRIM(refine_plot_mac))
 endif
-WRITE(IWR, '(a)') '#'
-WRITE(IWR, '(a)') 'exit'
 write(IWR, '(a)') '#'
 write(IWR, '(a,a)') 'run ', ref_run_u(1:len_trim(ref_run_u))
 write(IWR, '(a)') '#'
