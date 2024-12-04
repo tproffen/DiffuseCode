@@ -3254,7 +3254,7 @@ INTEGER :: length
 !
 CHARACTER(LEN= 200) :: hostfile  ! original structure file name
 !
-INTEGER, PARAMETER :: NOPTIONAL = 7
+INTEGER, PARAMETER :: NOPTIONAL = 8
 INTEGER, PARAMETER :: O_METRIC  = 1
 INTEGER, PARAMETER :: O_SPACE   = 2
 INTEGER, PARAMETER :: O_SORT    = 3
@@ -3262,6 +3262,7 @@ INTEGER, PARAMETER :: O_ATOM    = 4     ! For LAMMPS
 integer, parameter :: O_UNIQUE  = 5
 integer, parameter :: O_NAMES   = 6
 integer, parameter :: O_REFINE  = 7
+integer, parameter :: O_FORM    = 8
 CHARACTER(LEN=   6)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -3270,8 +3271,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique',  'name', 'refine'   /
-DATA loname /  6,        5     ,  4    ,  4    ,  6      ,   4    ,  6         /
+DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique',  'name', 'refine', 'form'   /
+DATA loname /  6,        5     ,  4    ,  4    ,  6      ,   4    ,  6      ,  4       /
 !
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_a0
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_win
@@ -3292,9 +3293,9 @@ logical                       :: l_not_full = .true.
 LOGICAL :: lout = .FALSE.
 !
 !
-opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'biso  ', 'chem  ', 'no    ' /)   ! Always provide fresh default values
-lopara =  (/  6,        6      ,  6      ,  6      ,  6      ,  6      ,  6       /)
-owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0     /)
+opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'biso  ', 'chem  ', 'no    ', 'waas  ' /)   ! Always provide fresh default values
+lopara =  (/  6,        6      ,  6      ,  6      ,  6      ,  6      ,  6      ,  4       /)
+owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0     /)
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
 IF (ier_num.ne.0) THEN 
@@ -3335,7 +3336,7 @@ IF (ianz.ge.1) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          IF (ier_num.ne.0) return 
          if(lpresent(O_REFINE)) opara(O_NAMES) = 'shelx'
-         CALL ins2discus (ianz, cpara, lpara, MAXW, opara(O_NAMES), opara(O_REFINE), ofile) 
+         CALL ins2discus (ianz, cpara, lpara, MAXW, opara(O_NAMES), opara(O_REFINE), opara(O_FORM), ofile) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -3505,7 +3506,7 @@ END SUBROUTINE do_import
 !
 !*****7**************************************************************** 
 !
-SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, c_names, c_refine, ofile) 
+SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, c_names, c_refine, c_form, ofile) 
 !-                                                                      
 !     converts a SHELXL "ins" or "res" file to DISCUS                   
 !+                                                                      
@@ -3530,6 +3531,7 @@ CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara   ! File name (para
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara   ! Length file name parameters
 character(len=*)                    , intent(in)    :: c_names ! "chem" or "shelx" flag to interpret names
 character(len=*)                    , intent(in)    :: c_refine! "no" or "yes" flag to write refine files
+character(len=*)                    , intent(in)    :: c_form  ! "waas" or "table" or "discamb" flag for atom form factors
 CHARACTER(LEN=*)                    , INTENT(OUT)   :: ofile   ! Resulting output file
 !                                                                       
 real(kind=PREC_DP), parameter :: TOL = 0.00005_PREC_DP
@@ -3587,6 +3589,7 @@ INTEGER ifv
 LOGICAL :: lmole     ! If true we are reading a molecule
 logical :: lshelx_names  ! Use atom names from actual list instead of Chemical names
 integer :: n_mat     ! Number space group matrices
+integer             , dimension(3) :: hkl_max
 REAL(KIND=PREC_DP)                 :: P_exti    ! Extrinction parameter
 REAL(KIND=PREC_DP)                 :: rlambda   ! Wave length
 REAL(KIND=PREC_DP), dimension(6)   :: latt      !Lattice parameters in input file
@@ -3972,13 +3975,14 @@ if(c_refine=='yes') then
 !
    i= len_trim(ofile)
    write(IDI,'(a )') 'branch discus'
+   write(IDI,'(a )') '#'
    write(IDI,'(a )') 'read'
    write(IDI,'(2a)') '  stru ', ofile(1:i)
 !
    write(IRE,'(a )') 'refine'
    write(IRE,'(a )') 'rese'
    write(IRE,'(2a)') 'data hklf4, ',hkl_file(1:len_trim(hkl_file))
-   write(IRE,'(a,f9.4,a )') 'newpara P_scale, value:', fv(1), ', points:5, shift:0.01, status:free'
+   write(IRE,'(a,f9.4,a )') 'newpara P_scale, value:', fv(1), ', points:3, shift:0.001, status:free'
 endif
 !
 !===============================================================================
@@ -4016,14 +4020,14 @@ do iscat=1, ntyp
          if(l==1) then
             write(IDI,'(a,i3,4a)') 'anis type:', jj,', values:[', 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1]'
             write(IRE,'(4a,g15.8e3,a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1', &
-                          ', value:', uij_l(1,iscat, j), ', points:5, shift:0.030, status:free' 
+                          ', value:', uij_l(1,iscat, j), ', points:3, shift:0.001, status:free' 
          elseif(l==6) then
             write(IDI,'(a,i3,a,5(3a,i1.1,a2),3a)') 'anis type:', jj,', values:[', &
                  ('U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',k,', ',k=1,5), &
                   'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_6]'
             do m=1,6
             write(IRE,'(3a,i1.1,a,g15.8e3,a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m, &
-                          ', value:', uij_l(m,iscat, j), ', points:5, shift:0.030, status:free' 
+                          ', value:', uij_l(m,iscat, j), ', points:3, shift:0.001, status:free' 
             enddo
          endif
       endif
@@ -4078,11 +4082,11 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
       write(IDI,'(a,i3,3a)') 'z[',iatom, '] = P_',line(1:i), '_z'
 !
       write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_x, value:', &
-         posit(1, iatom), ', points:5, shift:0.030, status:free'
+         posit(1, iatom), ', points:3, shift:0.001, status:free'
       write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_y, value:', &
-         posit(2, iatom), ', points:5, shift:0.030, status:free'
+         posit(2, iatom), ', points:3, shift:0.001, status:free'
       write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_z, value:', &
-         posit(3, iatom), ', points:5, shift:0.030, status:free'
+         posit(3, iatom), ', points:3, shift:0.001, status:free'
    endif
 !
 !===============================================================================
@@ -4115,15 +4119,20 @@ close(IWR)
 !===============================================================================
 if(c_refine=='yes') then
    i= len_trim(ofile)
+   j= len_trim(hkl_file) - 4
    write(IDI,'(a )') 'save'
    write(IDI,'(2a)') '  outfile internal.',ofile(1:i)
    write(IDI,'(a )') '  write all'
    write(IDI,'(a )') '  run'
    write(IDI,'(a )') 'exit'
    write(IDI,'(a )') 'read'
-   write(IDI,'(2a)') '  cell internal.', ofile(1:i)
+   write(IDI,'(2a)') '  cell internal.',ofile(1:i)
    write(IDI,'(a )') 'fourier'
-   write(IDI,'(a )') '  xray table:waas'
+   if(c_form == 'discamb') then
+      write(IDI,'(3a)') '  xray table:discamb, file:', hkl_file(1:j), '.tsc'
+   else
+      write(IDI,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+   endif
    write(IDI,'(a )') '  temp use'
    write(IDI,'(a )') '  disp off'
    write(IDI,'(a, f7.5 )') '  wvle ', rlambda
@@ -4142,6 +4151,7 @@ if(c_refine=='yes') then
    write(IDI,'(a )') 'finished'
    close(IDI)
 !
+   i= len_trim(ofile) - 5
    open(IDI, file='k_fobs_fcalc.mac', status='unknown')
    write(IDI,'(a )') 'reset'
    write(IDI,'(3a)') 'load csv, ',hkl_file(1:len_trim(hkl_file)), ', colx:4, coly:5, separator:[4,4,4,8,8], skip:0'
@@ -4160,17 +4170,22 @@ if(c_refine=='yes') then
    write(IDI,'(a )') 'achx Iobs'
    write(IDI,'(a )') 'achy Icalc'
    write(IDI,'(a )') 'mcol 3, black'
-   write(IDI,'(a )') 'plot'
    write(IDI,'(3a)') 'load csv, ',hkl_file(1:len_trim(hkl_file)), ', colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
    write(IDI,'(a )') 'load csv, calc.hkl, colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
-   write(IDI,'(a )') 'rval 3,4, dat'
+   write(IDI,'(a )') 'do LOOP = 1, np[4]'
+   write(IDI,'(a )') '  dy[4,LOOP] = x[4,LOOP]'
+   write(IDI,'(a )') 'enddo'
+   write(IDI,'(a )') 'rval 4,5, dat'
+   write(IDI,'(2a)') 'tit1 Substance: ', ofile(1:i)
+   write(IDI,'(a )') 'tit2 "wR-value %8.5f",res[2]'
+   write(IDI,'(a )') 'plot'
    write(IDI,'(a )') 'exit '
    close(IDI)
 !
    if(P_exti> 0.00001) then
-      write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:5, shift:0.03, status:free'
+      write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:free'
    else
-      write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:5, shift:0.03, status:fixed'
+      write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:fixed'
    endif
    write(IRE,'(a )') 'set cycle,   5'
    write(IRE,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10, pshift:2.0, conf:1.0, lambda:65000.'
@@ -4182,7 +4197,50 @@ if(c_refine=='yes') then
    close(IRE)
 !
    if(ilist >  0) then
-      call lib_convert_shelx(fcf_file, hkl_file)
+      i = len_trim(ofile) - 5
+      call lib_convert_shelx(fcf_file, hkl_file, hkl_max)
+      open(IRE, file='prepare_hkl_full.mac', status='unknown')
+      write(IRE,'(a )') 'discus'
+      write(IRE,'(a )') '#'
+      write(IRE,'(a )') 'variable real, hhmax'
+      write(IRE,'(a )') 'variable real, kkmax'
+      write(IRE,'(a )') 'variable real, llmax'
+      write(IRE,'(a )') 'variable character, substance'
+      write(IRE,'(a )') '#'
+      write(IRE,'(a,i5)') 'hhmax = ', hkl_max(1)
+      write(IRE,'(a,i5)') 'kkmax = ', hkl_max(2)
+      write(IRE,'(a,i5)') 'llmax = ', hkl_max(3)
+      write(IRE,'(a )') '#'
+      write(IRE,'(3a)') 'substance = "%c", ''', ofile(1:i), ''''
+      write(IRE,'(a )') '#'
+      write(IRE,'(a )') 'read'
+      write(IRE,'(a )') '  cell "%c.cell", substance'
+      write(IRE,'(a )') '#'
+      write(IRE,'(a )') 'fourier'
+      write(IRE,'(a )') '  xray table:waas'
+      write(IRE,'(a )') '  temp use'
+      write(IRE,'(a )') '  disp off'
+      write(IRE,'(a, f7.5 )') '  wvle ', rlambda
+      write(IRE,'(a )') '  ll  -hhmax, -kkmax, -llmax'
+      write(IRE,'(a )') '  lr   hhmax, -kkmax, -llmax'
+      write(IRE,'(a )') '  ul  -hhmax,  kkmax, -llmax'
+      write(IRE,'(a )') '  tl  -hhmax, -kkmax,  llmax'
+      write(IRE,'(a )') '  na  2*hhmax + 1'
+      write(IRE,'(a )') '  no  2*kkmax + 1'
+      write(IRE,'(a )') '  nt  2*llmax + 1'
+      write(IRE,'(a )') '  set aver, 0.000'
+      write(IRE,'(a )') '  run'
+      write(IRE,'(a )') '  exit'
+      write(IRE,'(a )') '#'
+      write(IRE,'(a )') 'output'
+      write(IRE,'(3a)') '  outf  "%c_full.hkl", substance'
+      write(IRE,'(a )') '  form  hklf4'
+      write(IRE,'(a )') '  value inte'
+      write(IRE,'(a )') 'run'
+      write(IRE,'(a )') '#'
+      write(IRE,'(a )') 'exit  ! Back to main DISCUS menu'
+      write(IRE,'(a )') 'exit  ! Back to SUITE'
+      close(IRE)
    endif
 endif
 !===============================================================================
