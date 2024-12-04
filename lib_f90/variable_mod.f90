@@ -41,7 +41,11 @@ END TYPE var_arrays
    INTEGER, PARAMETER :: VAR_FIT_VALUE = 20
    INTEGER, PARAMETER :: VAR_SLOW      = 21
    INTEGER, PARAMETER :: VAR_LOOP      = 22
-   INTEGER, PARAMETER :: VAR_EXPRESSION= 23
+   INTEGER, PARAMETER :: VAR_LINUX     = 23
+   INTEGER, PARAMETER :: VAR_MAC       = 24
+   INTEGER, PARAMETER :: VAR_WSL       = 25
+   INTEGER, PARAMETER :: VAR_OPERATING = 26
+   INTEGER, PARAMETER :: VAR_EXPRESSION= 27
 !
    INTEGER, PARAMETER :: VAR_clen      = 200
 !
@@ -69,6 +73,11 @@ CONTAINS
 !
    INTEGER :: i
    i = 0
+   var_name = ' '
+   var_char = ' '
+   var_l    = 0
+   var_diff = .false.
+   var_val  = 0.0D0
 !
    i = VAR_UNDEF
    var_name ( i) = 'UNDEF'             ! A state is undefined
@@ -242,6 +251,38 @@ CONTAINS
    var_name ( i) = 'LOOP'           ! Generic loop variable 1
    var_char ( i) = ' '
    var_l    ( i) = 4
+   var_type ( i) = IS_INTE
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = 0
+!
+   i = VAR_LINUX
+   var_name ( i) = 'LINUX'          ! Operating system LINUX
+   var_char ( i) = ' '
+   var_l    ( i) = 5
+   var_type ( i) = IS_INTE
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = 1
+!
+   i = VAR_MAC
+   var_name ( i) = 'MACOSX'         ! Operating system MACOSx
+   var_char ( i) = ' '
+   var_l    ( i) = 6
+   var_type ( i) = IS_INTE
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = 2
+!
+   i = VAR_WSL
+   var_name ( i) = 'WINWSL'         ! Operating system Windows WSL
+   var_char ( i) = ' '
+   var_l    ( i) = 6
+   var_type ( i) = IS_INTE
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = 3
+!
+   i = VAR_OPERATING
+   var_name ( i) = 'OPERATING'      ! Operating system LINUX
+   var_char ( i) = ' '
+   var_l    ( i) = 9
    var_type ( i) = IS_INTE
    var_diff ( i) = .FALSE.
    var_val  ( i) = 0

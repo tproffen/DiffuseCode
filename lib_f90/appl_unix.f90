@@ -38,6 +38,7 @@ USE support_mod
 use sys_compiler
 USE lib_do_operating_mod
 use gen_mpi_mod
+use variable_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -353,6 +354,15 @@ IF(standalone) THEN
    ENDIF
 ENDIF
 !
+if(operating==OS_LINUX_WSL) then
+   var_val(VAR_OPERATING) = var_val(VAR_WSL)
+elseif(operating==OS_LINUX) then
+   var_val(VAR_OPERATING) = var_val(VAR_LINUX)
+elseif(operating==OS_MACOSX) then
+   var_val(VAR_OPERATING) = var_val(VAR_MAC)
+else
+   var_val(VAR_OPERATING) = var_val(VAR_UNDEF)
+endif
 !                                                                       
       deffile = '.'//pname (1:pname_l) 
       deffile_l = len_str (deffile) 
