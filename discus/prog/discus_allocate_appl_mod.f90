@@ -348,6 +348,10 @@ CALL alloc_arr ( chem_ave_iscat,1,n_atom_cell , 1,n_max_atom  , &
                all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+CALL alloc_arr ( chem_ave_anis ,1,n_atom_cell , 1,n_max_atom  , &
+               all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
 CALL alloc_arr ( chem_ave_pos  ,1,3 , 1,n_atom_cell ,   &
                all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
