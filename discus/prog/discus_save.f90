@@ -43,6 +43,7 @@ USE precision_mod
       USE prompt_mod 
 USE str_comp_mod
       USE sup_mod
+use take_param_mod
       IMPLICIT none 
 !                                                                       
 CHARACTER(LEN=*), INTENT(INOUT) :: string 
@@ -61,13 +62,30 @@ INTEGER         , INTENT(INOUT) :: lcomm
       CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: line
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz
+integer :: is_style=0    ! style for output file format
       INTEGER sav_flen 
       LOGICAL lend 
-!                                                                       
-!                                                                       
-      DATA sav_flen / 1 / 
-!                                                                       
-      maxw = MAX(MIN_PARA,MAXSCAT+1)
+!
+integer, parameter :: NOPTIONAL = 1
+integer, parameter :: O_FORMAT  = 1
+character(LEN=   6), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
+!
+data oname  / 'format' /
+data loname /  6       /
+!
+DATA sav_flen / 1 / 
+!
+opara  =  (/ 'keyword' /)   ! Always provide fresh default values
+lopara =  (/  7        /)
+owerte =  (/  0.0      /)
+!
+maxw = MAX(MIN_PARA,MAXSCAT+1)
 !
 !     Interpret parameters used by 'save' command                       
 !                                                                       
@@ -114,16 +132,47 @@ INTEGER         , INTENT(INOUT) :: lcomm
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/save' 
 !                                                                       
-main: DO while (.not.lend) 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
-      IF (ier_num.eq.0) THEN 
-         IF (line /= ' '      .and. line(1:1) /= '#' .and. &
-             line /= char(13) .and. line(1:1) /= '!'        ) THEN
+loop_main: DO while (.not.lend) 
+      IF (ier_num.ne.0) THEN 
+         CALL errlist 
+         IF (ier_sta.ne.ER_S_LIVE) THEN 
+            IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
+               IF(sprompt /= prompt ) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in save menu'
+                  prompt_status = PROMPT_ON 
+                  prompt = orig_prompt
+                  RETURN
+               ELSE
+                  IF(lmacro_close) THEN
+                     CALL macro_close 
+                     prompt_status = PROMPT_ON 
+                  ENDIF 
+               ENDIF 
+            ENDIF 
+            IF (lblock) THEN 
+               ier_num = - 11 
+               ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
+               prompt = orig_prompt
+               RETURN 
+            ENDIF 
+            CALL no_error 
+            lmakro_error = .FALSE.
+            sprompt = ' '
+         ENDIF 
+      ENDIF 
+   CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
+!
+   if(ier_num/=0) cycle loop_main
+   if (line == ' '      .or. line(1:1) == '#' .or. &
+       line == char(13) .or. line(1:1) == '!'        ) cycle loop_main
 !                                                                       
 !     ----search for "="                                                
 !                                                                       
-indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
+   indxg = index (line, '=') 
+   cond_equal: IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
               .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
               .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
                           str_comp (befehl, '?   ', 2, lbef, 4) )    &
@@ -132,11 +181,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ------evaluatean expression and assign the value to a variabble   
 !                                                                       
                CALL do_math (line, indxg, length) 
-            ELSE 
+      cycle loop_main
+   endif cond_equal
 !                                                                       
 !------ ----execute a macro file                                        
 !                                                                       
-               IF (befehl (1:1) .eq.'@') THEN 
+   cond_general: IF (befehl (1:1) .eq.'@') THEN 
                   IF (length.ge.2) THEN 
                      line(1:length-1) = line(2:length)
                      line(length:length) = ' '
@@ -146,41 +196,48 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_num = - 13 
                      ier_typ = ER_MAC 
                   ENDIF 
+      cycle loop_main
 !                                                                       
 !     ----list asymmetric unit 'asym'                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) THEN 
+   ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) THEN cond_general
                   CALL show_asym 
+      cycle loop_main
 !                                                                       
 !     ----continues a macro 'continue'                                  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) THEN 
+   ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) THEN cond_general
                   CALL macro_continue (zeile, lp) 
+      cycle loop_main
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chemistry', 2, lbef, 9) ) THEN 
+   ELSEIF (str_comp (befehl, 'chemistry', 2, lbef, 9) ) THEN cond_general
                   CALL show_chem 
+      cycle loop_main
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
 !                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
+   ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN cond_general
                   CALL echo (zeile, lp) 
+      cycle loop_main
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN 
+   ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN cond_general
                   CALL do_eval (zeile, lp, .TRUE.) 
+      cycle loop_main
 !                                                                       
 !     ----exit 'exit'                                                   
 !                                                                       
                ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
                   lend = .true. 
+      cycle loop_main
 !                                                                       
 !     ----help 'help','?'                                               
 !                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) THEN                                      
+   ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
+     &, '?   ', 1, lbef, 4) ) THEN                                      cond_general
                   line = zeile 
                   IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
                      lp = lp + 7 
@@ -189,34 +246,40 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      lp = lp + 12 
                      CALL do_hel ('discus save '//line, lp) 
                   ENDIF 
+      cycle loop_main
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+   ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN cond_general
                   IF (zeile.ne.' ') THEN 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
+      cycle loop_main
 !                                                                       
 !------  -----waiting for user input                                    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 2, lbef, 4) ) THEN 
+   ELSEIF (str_comp (befehl, 'wait', 2, lbef, 4) ) THEN cond_general
                   CALL do_input (zeile, lp) 
+      cycle loop_main
 !
 !     ----Reset save menu 'rese'n'                                      
 !
-               ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) THEN 
-                  CALL save_reset
-               ELSE
+   ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) THEN cond_general
+      CALL save_reset
+      is_style = 0
+      cycle loop_main
+   endif cond_general
+!  ELSE cond_general
 !
 !---------SAVE specific commands
 !                                                                       
-               CALL save_check_alloc()
-               IF ( ier_num < 0 ) THEN
-                  RETURN
-               ENDIF
+   CALL save_check_alloc()
+   IF ( ier_num < 0 ) THEN
+      RETURN
+   ENDIF
 !                                                                       
 !     ----Deselect which atoms are included in the wave 'dese'          
 !                                                                       
@@ -245,23 +308,44 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define format of output file 'format'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'format', 1, lbef, 6) ) THEN 
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) THEN 
-                     IF (str_comp (cpara (1) , 'keyword', 1, lpara (1) ,&
-                     7) ) THEN                                          
-                        sav_keyword = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'nokeyword', 1, lpara(1), 9) ) THEN
-                        sav_keyword = .false. 
-                     ELSE 
-                        ier_num = - 6 
-                        ier_typ = ER_COMM 
-                     ENDIF 
-                  ENDIF 
+   ELSEIF (str_comp (befehl, 'format', 1, lbef, 6) ) THEN 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      if(ier_num/=0) cycle loop_main
+      call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+           oname, loname, opara, lopara, lpresent, owerte)
+      if(ier_num/=0) cycle loop_main
+!
+      if(lpresent(O_FORMAT)) then             ! User provided format:
+         if(str_comp(opara(O_FORMAT), 'keyword', 1, lpara(O_FORMAT), 7)) then
+            sav_keyword = .true.
+            is_style = 0
+         elseif(str_comp(opara(O_FORMAT), 'nexus', 3, lopara(O_FORMAT), 5)) then
+            sav_keyword = .true.
+            is_style = 1
+         elseif(str_comp(opara(O_FORMAT), 'nokeyword', 3, lpara(O_FORMAT), 9)) then
+            sav_keyword = .false.
+            is_style = 2
+         endif
+      else
+         IF(str_comp(cpara(1) , 'keyword', 1, lpara(1), 7) ) THEN                                          
+            sav_keyword = .true. 
+            is_style = 0
+         ELSEIF (str_comp (cpara (1) , 'nexus', 3, lpara(1), 5) ) THEN
+            sav_keyword = .true. 
+            is_style = 1
+         ELSEIF (str_comp (cpara (1) , 'nokeyword', 3, lpara(1), 9) ) THEN
+            sav_keyword = .false. 
+            is_style = 2
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      endif
+!     ENDIF 
 !                                                                       
 !     ----Select range of atoms within crystal to be included 'incl'    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'include', 1, lbef, 7) ) THEN 
+   ELSEIF (str_comp (befehl, 'include', 1, lbef, 7) ) THEN 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -363,26 +447,30 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
-                  IF (sav_keyword) THEN 
-                     IF(sav_w_scat .EQV. sav_w_adp .AND. &
-                        sav_w_scat .EQV. sav_w_occ .AND. &
-                        sav_w_adp  .EQV. sav_w_occ )  THEN
-                     IF (str_comp (sav_file(1:8),'internal',8,8,8)) THEN
-                        CALL save_internal (sav_file) 
-                     ELSE 
-                        CALL save_keyword (sav_file) 
-                     ENDIF 
-                     ELSE 
-                        ier_num = -159
-                        ier_typ = ER_APPL
-                        ier_msg(1) = 'Write/Omit differ for SCAT, ADP, OCC'
-                        ier_msg(2) = 'Check write/omit statements in save'
-                        ier_msg(3) = 'Segments and homogenize'
-                     ENDIF 
-                  ELSE 
-                     CALL save_nokeyword (sav_file) 
-                  ENDIF 
+   ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
+      IF (sav_keyword) THEN 
+         IF(sav_w_scat .EQV. sav_w_adp .AND. &
+            sav_w_scat .EQV. sav_w_occ .AND. &
+            sav_w_adp  .EQV. sav_w_occ )  THEN
+            IF(str_comp(sav_file(1:8),'internal',8,8,8)) THEN
+               CALL save_internal (sav_file) 
+            elseif(is_style==0) then
+               CALL save_keyword (sav_file) 
+            elseif(is_style==1) then
+               CALL save_keyword_nexus(sav_file) 
+            ELSE 
+               CALL save_keyword (sav_file) 
+            ENDIF 
+         ELSE 
+            ier_num = -159
+            ier_typ = ER_APPL
+            ier_msg(1) = 'Write/Omit differ for SCAT, ADP, OCC'
+            ier_msg(2) = 'Check write/omit statements in save'
+            ier_msg(3) = 'Segments and homogenize'
+         ENDIF 
+      ELSE 
+         CALL save_nokeyword (sav_file) 
+      ENDIF 
 !                                                                       
 !     ----Select which atoms are copied to their image 'sele'           
 !                                                                       
@@ -465,50 +553,18 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ier_num = - 8 
                   ier_typ = ER_COMM 
                ENDIF 
-               ENDIF 
-            ENDIF 
-         ENDIF 
-      ENDIF 
-      IF (ier_num.ne.0) THEN 
-         CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) THEN 
-            IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-               IF(sprompt /= prompt ) THEN
-                  ier_num = -10
-                  ier_typ = ER_COMM
-                  ier_msg(1) = ' Error occured in save menu'
-                  prompt_status = PROMPT_ON 
-                  prompt = orig_prompt
-                  RETURN
-               ELSE
-                  IF(lmacro_close) THEN
-                     CALL macro_close 
-                     prompt_status = PROMPT_ON 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-            IF (lblock) THEN 
-               ier_num = - 11 
-               ier_typ = ER_COMM 
-               prompt_status = PROMPT_ON 
-               prompt = orig_prompt
-               RETURN 
-            ENDIF 
-            CALL no_error 
-            lmakro_error = .FALSE.
-            sprompt = ' '
-         ENDIF 
-      ENDIF 
-         IF(linteractive .OR. lmakro) THEN
-            CYCLE main
-         ELSE
-            EXIT main
-         ENDIF
-      ENDDO  main
+!  ENDIF  cond_general
+!  ENDIF cond_equal
+   IF(linteractive .OR. lmakro) THEN
+      CYCLE loop_main
+   ELSE
+      EXIT loop_main
+   ENDIF
+ENDDO  loop_main
 !
-      prompt = orig_prompt
+prompt = orig_prompt
 !                                                                       
-      END SUBROUTINE save_struc                     
+END SUBROUTINE save_struc                     
 !
 !*****7*****************************************************************
 !
@@ -780,8 +836,13 @@ IF (sav_w_adp) THEN
 !   do j= 1, cr_ncatoms
 !      if(abs(cr_prin(4,1,look_anis(j,ianis) )-cr_prin(4,2,look_anis(j,ianis) ))>TOL  .or.  &
 !         abs(cr_prin(4,1,look_anis(j,ianis) )-cr_prin(4,3,look_anis(j,ianis) ))>TOL      ) then
+!write(*,*)  abs(cr_prin(4,1,ianis              )-cr_prin(4,2,ianis              ))>TOL , &
+!           abs(cr_prin(4,1,ianis              )-cr_prin(4,3,ianis              ))>TOL  , &
+!           maxval(abs(cr_prin(:,:,ianis)))<TOL                                          
+
        if(abs(cr_prin(4,1,ianis              )-cr_prin(4,2,ianis              ))>TOL  .or.  &
-          abs(cr_prin(4,1,ianis              )-cr_prin(4,3,ianis              ))>TOL      ) then
+          abs(cr_prin(4,1,ianis              )-cr_prin(4,3,ianis              ))>TOL  .or.  &
+          maxval(abs(cr_prin(:,:,ianis)))<TOL                                             ) then
           write(ist, '(a,i2.2,a,5(f10.6,'',''),f10.6,a)') 'anis type:', itype, ', values:[', cr_anis_full(:,ianis),']'
        else
           write(ist, '(a,i2.2,a,f10.6,a)')  'anis type:', itype, ', values:[', cr_prin(4,1,    ianis         ),']'
@@ -987,6 +1048,242 @@ DEALLOCATE(lwrite)
  7030 FORMAT    ('(''occ   '', f9.6,',i1,'('','',5x,f9.6))') 
 !
 END SUBROUTINE save_keyword                   
+!
+!********************************************************************** 
+!
+subroutine save_keyword_nexus (outfile) 
+!-
+! Interfact to the generiv NeXuS nx_write_structure
+!+
+!
+use celltoindex_mod
+use chem_mod
+use chem_aver_mod
+use crystal_mod
+use guess_atoms_mod
+use molecule_mod
+use wyckoff_mod
+!
+use element_data_mod
+use envir_mod
+use errlist_mod
+use nx_write_mod
+use lib_nx_transfer_mod
+use param_mod
+use wink_mod
+!
+implicit none
+!
+character(len=*), intent(in) :: outfile
+!
+!character(len=PREC_STRING) :: script_path
+character(len=4) :: element
+character(len=PREC_string) :: program_version
+integer :: i, j, k, l, ia      ! Dummy indices
+integer :: ios    ! I/O status
+logical :: lout = .false.
+logical :: lsite = .true.
+!
+integer, dimension(3,3) :: unit_cells
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: symmetry_mat
+character(len=4), dimension(:), allocatable :: types_names
+integer, dimension(:), allocatable :: types_ordinal
+integer, dimension(:), allocatable :: types_charge
+integer, dimension(:), allocatable :: types_isotope
+real(kind=PREC_DP), dimension(:), allocatable :: types_occupancy
+!
+real(kind=PREC_DP), dimension(:,:), allocatable :: atom_pos
+integer, dimension(:)  , allocatable :: atom_id
+integer, dimension(:)  , allocatable :: atom_type
+integer, dimension(:,:), allocatable :: atom_unit_cell
+integer, dimension(:)  , allocatable :: atom_site
+!
+type(anis_adp_type) :: anis_adp
+type(molecule_data) :: molecules
+type(average_structure) :: average_struc
+logical, dimension(6)  :: status_flags
+!
+program_version = 'DISCUS ' // version_discus(1:len_trim(version_discus))
+unit_cells = 0
+unit_cells(1,1) = cr_icc(1)
+unit_cells(2,2) = cr_icc(2) 
+unit_cells(3,3) = cr_icc(3)
+allocate(symmetry_mat(3,4,spc_n))
+symmetry_mat = spc_mat(1:3, 1:4, 1:spc_n)
+!
+call guess_atom_all
+!
+allocate(types_names    (1:cr_nscat))
+allocate(types_ordinal  (1:cr_nscat))
+allocate(types_charge   (1:cr_nscat))
+allocate(types_isotope  (1:cr_nscat))
+allocate(types_occupancy(1:cr_nscat))
+types_names    = ' '
+types_ordinal  = 0
+types_charge   = 0
+types_isotope  = 0
+types_occupancy= 0.0_PREC_DP
+!
+do i=1, cr_nscat
+   types_names(i) = cr_at_lis(i)
+   if(cr_scat_equ(i)) then
+     element = cr_at_equ(i)
+   else
+      element = cr_at_lis(i)
+   endif
+   types_ordinal(i) = get_ordi(element)
+   j = len_trim(element)
+   if(element(j:j)=='+') then
+      read(element(j-1:j-1),'(i1)',iostat=ios) types_charge(i)
+   elseif(element(j:j)=='-') then
+      read(element(j-1:j-1),'(i1)',iostat=ios) types_charge(i)
+      types_charge(i) = -abs(types_charge(i))
+   endif
+!  types_typeID(i)  = i
+   types_occupancy(i) = cr_occ(i)
+enddo
+!
+allocate(atom_pos(3,cr_natoms))
+atom_pos = cr_pos(1:3, 1:cr_natoms)
+!
+allocate(atom_id(1:cr_natoms))
+allocate(atom_type(1:cr_natoms))
+allocate(atom_unit_cell(3,1:cr_natoms))
+allocate(atom_site(1:cr_natoms))
+!
+do i=1, cr_natoms
+   atom_id(i) = i
+   atom_type(i) = cr_iscat(1,i)
+   call indextocell(i, atom_unit_cell(:,i), atom_site(i))
+enddo
+!
+!  Define status flags
+!
+status_flags = .false.
+if(any(cr_icc>1)   ) status_flags(1) = .true.   ! Superstructure, more than one unit cell
+if(any(cr_is_sym>1)) status_flags(2) = .false.  ! Crystal symmetry was likely applied
+status_flags(3:5) = chem_period                 ! Copy periodic boundary conditions
+status_flags(6)   = cr_is_homo                  ! Copy homogeneity status
+!
+! Build anisotropic atom structure
+!
+anis_adp%anis_n_type = cr_nanis
+anis_adp%anis_n_atom = cr_natoms
+allocate(anis_adp%anis_adp(7, cr_nanis))
+anis_adp%anis_adp(1:6,1:cr_nanis) = cr_anis_full(1:6,1:cr_nanis)
+do i=1, cr_nanis
+   anis_adp%anis_adp(7,i) = (cr_prin(4,   1,i) + cr_prin(4,   2,i) + cr_prin(4,   3,i))/3.0_PREC_DP
+enddo
+allocate(anis_adp%atom_index(1:cr_natoms))
+do i=1, cr_natoms
+   anis_adp%atom_index(i) = cr_iscat(3,i)
+enddo
+!
+!  Build molecule structure
+!
+if(mole_num_mole>0) then    ! Crystal has molecules
+!rite(*,*) ' Molecules ', mole_num_mole, mole_num_type, mole_num_atom
+!write(*,*) ' Molecules type ', ubound(mole_type)
+!write(*,*) ' Molecules char ', ubound(mole_char)
+!write(*,*) ' Molecules clin ', ubound(mole_clin)
+!write(*,*) ' Molecules cqua ', ubound(mole_cqua)
+!write(*,*) ' Molecules biso ', ubound(mole_biso)
+   allocate(molecules%mole_int (3, mole_num_mole))
+   allocate(molecules%mole_real(3, mole_num_type))
+!  allocate(mole_data%mole_char(mole_num_char))
+!  allocate(mole_data%mole_clin(mole_num_clin))
+!  allocate(mole_data%mole_cqua(mole_num_cqua))
+!  allocate(mole_data%mole_ueqv(mole_num_ueqv))
+   molecules%number_moles = mole_num_mole
+   molecules%number_types = mole_num_type
+   molecules%mole_int(1, :) = mole_type(1:mole_num_mole)
+   molecules%mole_int(2, :) = mole_char(1:mole_num_mole)
+   molecules%mole_int(3, :) = mole_len (1:mole_num_mole)
+   molecules%mole_real(1,:) = mole_biso(1:mole_num_type)/8.0_PREC_DP/PI**2
+   molecules%mole_real(2,:) = mole_clin(1:mole_num_type)
+   molecules%mole_real(3,:) = mole_cqua(1:mole_num_type)
+   allocate(molecules%atom_index(1:maxval(mole_len(1:mole_num_mole)),mole_num_mole))
+!write(*,*) ' MOLECULES ', ubound(molecules%atom_index), ' >> ', maxval(mole_len(1:mole_num_mole)), mole_num_mole 
+!j=1
+!write(*,*) ' CONTEN, k)T   ', ubound(mole_cont), ' >> ', mole_cont(mole_off(j)+1: mole_off(j)+mole_len(j))
+   do j=1, mole_num_mole
+      i = mole_len(j)
+!write(*,*) 'MOLE No. ', j, i, mole_len(j), mole_off(j), mole_off(j)+mole_len(j)
+      molecules%atom_index(1:i,j) = mole_cont(mole_off(j)+1: mole_off(j)+mole_len(j))
+   enddo
+else
+   molecules%number_moles = 0
+endif
+!
+average_struc%aver_n_atoms = 0  ! Assume no average structure
+if(all(chem_period) .or. 1==1) then       ! Crystal has periodic boundary conditions
+   lout  = .false.
+   lsite = .false.
+   call chem_aver(lout, lsite)
+   k = 0
+   do i = 1, cr_ncatoms
+      do j = 1, chem_ave_n(i)
+         k = k + 1
+      enddo
+   enddo
+   allocate(average_struc%atom_type(k))
+   allocate(average_struc%position(3,k))
+   allocate(average_struc%occupancy(k))
+   allocate(average_struc%anis_adp(7,k))
+   allocate(average_struc%site_number(k))
+!
+   ia = cr_icc(1) * cr_icc(2) * cr_icc(3)
+   k = 0
+   do i = 1, cr_ncatoms
+      do j = 1, chem_ave_n(i)
+         k = k + 1
+         average_struc%atom_type(k)   = chem_ave_iscat(i, j)
+         average_struc%position(:,k)  = chem_ave_posit(:, i, j)
+         average_struc%occupancy(k)   = chem_ave_bese (i, j)/real(ia, kind=PREC_DP)
+         l                            = chem_ave_anis(i,j)        ! ADP type
+         average_struc%anis_adp(1:6,k) = cr_anis_full(1:6,l)
+         average_struc%anis_adp(7  ,k) = (cr_prin(4, 1,l) + cr_prin(4, 2,l) + cr_prin(4, 3,l))/3.0_PREC_DP
+         average_struc%site_number(k) = i
+      enddo
+   enddo
+   average_struc%aver_n_atoms = k  ! Set number of atoms in average structure
+else
+   average_struc%aver_n_atoms = 0  ! Assume no average structure
+endif
+!
+call nx_write_structure(python_script_dir, outfile, program_version, author,          &
+           cr_a0, cr_win, cr_gten, cr_spcgr, spcgr_para, cr_set,                &
+           spc_n, symmetry_mat, unit_cells,                                     &
+           cr_nscat, types_names, types_ordinal, types_charge, types_isotope,   &
+           cr_natoms, atom_id, atom_type, atom_pos, atom_unit_cell, atom_site,  &
+           status_flags, cr_nanis, ier_num,                                     &
+           property_flags = cr_prop,                                            &
+           anis_adp       = anis_adp,                                           &
+           molecules      = molecules,                                          &
+           types_occupancy= types_occupancy,                                    &
+           average_struc  = average_struc                                       &
+           )
+!
+deallocate(symmetry_mat)
+deallocate(types_names)
+deallocate(types_ordinal)
+deallocate(types_charge)
+deallocate(types_isotope)
+deallocate(types_occupancy)
+deallocate(atom_id)
+deallocate(atom_type)
+deallocate(atom_pos )
+deallocate(atom_unit_cell)
+deallocate(atom_site)
+deallocate(anis_adp%atom_index)
+deallocate(anis_adp%anis_adp)
+if(allocated(average_struc%atom_type)) deallocate(average_struc%atom_type)
+if(allocated(average_struc%position)) deallocate(average_struc%position)
+if(allocated(average_struc%occupancy)) deallocate(average_struc%occupancy)
+if(allocated(average_struc%anis_adp)) deallocate(average_struc%anis_adp)
+if(allocated(average_struc%site_number)) deallocate(average_struc%site_number)
+!
+end subroutine save_keyword_nexus
 !
 !********************************************************************** 
       SUBROUTINE save_internal (strucfile) 
