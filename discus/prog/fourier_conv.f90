@@ -247,17 +247,19 @@ in_pattern = in_pattern / (REAL(num(1)*num(2)))
 CALL mapfftfdtoline(num, dsort, dsi(1:num(1), 1:num(2),1), in_pattern)          ! Restore convoluted intensities
 !
 !
-CALL maptofftfd(num, dsort, acsf(1:num(1), 1:num(2),1), in_pattern)             ! Use average complex structure factor
-call   fftw_execute_dft(plan, in_pattern, out_pattern)    ! FFT Diffraction pattern
-out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
-call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
-in_pattern = in_pattern / (REAL(num(1)*num(2)))
-CALL mapfftfdtoline(num, dsort, acsf(1:num(1), 1:num(2),1), in_pattern)         ! Restore convoluted average complex structure factor
+!write(*,*) ' MAPtofftd for ACSF '
+!CALL maptofftfd(num, dsort, acsf(1:num(1), 1:num(2),1), in_pattern)             ! Use average complex structure factor
+!write(*,*) ' MAPtofftd for ACSF finished '
+!call   fftw_execute_dft(plan, in_pattern, out_pattern)    ! FFT Diffraction pattern
+!out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
+!call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
+!in_pattern = in_pattern / (REAL(num(1)*num(2)))
+!CALL mapfftfdtoline(num, dsort, acsf(1:num(1), 1:num(2),1), in_pattern)         ! Restore convoluted average complex structure factor
 !
 ! Scale resulting pattern to maintain integral value
 !
 weight2 = sum(dsi)
-acsf=acsf*weight/weight2
+!acsf=acsf*weight/weight2
 csf = csf*weight/weight2
 dsi = dsi*weight/weight2
 if(fave==0.0D0) then
@@ -396,7 +398,7 @@ CALL mapfftfdtoline(num, dsort, dsi, in_pattern)
 ! Scale resulting pattern to maintain integral value
 !
 weight2 = sum(dsi)
-acsf=acsf*weight/weight2
+!acsf=acsf*weight/weight2
 csf = csf*weight/weight2
 dsi = dsi*weight/weight2
 !
