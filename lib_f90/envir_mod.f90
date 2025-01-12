@@ -15,7 +15,9 @@ USE precision_mod
    CHARACTER(LEN=9), PARAMETER :: OS_CYGWIN64  = 'cygwin64 '
    CHARACTER(LEN=9), PARAMETER :: OS_MACOSX    = 'darwin18 '
 !
+   CHARACTER(LEN=PREC_STRING) :: author = 'DISCUS'
    CHARACTER(LEN=PREC_STRING) :: home_dir
+   CHARACTER(LEN=PREC_STRING) :: python_script_dir
    CHARACTER(LEN=PREC_STRING) :: appl_dir
    CHARACTER(LEN=PREC_STRING) :: share_dir
    CHARACTER(LEN=PREC_STRING) :: mac_dir
@@ -45,6 +47,7 @@ USE precision_mod
    CHARACTER(LEN= 80 ) :: colorfile         = ' '
    CHARACTER(LEN= 80 ) :: nullfile          = ' '
    CHARACTER(LEN= 80 ) :: user_name         = ' '
+   character(len=16) :: version_discus = ' '
    INTEGER             :: home_dir_l
    INTEGER             :: appl_dir_l
    INTEGER             :: share_dir_l
