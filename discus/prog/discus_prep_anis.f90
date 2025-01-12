@@ -10,6 +10,9 @@ public anis2iso
 public lookup_anis
 public do_anis
 public update_biso
+public uij_to_xx
+public xx_to_cart
+public calc_prin
 !
 !public calc_prin
 !
