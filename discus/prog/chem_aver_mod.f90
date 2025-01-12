@@ -35,6 +35,7 @@ INTEGER            :: n_atom_cell  ! Dummy for allocation
 INTEGER            :: n_max_atom   ! Dummy for allocation
 !
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_chem_ave_iscat
+INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_chem_ave_anis
 REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE :: temp_chem_ave_posit
 REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE :: temp_chem_ave_sigma
 REAL(kind=PREC_DP)   , DIMENSION(  :), ALLOCATABLE :: temp_chem_ave_bese
@@ -121,6 +122,7 @@ loopk: DO k = 1, cr_icc (3)
             occup: IF (chem_ave_n (ii) .eq.0) then 
                chem_ave_n (ii) = 1 
                chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (1, ia) 
+               chem_ave_anis  (ii, chem_ave_n (ii) ) = cr_iscat (3, ia) 
                is = 1 
             ELSE  occup
                flag = .true. 
@@ -139,6 +141,7 @@ loopk: DO k = 1, cr_icc (3)
                      RETURN 
                   ENDIF 
                   chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (1,ia) 
+                  chem_ave_anis  (ii, chem_ave_n (ii) ) = cr_iscat (3,ia) 
                ENDIF 
             ENDIF occup
             IF(.not. lsite) THEN   ! Accumulate individual positions for different atoms
@@ -213,8 +216,10 @@ ENDDO  sloopk
 DO i=1, cr_ncatoms                  ! Loop over all sites
    IF(chem_ave_n(i) > 0) THEN      ! We have atoms on this site
       IF(ALLOCATED(temp_chem_ave_iscat)) DEALLOCATE(temp_chem_ave_iscat)
+      IF(ALLOCATED(temp_chem_ave_anis )) DEALLOCATE(temp_chem_ave_anis )
       IF(ALLOCATED(temp_chem_ave_bese )) DEALLOCATE(temp_chem_ave_bese )
       ALLOCATE(temp_chem_ave_iscat(   chem_ave_n(i)))
+      ALLOCATE(temp_chem_ave_anis (   chem_ave_n(i)))
       ALLOCATE(temp_chem_ave_bese (   chem_ave_n(i)))
       IF(.NOT. lsite) THEN
          IF(ALLOCATED(temp_chem_ave_posit)) DEALLOCATE(temp_chem_ave_posit)
@@ -226,12 +231,14 @@ DO i=1, cr_ncatoms                  ! Loop over all sites
       ENDIF
    ENDIF
    temp_chem_ave_iscat =  0
+   temp_chem_ave_anis  =  0
    temp_chem_ave_pos   =  0.0
    temp_chem_ave_sig   =  0.0
    temp_chem_ave_bese  =  0.0
    DO k = 1, chem_ave_n (i) 
       j = MINLOC(chem_ave_iscat(i, 1:chem_ave_n (i)),dim=1)
       temp_chem_ave_iscat(  k) = chem_ave_iscat(  i,j)
+      temp_chem_ave_anis (  k) = chem_ave_anis (  i,j)
       temp_chem_ave_pos  (:  ) = chem_ave_pos  (:,i  )
       temp_chem_ave_sig  (:  ) = chem_ave_sig  (:,i  )
       temp_chem_ave_bese (  k) = chem_ave_bese (  i,j)
@@ -240,9 +247,11 @@ DO i=1, cr_ncatoms                  ! Loop over all sites
          temp_chem_ave_sigma(:,k) = chem_ave_sigma(:,i,j)
       ENDIF
       chem_ave_iscat(i,j) = 9999
+      chem_ave_anis (i,j) = 9999
    ENDDO
    DO k = 1, chem_ave_n (i) 
       chem_ave_iscat(  i,k) = temp_chem_ave_iscat(  k)
+      chem_ave_anis (  i,k) = temp_chem_ave_anis (  k)
       chem_ave_pos  (:,i  ) = temp_chem_ave_pos  (:  )
       chem_ave_sig  (:,i  ) = temp_chem_ave_sig  (:  )
       chem_ave_bese (  i,k) = temp_chem_ave_bese (  k)

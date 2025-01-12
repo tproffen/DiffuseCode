@@ -77,6 +77,7 @@ INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_hist        !  (C
 ! Average crystal structure
 INTEGER           , DIMENSION(:)    , ALLOCATABLE :: chem_ave_n       !  (MAXAT_CELL)
 INTEGER           , DIMENSION(:,:)  , ALLOCATABLE :: chem_ave_iscat   !  (MAXAT_CELL,CHEM_MAX_ATOM)
+INTEGER           , DIMENSION(:,:)  , ALLOCATABLE :: chem_ave_anis    !  (MAXAT_CELL,CHEM_MAX_ATOM)
 REAL(kind=PREC_DP), DIMENSION(:,:)  , ALLOCATABLE :: chem_ave_pos     !  (3,MAXAT_CELL)
 REAL(kind=PREC_DP), DIMENSION(:,:)  , ALLOCATABLE :: chem_ave_sig     !  (3,MAXAT_CELL)
 REAL(kind=PREC_DP), DIMENSION(:,:)  , ALLOCATABLE :: chem_ave_bese    !  (MAXAT_CELL,CHEM_MAX_ATOM)
