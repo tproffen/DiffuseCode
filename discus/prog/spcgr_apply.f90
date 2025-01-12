@@ -19,6 +19,8 @@ USE gen_add_mod
 USE sym_add_mod 
 USE unitcell_mod 
 USE wyckoff_mod 
+!
+use lib_functions_mod
 use precision_mod
 !                                                                       
 IMPLICIT none 
@@ -28,7 +30,9 @@ real(kind=PREC_DP), parameter :: TOL=1.0D-6   ! Tolerance for matrix equality
 INTEGER :: igs       ! Loop index generators
 INTEGER :: igg       ! Loop index generators
 INTEGER :: i, j, k   ! Loop indices
-real(kind=PREC_DP), dimension(4,4) :: dummy   ! A dammy matrix
+real(kind=PREC_DP), dimension(4,4) :: dummy   ! A dummy matrix
+real(kind=PREC_DP), dimension(4,4) :: second  ! A dummy matrix
+real(kind=PREC_DP), dimension(4,4) :: res     ! A dummy matrix
 real(kind=PREC_DP), dimension(4,4) :: imat    ! A unit  matrix
 !
 spc_gen =  0
@@ -163,6 +167,33 @@ loop_point:do i=2, spc_n             ! Test all further symmetry matrices
    enddo loop_comp
    spc_point(i) = .true.    ! Did not find an identical
 enddo loop_point
+!
+spc_table = 0.0             ! Initialize multiplication table
+!
+do i=1, spc_n               ! Loop over first operation
+   dummy = spc_mat(1:4, 1:4, i)
+   do j=1, spc_n            ! Loop over second operation
+      second = spc_mat(1:4, 1:4, j)
+      res = matmul(second, dummy)
+      do k=1, 4             ! put element in range [0,1]
+!          res(k,4) = (res(k,4)+2.0_PREC_DP) - int((res(k,4)+2.0_PREC_DP))
+          res(k,4) = frac(res(k,4)+2.0_PREC_DP)
+!if(j==2 .and. i==5) then
+!write(*,'(3(4f6.3,2x))') res(k,:) , second(k,:), dummy(k,:)
+!endif
+      enddo
+      res(4,4) = 1.0_PREC_DP
+      loop_inner: do k=1, spc_n   ! Find resulting index
+         if(all(abs(res-spc_mat(1:4, 1:4, k))<TOL)) then
+            spc_table(j,i) = k    ! Entry is second*first
+            cycle loop_inner
+         endif
+      enddo loop_inner
+   enddo
+enddo
+!do i=1, spc_n
+!write(*,*) i, ' : ', spc_table(i,1:spc_n)
+!enddo
 
 END SUBROUTINE get_symmetry_matrices         
 !
@@ -1761,7 +1792,8 @@ DATA eps / 0.00001 /
       IF ((     mole_l_on .AND. cr_mole(ii)==0) .OR.                     &
           (.NOT.mole_l_on .AND. cr_mole(ii)/=0 .AND. cr_natoms>ii)) THEN 
 !        IF(cr_natoms>ii) THEN      ! Atom  number increased, insert into molecules
-            CALL mole_insert (ii) 
+continue
+!            CALL mole_insert (ii) 
 !        ENDIF 
          IF (ier_num.ne.0) then 
             RETURN 
@@ -1923,7 +1955,7 @@ lp_gener: DO ipg = 1, generpower (igg)
             cr_iscat (1,cr_natoms) = cr_iscat (1,ii) 
             cr_iscat (2,cr_natoms) = 1
             cr_iscat (3,cr_natoms) = cr_iscat (3,ii)    ! Copy ADP info from inital atom
-            cr_mole (cr_natoms) = cr_mole (ii) 
+!           cr_mole (cr_natoms) = cr_mole (ii) 
             cr_prop (cr_natoms) = cr_prop (ii) 
             cr_magn(0, cr_natoms) = cr_magn(0, ii)
             cr_magn(1:3, cr_natoms) = mm(1:3)
@@ -2588,12 +2620,12 @@ REAL(kind=PREC_DP), DIMENSION(1:3) :: v_min
 !                                                                       
       d = do_blen (lspace, u, v) 
 !DBG                                                                    
-!DBG      write (output_io,5555) u,v,d                                  
-!DBG5555      format(3f10.4,2x,3f10.4,2x,f12.4/)                        
+      write (output_io,5555) u,v,d                                  
+5555      format(3f10.4,2x,3f10.4,2x,f12.4/)                        
 !                                                                       
 !     Loop over all molecules from current to last                      
 !                                                                       
-      DO i = mole_num_curr, mole_num_mole 
+      DO i = mole_num_curr, mole_num_curr !mole_num_mole 
 !DBG                                                                    
 !DBG      write (output_io,*) ' Molecule : ',i                          
       u (1) = cr_pos (1, mole_cont (mole_off (i) + 1) ) 
@@ -3214,7 +3246,7 @@ if(n_pos==0) then
    space_origin  = 1
    space_setting = 'abc'
 elseif(n_pos>=2) then
-!  write(*,*) ' Two space groups     ', i_pos(1:n_pos)
+  !write(*,*) ' Two space groups     ', i_pos(1:n_pos)
    if(i_pos(2)< 231 ) then    ! Regular spacegroup is doubled 
       ier_num = -199
       ier_typ = ER_APPL
