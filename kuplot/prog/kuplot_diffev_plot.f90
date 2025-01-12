@@ -797,7 +797,7 @@ CALL do_plot (.false.)
 string = 'data,4'
 length = 6
 CALL kuplot_do_show (string, length)
-write(*,*) ' delta x ', xmax(3)-xmin(3)
+!write(*,*) ' delta x ', xmax(3)-xmin(3)
 !
 END SUBROUTINE kpar_par
 !
