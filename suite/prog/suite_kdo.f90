@@ -574,7 +574,7 @@ call plot_test_jmol(pl_prog, pl_jmol)
 !
 line = 'plot:inter, kill:yes'
 lp = 20
-write(*,*) ' RUN JMOL '
+!write(*,*) ' RUN JMOL '
 call plot_run(line, lp)
 !
 call plot_reset
