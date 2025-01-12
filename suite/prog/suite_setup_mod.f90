@@ -44,6 +44,7 @@ SUBROUTINE setup_suite
 !
 USE appl_env_mod
 use charact_mod
+use envir_mod
 USE gen_mpi_mod
 USE prompt_mod
 USE lib_f90_default_mod
@@ -116,6 +117,7 @@ ELSE
    is_debug = '             '
 ENDIF
 version   = aktuell
+version_discus = version
    IF(par_omp_use) THEN
       WRITE(string,'(a,i3)') 'OpenMP is active; maximum threads ',nthreads
    ELSE
