@@ -98,8 +98,10 @@ INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_prop   ! (  1:MAXSCAT)
 INTEGER, DIMENSION(  :), ALLOCATABLE  ::  cr_niscat ! (  1:MAXSCAT)  Number of atoms of type iscat
 !
 LOGICAL                               :: cr_cartesian = .false.
-LOGICAL                               :: cr_magnetic  = .FALSE.   ! Cyrystal is magnetic YES / NO
-logical                               :: cr_is_anis   = .FALSE.   ! Cyrystal has anisotropic ADPs 
+LOGICAL                               :: cr_magnetic  = .FALSE.   ! Crystal is magnetic YES / NO
+logical                               :: cr_is_anis   = .FALSE.   ! Crystal has anisotropic ADPs 
+logical                               :: cr_is_asym   = .TRUE.    ! Crystal is an asymmetric unit
+logical                               :: cr_is_homo   = .TRUE.    ! Crystal is homogeneous
 !
 REAL(kind=PREC_DP)   , DIMENSION(3)                 ::  cr_a0  = 1.0D0
 REAL(kind=PREC_DP)   , DIMENSION(3)                 ::  cr_win = 90.0D0
