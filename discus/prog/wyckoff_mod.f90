@@ -23,6 +23,7 @@ real(kind=PREC_DP)  ::   spc_axis(3,1:SPC_MAX)    ! Rotation axis or normal to m
 logical, dimension(1:SPC_MAX) :: spc_point        ! Rotation matrix is part of point grup symmetry
 logical, dimension(1:SPC_MAX) :: spc_center       ! Rotation matrix is Centering vector
 integer, dimension(1:SPC_MAX) :: spc_gen          ! Rotation matrix is  generator matrix
+integer, dimension(1:SPC_MAX, 1:SPC_MAX) :: spc_table  ! Multiplication table
 !
 integer             ::   wyc_n
 integer             ::   wyc_list(48)
