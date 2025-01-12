@@ -411,6 +411,7 @@ LOGICAL         ,                  INTENT(IN) :: l_site
 integer                          , intent(in) :: MAXMASK
 logical, dimension(0:MAXMASK)    , intent(in) :: uni_mask           ! Mask for unique atom types
 !
+integer, parameter :: CMD_CELL = 1
 !character(len=PREC_STRING) :: string
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: strucfile
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: outfile
@@ -427,6 +428,7 @@ INTEGER             :: n_type
 INTEGER             :: ncells
 INTEGER, DIMENSION(3) :: local_icc
 INTEGER, DIMENSION(3), PARAMETER :: one = (/ 1, 1, 1/)
+integer :: idot    ! location of '.' in input file name
 logical :: lda
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP)  :: r
@@ -472,6 +474,21 @@ ELSE internalcell
       ier_msg(2) = 'Check filename and path '
       return
    endif
+   idot = index(strucfile,'.', .true.)
+   if(strucfile(idot:len_trim(strucfile))=='.hdf5') then
+      outfile=' '
+      cpara(1) = strucfile
+      lpara(1) = len_trim(strucfile)
+      j = 1
+      call nexus2discus(CMD_CELL, j, cpara, lpara, MAXW, outfile)
+      if(ier_num/=0) return
+      CALL readcell_internal(MAXMASK, outfile, uni_mask)
+      l_not_full = .FALSE.        ! Use cr_anis_full
+      exit internalcell
+   endif
+!
+!  Regular discus file
+!
    call import_test(0, strucfile, outfile)
    if(ier_num /= 0) then
       ier_msg(2) = 'Error testing cell file'
@@ -664,6 +681,7 @@ if(ier_num.eq.0) then
    chem_purge = .FALSE.    ! No purge was done, period boundary is OK
    chem_period(:) = .TRUE.
    chem_quick     = .TRUE.
+   cr_is_asym     = .false.  ! Crystal is not an asymmetric unit
 !ELSE
 !   IF(ier_msg(3) == ' ') THEN
 !      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
@@ -696,7 +714,15 @@ LOGICAL                      , INTENT(IN)    :: l_site     ! Differ atoms on sit
 logical, dimension(0:MAXMASK), intent(in)    :: uni_mask
 logical                      , intent(out)   :: l_not_full
 !
+integer, parameter :: MAXW=1
+integer, parameter :: CMD_STRU=2
+character(len=PREC_STRING), dimension(MAXW) :: cpara
+integer                   , dimension(MAXW) :: lpara
+integer :: ianz    ! Number of parameters
+character(len=PREC_STRING) :: ofile
+!
 CHARACTER(LEN=MAX(PREC_STRING,LEN(strucfile))) :: outfile 
+integer :: idot    ! location of '.' in input file name
 logical :: lda
 !
 CALL rese_cr
@@ -715,6 +741,21 @@ ELSE internals
       ier_msg(2) = 'Check filename and path '
       return
    endif
+   idot = index(strucfile,'.', .true.)
+   if(strucfile(idot:len_trim(strucfile))=='.hdf5') then
+      ofile=' '
+      cpara(1) = strucfile
+      lpara(1) = len_trim(strucfile)
+      ianz = 1
+      call nexus2discus(cmd_stru, ianz, cpara, lpara, MAXW, ofile)
+      if(ier_num/=0) return
+      call alloc_unitcell(cr_ncatoms)
+      cr_is_sym = 1
+      exit internals
+   endif
+!
+!  Regular discus file
+!
    CALL import_test(1, strucfile, outfile)
    IF(ier_num == 0) THEN
       strucfile = outfile
@@ -3243,6 +3284,7 @@ INTEGER         , INTENT(INOUT) :: lp
 !                                                                       
 INTEGER, PARAMETER :: MAXW = 5 
 integer, parameter :: MAXMASK = 4
+integer, parameter :: CMD_IMPORT = 3
 !                                                                       
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) ::  ofile
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) ::  line
@@ -3406,6 +3448,15 @@ IF (ianz.ge.1) THEN
          ier_num = -167
          ier_typ = ER_COMM 
          ier_msg(1) = 'Provide the optional parameter'
+      ENDIF 
+   elseif(str_comp(cpara(1), 'nexus', 5, lpara(1), 5)) then
+      IF (ianz >= 2) THEN 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         IF (ier_num.ne.0) return 
+         CALL nexus2discus (CMD_IMPORT, ianz, cpara, lpara, MAXW, ofile) 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
       ENDIF 
    ELSE 
       ier_num = - 86 
@@ -4138,7 +4189,7 @@ if(c_refine=='yes') then
    write(IDI,'(a, f7.5 )') '  wvle ', rlambda
    write(IDI,'(a )') '  set aver, 0'
    if(P_exti> 0.00001) then
-      write(IDI,'(a )') '  set exti, P_exti'
+      write(IDI,'(a )') '  set exti:P_exti'
    endif
    write(IDI,'(a )') '  set technique:turbo'
    write(IDI,'(3a)') '  hkl in:',hkl_file(1:len_trim(hkl_file)), ', out:calc.hkl, scale:P_scale, style:hklf4'
@@ -6996,6 +7047,254 @@ END SUBROUTINE cif2discus
 !
 !*******************************************************************************
 !
+subroutine nexus2discus (cmd, ianz, cpara, lpara, MAXW, ofile) 
+!-                                                                      
+!     converts a NEXUS file to DISCUS                   
+!+                                                                      
+!                                                                       
+use crystal_mod
+use discus_allocate_appl_mod
+use guess_atoms_mod
+use molecule_mod
+use prep_anis_mod
+use prop_para_mod
+use save_menu
+use spcgr_apply
+use spcgr_mod
+use wyckoff_mod
+!
+use build_name_mod
+use envir_mod
+use matrix_mod
+use lib_nx_read_mod
+use lib_nx_transfer_mod
+use precision_mod
+use string_convert_mod
+use wink_mod
+!
+implicit none 
+!                                                                       
+integer                            , intent(in)    :: cmd    ! Input type 3=stru; 3=import
+integer                            , intent(inout) :: ianz 
+integer                            , intent(in)    :: MAXW 
+character(len=*), dimension(1:MAXW), intent(inout) :: cpara
+integer         , dimension(1:MAXW), intent(inout) :: lpara
+character(len=*)                   , intent(OUT)   :: ofile 
+!
+real(kind=PREC_DP)   , dimension(3) :: werte
+!
+real(kind=PREC_DP)        , dimension(3)                  :: unit_cell_lengths
+real(kind=PREC_DP)        , dimension(3)                  :: unit_cell_angles
+real(kind=PREC_DP)        , dimension(3,3)                :: metric_tensor
+character(len=32)                                         :: symmetry_H_M
+integer                                                   :: symmetry_origin
+character(len=3)                                          :: symmetry_abc
+integer                                                   :: symmetry_n_mat    ! Data conform to symmetry
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat ! Actual Symmetry matrices
+integer                   , dimension(:,:  ), allocatable :: unit_cells   ! Number of unit cells
+!
+integer                                                   :: number_of_types
+character(len=4)          , dimension(:),     allocatable :: types_names
+integer                   , dimension(:),     allocatable :: types_ordinal
+integer                   , dimension(:),     allocatable :: types_charge
+integer                   , dimension(:),     allocatable :: types_isotope
+real(kind=PREC_DP)        , dimension(:),     allocatable :: types_occupancy
+integer                                                   :: number_of_atoms
+integer                   , dimension(:    ), allocatable :: atom_ID      ! Atom ID 
+integer                   , dimension(:    ), allocatable :: atom_type    ! Atom is of this type
+real(kind=PREC_DP)        , dimension(:,:  ), allocatable :: atom_pos     ! Atom is at these fractional coordinates
+integer                   , dimension(:,:  ), allocatable :: atom_unit_cell   ! Atom is in this unit cell
+integer                   , dimension(:    ), allocatable :: atom_site    ! Atom is on this site in its unit cell
+integer                   , dimension(:    ), allocatable :: atom_property  ! Atom has this property flag
+logical                   , dimension(2,6)                :: crystal_flags  ! Flags 
+character(len=PREC_STRING), dimension(  5)                :: crystal_meta  ! Metadata
+type(anis_adp_type) :: anisotropic_adp
+type(molecule_data) :: molecules
+type(average_structure) :: average_struc
+!
+character(len=PREC_STRING) :: outfile
+integer :: i, j      ! Dummy indices
+integer :: n_gene    ! Number generators for molecules
+integer :: n_symm    ! Number symmetryop for molecules
+logical :: lout
+!
+real(kind=PREC_DP), dimension(3,3) :: xx        ! Dummy tensor
+real(kind=PREC_DP), dimension(3,3) :: uij       ! Uij in crystal space
+real(kind=PREC_DP), dimension(3,3) :: ucij      ! Uij in cartesian space
+!
+character(len=32) :: space_group
+integer           :: space_number
+integer           :: space_origin
+character(len=3)  :: space_setting
+!
+if(MAXW>1) then
+   call do_build_name (ianz, cpara, lpara, werte, maxw, 1)
+   if(ier_num/=0) return
+endif
+!
+call nx_read_structure(python_script_dir, cpara(1), unit_cell_lengths, unit_cell_angles,  &
+                       metric_tensor,      &
+                       symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                       symmetry_mat, unit_cells, number_of_types, types_names,      &
+                       types_ordinal, types_charge, types_isotope, number_of_atoms, &
+                       atom_ID, atom_type, atom_pos, atom_unit_cell, atom_site,     &
+                       atom_property, crystal_flags, crystal_meta,                  &
+                       anisotropic_adp, molecules, average_struc, types_occupancy,  &
+                       ier_num)
+if(ier_num/=0) return
+!
+cr_a0  = unit_cell_lengths
+cr_win = unit_cell_angles
+cr_gten = metric_tensor
+call matinv(cr_gten, cr_rten)
+!
+lout = .false.
+call setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
+     cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,  &
+     cr_fmat, cr_cartesian,                                 &
+     cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+cr_spcgr   = symmetry_H_M
+spcgr_para = symmetry_origin
+!          = symmetry_abc
+spc_n      = symmetry_n_mat
+spc_mat        = 0.0_PREC_DP
+spc_mat(4,4,:) = 1.0_PREC_DP
+spc_mat(1:3,1:4,1:spc_n) = symmetry_mat(1:3,1:4,1:spc_n)
+call sym_mat_to_spacegroup(spc_n, spc_mat, space_group, space_number, space_origin, space_setting)
+cr_spcgrno = space_number
+cr_syst    = spcgr_syst(cr_spcgrno)
+!write(*,*) ' SPACE GROUP  ', space_group, cr_spcgr, space_number, spc_n
+!write(*,*) '       ORIGIN ', space_origin, spcgr_para, space_setting, symmetry_abc
+!
+cr_nscat  = number_of_types
+cr_natoms = number_of_atoms
+call alloc_crystal_nmax(number_of_atoms)
+call alloc_crystal_scat(number_of_types)
+!
+! Copy atom names
+!
+do i=1,number_of_types
+!  cr_at_lis(i) = types_names(types_charge(i))
+   cr_at_lis(i) = types_names(i)
+   call do_cap(cr_at_lis(i))
+   if(cr_at_lis(i)=='VA  ') cr_at_lis(i)='VOID'
+   cr_dw = 0.00001_PREC_DP         ! Default Debyw Waller terms
+   cr_occ(i) = types_occupancy(i)
+enddo
+call guess_atom_all
+!
+! Copy ADPs
+!
+cr_anis_full = 0.0_PREC_DP
+if(anisotropic_adp%anis_n_type>0) then     ! File contained ADPs
+   call alloc_anis(anisotropic_adp%anis_n_type)
+   cr_nanis = anisotropic_adp%anis_n_type
+   do i=1,anisotropic_adp%anis_n_type
+      cr_anis_full(1:6,i) = anisotropic_adp%anis_adp(1:6,i)
+      uij(1,1) = cr_anis_full(1,i)
+      uij(2,2) = cr_anis_full(2,i)
+      uij(3,3) = cr_anis_full(3,i)
+      uij(2,3) = cr_anis_full(4,i)
+      uij(3,2) = cr_anis_full(4,i)
+      uij(1,3) = cr_anis_full(5,i)
+      uij(3,1) = cr_anis_full(5,i)
+      uij(1,2) = cr_anis_full(6,i)
+      uij(2,1) = cr_anis_full(6,i)
+      call uij_to_xx(uij, cr_ar, xx)      ! Transform Uij to XX tensor
+      call xx_to_cart(xx, cr_eimat, ucij) ! Transform XX to cartesian basis
+      call calc_prin(i, cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
+   enddo
+endif
+!
+! Copy atoms
+!
+do i=1,number_of_atoms
+   cr_iscat(1,i) = atom_type(  atom_ID(i))
+   cr_iscat(2,i) = 1   ! WORK 
+   if(anisotropic_adp%anis_n_type>0) then
+      cr_iscat(3,i) = anisotropic_adp%atom_index(i)
+   endif
+   cr_dw(cr_iscat(3,i)) = real(cr_iscat(3,i),kind=PREC_DP)
+   cr_pos(:,i)   = atom_pos (:,atom_ID(i))
+   cr_prop(i)    = atom_property(atom_ID(i))
+enddo
+!
+if(molecules%number_moles>0) then     ! Structure contains molecules
+   n_gene = 1
+   n_symm = 1
+   call alloc_molecule(n_gene, n_symm, molecules%number_moles, molecules%number_types, &
+                       number_of_atoms)
+   mole_len(0) = 0
+   mole_off(0) = 0
+   mole_num_atom = 0
+   do i=1, molecules%number_moles
+      mole_len (i) = molecules%mole_int(3,i)
+      mole_off (i) = mole_off(i-1) + mole_len(i-1)
+      mole_char(i) = molecules%mole_int(2,i)
+      mole_type(i) = molecules%mole_int(1,i)
+      mole_file(i) = ' '
+      mole_biso(mole_type(i)) = molecules%mole_real(1,mole_type(i))*8._PREC_DP*PI**2
+      mole_clin(mole_type(i)) = molecules%mole_real(2,mole_type(i))
+      mole_cqua(mole_type(i)) = molecules%mole_real(3,mole_type(i))
+      do j= 1,mole_len (i)
+         mole_cont(mole_off(i)+j) = molecules%atom_index(j,i) 
+         cr_mole(molecules%atom_index(j,i)) = i
+         cr_prop(molecules%atom_index(j,i)) = ibset(cr_prop(i),PROP_MOLECULE)
+      enddo
+      mole_num_atom = mole_num_atom + mole_len(i)
+   enddo
+   mole_num_mole = molecules%number_moles
+   mole_num_type = molecules%number_types
+endif
+!
+do j=1,3
+   cr_dim(j, 1) = minval(cr_pos(j,:))
+   cr_dim(j, 2) = maxval(cr_pos(j,:))
+enddo
+do i = 1, 3 
+   cr_icc(i) = max(1,int(cr_dim(i,2) - cr_dim(i,1) + 1. ) )                                                
+enddo 
+!                                                                       
+!     ------Define (average) number of atoms per unit cell              
+!                                                                       
+cr_ncatoms = max(1,cr_natoms / (cr_icc(1) * cr_icc(2) * cr_icc (3) ))
+if(cmd==3) then            ! Import into DISCUS ==> save a cell file
+   j = index(cpara(1)(1:lpara(1)),'.', .true.)
+   outfile = cpara(1)(1:j) // 'stru'
+   call save_store_setting
+   call save_full_setting
+   call save_keyword(outfile)
+   call save_restore_setting
+elseif(cmd==2) then
+   continue                ! Read a NeXuS file, nothing else to do
+elseif(cmd==1) then        ! Read a cell file, store internally and read
+   outfile = 'internal.' // cpara(1)(1:lpara(1))
+   call save_store_setting
+   call save_full_setting
+   call save_internal(outfile)
+   call save_restore_setting
+   ofile = outfile
+endif
+!
+deallocate(symmetry_mat)
+deallocate(unit_cells)
+deallocate(types_names)
+deallocate(types_ordinal)
+deallocate(types_charge)
+deallocate(types_isotope)
+deallocate(types_occupancy)
+deallocate(atom_ID      )
+deallocate(atom_type    )
+deallocate(atom_pos     )
+deallocate(atom_unit_cell)
+deallocate(atom_site    )
+deallocate(atom_property)
+if(allocated(anisotropic_adp%anis_adp)) deallocate(anisotropic_adp%anis_adp)
+!
+end subroutine nexus2discus
+!
+!*******************************************************************************
+!
 subroutine lammps2discus(ianz, cpara, lpara, MAXW, &
                             NOPTIONAL, opara, lopara, lpresent, O_ATOM, ofile) 
 !-                                                                      
@@ -8114,6 +8413,15 @@ CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 CALL get_symmetry_matrices 
 call prep_anis(cr_natoms, l_not_full)
+!do im=1, mole_num_mole
+!   do j= 1, mole_len(im)
+!   iat = mole_cont(mole_off(im) + j)
+!   write(*,'(3i6, 3f8.3)') im, j, iat, cr_pos(:,iat) 
+!   enddo
+!enddo
+!write(*,*) ' 8431 '
+!read(*,*) im
+
 !
 ! Shift molecules such that the first atom has coordinates [0:1[
 !
