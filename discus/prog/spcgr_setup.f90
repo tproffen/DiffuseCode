@@ -895,65 +895,65 @@ do i=1, SPCGR_MAX
    call rem_leading_bl(spcgr_point(i), l)
 enddo 
 !
-if(j==33) then
-lall = .true.
-do i=1, 2
-  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
-  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
-enddo
-write(*,*) ' ALL CORRECT ? ', lall
-write(*,*)
-read(*,*) i
-do i=3, 15
-  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
-  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
-enddo
-write(*,*) ' ALL CORRECT ? ', lall
-write(*,*)
-read(*,*) i
-do i=16, 74
-  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
-  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
-enddo
-write(*,*) ' ALL CORRECT ? ', lall
-write(*,*)
-read(*,*) i
-do i=75, 142
-  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))) , spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
-  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
-enddo
-write(*,*) ' ALL CORRECT ? ', lall
-write(*,*)
-read(*,*) i
-do i=143,167
-  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
-  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
-enddo
-write(*,*) ' ALL CORRECT ? ', lall
-write(*,*)
-read(*,*) i
-do i=168, 194
-  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
-  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
-enddo
+!if(j==33) then
+!lall = .true.
+!do i=1, 2
+!  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
+!  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
+!enddo
+!write(*,*) ' ALL CORRECT ? ', lall
+!write(*,*)
 !read(*,*) i
-write(*,*) ' ALL CORRECT ? ', lall
-write(*,*)
-read(*,*) i
-do i=195, 230
-  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
-  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
-enddo
-write(*,*) ' ALL CORRECT ? ', lall
-write(*,*)
-read(*,*) i
-do i=231,315
-  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
-  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
-enddo
-write(*,*) ' ALL CORRECT ? ', lall
-j = 2
-endif
+!do i=3, 15
+!  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
+!  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
+!enddo
+!write(*,*) ' ALL CORRECT ? ', lall
+!write(*,*)
+!read(*,*) i
+!do i=16, 74
+!  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
+!  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
+!enddo
+!write(*,*) ' ALL CORRECT ? ', lall
+!write(*,*)
+!read(*,*) i
+!do i=75, 142
+!  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))) , spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
+!  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
+!enddo
+!write(*,*) ' ALL CORRECT ? ', lall
+!write(*,*)
+!read(*,*) i
+!do i=143,167
+!  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
+!  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
+!enddo
+!write(*,*) ' ALL CORRECT ? ', lall
+!write(*,*)
+!read(*,*) i
+!do i=168, 194
+!  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
+!  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
+!enddo
+!!read(*,*) i
+!write(*,*) ' ALL CORRECT ? ', lall
+!write(*,*)
+!read(*,*) i
+!do i=195, 230
+!  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
+!  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
+!enddo
+!write(*,*) ' ALL CORRECT ? ', lall
+!write(*,*)
+!read(*,*) i
+!do i=231,315
+!  write(*,'(i4,a17, 2x, a6, 2x, a6, l2,1x,a7)') i, spcgr_name(i),spcgr_point(i)(1:len_trim(spcgr_point(i))), spcgr_laue(i)(1:len_trim(spcgr_laue(i))), spcgr_point(i)==spcgr_point_t(i), spcgr_point_t(i)
+!  lall = lall .and. spcgr_point(i)==spcgr_point_t(i)
+!enddo
+!write(*,*) ' ALL CORRECT ? ', lall
+!j = 2
+!endif
                                                                         
-      END SUBROUTINE spcgr_setup                    
+END SUBROUTINE spcgr_setup                    
 END MODULE spcgr_setup_mod
