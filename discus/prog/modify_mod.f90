@@ -755,6 +755,7 @@ logical :: lsuccess
 !
 !     While developing, increment crystal if needed, but keep the check
 !
+!write(*,*) ' INSERT ', NMAX, cr_natoms, ubound(cr_pos), ubound(cr_is_sym)
 need_alloc = .false.
 new_nmax   = NMAX
 new_nscat  = MAXSCAT
