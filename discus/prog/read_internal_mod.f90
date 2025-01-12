@@ -172,11 +172,12 @@ SUBROUTINE readcell_internal (MAXMASK, strucfile, uni_mask)
 !
 USE discus_allocate_appl_mod
 use atom_line_mod
+use build_molecule_mod
 USE chem_mod
 USE cryst_class
 USE crystal_mod
 USE molecule_mod
-USE spcgr_apply, ONLY: get_symmetry_matrices, firstcell, symmetry
+USE spcgr_apply, ONLY: get_symmetry_matrices, firstcell, symmetry, get_is_sym
 USE wyckoff_mod
 USE lib_errlist_func
 USE precision_mod
@@ -246,6 +247,7 @@ REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: temp_fuzz
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_cont
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_look
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_upd
+integer, dimension(:  ), allocatable :: temp_inmole
 INTEGER, DIMENSION(1,2)              :: iin_mole
 !
 LOGICAL                       :: need_alloc ! we need to allocate something
@@ -383,7 +385,6 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
       DO j=1, temp_len(i)
          ia = temp_cont(temp_off(i)+j)
          temp_look(ia) = i            !atom(iatom) is in molecule i
-!write(*,*) ' UPD, LOOK ', temp_upd(i), temp_look(ia), i, j
       ENDDO
    ENDDO
 ELSE
@@ -407,12 +408,16 @@ mole_cont = 0
 i_mole    = 0
 mole_num_atom = 0
 mole_num_mole = 0
+cr_mole = 0
 !
 mole_num_curr = 0                                  ! Start with no molecules
+allocate(temp_inmole(ubound(cr_mole,1)))           ! Temporary info this it atom nr. N in molecule
+temp_inmole = 0
 main: do ia = 1, natoms
    werte    = 0.0
    cr_natoms = cr_natoms + 1
    CALL read_temp%crystal%get_cryst_atom ( ia, itype, posit, iprop, isurface, magn_mom, iin_mole)
+!write(*,'(a,4i4, 3f8.3, 2i4)') ' GOT ATOM ', ia, itype, posit, iin_mole
    CALL read_temp%crystal%get_cryst_scat ( ia, itype, at_name , dw1, occ1  )
    mole_exist: if(n_mole > 0) THEN
    CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
@@ -509,12 +514,18 @@ main: do ia = 1, natoms
 !     cr_mole (cr_natoms) = i_mole                ! set the molecule number
 !  else
       cr_mole (cr_natoms) = 0                     ! set the molecule number
+      temp_inmole(cr_natoms) = iin_mole(1,2)
+!write(*,*) ' AT ATOM ', ia, cr_natoms, iin_mole(1,1), iin_mole(1,2)
+      cr_mole (cr_natoms) = iin_mole(1,1)         ! set the molecule number
 !  endif
    cr_surf(:,cr_natoms) = isurface               ! set the property flag
    cr_magn(:,cr_natoms) = magn_mom               ! set magnetic vector
    cr_prop (cr_natoms) = iprop                 ! set the property flag
    j = mole_num_mole                           ! temporarily store number of molecules
+   i = cr_natoms
    CALL symmetry
+   cr_mole(i+1:cr_natoms) = -cr_mole(i)
+   temp_inmole(i+1:cr_natoms) = -temp_inmole(i)
    if(mole_num_mole>j) then                    ! New molecules were generated update lookup
       do k=(temp_look(ia))+1, temp_num_mole
          temp_upd(k) = temp_upd(k) + mole_num_mole - j
@@ -527,13 +538,38 @@ CALL no_error
 !                                                                       
 !  move first unit cell into lower left corner of crystal          
 !                                                                       
+cr_ncatoms = cr_natoms
+call get_is_sym
+!write(*,*) ' PAST MAIN ', mole_num_mole, cr_natoms
+!write(*,*) 'atom, mol   Nr Type Mole  NR   Sym'
+!do i = 1, cr_natoms 
+!   cr_iscat(2,i) = cr_is_sym(i)
+!write(*,'(a, 5i4)') ' ATOM, mol ', i, cr_iscat(1,i), cr_mole(i), temp_inmole(i), cr_iscat(2,i)
+!enddo
+!
+!call do_build_molecule(cr_natoms, cr_iscat, cr_pos, cr_mole,                    &
+!     ubound(temp_inmole,1), temp_inmole, SPC_MAX, spc_table)
+!
+!write(*,*) ' PAST MAIN ', mole_num_mole, cr_natoms, ubound(mole_len), mole_num_type, mole_num_atom
+!write(*,*) 'atom, mol   Nr Type Mole  NR   Sym'
 DO i = 1, cr_natoms 
+   cr_iscat(2,i) = cr_is_sym(i)
    DO j = 1, 3 
-      cr_pos (j, i) = cr_pos (j, i) - int ( (cr_icc (j) ) / 2) 
+!      cr_pos (j, i) = cr_pos (j, i) - int ( (cr_icc (j) ) / 2) 
       cr_dim (j, 1) = min (cr_dim (j, 1), cr_pos (j, i) ) 
       cr_dim (j, 2) = max (cr_dim (j, 2), cr_pos (j, i) ) 
    ENDDO 
+!write(*,'(a, 5i4)') ' ATOM, mol ', i, cr_iscat(1,i), cr_mole(i), temp_inmole(i), cr_iscat(2,i)
 ENDDO 
+call do_build_molecule(cr_natoms, cr_iscat, cr_pos, cr_mole,                    &
+     ubound(temp_inmole,1), temp_inmole, SPC_MAX, spc_table)
+!
+!  move first unit cell into lower left corner of crystal          
+!
+do i= 1, cr_natoms
+   cr_pos(:,i) = cr_pos(:,i) -int(cr_icc(:)/2)
+enddo
+!read(*,*) i
 !
 IF(n_mole > 0) THEN
 !
