@@ -421,11 +421,11 @@ allocate(field(-three_width(1):three_width(1),                                  
                -three_width(2):three_width(2),                                  &
                -three_width(3):three_width(3)))
 ! 
-write(*,*) 'ZERO ',ipos,three_map_temp(ipos(1), ipos(2), ipos(3))
+!write(*,*) 'ZERO ',ipos,three_map_temp(ipos(1), ipos(2), ipos(3))
 !
-write(*,*) 'Peak search from to ', limits(1,:), three_width(1), weight
-write(*,*) 'Peak search from to ', limits(2,:), three_width(2)
-write(*,*) 'Peak search from to ', limits(3,:), three_width(3)
+!write(*,*) 'Peak search from to ', limits(1,:), three_width(1), weight
+!write(*,*) 'Peak search from to ', limits(2,:), three_width(2)
+!write(*,*) 'Peak search from to ', limits(3,:), three_width(3)
 !
 do k=limits(3,1),limits(3,2)
    do j=limits(2,1),limits(2,2)
@@ -655,7 +655,7 @@ nullify(tail)
 call chem_aver (lout, lsite)                 ! Get the average structure
 !
 three_npatt = cr_ncatoms*(cr_ncatoms-1)/2    ! Number of Patterson vectors 
-write(*,*)  three_npatt, cr_ncatoms
+!write(*,*)  three_npatt, cr_ncatoms
 if(allocated(three_patt)) deallocate(three_patt)
 if(allocated(three_patt_isite)) deallocate(three_patt_isite)
 if(allocated(three_matched_xtal )) deallocate(three_matched_xtal)
@@ -690,7 +690,7 @@ do i=1, maxval(three_npeaks,1)
   nullify(three_res(i,1)%ptr)
   nullify(three_res(i,2)%ptr)
 enddo
-write(*,*) ' THREE_RES ', ubound(three_res)
+!write(*,*) ' THREE_RES ', ubound(three_res)
 !
 !  Attempt immediate match of an experimental vector to any Patterson vector
 !  in the unit cell
@@ -716,50 +716,50 @@ loop_isite_match:do i=1, cr_ncatoms
    enddo
 enddo loop_isite_match
 !
-write(*,*) ' SIGMA ', sigma_length
-write(*,*)
-write(*,'(a)') ' List of Patterson vectors in structure'
-write(*,*)
-do i=1, three_npatt
-write(*,'(a, 3(2x,f9.4),3x,f9.4,2x, l1,2x,l1,2(2x,i3))') ' Patt ', three_patt(:,i), three_matched_xtal (i,:), &
-   three_patt_isite(:,i)
-enddo
+!write(*,*) ' SIGMA ', sigma_length
+!write(*,*)
+!write(*,'(a)') ' List of Patterson vectors in structure'
+!write(*,*)
+!do i=1, three_npatt
+!write(*,'(a, 3(2x,f9.4),3x,f9.4,2x, l1,2x,l1,2(2x,i3))') ' Patt ', three_patt(:,i), three_matched_xtal (i,:), &
+!   three_patt_isite(:,i)
+!enddo
+line = ' '
+!j = 0
+!do i=1, cr_ncatoms
+!   if(.not. three_matched_site(i,2)) then
+!      write(line(5*j+1:5*j+4),'(i4)') i
+!      j = j + 1
+!   endif
+!enddo
+!write(*,*)
+!write(*,'(a,a)') ' Positive Sites not matched by experimental vectors ', line(1:len_trim(line))
 line = ' '
 j = 0
-do i=1, cr_ncatoms
-   if(.not. three_matched_site(i,2)) then
-      write(line(5*j+1:5*j+4),'(i4)') i
-      j = j + 1
-   endif
-enddo
-write(*,*)
-write(*,'(a,a)') ' Positive Sites not matched by experimental vectors ', line(1:len_trim(line))
-line = ' '
-j = 0
-do i=1, cr_ncatoms
-   if(.not. three_matched_site(i,1)) then
-      write(line(5*j+1:5*j+4),'(i4)') i
-      j = j + 1
-   endif
-enddo
-write(*,*)
-write(*,'(a,a)') ' Negative Sites not matched by experimental vectors ', line(1:len_trim(line))
+!do i=1, cr_ncatoms
+!   if(.not. three_matched_site(i,1)) then
+!      write(line(5*j+1:5*j+4),'(i4)') i
+!      j = j + 1
+!   endif
+!enddo
+!write(*,*)
+!write(*,'(a,a)') ' Negative Sites not matched by experimental vectors ', line(1:len_trim(line))
 !
-write(*,*) 
-write(*,*)  ' List of experimental 3D-PDF vectors '
+!write(*,*) 
+!write(*,*)  ' List of experimental 3D-PDF vectors '
 do k=2, 1, -1
-write(*,*)
-write(*,'(a)') c_types(k)
-write(*,*)
+!write(*,*)
+!write(*,'(a)') c_types(k)
+!write(*,*)
 do i=1, three_npeaks(k) ! List recognized experimental peaks
    if(three_peaks(4,i,k)> 0.0001D0) then
-      write(*,'(a, i3, 3(2x,f9.4),4x,f9.4,2x,g12.3e3)') ' 3D-PDF vector      ',i, three_peaks(1:5,i,k)
+!      write(*,'(a, i3, 3(2x,f9.4),4x,f9.4,2x,g12.3e3)') ' 3D-PDF vector      ',i, three_peaks(1:5,i,k)
       temp => three_res(i,k)%ptr
       loop_nodes: do
          if(associated(temp)) then
-            write(*,'(a,4x,2i4)')  ' Sites in unit cell ', temp%isite
-            write(*,'(a,3x,2x,f9.4,26x,f9.4)') ' Angle, deviation   ', temp%angle, temp%dist
-            write(*,*) 
+!            write(*,'(a,4x,2i4)')  ' Sites in unit cell ', temp%isite
+!            write(*,'(a,3x,2x,f9.4,26x,f9.4)') ' Angle, deviation   ', temp%angle, temp%dist
+!            write(*,*) 
             temp => temp%next
          else
             exit loop_nodes
@@ -772,7 +772,7 @@ enddo
 !  Attempt to match vectors by rotation / displacement of rigid units
 !
 call three_inter_rigid(sigma_length, success)
-if(.not. success) then
+!!if(.not. success) then
   call three_inter_rigid_shift(sigma_length, success)
 endif
 !
@@ -942,18 +942,18 @@ iatom = mole_cont(mole_off(jmole)+ibest(2))
 !
 call three_setup_rot(3, vect, wect, iatom, jmole, extra, .false.)
 !
-write(*,*) 
-write(*,'(a)')     ' Good solution to negative peaks with'
-write(*,'(a,2i5)') ' Molecule rotated: number, fixed atom', jmole, iatom
-write(*,'(a,3(2x,f9.4))') ' Rotation axis  direct space         ', sym_uvw
-write(*,'(a,3(2x,f9.4))') ' Rotation axis  reciprocal space     ', sym_hkl
-write(*,'(a,3(2x,f9.4))') ' Rotation angle                      ', sym_angle
+!write(*,*) 
+!write(*,'(a)')     ' Good solution to negative peaks with'
+!write(*,'(a,2i5)') ' Molecule rotated: number, fixed atom', jmole, iatom
+!write(*,'(a,3(2x,f9.4))') ' Rotation axis  direct space         ', sym_uvw
+!write(*,'(a,3(2x,f9.4))') ' Rotation axis  reciprocal space     ', sym_hkl
+!write(*,'(a,3(2x,f9.4))') ' Rotation angle                      ', sym_angle
 l = 0
 loop_inmole: do i=1, ubound(extra,2) + 1
    if(mole_cont(mole_off(jmole)+i)==iatom) cycle loop_inmole
    j = mole_cont(mole_off(jmole)+i)
    l = l + 1
-   write(*,'(a,i6, 3(2x,f9.4))') ' Atom number; new position     ', j, extra(1:3,l)
+!   write(*,'(a,i6, 3(2x,f9.4))') ' Atom number; new position     ', j, extra(1:3,l)
 enddo loop_inmole
 !write(*,*) ' RIGID DONE '
 !
@@ -998,7 +998,7 @@ real(kind=PREC_DP), dimension(:,:), allocatable :: extra
 !
 type(three_match), pointer :: temp
 !
-write(*,*) ' IN RIGID_SHIFT '
+!write(*,*) ' IN RIGID_SHIFT '
 nullify(temp)
 success = .false.
 !
@@ -1068,20 +1068,20 @@ jatom = mole_cont(mole_off(jmole)+ibest(4))
 !
 call three_setup_rot_shift(3, vect, wect, nect, iatom, jatom, jmole, extra, .false.)
 !
-write(*,*) 
-write(*,'(a)')     ' Good solution to negative peaks with'
-write(*,'(a,1x,2i5,2x,f9.4)') ' Molecule rotated: number, used  atom', jmole, iatom, optimum
-write(*,'(a,3(2x,f9.4))') ' Rotation axis  direct space         ', sym_uvw
-write(*,'(a,3(2x,f9.4))') ' Rotation axis  reciprocal space     ', sym_hkl
-write(*,'(a,3(2x,f9.4))') ' Rotation angle                      ', sym_angle
-write(*,'(a,3(2x,f9.4))') ' Rotation origin                     ', sym_orig 
-write(*,'(a,3(2x,f9.4))') ' Rotation translation                ', sym_trans
+!write(*,*) 
+!write(*,'(a)')     ' Good solution to negative peaks with'
+!write(*,'(a,1x,2i5,2x,f9.4)') ' Molecule rotated: number, used  atom', jmole, iatom, optimum
+!write(*,'(a,3(2x,f9.4))') ' Rotation axis  direct space         ', sym_uvw
+!write(*,'(a,3(2x,f9.4))') ' Rotation axis  reciprocal space     ', sym_hkl
+!write(*,'(a,3(2x,f9.4))') ' Rotation angle                      ', sym_angle
+!write(*,'(a,3(2x,f9.4))') ' Rotation origin                     ', sym_orig 
+!write(*,'(a,3(2x,f9.4))') ' Rotation translation                ', sym_trans
 l = 0
 loop_inmole: do i=1, ubound(extra,2)
 !   if(mole_cont(mole_off(jmole)+i)==iatom) cycle loop_inmole
    j = mole_cont(mole_off(jmole)+i)
    l = l + 1
-   write(*,'(a,i6, 3(2x,f9.4))') ' Atom number; new position     ', j, extra(1:3,l)
+!   write(*,'(a,i6, 3(2x,f9.4))') ' Atom number; new position     ', j, extra(1:3,l)
 enddo loop_inmole
 call three_test_neg(0, ubound(extra,2),extra, quality, .true.)   ! Test if the extra match patterson vectors at negative 3DPDF poits
 !write(*,*) ' RIGID DONE '
@@ -1250,17 +1250,17 @@ sym_latom  = .true.
 call symm_setup
 if(lout) call symm_show
 
-if(lout) then
-write(*,'(a, 3(2x, f9.4))') ' VECT ', vect 
-write(*,'(a, 3(2x, f9.4))') ' WECT ', wect 
-write(*,*) ' iatom, jatom', iatom, jatom
-write(*,'(a, 3(2x, f9.4))') ' iatom', chem_ave_pos(:,mole_cont(mole_off(jmole)+iatom))
-write(*,'(a, 3(2x, f9.4))') ' jatom', res_para(1:3)
-write(*,'(a, 3(2x, f9.4))') ' NECT ', nect 
-write(*,'(a, 3(2x, f9.4))') ' SHIFT', shift
-write(*,'(a, 3(2x, f9.4))') ' ORIG ', origin
-write(*,'(a, 3(2x, f9.4))') ' TRANS', trans
-endif
+!if(lout) then
+!write(*,'(a, 3(2x, f9.4))') ' VECT ', vect 
+!write(*,'(a, 3(2x, f9.4))') ' WECT ', wect 
+!write(*,*) ' iatom, jatom', iatom, jatom
+!write(*,'(a, 3(2x, f9.4))') ' iatom', chem_ave_pos(:,mole_cont(mole_off(jmole)+iatom))
+!write(*,'(a, 3(2x, f9.4))') ' jatom', res_para(1:3)
+!write(*,'(a, 3(2x, f9.4))') ' NECT ', nect 
+!write(*,'(a, 3(2x, f9.4))') ' SHIFT', shift
+!write(*,'(a, 3(2x, f9.4))') ' ORIG ', origin
+!write(*,'(a, 3(2x, f9.4))') ' TRANS', trans
+!endif
 !
 if(allocated(extra)) deallocate(extra)
 allocate(extra(3,mole_len(jmole)  ))
@@ -1319,7 +1319,7 @@ do i=1, NDIM
    loop_ncatom: do j=1, cr_ncatoms
       if(j==iatom) cycle loop_ncatom
       vect = extra(:,i) - chem_ave_pos(:,j)
-if(lout) write(*,'(a,2i4,3(2x,f9.4))') ' Virtual vector ', i, j, vect
+!if(lout) write(*,'(a,2i4,3(2x,f9.4))') ' Virtual vector ', i, j, vect
       iopt = 0
       minangle = 360.
       dmin = 1.e9
@@ -1341,12 +1341,12 @@ if(lout) write(*,'(a,2i4,3(2x,f9.4))') ' Virtual vector ', i, j, vect
          endif
       enddo
 !
-if(lout) then
- write(*,'(a,11x,3(2x, f9.4),2x, 3(2x,f9.4),i4, 2x, f9.4)') ' BEST        ', &
-    three_peaks(1:3,iopt,1), dmin, minangle, sind(minangle), iopt, &
-      dmin**2 + (sind(angle)/three_peaks(4,iopt,1))**2
-! write(*,*) 'Length ', three_peaks(4,iopt,1)
-endif
+!if(lout) then
+! write(*,'(a,11x,3(2x, f9.4),2x, 3(2x,f9.4),i4, 2x, f9.4)') ' BEST        ', &
+!    three_peaks(1:3,iopt,1), dmin, minangle, sind(minangle), iopt, &
+!      dmin**2 + (sind(angle)/three_peaks(4,iopt,1))**2
+!! write(*,*) 'Length ', three_peaks(4,iopt,1)
+!endif
 !
       quality = quality + dmin**2 + (sind(angle)/three_peaks(4,iopt,1))**2
    enddo loop_ncatom
@@ -1421,30 +1421,30 @@ loop_main1: do i=1, three_npeaks(1)                         ! Try to match negat
                ibest(4) = l
                short = dist
             endif
-write(*,'(a, i3, 2(a,3(2x,f9.4)))') ' added ', k,' * ',three_peaks(1:3, i,1), ' + ', chem_ave_pos(1:3,j)
-write(*,'(a,4i4)') '   Indices   ', i,k,j,l
-write(*,'(a, 6x,3(2x,f9.4),4x,f9.4 )')       '   Vect', vect, do_blen(.true., NULLV, vect)
-write(*,'(a, 2(2x,f9.4))') '   Diff angle', dist, angle
+!write(*,'(a, i3, 2(a,3(2x,f9.4)))') ' added ', k,' * ',three_peaks(1:3, i,1), ' + ', chem_ave_pos(1:3,j)
+!write(*,'(a,4i4)') '   Indices   ', i,k,j,l
+!write(*,'(a, 6x,3(2x,f9.4),4x,f9.4 )')       '   Vect', vect, do_blen(.true., NULLV, vect)
+!write(*,'(a, 2(2x,f9.4))') '   Diff angle', dist, angle
          endif
          enddo
       enddo loop_sites
    enddo loop_pm
 enddo loop_main1
 !
-write(*,*) ' best solution ', ibest
+!write(*,*) ' best solution ', ibest
 !
 ! Is the site within a molecule ?
 !
-write(*,*) ' Best site ', ibest(3), cr_prop(ibest(3)), cr_mole(ibest(3))
+!write(*,*) ' Best site ', ibest(3), cr_prop(ibest(3)), cr_mole(ibest(3))
 jmole = cr_mole(ibest(3))
 if_inmole: if(jmole>0) then             ! The site is involved in a molecule
    do i=1,mole_len(jmole)
       iatom = mole_cont(mole_off(jmole)+i)
-write(*,*) ' IATOM ', iatom, three_matched_site(iatom,2)
+!write(*,*) ' IATOM ', iatom, three_matched_site(iatom,2)
    enddo
 endif if_inmole
 !
-write(*,*) ' DONE  RIGID '
+!write(*,*) ' DONE  RIGID '
 !
 end subroutine three_inter_rigid_b
 !
