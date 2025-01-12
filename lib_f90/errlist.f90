@@ -10,6 +10,9 @@ public no_error
 public disp_error
 !
 CONTAINS
+!
+!*******************************************************************************
+!
 SUBROUTINE errlist
 !*****7****************************************************************
 !
@@ -17,38 +20,38 @@ SUBROUTINE errlist
 !       Contains other error handling routines.
 !
 !*****7****************************************************************
-       USE errlist_mod
-       USE mpi_slave_mod
-       USE param_mod 
-       USE prompt_mod 
-       USE set_sub_generic_mod
+USE errlist_mod
+USE mpi_slave_mod
+USE param_mod 
+USE prompt_mod 
+USE set_sub_generic_mod
 USE class_macro_internal
 USE macro_mod
 USE terminal_mod
 !
-       IMPLICIT      NONE
+IMPLICIT      NONE
 !
-       IF(mpi_is_slave .AND. ier_num /= 0 .AND. ier_sta /= ER_S_LIVE) THEN
-          mpi_slave_error = ier_num   ! Transfer error for MPI to signal
-       ELSE
-          mpi_slave_error = 0
-       ENDIF
+IF(mpi_is_slave .AND. ier_num /= 0 .AND. ier_sta /= ER_S_LIVE) THEN
+   mpi_slave_error = ier_num   ! Transfer error for MPI to signal
+ELSE
+   mpi_slave_error = 0
+ENDIF
 !
-       IF    (ier_typ == ER_NONE) THEN
-         CALL errlist_none
-       ELSEIF(ier_typ == ER_COMM) THEN
-         CALL errlist_comm
-       ELSEIF(ier_typ == ER_FORT) THEN
-         CALL errlist_fort
-       ELSEIF(ier_typ == ER_IO  ) THEN
-         CALL errlist_io
-       ELSEIF(ier_typ == ER_MAC ) THEN
-         CALL errlist_mac
-       ELSEIF(ier_typ == ER_MATH) THEN
-         CALL errlist_math
-       ELSE
-         CALL p_errlist_appl
-       ENDIF
+IF    (ier_typ == ER_NONE) THEN
+   CALL errlist_none
+ELSEIF(ier_typ == ER_COMM) THEN
+   CALL errlist_comm
+ELSEIF(ier_typ == ER_FORT) THEN
+   CALL errlist_fort
+ELSEIF(ier_typ == ER_IO  ) THEN
+   CALL errlist_io
+ELSEIF(ier_typ == ER_MAC ) THEN
+   CALL errlist_mac
+ELSEIF(ier_typ == ER_MATH) THEN
+   CALL errlist_math
+ELSE
+   CALL p_errlist_appl
+ENDIF
 !
 IF(lmakro .AND. lmakro_disp) THEN
    WRITE(output_io, 2000) TRIM(color_err), mac_tree_active%current,                 &
@@ -61,22 +64,27 @@ ENDIF
 !------       Terminate program if an error occured and the 
 !       error status is set to ER_S_EXIT
 !
-       IF(ier_num.lt.0 .AND. ier_sta == ER_S_EXIT .AND. &
+IF(ier_num.lt.0 .AND. ier_sta == ER_S_EXIT .AND. &
           .NOT. mpi_is_slave ) THEN
-         WRITE( error_io,1000) CHAR(7)
-         IF(error_io /=0 ) WRITE(*,1000) CHAR(7)
-         STOP
-       ELSEIF(ier_num.lt.0 .AND. ier_sta == ER_S_CONT .OR.              &
+   WRITE( error_io,1000) CHAR(7)
+   IF(error_io /=0 ) WRITE(*,1000) CHAR(7)
+   STOP
+ELSEIF(ier_num.lt.0 .AND. ier_sta == ER_S_CONT .OR.              &
      &        ier_sta == ER_S_LIVE                  ) THEN
-         res_para(0) = -1
-         res_para(1) = ier_num
-         res_para(2) = ier_typ
-       ENDIF
+   res_para(0) = -1
+   res_para(1) = ier_num
+   res_para(2) = ier_typ
+ENDIF
 !
 if(ier_num/=0 .and. ier_sta/=ER_S_LIVE .and. mpi_is_slave) then
    return
 else
-       CALL no_error
+   if(ier_num/=0) then
+      if(ier_sta==ER_S_CONT) then
+         prompt_status     = PROMPT_ON
+      endif
+   endif
+   CALL no_error
 endif
 !
 1000  FORMAT(' ****EXIT**** Program terminated by error status', '        ****',a1/)
