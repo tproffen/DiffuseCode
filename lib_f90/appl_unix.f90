@@ -244,6 +244,8 @@ ELSE
       home_dir(home_dir_l+1:home_dir_l+1) = '/'
       home_dir_l = home_dir_l + 1
    ENDIF
+   python_script_dir = home_dir(1:home_dir_l) // '.local/share/diffuse_scattering'
+!   python_script_dir = home_dir(1:home_dir_l) // 'DiffuseDevelopers/Unified_Structure'
 ENDIF
 ! All remaining test for OS should be obsolete
    IF(operating == ' ') THEN
