@@ -32,6 +32,7 @@ USE calc_expr_mod
 USE doact_mod 
 USE do_eval_mod
 USE do_wait_mod
+use envir_mod
 USE errlist_mod 
 use gen_hdf_write_mod
 USE get_params_mod
@@ -72,6 +73,7 @@ CHARACTER(LEN=8) :: befehl
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 !CHARACTER(LEN=14) :: cvalue (0:15) 
 CHARACTER(LEN=22) :: cgraphik (0:MAXFORM) 
+character(len=64) :: program_version     ! String likel 'DISCUS 6.19.01'
 CHARACTER(LEN=PREC_STRING) :: infile 
 CHARACTER(LEN=PREC_STRING) :: zeile 
 CHARACTER(LEN=PREC_STRING) :: line, cpara (maxp) 
@@ -144,6 +146,8 @@ zmin = ps_low * diffumax
 zmax = ps_high * diffumax 
 orig_prompt = prompt
 prompt = prompt (1:len_str (prompt) ) //'/output' 
+program_version = 'DISCUS ' // version_discus(1:len_trim(version_discus))
+!
 10 CONTINUE 
 !                                                                       
 CALL no_error 
@@ -663,10 +667,12 @@ endif
                else
                   i = 0
                   if(four_symm) i = 1
-                  call nx_write_scattering(outfile, out_inc, out_eck, out_vi, &
-                          out_extr_abs, out_extr_ord, out_extr_top,                     &
-                          cr_a0, cr_win, qvalues, cvalue(value), cspace(value), cradiation(diff_radiation), &
-                          cr_spcgr, i, spc_n, spc_mat(1:3,1:4,1:spc_n),                 &
+                  call nx_write_scattering(outfile, program_version, author,    &
+                          out_inc, out_eck, out_vi,                             &
+                          out_extr_abs, out_extr_ord, out_extr_top,             &
+                          cr_a0, cr_win, qvalues, cvalue(value), cspace(value), &
+                          cradiation(diff_radiation),                           &
+                          cr_spcgr, i, spc_n, spc_mat(1:3,1:4,1:spc_n),         &
                           ier_num)
                endif
                endif
