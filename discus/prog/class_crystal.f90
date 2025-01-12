@@ -862,7 +862,10 @@ SUBROUTINE set_crystal_from_standard   ( this, strucfile)
       this%cr_anis_full                 = 0.0_PREC_DP
       this%cr_prin                      = 0.0_PREC_DP
    endif
-   this%cr_is_sym(1:cr_ncatoms) = cr_is_sym(1:cr_ncatoms)
+   this%cr_is_sym = 1
+   i = min(cr_ncatoms, ubound(this%cr_is_sym,1), ubound(cr_is_sym,1))
+!   this%cr_is_sym(1:cr_ncatoms) = cr_is_sym(1:cr_ncatoms)
+   this%cr_is_sym(1:i         ) = cr_is_sym(1:i         )
 !
 !  save Occupancy values 
 !
