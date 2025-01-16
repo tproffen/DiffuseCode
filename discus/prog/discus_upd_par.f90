@@ -24,7 +24,7 @@ USE lib_errlist_func
       USE param_mod 
       USE random_mod 
 USE precision_mod
-      USE precision_mod
+USE precision_command_mod
       IMPLICIT none 
 !                                                                       
       INTEGER,                    INTENT(IN   ) :: ikl

@@ -19,6 +19,7 @@ USE lib_errlist_func
 USE lib_upd_mod
 USE lib_length
 USE precision_mod
+USE precision_command_mod
 !
 IMPLICIT none 
 !                                                                       

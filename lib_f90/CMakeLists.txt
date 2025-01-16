@@ -48,6 +48,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               search_string_mod.f90 sorting.f90 take_param_mod.f90
               sine_table.f90 spline_mod.f90 string_extract_mod.f90
               times_mod.f90 variable_mod.f90 wink_mod.f90 precision_mod.f90 
+              precision_command_mod.f90
               memory.f90 support_mod.f90 
               refine_params.f90
               forpy_mod.F90

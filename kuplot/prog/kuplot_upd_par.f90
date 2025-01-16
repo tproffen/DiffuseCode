@@ -19,6 +19,7 @@ use kuplot_para_mod
 USE lib_length
 USE lib_errlist_func
       USE precision_mod
+      USE precision_command_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       

@@ -18,6 +18,7 @@ SUBROUTINE ersetz2 (string, ikl, iklz, ww, lfunk, lll)
 !                                                                       
 USE blanks_mod
 USE precision_mod
+USE precision_command_mod
 !
 IMPLICIT none 
 !                                                                       

@@ -20,6 +20,7 @@ USE do_string_alloc_mod
 USE get_params_mod
 USE lib_length
 USE precision_mod
+USE precision_command_mod
 USE prompt_mod 
 use do_replace_expr_mod
 IMPLICIT none 

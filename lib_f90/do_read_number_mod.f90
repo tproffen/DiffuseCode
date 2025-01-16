@@ -321,6 +321,7 @@ SUBROUTINE ersetz (line, iz1, iz2, ww, iverk, ll, lverk, lreal)
 !                                                                       
 USE blanks_mod
 USE precision_mod
+use precision_command_mod
 !
 IMPLICIT none 
 !                                                                       

@@ -29,6 +29,7 @@ USE constants_mod
 USE errlist_mod 
 USE lib_length
 USE precision_mod
+USE precision_command_mod
 USE string_extract_mod
 USE variable_mod
 !

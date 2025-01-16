@@ -15,6 +15,7 @@ USE errlist_mod
 USE lib_length
 USE param_mod 
 USE precision_mod
+USE precision_command_mod
 USE random_mod 
 USE variable_mod
 IMPLICIT none 
