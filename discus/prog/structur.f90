@@ -339,7 +339,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
                      prompt = orig_prompt
                      RETURN
                   ELSE
-                     CALL macro_close 
+                     CALL macro_close(-1)
                      prompt_status = PROMPT_ON 
                   ENDIF 
                ENDIF 
@@ -3282,7 +3282,7 @@ IMPLICIT none
 CHARACTER(LEN=*), INTENT(INOUT) :: zeile 
 INTEGER         , INTENT(INOUT) :: lp 
 !                                                                       
-INTEGER, PARAMETER :: MAXW = 5 
+INTEGER, PARAMETER :: MAXW = 10 
 integer, parameter :: MAXMASK = 4
 integer, parameter :: CMD_IMPORT = 3
 !                                                                       
@@ -3605,6 +3605,7 @@ CHARACTER(len=160) :: line
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ofile))) :: infile          ! Input file name
 character(len=PREC_STRING) :: discus_file          ! Main discus macro
 character(len=PREC_STRING) :: refine_file          ! Main refine macro
+character(len=PREC_STRING) :: aspher_file          ! DISCAMB aspher file 
 character(len=PREC_STRING) :: hkl_file             ! Reflection data file
 character(len=PREC_STRING) :: fcf_file             ! Reflection data file
 character(len=160), dimension(:), allocatable :: content      ! Complete content of Shelx file
@@ -3622,6 +3623,7 @@ integer, dimension(:), allocatable :: nanis   ! Number of ADP's for give chemica
 integer :: iscat      ! Current chemical element
 integer :: ianis      ! Current ADP
 integer :: iatom      ! Current atom
+logical :: lexist     ! Flag for existence of a file
 !
 real(kind=PREC_DP), dimension(:,:)  , allocatable :: posit   ! List of all Atom positions
 real(kind=PREC_DP), dimension(:,:)  , allocatable :: uij_at  ! Current uij, list as per atom
@@ -4009,31 +4011,8 @@ enddo loop_atoms
 !
 !===============================================================================
 if(c_refine=='yes') then
-!  Write main discus macro
-!
-   i= len_trim(ofile)-5
-   discus_file = ofile(1:i)//'_main.mac'
-   refine_file = 'refine_'//ofile(1:i)//'_merged.mac'
-   if(ilist == 0) then
-      hkl_file = infile(1:len_trim(infile)-4)//'.hkl'
-      fcf_file = ' '
-   else
-      hkl_file = infile(1:len_trim(infile)-4)//'_merged.hkl'
-      fcf_file = infile(1:len_trim(infile)-4)//'.fcf'
-   endif
-   open(unit=IDI, file=discus_file, status='unknown')
-   open(unit=IRE, file=refine_file, status='unknown')
-!
-   i= len_trim(ofile)
-   write(IDI,'(a )') 'branch discus'
-   write(IDI,'(a )') '#'
-   write(IDI,'(a )') 'read'
-   write(IDI,'(2a)') '  stru ', ofile(1:i)
-!
-   write(IRE,'(a )') 'refine'
-   write(IRE,'(a )') 'rese'
-   write(IRE,'(2a)') 'data hklf4, ',hkl_file(1:len_trim(hkl_file))
-   write(IRE,'(a,f9.4,a )') 'newpara P_scale, value:', fv(1), ', points:3, shift:0.001, status:free'
+   call write_refine_single_part1(IDI, IRE, ofile, infile, ilist, fv(1),  &
+        discus_file, hkl_file, fcf_file)
 endif
 !
 !===============================================================================
@@ -4068,19 +4047,7 @@ do iscat=1, ntyp
 !
 !===============================================================================
       if(c_refine=='yes') then
-         if(l==1) then
-            write(IDI,'(a,i3,4a)') 'anis type:', jj,', values:[', 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1]'
-            write(IRE,'(4a,g15.8e3,a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1', &
-                          ', value:', uij_l(1,iscat, j), ', points:3, shift:0.001, status:free' 
-         elseif(l==6) then
-            write(IDI,'(a,i3,a,5(3a,i1.1,a2),3a)') 'anis type:', jj,', values:[', &
-                 ('U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',k,', ',k=1,5), &
-                  'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_6]'
-            do m=1,6
-            write(IRE,'(3a,i1.1,a,g15.8e3,a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m, &
-                          ', value:', uij_l(m,iscat, j), ', points:3, shift:0.001, status:free' 
-            enddo
-         endif
+         call write_refine_single_part2(IDI, IRE, j, l, jj, iscat, lcontent, natoms, c_atom, uij_l)
       endif
 !
 !===============================================================================
@@ -4126,18 +4093,7 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
 !
 !===============================================================================
    if(c_refine=='yes') then
-      line = content(jc)(1:4)
-      i = len_trim(line)
-      write(IDI,'(a,i3,3a)') 'x[',iatom, '] = P_',line(1:i), '_x'
-      write(IDI,'(a,i3,3a)') 'y[',iatom, '] = P_',line(1:i), '_y'
-      write(IDI,'(a,i3,3a)') 'z[',iatom, '] = P_',line(1:i), '_z'
-!
-      write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_x, value:', &
-         posit(1, iatom), ', points:3, shift:0.001, status:free'
-      write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_y, value:', &
-         posit(2, iatom), ', points:3, shift:0.001, status:free'
-      write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_z, value:', &
-         posit(3, iatom), ', points:3, shift:0.001, status:free'
+      call write_refine_single_part3(IDI, IRE, content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit)
    endif
 !
 !===============================================================================
@@ -4169,130 +4125,8 @@ close(IWR)
 !
 !===============================================================================
 if(c_refine=='yes') then
-   i= len_trim(ofile)
-   j= len_trim(hkl_file) - 4
-   write(IDI,'(a )') 'save'
-   write(IDI,'(2a)') '  outfile internal.',ofile(1:i)
-   write(IDI,'(a )') '  write all'
-   write(IDI,'(a )') '  run'
-   write(IDI,'(a )') 'exit'
-   write(IDI,'(a )') 'read'
-   write(IDI,'(2a)') '  cell internal.',ofile(1:i)
-   write(IDI,'(a )') 'fourier'
-   if(c_form == 'discamb') then
-      write(IDI,'(3a)') '  xray table:discamb, file:', hkl_file(1:j), '.tsc'
-   else
-      write(IDI,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
-   endif
-   write(IDI,'(a )') '  temp use'
-   write(IDI,'(a )') '  disp off'
-   write(IDI,'(a, f7.5 )') '  wvle ', rlambda
-   write(IDI,'(a )') '  set aver, 0'
-   if(P_exti> 0.00001) then
-      write(IDI,'(a )') '  set exti:P_exti'
-   endif
-   write(IDI,'(a )') '  set technique:turbo'
-   write(IDI,'(3a)') '  hkl in:',hkl_file(1:len_trim(hkl_file)), ', out:calc.hkl, scale:P_scale, style:hklf4'
-   write(IDI,'(a )') 'exit'
-   write(IDI,'(a )') 'branch kuplot'
-   write(IDI,'(a )') 'reset'
-   write(IDI,'(a )') 'load hklf4, calc.hkl'
-   write(IDI,'(a )') 'exit  ! Back to DISCUS'
-   write(IDI,'(a )') 'exit  ! Back to REFINE'
-   write(IDI,'(a )') 'finished'
-   close(IDI)
-!
-   i= len_trim(ofile) - 5
-   open(IDI, file='k_fobs_fcalc.mac', status='unknown')
-   write(IDI,'(a )') 'reset'
-   write(IDI,'(3a)') 'load csv, ',hkl_file(1:len_trim(hkl_file)), ', colx:4, coly:5, separator:[4,4,4,8,8], skip:0'
-   write(IDI,'(a )') 'load csv, calc.hkl, colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
-   write(IDI,'(a )') 'ccal mul, wy, 1, 0.0'
-   write(IDI,'(a )') 'kcal add, 1, 2'
-   write(IDI,'(a )') 'kfra 1, 3'
-   write(IDI,'(a )') 'scale 0, max(xmax[3], ymax[3]), 0.0, max(xmax[3], ymax[3])'
-   write(IDI,'(a )') 'aver 1'
-   write(IDI,'(a )') 'mark'
-   write(IDI,'(a )') 'ltyp 3, 0'
-   write(IDI,'(a )') 'mtyp 3, 3'
-   write(IDI,'(a )') 'fnam off'
-   write(IDI,'(a )') 'fset 2'
-   write(IDI,'(a )') 'grid on'
-   write(IDI,'(a )') 'achx Iobs'
-   write(IDI,'(a )') 'achy Icalc'
-   write(IDI,'(a )') 'mcol 3, black'
-   write(IDI,'(3a)') 'load csv, ',hkl_file(1:len_trim(hkl_file)), ', colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
-   write(IDI,'(a )') 'load csv, calc.hkl, colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
-   write(IDI,'(a )') 'do LOOP = 1, np[4]'
-   write(IDI,'(a )') '  dy[4,LOOP] = x[4,LOOP]'
-   write(IDI,'(a )') 'enddo'
-   write(IDI,'(a )') 'rval 4,5, dat'
-   write(IDI,'(2a)') 'tit1 Substance: ', ofile(1:i)
-   write(IDI,'(a )') 'tit2 "wR-value %8.5f",res[2]'
-   write(IDI,'(a )') 'plot'
-   write(IDI,'(a )') 'exit '
-   close(IDI)
-!
-   if(P_exti> 0.00001) then
-      write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:free'
-   else
-      write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:fixed'
-   endif
-   write(IRE,'(a )') 'set cycle,   5'
-   write(IRE,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10, pshift:2.0, conf:1.0, lambda:65000.'
-   write(IRE,'(2a)') '@', discus_file(1:len_trim(discus_file))
-   write(IRE,'( a)') 'branch kuplot'
-   write(IRE,'( a)') '  @k_fobs_fcalc.mac'
-   write(IRE,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_fobs_fcalc.mac'
-   write(IRE,'(a )') 'exit  ! Back to SUITE'
-   close(IRE)
-!
-   if(ilist >  0) then
-      i = len_trim(ofile) - 5
-      call lib_convert_shelx(fcf_file, hkl_file, hkl_max)
-      open(IRE, file='prepare_hkl_full.mac', status='unknown')
-      write(IRE,'(a )') 'discus'
-      write(IRE,'(a )') '#'
-      write(IRE,'(a )') 'variable real, hhmax'
-      write(IRE,'(a )') 'variable real, kkmax'
-      write(IRE,'(a )') 'variable real, llmax'
-      write(IRE,'(a )') 'variable character, substance'
-      write(IRE,'(a )') '#'
-      write(IRE,'(a,i5)') 'hhmax = ', hkl_max(1)
-      write(IRE,'(a,i5)') 'kkmax = ', hkl_max(2)
-      write(IRE,'(a,i5)') 'llmax = ', hkl_max(3)
-      write(IRE,'(a )') '#'
-      write(IRE,'(3a)') 'substance = "%c", ''', ofile(1:i), ''''
-      write(IRE,'(a )') '#'
-      write(IRE,'(a )') 'read'
-      write(IRE,'(a )') '  cell "%c.cell", substance'
-      write(IRE,'(a )') '#'
-      write(IRE,'(a )') 'fourier'
-      write(IRE,'(a )') '  xray table:waas'
-      write(IRE,'(a )') '  temp use'
-      write(IRE,'(a )') '  disp off'
-      write(IRE,'(a, f7.5 )') '  wvle ', rlambda
-      write(IRE,'(a )') '  ll  -hhmax, -kkmax, -llmax'
-      write(IRE,'(a )') '  lr   hhmax, -kkmax, -llmax'
-      write(IRE,'(a )') '  ul  -hhmax,  kkmax, -llmax'
-      write(IRE,'(a )') '  tl  -hhmax, -kkmax,  llmax'
-      write(IRE,'(a )') '  na  2*hhmax + 1'
-      write(IRE,'(a )') '  no  2*kkmax + 1'
-      write(IRE,'(a )') '  nt  2*llmax + 1'
-      write(IRE,'(a )') '  set aver, 0.000'
-      write(IRE,'(a )') '  run'
-      write(IRE,'(a )') '  exit'
-      write(IRE,'(a )') '#'
-      write(IRE,'(a )') 'output'
-      write(IRE,'(3a)') '  outf  "%c_full.hkl", substance'
-      write(IRE,'(a )') '  form  hklf4'
-      write(IRE,'(a )') '  value inte'
-      write(IRE,'(a )') 'run'
-      write(IRE,'(a )') '#'
-      write(IRE,'(a )') 'exit  ! Back to main DISCUS menu'
-      write(IRE,'(a )') 'exit  ! Back to SUITE'
-      close(IRE)
-   endif
+   call write_refine_single_part4(IDI, IRE, ofile, discus_file, hkl_file, fcf_file, &
+        ilist, c_form, rlambda, P_exti, hkl_max)
 endif
 !===============================================================================
 !
@@ -4498,6 +4332,344 @@ endif
 call sym_mat_to_spacegroup(n_mat, sym_mat, space_group, space_number, space_origin, space_setting)
 !
 end subroutine ins2discus_symmetry
+!
+!*****7**************************************************************** 
+!
+subroutine write_refine_single_part1(IDI, IRE, ofile, infile, ilist, fv_1, &
+           discus_file, hkl_file, fcf_file)
+!
+!  Write main discus macro; single crystal PART 1
+!
+!
+use precision_mod
+!
+implicit none
+!
+integer            , intent(in) :: IDI
+integer            , intent(in) :: IRE
+character(len=*)   , intent(in) :: ofile
+character(len=*)   , intent(in) :: infile
+integer            , intent(in) :: ilist
+real(kind=PREC_DP) , intent(in) :: fv_1
+character(len=PREC_STRING), intent(out) :: discus_file
+character(len=PREC_STRING), intent(out) ::    hkl_file
+character(len=PREC_STRING), intent(out) ::    fcf_file
+!
+character(len=PREC_STRING) :: refine_file
+integer :: i
+!
+   i= len_trim(ofile)-5
+   discus_file = ofile(1:i)//'_main.mac'
+   refine_file = 'refine_'//ofile(1:i)//'_merged.mac'
+   if(ilist == 0) then
+      hkl_file = infile(1:len_trim(infile)-4)//'.hkl'
+      fcf_file = ' '
+   else
+      hkl_file = infile(1:len_trim(infile)-4)//'_merged.hkl'
+      fcf_file = infile(1:len_trim(infile)-4)//'.fcf'
+   endif
+   open(unit=IDI, file=discus_file, status='unknown')
+   open(unit=IRE, file=refine_file, status='unknown')
+!
+   i= len_trim(ofile)
+   write(IDI,'(a )') 'branch discus'
+   write(IDI,'(a )') '#'
+   write(IDI,'(a )') 'read'
+   write(IDI,'(2a)') '  stru ', ofile(1:i)
+!
+   write(IRE,'(a )') 'refine'
+   write(IRE,'(a )') 'rese'
+   write(IRE,'(2a)') 'data hklf4, ',hkl_file(1:len_trim(hkl_file))
+   write(IRE,'(a,f9.4,a )') 'newpara P_scale, value:', fv_1 , ', points:3, shift:0.001, status:free'
+!
+end subroutine write_refine_single_part1
+!
+!*****7**************************************************************** 
+!
+subroutine write_refine_single_part2(IDI, IRE, j, l, jj, iscat, lcontent, natoms, c_atom, uij_l)
+!
+!  Write main discus macro; single crystal PART 1
+!
+use precision_mod
+!
+implicit none
+!
+integer            , intent(in) :: IDI
+integer            , intent(in) :: IRE
+integer            , intent(in) :: j
+integer            , intent(in) :: l
+integer            , intent(in) :: jj
+integer            , intent(in) :: iscat
+integer            , intent(in) :: lcontent
+integer            , intent(in) :: natoms
+character(len=4), dimension(lcontent), intent(in)  :: c_atom    ! Atom types 
+real(kind=PREC_DP), dimension(6,natoms, natoms), intent(in) :: uij_l
+!
+integer :: m, k
+!
+         if(l==1) then
+            write(IDI,'(a,i3,4a)') 'anis type:', jj,', values:[', 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1]'
+            write(IRE,'(4a,g15.8e3,a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1', &
+                          ', value:', uij_l(1,iscat, j), ', points:3, shift:0.001, status:free' 
+         elseif(l==6) then
+            write(IDI,'(a,i3,a,5(3a,i1.1,a2),3a)') 'anis type:', jj,', values:[', &
+                 ('U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',k,', ',k=1,5), &
+                  'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_6]'
+            do m=1,6
+            write(IRE,'(3a,i1.1,a,g15.8e3,a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m, &
+                          ', value:', uij_l(m,iscat, j), ', points:3, shift:0.001, status:free' 
+            enddo
+         endif
+!
+end subroutine write_refine_single_part2
+!
+!*****7**************************************************************** 
+!
+subroutine write_refine_single_part3(IDI, IRE, line       , iatom, iscat, lcontent, natoms, c_atom, posit)
+!
+!  Write main discus macro; single crystal PART 3
+!
+use precision_mod
+!
+implicit none
+!
+integer            , intent(in) :: IDI
+integer            , intent(in) :: IRE
+character(len=*)   , intent(in) :: line
+integer            , intent(in) :: iatom
+integer            , intent(in) :: iscat
+integer            , intent(in) :: lcontent
+integer            , intent(in) :: natoms
+character(len=4), dimension(lcontent), intent(in)  :: c_atom    ! Atom types 
+real(kind=PREC_DP), dimension(3,natoms), intent(in) :: posit
+!
+integer :: i
+!     line = content(jc)(1:4)
+      i = len_trim(line)
+      write(IDI,'(a,i3,3a)') 'x[',iatom, '] = P_',line(1:i), '_x'
+      write(IDI,'(a,i3,3a)') 'y[',iatom, '] = P_',line(1:i), '_y'
+      write(IDI,'(a,i3,3a)') 'z[',iatom, '] = P_',line(1:i), '_z'
+!
+      write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_x, value:', &
+         posit(1, iatom), ', points:3, shift:0.001, status:free'
+      write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_y, value:', &
+         posit(2, iatom), ', points:3, shift:0.001, status:free'
+      write(IRE,'(3a,f12.8,a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_z, value:', &
+         posit(3, iatom), ', points:3, shift:0.001, status:free'
+!
+end subroutine write_refine_single_part3
+!
+!*****7**************************************************************** 
+!
+subroutine write_refine_single_part4(IDI, IRE, ofile, discus_file, hkl_file, fcf_file, &
+        ilist, c_form, rlambda, P_exti, hkl_max)
+!
+!  Write main discus macro; single crystal PART 3
+!
+use blanks_mod
+use lib_conv_shelx_mod
+use precision_mod
+!
+implicit none
+!
+integer                         , intent(in) :: IDI
+integer                         , intent(in) :: IRE
+character(len=*)                , intent(in) :: ofile
+character(len=*)                , intent(in) :: discus_file
+character(len=*)                , intent(in) :: hkl_file
+character(len=*)                , intent(in) :: fcf_file
+integer                         , intent(in) :: ilist
+character(len=*)                , intent(in) :: c_form
+real(kind=PREC_DP)              , intent(in) :: rlambda
+real(kind=PREC_DP)              , intent(in) :: P_exti
+integer           , dimension(3), intent(inout) :: hkl_max
+!
+character(len=PREC_STRING) :: aspher_file
+character(len=PREC_STRING) :: line
+character(len=PREC_STRING) :: line1
+character(len=PREC_STRING) :: line2
+integer :: i,j, k
+integer :: length
+integer :: ios
+logical :: lexist
+!
+   i= len_trim(ofile)
+   j= len_trim(hkl_file) - 4
+   write(IDI,'(a )') 'save'
+   write(IDI,'(2a)') '  outfile internal.',ofile(1:i)
+   write(IDI,'(a )') '  write all'
+   write(IDI,'(a )') '  run'
+   write(IDI,'(a )') 'exit'
+   write(IDI,'(a )') 'read'
+   write(IDI,'(2a)') '  cell internal.',ofile(1:i)
+   write(IDI,'(a )') 'fourier'
+   if(c_form == 'discamb') then
+      write(IDI,'(3a)') '  xray table:discamb, file:', hkl_file(1:j), '.tsc'
+   else
+      write(IDI,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+   endif
+   write(IDI,'(a )') '  temp use'
+   write(IDI,'(a )') '  disp off'
+   write(IDI,'(a, f7.5 )') '  wvle ', rlambda
+   write(IDI,'(a )') '  set aver, 0'
+   if(P_exti> 0.00001) then
+      write(IDI,'(a )') '  set exti:P_exti'
+   endif
+   write(IDI,'(a )') '  set technique:turbo'
+   write(IDI,'(3a)') '  hkl in:',hkl_file(1:len_trim(hkl_file)), ', out:calc.hkl, scale:P_scale, style:hklf4'
+   write(IDI,'(a )') 'exit'
+   write(IDI,'(a )') 'branch kuplot'
+   write(IDI,'(a )') 'reset'
+   write(IDI,'(a )') 'load hklf4, calc.hkl'
+   write(IDI,'(a )') 'exit  ! Back to DISCUS'
+   write(IDI,'(a )') 'exit  ! Back to REFINE'
+   write(IDI,'(a )') 'finished'
+   close(IDI)
+!
+   i= len_trim(ofile) - 5
+   open(IDI, file='k_fobs_fcalc.mac', status='unknown')
+   write(IDI,'(a )') 'reset'
+   write(IDI,'(3a)') 'load csv, ',hkl_file(1:len_trim(hkl_file)), ', colx:4, coly:5, separator:[4,4,4,8,8], skip:0'
+   write(IDI,'(a )') 'load csv, calc.hkl, colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
+   write(IDI,'(a )') 'ccal mul, wy, 1, 0.0'
+   write(IDI,'(a )') 'kcal add, 1, 2'
+   write(IDI,'(a )') 'kfra 1, 3'
+   write(IDI,'(a )') 'scale 0, max(xmax[3], ymax[3]), 0.0, max(xmax[3], ymax[3])'
+   write(IDI,'(a )') 'aver 1'
+   write(IDI,'(a )') 'mark'
+   write(IDI,'(a )') 'ltyp 3, 0'
+   write(IDI,'(a )') 'mtyp 3, 3'
+   write(IDI,'(a )') 'fnam off'
+   write(IDI,'(a )') 'fset 2'
+   write(IDI,'(a )') 'grid on'
+   write(IDI,'(a )') 'achx Iobs'
+   write(IDI,'(a )') 'achy Icalc'
+   write(IDI,'(a )') 'mcol 3, black'
+   write(IDI,'(3a)') 'load csv, ',hkl_file(1:len_trim(hkl_file)), ', colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
+   write(IDI,'(a )') 'load csv, calc.hkl, colx:5, coly:4, separator:[4,4,4,8,8], skip:0'
+   write(IDI,'(a )') 'do LOOP = 1, np[4]'
+   write(IDI,'(a )') '  dy[4,LOOP] = x[4,LOOP]'
+   write(IDI,'(a )') 'enddo'
+   write(IDI,'(a )') 'rval 4,5, dat'
+   write(IDI,'(2a)') 'tit1 Substance: ', ofile(1:i)
+   write(IDI,'(a )') 'tit2 "wR-value %8.5f",res[2]'
+   write(IDI,'(a )') 'plot'
+   write(IDI,'(a )') 'exit '
+   close(IDI)
+!
+   if(P_exti> 0.00001) then
+      write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:free'
+   else
+      write(IRE,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:fixed'
+   endif
+   write(IRE,'(a )') 'set cycle,   5'
+   write(IRE,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10, pshift:2.0, conf:1.0, lambda:65000.'
+   write(IRE,'(2a)') '@', discus_file(1:len_trim(discus_file))
+   write(IRE,'( a)') 'branch kuplot'
+   write(IRE,'( a)') '  @k_fobs_fcalc.mac'
+   write(IRE,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_fobs_fcalc.mac'
+   write(IRE,'(a )') '#'
+   write(IRE,'(a )') '@final_cell_cif.mac'
+   write(IRE,'(a )') '#'
+   write(IRE,'(a )') 'exit  ! Back to SUITE'
+   close(IRE)
+!
+   open(IRE, file='final_cell_cif.mac', status='unknown')
+   write(IRE,'( a)') 'branch discus'
+   write(IRE,'( a)') 'read'
+   write(IRE,'(3a)') '  stru internal.' , ofile(1:i), '.cell'
+   write(IRE,'( a)') 'save'
+   write(IRE,'(3a)') '  outf ', ofile(1:i), '.cell'
+   write(IRE,'( a)') '  write all'
+   write(IRE,'( a)') '  run'
+   write(IRE,'( a)') 'exit'
+   write(IRE,'(3a)') 'export cif, ', ofile(1:i), '.cif, spcgr:original'
+   write(IRE,'( a)') 'exit  ! back to REFINE'
+   close(IRE)
+!
+!
+   if(ilist >  0) then
+      i = len_trim(ofile) - 5
+      call lib_convert_shelx(fcf_file, hkl_file, hkl_max)
+      open(IRE, file='prepare_hkl_full.mac', status='unknown')
+      write(IRE,'(a )') 'discus'
+      write(IRE,'(a )') '#'
+      write(IRE,'(a )') 'variable real, hhmax'
+      write(IRE,'(a )') 'variable real, kkmax'
+      write(IRE,'(a )') 'variable real, llmax'
+      write(IRE,'(a )') 'variable character, substance'
+      write(IRE,'(a )') '#'
+      write(IRE,'(a,i5)') 'hhmax = ', hkl_max(1)
+      write(IRE,'(a,i5)') 'kkmax = ', hkl_max(2)
+      write(IRE,'(a,i5)') 'llmax = ', hkl_max(3)
+      write(IRE,'(a )') '#'
+      write(IRE,'(3a)') 'substance = "%c", ''', ofile(1:i), ''''
+      write(IRE,'(a )') '#'
+      write(IRE,'(a )') 'read'
+      write(IRE,'(a )') '  cell "%c.cell", substance'
+      write(IRE,'(a )') '#'
+      write(IRE,'(a )') 'fourier'
+      write(IRE,'(a )') '  xray table:waas'
+      write(IRE,'(a )') '  temp use'
+      write(IRE,'(a )') '  disp off'
+      write(IRE,'(a, f7.5 )') '  wvle ', rlambda
+      write(IRE,'(a )') '  ll  -hhmax, -kkmax, -llmax'
+      write(IRE,'(a )') '  lr   hhmax, -kkmax, -llmax'
+      write(IRE,'(a )') '  ul  -hhmax,  kkmax, -llmax'
+      write(IRE,'(a )') '  tl  -hhmax, -kkmax,  llmax'
+      write(IRE,'(a )') '  na  2*hhmax + 1'
+      write(IRE,'(a )') '  no  2*kkmax + 1'
+      write(IRE,'(a )') '  nt  2*llmax + 1'
+      write(IRE,'(a )') '  set aver, 0.000'
+      write(IRE,'(a )') '  run'
+      write(IRE,'(a )') '  exit'
+      write(IRE,'(a )') '#'
+      write(IRE,'(a )') 'output'
+      write(IRE,'(3a)') '  outf  "%c_full.hkl", substance'
+      write(IRE,'(a )') '  form  hklf4'
+      write(IRE,'(a )') '  value inte'
+      write(IRE,'(a )') 'run'
+      write(IRE,'(a )') '#'
+      write(IRE,'(a )') 'exit  ! Back to main DISCUS menu'
+      write(IRE,'(a )') 'exit  ! Back to SUITE'
+      close(IRE)
+   endif
+!
+!  Interpret "aspher.json"
+!
+   if(c_form=='discamb') then
+      aspher_file = '../BUILD_TSC/aspher.json'  ! Use the special fixed name for aspher.json
+      inquire(file=aspher_file, exist = lexist)
+      cond_exist: if(lexist) then
+         open(unit=IRE, file=aspher_file, status='old')
+         read(IRE, '(a)', iostat=ios) line
+         if(is_iostat_end(ios)) exit cond_exist
+         if(ios/= 0           ) exit cond_exist
+         if(line=='}'         ) exit cond_exist
+         length=len_trim(line)
+         call rem_leading_bl(line, length)
+         loop_aspher: do
+            i =index(line, 'structure')
+            if(i > 0) then
+               i = index(line, ':')
+               j = index(line(i+1:len_trim(line)), '"')
+               k = index(line, '"', .true.)
+               line1 = line(i+j+1:k-1)
+               line2 = 'cp ../ESSENTIAL_INPUT/' // line1(1:len_trim(line1)) // ' ../BUILD_TSC/'
+               call execute_command_line(line2, wait=.false.)
+               exit cond_exist
+            endif
+            read(IRE, '(a)', iostat=ios) line
+            if(is_iostat_end(ios)) exit cond_exist
+            if(ios/= 0           ) exit cond_exist
+            if(line=='}'         ) exit cond_exist
+            length=len_trim(line)
+            call rem_leading_bl(line, length)
+         enddo loop_aspher
+      endif cond_exist
+      close(IRE)
+   endif
+end subroutine write_refine_single_part4
 !
 !*****7**************************************************************** 
 !
