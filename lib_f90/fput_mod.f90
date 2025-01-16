@@ -450,9 +450,13 @@ IF (ianz.gt.0) THEN
             igl = lpara(i) + 2
             lp  = LEN_TRIM(line)
          ELSEIF(fpara(i)(1:1) == 'a') THEN
+            if(len_trim(fpara(i))>1) then
             READ(fpara(i)(2:LEN_TRIM(fpara(i))),*) length
             k2 = k2 + length
             line = cpara(i)(1:lpara(i)) //' = '''//string(k1:k2)//''''
+            else
+               line = cpara(i)(1:lpara(i)) //' = '''//string(k1:len_trim(string))//''''
+            endif
             igl = lpara(i) + 2
             lp  = LEN_TRIM(line)
          ENDIF
