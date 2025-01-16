@@ -703,7 +703,7 @@ cond_ianz: IF(ianz.eq.1) then
                      RETURN 
                   ELSE
                      IF(lmacro_close) THEN
-                        CALL macro_close 
+                        CALL macro_close(-1)
                         prompt_status = PROMPT_ON 
                      ENDIF 
                   ENDIF 

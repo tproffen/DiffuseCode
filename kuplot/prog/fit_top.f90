@@ -385,7 +385,7 @@ IF (ier_num.ne.0) RETURN
                   prompt = orig_prompt
                   RETURN
                ELSE
-                  CALL macro_close 
+                  CALL macro_close(-1)
                   prompt_status = PROMPT_ON 
                ENDIF 
             ENDIF 

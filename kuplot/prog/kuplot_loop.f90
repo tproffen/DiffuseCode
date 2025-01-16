@@ -65,7 +65,7 @@ main: DO WHILE (.NOT.lend)
             CALL errlist 
             IF (ier_sta.ne.ER_S_LIVE) THEN 
                IF (lmakro) THEN 
-                  CALL macro_close 
+                  CALL macro_close(-1)
                   prompt_status = PROMPT_ON 
                ENDIF 
                lblock = .false. 
@@ -89,7 +89,7 @@ main: DO WHILE (.NOT.lend)
                      EXIT main
                   ELSE
                      IF(lmacro_close) THEN
-                        CALL macro_close
+                        CALL macro_close(-1)
                         lmakro_error = .FALSE.
                         PROMPT_STATUS = PROMPT_ON
                         sprompt = ' '
