@@ -623,7 +623,7 @@ matrix(2,1) = 4.0
 matrix(2,2) = 5.0
 matrix(2,3) = 6.0
 !
-call forpy_start
+call forpy_start(ier_num)
 ier_num = ndarray_create_ones(p_arr, [2, 2], dtype="float64", order="F")
 ier_num = print_py(p_arr)
 ier_num = ndarray_create(p_arr, matrix)
