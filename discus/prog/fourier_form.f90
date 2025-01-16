@@ -93,7 +93,7 @@ do h = 1, fnum(3)
          ii(1) = nint(eck(1,1) + (i-1)*vi(1,1) + (j-1)*vi(1,2) + (h-1)*vi(1,3))
          ii(2) = nint(eck(2,1) + (i-1)*vi(2,1) + (j-1)*vi(2,2) + (h-1)*vi(2,3))
          ii(3) = nint(eck(3,1) + (i-1)*vi(3,1) + (j-1)*vi(3,2) + (h-1)*vi(3,3))
-         tcsfp(i,j,h) = tcsfp(i,j,h) * disc_list(iscat)%four_form_tsc(ii(1),ii(2),ii(3),isym) &
+         tcsfp(i,j,h) = (tcsfp(i,j,h) * disc_list(iscat)%four_form_tsc(ii(1),ii(2),ii(3),isym)) &
                                      * four_dbw(i,j,h,ientry)
       enddo
    enddo
