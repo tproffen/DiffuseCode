@@ -150,7 +150,7 @@ enddo
 !
 !
 ier_num = 0
-call forpy_start()
+call forpy_start(ier_num)
 !
 !
 ier_num = cast(          p_outfile,     outfile(1:len_trim(outfile)) )
@@ -386,7 +386,7 @@ integer :: i
 !types_names_string = 
 !
 ier_num = 0
-call forpy_start()
+call forpy_start(ier_num)
 !
 ier_num = cast(          p_outfile,     outfile(1:len_trim(outfile)) )
 ier_num = cast(          p_program,     program_version(1:len_trim(program_version)) )

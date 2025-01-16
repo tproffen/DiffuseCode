@@ -86,7 +86,7 @@ integer :: ih,ik,il   ! Dummy loop arrays
 !character(kind=C_CHAR, len=:), allocatable :: dname
 !
 !
-call forpy_start()                   ! If needed, start forpy
+call forpy_start(ier_num)                   ! If needed, start forpy
 !
 ier_num = cast(p_infile, infile(1:len_trim(infile)) )
 ier_num = tuple_create(p_args, 1)
@@ -464,7 +464,7 @@ data c_meta  /'audit_author_name         ', &
              /
 !
 !
-call forpy_start()                   ! If needed, start forpy
+call forpy_start(ier_num)                   ! If needed, start forpy
 !
 !write(*,*) ' INFILE >',infile(1:len_trim(infile)),'<' 
 ier_num = cast(p_infile, infile(1:len_trim(infile)) )
