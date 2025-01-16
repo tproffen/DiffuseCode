@@ -60,7 +60,7 @@ loop_main: do
             endif
          else cond_macro
             if(lmacro_close) then
-               call macro_close
+               call macro_close(-1)
                lmakro_error = .FALSE.
                PROMPT_STATUS = PROMPT_ON
                sprompt = ' '
