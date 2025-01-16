@@ -85,7 +85,7 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
                CALL errlist 
                IF (ier_sta.ne.ER_S_LIVE) then 
                   IF (lmakro.and.ier_sta.ne.ER_S_LIVE.AND.lmacro_close) then 
-                     CALL macro_close 
+                     CALL macro_close(-1)
                      prompt_status = PROMPT_ON 
                   ENDIF 
                   lblock = .false. 
@@ -109,7 +109,7 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
                         EXIT main
                      ELSE
                         IF(lmacro_close) THEN
-                           CALL macro_close
+                           CALL macro_close(-1)
                            lmakro_error = .FALSE.
                            PROMPT_STATUS = PROMPT_ON
                            sprompt = ' '
