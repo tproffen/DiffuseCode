@@ -58,7 +58,7 @@ USE lib_macro_func
       lblock = .false. 
       IF (ier_num.ne.0) THEN 
          IF(lmakro .AND. lmacro_close) THEN
-            CALL macro_close
+            CALL macro_close(-1)
          ENDIF 
       ENDIF 
       do_macro = ' '
@@ -139,7 +139,7 @@ IF (ier_num.ne.0) then
    lblock_read = .FALSE. 
    lblock      = .FALSE. 
    IF(lmakro .AND. lmacro_close) THEN
-      CALL macro_close
+      CALL macro_close(-1)
    ENDIF 
    do_macro = ' '
 ENDIF 
@@ -441,7 +441,7 @@ IF (ier_num.ne.0) then
    WRITE (ier_msg (1), 3000) 
    WRITE (ier_msg (2), 3100) line (1:41) 
    IF(lmakro .AND. lmacro_close) THEN
-      CALL macro_close
+      CALL macro_close(-1)
    ENDIF 
 ENDIF 
  3000 FORMAT    ('Erroneous line in block structure') 
@@ -580,7 +580,7 @@ IF (ier_num.ne.0) then
 !  ier_num = -5
 !  ier_typ = ER_FORT
    IF(lmakro .AND. lmacro_close) THEN
-      CALL macro_close
+      CALL macro_close(-1)
    ENDIF 
 ENDIF 
 !                                                                       

@@ -48,6 +48,7 @@ INTEGER               :: bslash          ! position of slash in filename
 is_stored = .false.                     ! assume macro does not exist in storage
 IF(macro_level==0 .AND. .NOT.lmakro) THEN
    sprompt = prompt                     ! Store prompt at top macro level start
+   macro_s_dir = current_dir            ! Store starting directory
 ENDIF
 macro_level = macro_level + 1
 CALL build_macro_name(line, ilen, filename, MAXW, ianz, cpara, lpara, werte)
@@ -153,7 +154,7 @@ ELSE           ! No internal storage yet, make new storage, and add
       ier_num = - 12
       ier_typ = ER_MAC
       oprompt = prompt
-      CALL macro_close
+      CALL macro_close(-1)
       IF(lblock) THEN                ! If inside do/if terminate the block
          lblock_dbg = .false.
          lblock = .false.
@@ -198,7 +199,7 @@ is_new: IF(.NOT. is_stored ) THEN             ! This is a new macro
       ier_num = - 12
       ier_typ = ER_MAC
       oprompt = prompt
-      CALL macro_close
+      CALL macro_close(-1)
       IF(lblock) THEN                ! If inside do/if terminate the block
          lblock_dbg = .false.
          lblock = .false.
@@ -317,9 +318,12 @@ INTEGER                  :: length
 !     --Get filename from command line and string for parameters
 !
 string = line
-ip = INDEX (string, ' ')
-string (ip:ip) = ','
+if(string(1:1)/='"') then
+   ip = INDEX (string, ' ')
+   string (ip:ip) = ','
+endif
 length = -IABS(ilen)
+!
 CALL get_params (string, ianz, cpara, lpara, maxw, length)
 !
 !     --Try to build filename
@@ -523,7 +527,7 @@ IF(mac_tree_active%current > mac_tree_active%active%macros%macro_length) THEN
       lmakro = .false.
       lmakro_disp  = .FALSE.    ! Macro display error off
       macro_level = 0
-      CALL macro_close
+      CALL macro_close( 0)
    ELSE
       mac_tree_active => mac_tree_active%parent
 !            DEALLOCATE(mac_tree_active%kid)
@@ -553,7 +557,7 @@ IF(laenge>0) THEN
             lmakro = .false.
             lmakro_disp  = .FALSE.    ! Macro display error off
             macro_level = 0
-            CALL macro_close
+            CALL macro_close( 0)
          ELSE
             mac_tree_active => mac_tree_active%parent
 !            DEALLOCATE(mac_tree_active%kid)
@@ -741,7 +745,7 @@ IMPLICIT NONE
       lmakro = .false.
       lmakro_disp  = .FALSE.    ! Macro display error off
       macro_level = 0
-      CALL macro_close
+      CALL macro_close( 0)
    ELSE
       mac_tree_active => mac_tree_active%parent
       macro_level = macro_level - 1
@@ -753,25 +757,40 @@ END SUBROUTINE macro_terminate
 !
 !*****7****************************************************************
 !
-SUBROUTINE macro_close
+SUBROUTINE macro_close(ierror)
 !-
 !     Closes the macro file, switches macro status off and sets the
 !     macro level back to zero.
 !     The macro tree is deallocated.
-!     In an interactive session (promot /= redirect ) the stored 
+!     In an interactive session (prompt /= redirect ) the stored 
 !     macros are deallocated. This allows the user to modify a macro
 !     and run the modified version
 !+
 USE class_macro_internal
+use envir_mod
 USE macro_mod
 USE mpi_slave_mod
 USE errlist_mod
 USE prompt_mod
+use support_mod
+!
 IMPLICIT none
+!
+integer, intent(in) :: ierror     ! Macro closure du to error
+!
+character(len=PREC_STRING) :: line
+integer                    :: length 
 !
 IF(mpi_is_slave) THEN
    RETURN
 ENDIF
+!
+if(ierror<0) then
+   write(output_io,*) ' '
+   line   = macro_s_dir
+   length = len_trim(line)
+   call do_chdir(line, length, .true.)
+endif
 !
 IF(prompt_status/=PROMPT_OFF) THEN
    WRITE(output_io,*) ' '
@@ -929,14 +948,14 @@ ELSEIF (ianz == 1) THEN
    IF(str_comp(cpara(1), pname, 3, lpara(1), len_str(pname))) THEN
             cprompt = prompt   ! Remember current prompt, as macro close 
                                ! goes all the way back....
-            CALL macro_close
+            CALL macro_close( 0)
             lmakro_dbg = .false.
             prompt = cprompt   ! Set current prompt as active prompt
             lblock_dbg = .false.
             lblock = .false.
          ELSEIF(str_comp(cpara(1), 'suite', 3, lpara (1), 5)) THEN
             lmakro_dbg = .false.
-            CALL macro_close
+            CALL macro_close( 0)
             lblock_dbg = .false.
             lblock = .false.
             IF(pname /= 'suite') THEN
@@ -947,13 +966,13 @@ ELSEIF (ianz == 1) THEN
             ier_num = - 6
             ier_typ = ER_COMM
             lmakro_dbg = .false.
-            CALL macro_close
+            CALL macro_close(-1)
          ENDIF
       ELSE
          ier_num = - 6
          ier_typ = ER_COMM
          lmakro_dbg = .false.
-         CALL macro_close
+         CALL macro_close(-1)
       ENDIF
 !
 END SUBROUTINE macro_continue

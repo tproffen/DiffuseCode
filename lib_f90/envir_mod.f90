@@ -29,6 +29,7 @@ USE precision_mod
    CHARACTER(LEN=PREC_STRING) :: win_dir
    CHARACTER(LEN=PREC_STRING) :: start_line
    CHARACTER(LEN=PREC_STRING) :: current_dir
+   CHARACTER(LEN=PREC_STRING) :: macro_s_dir
    CHARACTER(LEN=PREC_STRING) :: terminal_emu = ' '
    CHARACTER(LEN=PREC_STRING) :: terminal_exe = ' '
    CHARACTER(LEN=PREC_STRING) :: terminal_wrp = '/tmp/terminal_wrapper.sh'
