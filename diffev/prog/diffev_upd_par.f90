@@ -18,6 +18,7 @@ USE lib_upd_mod
 USE lib_length
 USE param_mod 
 USE precision_mod
+USE precision_command_mod
 !
 IMPLICIT none 
 !                                                                       
