@@ -45,7 +45,8 @@ END TYPE var_arrays
    INTEGER, PARAMETER :: VAR_MAC       = 24
    INTEGER, PARAMETER :: VAR_WSL       = 25
    INTEGER, PARAMETER :: VAR_OPERATING = 26
-   INTEGER, PARAMETER :: VAR_EXPRESSION= 27
+   INTEGER, PARAMETER :: VAR_STRING    = 27
+   INTEGER, PARAMETER :: VAR_EXPRESSION= 28
 !
    INTEGER, PARAMETER :: VAR_clen      = 200
 !
@@ -284,6 +285,14 @@ CONTAINS
    var_char ( i) = ' '
    var_l    ( i) = 9
    var_type ( i) = IS_INTE
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = 0
+!
+   i = VAR_STRING
+   var_name ( i) = 'STRING'         ! Generic STRING variable
+   var_char ( i) = ' '
+   var_l    ( i) = 6
+   var_type ( i) = IS_CHAR
    var_diff ( i) = .FALSE.
    var_val  ( i) = 0
 !
