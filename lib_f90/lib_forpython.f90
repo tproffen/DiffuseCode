@@ -2,7 +2,6 @@ module lib_forpython_mod
 !-
 !  Handle generic interaction with forpy_mod
 !+
-use errlist_mod
 use forpy_mod
 !
 implicit none
@@ -24,10 +23,15 @@ end function forpy_active
 !
 !*******************************************************************************
 !
-subroutine forpy_start()
+subroutine forpy_start(ier_num)
 !-
 !  Initialize forpy 
 !-
+!
+implicit none
+!
+integer, intent(out) :: ier_num
+!
 if(.not. forpy_active()) then
    ier_num = forpy_initialize()
    forpy_isactive = .true.
@@ -37,12 +41,15 @@ end subroutine forpy_start
 !
 !*******************************************************************************
 !
-subroutine set_module_path(module_path)!  , python_script)
+subroutine set_module_path(module_path, ier_num)!  , python_script)
 !-
 !  Add path to python modules
 !+
 !
+implicit none
+!
 character(len=*), intent(in) :: module_path
+integer, intent(out) :: ier_num
 !character(len=*), intent(in) :: module_name
 !type(module_py) , intent(in) :: python_script
 !
@@ -61,6 +68,9 @@ subroutine forpy_finish()
 !-
 ! Deactivate forpy_mod
 !+
+!
+implicit none
+!
 if(forpy_active()) then
    call forpy_finalize
    forpy_isactive = .false.
