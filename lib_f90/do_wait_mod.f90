@@ -21,6 +21,7 @@ USE get_params_mod
 USE lib_length
 USE param_mod 
 USE precision_mod
+use prompt_mod
 USE str_comp_mod
 !
 USE class_macro_internal
@@ -64,7 +65,8 @@ IF(wait_active) THEN
                lmakro = .false.
                lmakro_error = .false.    ! Macro termination error off
                macro_level = 0
-               CALL macro_close
+               CALL macro_close(-1)
+                  prompt_status     = PROMPT_ON
                endif
 !            line = '#'
 !            il = 1
