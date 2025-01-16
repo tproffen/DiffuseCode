@@ -637,7 +637,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
 !     start the Fourier transform 'run'                                 
 !                                                                       
             ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
-               IF(ilots/=LOT_OFF .AND.  &   ! Lots will be used
+               if(cr_natoms<1) then
+                  ier_num = -198
+                  ier_typ = ER_APPL
+                  ier_msg(1) = 'No fourier will be calculated'
+               elseIF(ilots/=LOT_OFF .AND.  &   ! Lots will be used
                   cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
                   ier_num = -162
                   ier_typ = ER_APPL
@@ -1029,7 +1033,7 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
                   RETURN 
                ELSE
                   IF(lmacro_close) THEN
-                     CALL macro_close 
+                     CALL macro_close(-1)
                      prompt_status = PROMPT_ON 
                   ENDIF 
                ENDIF 
