@@ -75,6 +75,17 @@ lp = len_trim(line)
 call get_params (line, ianz, cpara, lpara, maxw, lp)
 call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
+if(ianz/=0) then    ! Wrong parameter number, forgot a ':'?
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Timer detected non-optional parameters.'
+   ier_msg(2) = 'Check that all parameters are of style:'
+   ier_msg(3) = '      name:value                       '
+   if(ianz> 0 .and. ianz <= MAXW) then
+      ier_msg(4) = 'Offending param is ' // cpara(ianz)(1:lpara(ianz))
+   endif
+   return
+endif
 !
 lstart = .true.
 lcpu   = .true.
