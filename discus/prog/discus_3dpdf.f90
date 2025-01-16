@@ -117,7 +117,7 @@ loop_main: do while(.not.lend)
                RETURN
             ELSE
                IF(lmacro_close) then
-                  CALL macro_close
+                  CALL macro_close(-1)
                   prompt_status = PROMPT_ON
                ENDIF
             ENDIF
@@ -772,7 +772,7 @@ enddo
 !  Attempt to match vectors by rotation / displacement of rigid units
 !
 call three_inter_rigid(sigma_length, success)
-!!if(.not. success) then
+if(.not. success) then
   call three_inter_rigid_shift(sigma_length, success)
 endif
 !
