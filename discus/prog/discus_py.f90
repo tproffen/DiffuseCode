@@ -98,7 +98,7 @@ CALL discus_mache_kdo (line, lend, laenge)  ! Execute initial command
 IF( ier_num /= 0 ) THEN         ! Handle error messages
    CALL errlist
    ier_status = -1
-   CALL macro_close
+   CALL macro_close(-1)
    CALL no_error
 ELSE
    main: DO WHILE( lmakro )     ! Initial command was a macro, run this macro

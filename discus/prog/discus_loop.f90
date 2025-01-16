@@ -78,7 +78,7 @@ fehler: IF (ier_num.ne.0) then
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro.AND. lmacro_close) then 
-               CALL macro_close 
+               CALL macro_close(-1)
                prompt_status = PROMPT_ON 
             ENDIF 
             lblock = .false. 
@@ -102,7 +102,7 @@ fehler: IF (ier_num.ne.0) then
                  EXIT main
                ELSE
                   IF(lmacro_close) THEN
-                     CALL macro_close
+                     CALL macro_close(-1)
                      lmakro_error = .FALSE.
                      PROMPT_STATUS = PROMPT_ON
                      sprompt = ' '

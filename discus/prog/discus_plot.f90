@@ -810,7 +810,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                prompt = orig_prompt
                RETURN
             ELSE
-               CALL macro_close 
+               CALL macro_close(-1)
                prompt_status = PROMPT_ON 
             ENDIF 
          ENDIF 
