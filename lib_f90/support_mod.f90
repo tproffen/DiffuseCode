@@ -328,20 +328,15 @@ ELSE
          lpara(1) = home_dir_l
       endif
    elseif(dir=='$WSL_DOC') then
-      if(operating==OS_LINUX_WSL) then
-         cpara(1) = home_dir(1:home_dir_l) // 'Documents/'
-         lpara(1) = home_dir_l + 10
-      else
-         cpara(1) = dir
-         lpara(1) = len_trim(dir)
-      endif
+      cpara(1) = home_dir(1:home_dir_l) // 'Documents/'
+      lpara(1) = home_dir_l + 10
    elseif(dir=='$WSL') then
       if(operating==OS_LINUX_WSL) then
          cpara(1) = home_dir
          lpara(1) = home_dir_l
       else
-         cpara(1) = dir
-         lpara(1) = len_trim(dir)
+         cpara(1) = home_dir
+         lpara(1) = home_dir_l
       endif
    else
       ld = -ld
