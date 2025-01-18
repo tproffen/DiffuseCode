@@ -316,10 +316,39 @@ IF (dir.eq.' ') THEN
       WRITE ( *, 1000) cwd_echo(1:LEN_TRIM(cwd_echo)) 
    ENDIF 
 ELSE 
-   ld = -ld
-   cwd = dir
-   CALL get_params (cwd, ianz, cpara, lpara, maxw, ld) 
-   CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+   if(dir=='$HOME') then
+      cpara(1) = home_dir
+      lpara(1) = home_dir_l
+   elseif(dir=='$HOMEPATH') then
+      if(operating==OS_LINUX_WSL) then
+         cpara(1) = '/mnt/c/Users/' // user_name(1:LEN_TRIM(user_name))
+         lpara(1) = len_trim(cpara(1))
+      else
+         cpara(1) = home_dir
+         lpara(1) = home_dir_l
+      endif
+   elseif(dir=='$WSL_DOC') then
+      if(operating==OS_LINUX_WSL) then
+         cpara(1) = home_dir(1:home_dir_l) // 'Documents/'
+         lpara(1) = home_dir_l + 10
+      else
+         cpara(1) = dir
+         lpara(1) = len_trim(dir)
+      endif
+   elseif(dir=='$WSL') then
+      if(operating==OS_LINUX_WSL) then
+         cpara(1) = home_dir
+         lpara(1) = home_dir_l
+      else
+         cpara(1) = dir
+         lpara(1) = len_trim(dir)
+      endif
+   else
+      ld = -ld
+      cwd = dir
+      CALL get_params (cwd, ianz, cpara, lpara, maxw, ld) 
+      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+   endif
    IF(operating==OS_LINUX_WSL) THEN
       string = cpara(1)
       IF(string(2:2)==':') THEN
