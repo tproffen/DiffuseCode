@@ -1,4 +1,17 @@
 6.18.02  DRAFT
+6.18.02  RELEASE 2025_01_18
+
+GENERAL
+  'cd'        The command accepts special directory names:
+              $HOME, $HOMEPATH, $WSL_DOC, $WSL
+  'fget'      Improved the 'form:a' parameter
+  set         Added a 'set author:names' command
+  macros      Upon a error driven abort, the macro returns to the inital 
+              directory from which the macro was started
+DISCUS
+  import      Added a flag:refine:yes", which will write the DISCUS refinement macros
+  read        Improved reading of molecules, did not work in some space groups
+
 6.18.01  RELEASE 2024_12_04
 
 GENERAL
@@ -9,7 +22,7 @@ DISCUS
   import      Improved handling of SHELX import, added a form:waas form:table flag
               to fix form factor look up
 REFINE
-  run         BUG FIX, the "refine_new.res" file conteined an erroneous "exit"
+  run         BUG FIX, the "refine_new.res" file contained an erroneous "exit"
 
 6.18.00  RELEASE 2024_12_01
 
