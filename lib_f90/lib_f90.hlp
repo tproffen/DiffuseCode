@@ -362,6 +362,16 @@
    to the folder into the KUPLOT or DISCUS_SUITE window. 
    Alternatively past with SHIFT+CTRL-c.
 
+   Special directory names
+   $HOME     => /home/<your_user_name>     ! at Linux / MAC / WSL
+   $HOMEPATH => c:\Users\<your_user_name>  ! at WSL
+             => /home/<your_user_name>     ! at Linux
+   $WSL_DOC  => /home/<your_user_name>/Documents ! at WSL
+   $WSL      => /home/<your_user_name>           ! at WSL
+   To prevent macro errors, the last two special names work for
+   Linux and MAC as well. If not $HOME/Documents directory exists
+   you will get an error message.
+
    For Windows only:
    If the drive refers to a removable disk, you might be prompted
    for the Linux password. As Discus does not know if you do not
