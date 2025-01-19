@@ -321,7 +321,7 @@ ELSE
       lpara(1) = home_dir_l
    elseif(dir=='$HOMEPATH') then
       if(operating==OS_LINUX_WSL) then
-         cpara(1) = '/mnt/c/Users/' // user_name(1:LEN_TRIM(user_name))
+         cpara(1) = '/mnt/c/Users/' // user_profile(1:LEN_TRIM(user_profile))
          lpara(1) = len_trim(cpara(1))
       else
          cpara(1) = home_dir
