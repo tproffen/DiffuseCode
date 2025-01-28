@@ -27,8 +27,11 @@ USE terminal_mod
 PRIVATE
 PUBLIC initialize_suite    ! Initialize the discus_suite as if started directly
 PUBLIC execute_macro       ! Execute macro
-PUBLIC save_python_1d      
-!PUBLIC get_data            ! Gets data from DISCUS
+PUBLIC get_data            ! Gets data from DISCUS
+PUBLIC send_i            
+PUBLIC send_r            
+PUBLIC get_i            
+PUBLIC get_r            
 !
 CONTAINS
 !
@@ -74,13 +77,101 @@ END SUBROUTINE initialize_suite
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-!FUNCTION get_data() 
+SUBROUTINE get_data(xpy,ypy,n) 
 !
 !  Return data from DISCUS output command
 !
-!USE kuplot_mod
+USE kuplot_config
+USE kuplot_mod
 !
-!END FUNCTION get_data
+INTEGER :: n
+REAL, INTENT(OUT) :: xpy(*)
+REAL, INTENT(OUT) :: ypy(*)
+!
+xpy(1:n) = x(1:n)
+ypy(1:n) = y(1:n)
+!
+END SUBROUTINE get_data
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE send_i (iin, lower, upper )
+!
+! The outer routine sends integer valued numbers for i[:]
+!
+USE param_mod
+USE prompt_mod
+IMPLICIT NONE
+!
+INTEGER,                         INTENT(IN) :: lower
+INTEGER,                         INTENT(IN) :: upper
+INTEGER, DIMENSION(lower:upper), INTENT(IN) :: iin
+!
+IF(lower>0 .and. upper<UBOUND(inpara,1) .and. lower <= upper) THEN
+   inpara(lower:upper) = iin(lower:upper)
+ENDIF
+!
+END SUBROUTINE send_i
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE send_r (rin, lower, upper )
+!
+! The outer routine sends real valued numbers for r[:]
+!
+USE param_mod
+USE prompt_mod
+IMPLICIT NONE
+!
+INTEGER,                      INTENT(IN) :: lower
+INTEGER,                      INTENT(IN) :: upper
+REAL, DIMENSION(lower:upper), INTENT(IN) :: rin
+!
+IF(lower>0 .and. upper<UBOUND(rpara,1) .and. lower <= upper) THEN
+   rpara(lower:upper) = rin(lower:upper)
+ENDIF
+!
+END SUBROUTINE send_r
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE get_i (iout, lower, upper )
+!
+! The outer routine gets integer valued numbers from i[:]
+!
+USE param_mod
+USE prompt_mod
+IMPLICIT NONE
+!
+INTEGER,                         INTENT(IN ) :: lower
+INTEGER,                         INTENT(IN ) :: upper
+INTEGER, DIMENSION(lower:upper), INTENT(OUT) :: iout
+!
+IF(lower>0 .and. upper<UBOUND(inpara,1) .and. lower <= upper) THEN
+   iout(lower:upper) = inpara(lower:upper)
+ENDIF
+!
+END SUBROUTINE get_i
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE get_r (rout, lower, upper )
+!
+! The outer routine gets real valued numbers from r[:]
+!
+USE param_mod
+USE prompt_mod
+IMPLICIT NONE
+!
+INTEGER,                      INTENT(IN ) :: lower
+INTEGER,                      INTENT(IN ) :: upper
+REAL, DIMENSION(lower:upper), INTENT(OUT) :: rout
+!
+IF(lower>0 .and. upper<UBOUND(rpara,1) .and. lower <= upper) THEN
+   rout(lower:upper) = rpara(lower:upper)
+ENDIF
+!
+END SUBROUTINE get_r
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! 
