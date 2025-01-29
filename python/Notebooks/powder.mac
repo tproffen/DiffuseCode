@@ -1,11 +1,11 @@
 set prompt,off,off
 discus
 read
-  cell primitive.cell,1,1,1
+  cell primitive.cell,20,20,20
 #
 powder                          # Switch to powder menu
   reset
-  $1                          # Select X-rays
+  $1                            # Select radiation
   set axis,q                    # Perform calculation on equaly spaced Q grid
   set calc,debye                # Use Debye-algorithm
   set disp,off                  # Switch anomalous dispersion off
@@ -13,11 +13,11 @@ powder                          # Switch to powder menu
   set qmin,0.500                # Starting value for Q
   set qmax,7.100                # Final value for Q
   set dq,  0.005                # Step size for Q
-  set profile, off             # Switch convolution by Pseudovoigt function off
+  set profile, off              # Switch convolution by Pseudovoigt function off
   set temp,use                  # Use the Atomic displacement parameters
   set wvle,1.54056              # Set the wavelength
   set four,four                 # Just for stacking fault mode, set to normal
-  #set lpcor,bragg,26.58         # Define Lorentz-Pol to BraggBrentano Diffractometer
+  #set lpcor,bragg,26.58        # Define Lorentz-Pol to BraggBrentano Diffractometer
   show
   run                           # Do the actual calculation
 exit                            # Go back to main DISCUS menu
@@ -25,6 +25,7 @@ exit                            # Go back to main DISCUS menu
 output                          # Switch to output menu
   outf  kuplot.inte             # Define output file name
   value inte                    # Select intensity as output value
-  form  powder,tth,1.0,120,0.02   # Write output as powder data
+  form  powder,tth,1.0,120,0.02 # Write output as powder data
   run                           # Perform the actual output
 exit                            # Go back to main DISCUS menu
+exit

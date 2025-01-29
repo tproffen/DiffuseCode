@@ -28,12 +28,12 @@ PRIVATE
 PUBLIC initialize_suite    ! Initialize the discus_suite as if started directly
 PUBLIC execute_macro       ! Execute macro
 PUBLIC get_data            ! Gets data from DISCUS
-PUBLIC send_i            
-PUBLIC send_r            
-PUBLIC get_i            
-PUBLIC get_r            
+PUBLIC set_value            
+PUBLIC get_value            
+PUBLIC get_data_length
 !
 CONTAINS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 SUBROUTINE initialize_suite()
 !
@@ -75,103 +75,103 @@ linteractive = .false.
 !
 END SUBROUTINE initialize_suite
 
+!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-SUBROUTINE get_data(xpy,ypy,n) 
+INTEGER FUNCTION get_data_length(ik)
 !
-!  Return data from DISCUS output command
+! Returns length of KUPLOT data set ik
 !
 USE kuplot_config
 USE kuplot_mod
 !
-INTEGER :: n
-REAL, INTENT(OUT) :: xpy(*)
-REAL, INTENT(OUT) :: ypy(*)
+IMPLICIT NONE
 !
-xpy(1:n) = x(1:n)
-ypy(1:n) = y(1:n)
+INTEGER :: ik
+!
+get_data_length = lenc(ik)
+!
+END FUNCTION get_data_length
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE get_data(ik,xpy,ypy,n) 
+!
+!  Return data from KUPLOT x,y arrays
+!
+USE kuplot_config
+USE kuplot_mod
+!
+IMPLICIT NONE
+!
+INTEGER :: ik
+INTEGER :: n
+REAL, INTENT(OUT) :: xpy(n)
+REAL, INTENT(OUT) :: ypy(n)
+!
+xpy(1:n) = x(offxy(ik-1)+1:offxy(ik-1)+n)
+ypy(1:n) = y(offxy(ik-1)+1:offxy(ik-1)+n)
 !
 END SUBROUTINE get_data
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-SUBROUTINE send_i (iin, lower, upper )
+SUBROUTINE set_value(val, variable)
 !
-! The outer routine sends integer valued numbers for i[:]
+!  Sets the DISCUS suite real variable 'value' to val.
 !
-USE param_mod
-USE prompt_mod
+USE do_variable_mod
+USE lib_errlist_func
+USE errlist_mod
+!
 IMPLICIT NONE
 !
-INTEGER,                         INTENT(IN) :: lower
-INTEGER,                         INTENT(IN) :: upper
-INTEGER, DIMENSION(lower:upper), INTENT(IN) :: iin
+CHARACTER(LEN=*)     , INTENT(INOUT) :: variable
+REAL                 , INTENT(IN)    :: val
 !
-IF(lower>0 .and. upper<UBOUND(inpara,1) .and. lower <= upper) THEN
-   inpara(lower:upper) = iin(lower:upper)
+REAL(kind=PREC_DP)    :: wert
+INTEGER               :: laenge
+CHARACTER(LEN=1)      :: dummy
+INTEGER               :: length
+INTEGER, DIMENSION(2) :: substr
+!
+laenge = LEN_TRIM(variable)
+dummy  = " "
+wert   = val
+!
+CALL upd_variable (variable, laenge, wert, dummy, length, substr)
+!
+IF (ier_num.ne.0) THEN
+   CALL errlist
 ENDIF
 !
-END SUBROUTINE send_i
+END SUBROUTINE set_value
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-SUBROUTINE send_r (rin, lower, upper )
+REAL FUNCTION get_value (expression)
 !
-! The outer routine sends real valued numbers for r[:]
+! The outer routine gets the value of a variable (think eval command)
 !
-USE param_mod
-USE prompt_mod
+USE ber_params_mod
+USE lib_errlist_func
+USE errlist_mod
+!
 IMPLICIT NONE
 !
-INTEGER,                      INTENT(IN) :: lower
-INTEGER,                      INTENT(IN) :: upper
-REAL, DIMENSION(lower:upper), INTENT(IN) :: rin
+CHARACTER(LEN=*), INTENT(INOUT) :: expression
+INTEGER, DIMENSION(1) :: length
+REAL(kind=PREC_DP), DIMENSION(1) :: values
 !
-IF(lower>0 .and. upper<UBOUND(rpara,1) .and. lower <= upper) THEN
-   rpara(lower:upper) = rin(lower:upper)
+length = LEN_TRIM(expression)
+CALL ber_params (1, expression, length, values, 1)
+get_value = values(1)
+!
+IF (ier_num.ne.0) THEN
+   CALL errlist
 ENDIF
 !
-END SUBROUTINE send_r
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!
-SUBROUTINE get_i (iout, lower, upper )
-!
-! The outer routine gets integer valued numbers from i[:]
-!
-USE param_mod
-USE prompt_mod
-IMPLICIT NONE
-!
-INTEGER,                         INTENT(IN ) :: lower
-INTEGER,                         INTENT(IN ) :: upper
-INTEGER, DIMENSION(lower:upper), INTENT(OUT) :: iout
-!
-IF(lower>0 .and. upper<UBOUND(inpara,1) .and. lower <= upper) THEN
-   iout(lower:upper) = inpara(lower:upper)
-ENDIF
-!
-END SUBROUTINE get_i
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!
-SUBROUTINE get_r (rout, lower, upper )
-!
-! The outer routine gets real valued numbers from r[:]
-!
-USE param_mod
-USE prompt_mod
-IMPLICIT NONE
-!
-INTEGER,                      INTENT(IN ) :: lower
-INTEGER,                      INTENT(IN ) :: upper
-REAL, DIMENSION(lower:upper), INTENT(OUT) :: rout
-!
-IF(lower>0 .and. upper<UBOUND(rpara,1) .and. lower <= upper) THEN
-   rout(lower:upper) = rpara(lower:upper)
-ENDIF
-!
-END SUBROUTINE get_r
+END FUNCTION get_value
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! 

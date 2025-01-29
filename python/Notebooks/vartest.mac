@@ -1,0 +1,2 @@
+variable real, dummy
+dummy = 3.1415
