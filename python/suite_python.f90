@@ -27,10 +27,11 @@ USE terminal_mod
 PRIVATE
 PUBLIC initialize_suite    ! Initialize the discus_suite as if started directly
 PUBLIC execute_macro       ! Execute macro
+PUBLIC set_value           ! Sets value of DISCUS variable 
+PUBLIC get_value           ! Gets value of DISCUS variable 
 PUBLIC get_data            ! Gets data from DISCUS
-PUBLIC set_value            
-PUBLIC get_value            
-PUBLIC get_data_length
+PUBLIC get_data_length     ! Returns length of KUPLOT data set ik
+PUBLIC get_data_sets       ! Returns number of loaded KUPLOT data sets
 !
 CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -74,7 +75,21 @@ lstandalone = .false.
 linteractive = .false.
 !
 END SUBROUTINE initialize_suite
-
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+INTEGER FUNCTION get_data_sets()
+!
+! Returns number of data sets in KUPLOT
+!
+USE kuplot_config
+USE kuplot_mod
+!
+IMPLICIT NONE
+!
+get_data_sets = iz-1
+!
+END FUNCTION get_data_sets
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
