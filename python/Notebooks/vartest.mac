@@ -1,2 +1,5 @@
 variable real, dummy
 dummy = 3.1415
+
+variable real, array, dim:[10]
+array[1]=-2.3

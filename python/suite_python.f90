@@ -99,12 +99,25 @@ INTEGER FUNCTION get_data_length(ik)
 !
 USE kuplot_config
 USE kuplot_mod
+USE errlist_mod
 !
 IMPLICIT NONE
 !
 INTEGER :: ik
+INTEGER :: l = 0
 !
-get_data_length = lenc(ik)
+IF (ik.le.(iz - 1) .and. ik.ge.1) THEN
+   l = lenc(ik)
+ELSE
+   ier_num = -4
+   ier_typ = ER_APPL
+ENDIF
+!
+IF (ier_num.ne.0) THEN
+   CALL errlist
+ENDIF
+!
+get_data_length = l
 !
 END FUNCTION get_data_length
 !
@@ -116,6 +129,7 @@ SUBROUTINE get_data(ik,xpy,ypy,n)
 !
 USE kuplot_config
 USE kuplot_mod
+USE errlist_mod
 !
 IMPLICIT NONE
 !
@@ -124,8 +138,17 @@ INTEGER :: n
 REAL, INTENT(OUT) :: xpy(n)
 REAL, INTENT(OUT) :: ypy(n)
 !
-xpy(1:n) = x(offxy(ik-1)+1:offxy(ik-1)+n)
-ypy(1:n) = y(offxy(ik-1)+1:offxy(ik-1)+n)
+IF (ik.le.(iz - 1) .and. ik.ge.1) THEN
+   xpy(1:n) = x(offxy(ik-1)+1:offxy(ik-1)+n)
+   ypy(1:n) = y(offxy(ik-1)+1:offxy(ik-1)+n)
+ELSE
+   ier_num = -4
+   ier_typ = ER_APPL
+ENDIF
+!
+IF (ier_num.ne.0) THEN
+   CALL errlist
+ENDIF
 !
 END SUBROUTINE get_data
 !
