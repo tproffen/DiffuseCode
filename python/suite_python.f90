@@ -186,7 +186,7 @@ IF (ik.le.(iz - 1) .and. ik.ge.1) THEN
       npx = nx(ik)
       npy = ny(ik)
    ELSE
-      CALL python_error(-1)
+      CALL python_error(-2)
    ENDIF
 ELSE
    CALL python_error(-1)
