@@ -33,6 +33,7 @@ PUBLIC get_data            ! Gets data from DISCUS
 PUBLIC get_data_3d         ! Gets 3d data from DISCUS
 PUBLIC get_data_length     ! Returns length of KUPLOT data set ik
 PUBLIC get_data_sets       ! Returns number of loaded KUPLOT data sets
+public python_error
 !
 CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
