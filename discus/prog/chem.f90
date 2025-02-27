@@ -65,6 +65,7 @@ CHARACTER(len=13) :: befehl
 !         ! Dummy variables for mmc calc correlations
 logical :: lfeed         ! Dummy variables for mmc calc correlations
 logical :: lfinished
+logical :: ldetail
 logical :: done
 real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 real(kind=PREC_DP) :: rel_cycl
@@ -229,7 +230,8 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
                rel_cycl  = 1.0D0
                done      = .true.
                lfinished = .true.
-               CALL mmc_correlations(lout, rel_cycl, done, lfinished, lfeed, maxdev)
+               ldetail   = .true.
+               CALL mmc_correlations(lout, rel_cycl, done, lfinished, lfeed, ldetail, maxdev)
             else
                ier_num = -6
                ier_typ = -6
