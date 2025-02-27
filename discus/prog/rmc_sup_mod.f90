@@ -3595,7 +3595,6 @@ sym_uvw(3) = 1.0D0
    sym_end   = imol(1)
    call symm_setup
    call symm_show
-   read(*,*) i
    endif
 !                                                                       
 !------ Mode 'external': Moves defined by external subroutine           
