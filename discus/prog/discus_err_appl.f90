@@ -13,11 +13,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-202,IO=10)
+      PARAMETER    (IU=-203,IO=10)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -201) /                          &
+     &  'Contradictory molecule info at atom line     ', & !-203 ! discus
      &  'No.  names in TSC file differ from structure ', & !-202 ! discus
      &  'Atom names in TSC file differ from structure '  & !-201 ! discus
      &  /
