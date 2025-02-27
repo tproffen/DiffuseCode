@@ -554,21 +554,26 @@ weight   = 0.0
 !write(*,'(a,3(f10.5,2x))') ' Matrix  ', lib_tr_mat(:,3)
 !write(*,'(a,3(i5      ))') ' new_inc ', new_inc
 !write(*,'(a,3(i5      ))') ' new_icen', new_icenter
-i = new_inc(1)/2
-j = new_inc(2)/2
-k = new_inc(3)/2
-vect =  -i*new_vi(:,1)  -j*new_vi(:,2) -k*new_vi(:,3)
+!i = new_inc(1)/2
+!j = new_inc(2)/2
+!k = new_inc(3)/2
+!vect =  -i*new_vi(:,1)  -j*new_vi(:,2) -k*new_vi(:,3)
 !write(*,'(a,2(3(f10.5,2x),4x))') ' new_LLB ', new_eck(:,1), vect
-vect =  +i*new_vi(:,1)  -j*new_vi(:,2) -k*new_vi(:,3)
+!vect =  +i*new_vi(:,1)  -j*new_vi(:,2) -k*new_vi(:,3)
 !write(*,'(a,2(3(f10.5,2x),4x))') ' new_RLB ', new_eck(:,2), vect
-vect =  -i*new_vi(:,1)  +j*new_vi(:,2) -k*new_vi(:,3)
+!vect =  -i*new_vi(:,1)  +j*new_vi(:,2) -k*new_vi(:,3)
 !write(*,'(a,2(3(f10.5,2x),4x))') ' new_LUB ', new_eck(:,3), vect
-vect =  -i*new_vi(:,1)  -j*new_vi(:,2) +k*new_vi(:,3)
+!vect =  -i*new_vi(:,1)  -j*new_vi(:,2) +k*new_vi(:,3)
 !write(*,'(a,2(3(f10.5,2x),4x))') ' new_LLT ', new_eck(:,4), vect
-
+!
 !write(*,'(a,3(f10.5,2x))') ' new_abs ', new_vi (:,1)
 !write(*,'(a,3(f10.5,2x))') ' new_ord ', new_vi (:,2)
 !write(*,'(a,3(f10.5,2x))') ' new_top ', new_vi (:,3)
+! vect = 0.0D0
+!resl = matmul(lib_tr_mat, vect)
+!lmn = nint(resl(:)) + new_icenter(:)
+!write(*,'(a, 3f10.4)'     ) ' orig ', vect
+!write(*,'(a, 3f10.4, 3i6)') ' resl ', resl, lmn
 do kk=1, old_inc(3)
    k = kk - old_icenter(3)
    vect(3) = real(k,kind=PREC_DP)
@@ -579,12 +584,13 @@ do kk=1, old_inc(3)
          i = ii - old_icenter(1)
          vect(1) = real(i,kind=PREC_DP)
          resl = matmul(lib_tr_mat, vect)
-         lmn = int(resl(:)) + new_icenter(:)
+         lmn = nint(resl(:)) + new_icenter(:)
 !if(kk==old_icenter(3) .and. jj==old_icenter(2) .and. ii==old_icenter(1)) then
 !   write(*,'(2(a, 3i6))') ' At indices ', ii,jj,kk, ' ',i,j,k
 !   write(*,'(2(a, 3i6))') ' New ind    ', lmn, ' ', nint(resl)
 !endif
          if(all(lmn>0) .and. all(lmn<=new_inc)) then
+!           if(.not.isnan(qvalues(ii,jj,kk))) &
             new_data(lmn(1), lmn(2), lmn(3)) = new_data(lmn(1), lmn(2), lmn(3)) + &
                                                qvalues(ii,jj,kk)
             weight(lmn(1), lmn(2), lmn(3)) = weight(lmn(1), lmn(2), lmn(3)) + 1.0D0
@@ -728,6 +734,7 @@ call augment_dimension(ndims, old_inc, old_eck, old_vi,           &      ! Make 
 !
 call error_check(ndims, new_inc_user, new_eck_user, new_vi_user, new_zone_user)
 !
+!
 do i=1, 3
    if(mod(old_inc(i),2)==0) then
       old_icenter(i) = old_inc(i)/2
@@ -735,6 +742,7 @@ do i=1, 3
       old_icenter(i) = (old_inc(i)+1)/2
    endif
 enddo
+call get_center(old_vi, old_eck(:,1), old_icenter)
 !
 if_zone:if(new_zone_user) then                  ! User provided zone axis
    if(is_direct) then
@@ -1201,7 +1209,7 @@ implicit none
 !
 real(kind=PREC_DP), dimension(3,4), intent(in)   :: eck          ! The old Corners (ll, lr, ul, tl)
 integer           , dimension(3)  , intent(in)   :: inc          ! Old Number data points  original
-integer           , dimension(3)  , intent(out)  :: old_icenter  ! Old center in pixels
+integer           , dimension(3)  , intent(in)   :: old_icenter  ! Old center in pixels
 real(kind=PREC_DP), dimension(3,3), intent(in)   :: lib_tr_mat   ! Transformation matrix old => new
 real(kind=PREC_DP), dimension(3,3), intent(in)   :: lib_in_mat   ! Transformation matrix new => old
 integer           , dimension(3)  , intent(out)  :: new_inc      ! New Number data points  original
@@ -1239,13 +1247,13 @@ do i=1, 8
   lib_ncorners(:,i) = matmul(lib_tr_mat, lib_ocorners(:,i))
 enddo
 !
-do i=1, 3
-   if(mod(inc(i),2)==0) then
-      old_icenter(i) = inc(i)/2
-   else
-      old_icenter(i) = (inc(i)+1)/2
-   endif
-enddo
+!do i=1, 3
+!   if(mod(inc(i),2)==0) then
+!      old_icenter(i) = inc(i)/2
+!   else
+!      old_icenter(i) = (inc(i)+1)/2
+!   endif
+!enddo
 !write(*,*) ' OLD CENTER ', old_icenter
 !write(*,*) ' NEW CORNERS '
 !write(*,'(a,3(f7.3,2x))') ' Left  Low    Bottom ', lib_ncorners(:,1)
@@ -1304,6 +1312,37 @@ do i = 1, 3
 enddo
 !
 end subroutine build_corners
+!
+!*******************************************************************************
+!
+subroutine get_center(vi, eck, icenter)
+!
+use matrix_mod
+use precision_mod
+!
+implicit none
+!
+real(kind=PREC_DP), dimension(3,3), intent(in)  :: vi     ! increment vectors 
+real(kind=PREC_DP), dimension(3  ), intent(in)  :: eck    ! Left lower bottom corner
+integer           , dimension(3)  , intent(out) :: icenter
+!
+real(kind=PREC_DP), dimension(3,3) :: vi_inv
+real(kind=PREC_DP), dimension(3)   :: vect          ! dummy vector
+!
+call matinv(vi, vi_inv)
+vect = -matmul(vi_inv, eck)
+icenter = nint(vect + 1.0_PREC_DP)
+!
+!write(*,'(a, 3f10.4)') ' vi 1,* ', vi(1, :)
+!write(*,'(a, 3f10.4)') ' vi 2,* ', vi(2, :)
+!write(*,'(a, 3f10.4)') ' vi 3,* ', vi(3, :)
+!write(*,'(a, 3f10.4)') ' vi 1,* ', vi_inv(1, :)
+!write(*,'(a, 3f10.4)') ' vi 2,* ', vi_inv(2, :)
+!write(*,'(a, 3f10.4)') ' vi 3,* ', vi_inv(3, :)
+!write(*,'(a, 3f10.4)') ' llb  * ', eck   (:)
+!write(*,'(a, 3f10.4, 3i6)') ' cent   ', vect(:), icenter
+!
+end subroutine get_center
 !
 !*******************************************************************************
 !
