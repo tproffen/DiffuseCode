@@ -459,9 +459,12 @@ h5_has_dxyz = .false.
 h5_has_dval = .false.
 !
 allocate(d5_data(d5_dims(1), d5_dims(2), d5_dims(3)))
+d5_data = 0.0_PREC_DP
+!
 do i=1, d5_dims(1)
    do j=1, d5_dims(2)
       do k=1, d5_dims(3)
+         if(.not. isnan(h5_data(k,j,i)))                   &
          d5_data(i,j,k) = real(h5_data(k,j,i),kind=PREC_DP)
 !        d5_data(i,j,k) = real(h5_data(i,j,k),kind=PREC_DP)
       enddo
@@ -892,6 +895,9 @@ if(opara(O_TRANS)=='yes') then    ! Transform into different orientation
    if(allocated(d5_sigma)) deallocate(d5_sigma)
    allocate(d5_sigma(d5_dims(1), d5_dims(2), d5_dims(3)))
    d5_sigma = 0.0    ! Currently sigmas are not treated properly
+   yd_present(YD_step_sizes_abs) = .true.   ! Since data have been transformed
+   yd_present(YD_step_sizes_ord) = .true.   ! full vectors along x, y, z 
+   yd_present(YD_step_sizes_top) = .true.   ! are present 
 endif
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
