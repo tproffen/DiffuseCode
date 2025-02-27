@@ -395,7 +395,7 @@ integer                                                  , intent(out) :: symmet
 character(len=3)                                         , intent(out) :: symmetry_abc       ! Permutation for orthorhombic space groups
 integer                                                  , intent(out) :: symmetry_n_mat     ! Number of symmetry elements
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable, intent(out) :: symmetry_mat       ! Actual Symmetry matrices
-integer                   , dimension(:,:  ), allocatable, intent(out) :: unit_cells         ! Number of unit cells
+integer                   , dimension(3,3  )             , intent(out) :: unit_cells         ! Number of unit cells
 !
 integer                                                  , intent(out) :: number_of_types    ! Crystal has this many atom types
 character(len=4)          , dimension(:),     allocatable, intent(out) :: types_names        ! Name as "O", "O2-" etc
