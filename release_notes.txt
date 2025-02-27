@@ -1,4 +1,20 @@
-6.18.02  DRAFT
+6.18.03  DRAFT
+
+GENERAL
+  HDF         Catching a NaN in the input data
+  KUPLOT      Load HDF5
+  DISCUS      Write HDF5
+              Improved the transformation to a new coordinate system
+  KUPLOT      Load HDF5 improved error message in case increment vectors are of length zero
+DISCUS
+  export      Added a 'force:yes' option to 'export shelx' to force writing even if the
+              structure extends over more than one unit cell. Might happen for long molecules. 
+  mmc         Changed the correlation parameter to Warren-Cowley, this has no effect for 
+              binary materials, is much better for ternary searches
+              Added a new 'pref' energy that relies on the AB correlation only and is unidirectional
+              'calc' command gives more output
+  import      'import shelx' can now set up a DISCUS single crystal and/or powder refinement
+
 6.18.02  RELEASE 2025_01_18
 
 GENERAL
