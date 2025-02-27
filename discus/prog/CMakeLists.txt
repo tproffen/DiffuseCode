@@ -37,7 +37,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	debye_mod.f90 diffuse_mod.f90 discus_discamb.f90 discus_estimate.f90 discus_exp2pdf.f90
         discus_exp2pdf_data.f90 discus_exp2pdf_load.f90 discus_exp2pdf_run.f90 discus_exp2pdf_supp.f90
         discus_guess_atoms.f90
-	discus_loop.f90 discus_reduce.f90 discus_setup.f90 discus_set_sub.f90 
+	discus_loop.f90 discus_prepare_refine.f90 discus_reduce.f90 discus_setup.f90 discus_set_sub.f90 
         discus_s_out_file.f90 discus_s_pdf_file.f90 discus_s_powder_file.f90
         discus_super_func.f90 discus_super_mod.f90 discus_super_waves.f90
         domain.f90 domain_mod.f90 domaindis_mod.f90  domain_irreg_mod.f90
