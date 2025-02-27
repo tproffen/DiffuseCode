@@ -32,8 +32,8 @@ use blanks_mod
       PARAMETER (CUBIC = 9) 
 !                                                                       
       INTEGER i, l, k
-logical       :: lall
-integer, save :: j = 0
+!logical       :: lall
+!integer, save :: j = 0
 character(len=16), dimension(1:SPCGR_MAX) :: spcgr_point_t
 !                                                                       
 DO i = 1, SPCGR_MAX 
