@@ -64,6 +64,9 @@ loop_main: do i=1, cr_nscat
       cycle loop_main
    endif 
 enddo loop_main
+if(ier_num>0) then
+   call errlist
+endif
 !
 end subroutine guess_atom_all
 !
