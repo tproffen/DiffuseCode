@@ -12,11 +12,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      parameter    (iu=-77,io=0)
+      parameter    (iu=-78,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
       data error ( iu: -61) /                      &
+     &  'Could not calculate aver/angle   ',       &! -78  ! kupl
      &  'At least one pad dimension < 0   ',       &! -77  ! kupl
      &  'Color range outside [0.0, 1.0]   ',       &! -76  ! kupl
      &  'Could not open PGPLOT device     ',       &! -75  ! kupl
