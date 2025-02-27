@@ -1579,6 +1579,12 @@ if(ik>0 .and. ik<iz) then
                angle_tv, ratio_tv, aver_tv, &
                rten, inc, vi, use_coor)
    endif
+   if(ier_num ==-4) then
+      ier_num =  -78
+      ier_typ = ER_APPL
+      ier_msg(1) = 'Increment vectors have zero length'
+      return
+   endif
    werte(1) = aver_vh
 !  werte(1) = ratio_vh*(inc(2)-1)/(inc(1)-1) !aver_vh
    werte(2) = angle_vh
