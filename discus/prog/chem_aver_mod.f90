@@ -557,6 +557,11 @@ INTEGER :: ianz
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, length)
 IF(ier_num/=0) RETURN
+if(ianz<1 .or. ianz>MAXW) then
+   ier_num = -1
+   ier_typ = ER_COMM
+   return
+endif
 !
 opara  =  (/ 'no'    , 'no'   , 'no' /)   ! Always provide fresh default values
 lopara =  (/  2,        2     ,  2   /)
@@ -584,6 +589,13 @@ CALL ber_params (ianz, cpara, lpara, werte, MAXW)
 IF(ier_num/=0) RETURN
 !
 iatom = NINT(werte(1))
+if(iatom<1 .or. iatom>cr_natoms) then
+   ier_num = -137
+   ier_typ = ER_APPL
+   ier_msg(1) = 'displacement command'
+   write(ier_msg(2),'(a, i12)') 'Atom number ', iatom
+   return
+endif 
 CALL indextocell (iatom, icell, isite)
 !
 IF(opara(O_AVER) == 'yes') CALL chem_aver(LOUT, lsite)   ! User requested fresh aver
