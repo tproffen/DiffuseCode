@@ -160,18 +160,18 @@ ENDDO
 !write(*,*) 'new ', -(sqrt(abs(e_new(7))))
 !write(*,*) 'del ',(e_new(i)-e_old(i),i=7,7) , mo_kt !1,MC_N_ENERGY)
 if(mo_kt>0) then
-IF (e_del <  0) THEN 
-   laccept = .TRUE. 
-ELSE 
-   IF (mo_kt <  1.0e-10) THEN 
-      laccept = .FALSE. 
+   IF (e_del <  0) THEN 
+      laccept = .TRUE. 
    ELSE 
-      e_ran = exp ( - e_del / mo_kt) 
-      e_ran = e_ran / (1 + e_ran) 
-      CALL RANDOM_NUMBER(r1)
-      laccept = (e_ran > r1          ) 
-   ENDIF 
-ENDIF
+      IF (mo_kt <  1.0e-10) THEN 
+         laccept = .FALSE. 
+      ELSE 
+         e_ran = exp ( - e_del / mo_kt) 
+         e_ran = e_ran / (1 + e_ran) 
+         CALL RANDOM_NUMBER(r1)
+         laccept = (e_ran > r1          ) 
+      ENDIF 
+   ENDIF
 else
    laccept = .FALSE.
    if(e_new(7)>0.0) then                    ! Positive energy, 
@@ -228,7 +228,8 @@ END SUBROUTINE mmc_test_multi
 !
 !*****7*************************************************************************
 !
-SUBROUTINE mmc_correlations (lout, rel_cycl, done, lfinished, lfeed, maxdev) 
+SUBROUTINE mmc_correlations (lout, rel_cycl, done, lfinished, lfeed, ldetail,  &
+           maxdev) 
 !-                                                                      
 !     Determines the achieved correlations                              
 !                                                                       
@@ -257,6 +258,7 @@ REAL(kind=PREC_DP)    , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 LOGICAL , INTENT(INOUT) :: done     ! MMC is converged/ stagnates
 LOGICAL , INTENT(IN)    :: lfinished ! MMC is finished
 LOGICAL , INTENT(IN)    :: lfeed     ! Perform feedback algorithm
+logical , intent(in)    :: ldetail   ! Print more detailed output
 real(kind=PREC_DP), dimension(2), intent(inout) :: maxdev
 ! 
 !                                                                       
@@ -313,7 +315,8 @@ DATA energy_name / 'none', 'Chemical correlation    ', 'Displacement correlation
      'Vector       correlation',     'Distance     correlation', &
      'Lennard Jones potential ',     'Buckingham    potential ', & 
      'Repulsive     potential ',     'Coordination number     ', &
-     'Unidirectional corr     ',     'Groupwise    correlation' /         
+     'Unidirectional corr     ',     'Groupwise    correlation', &
+     'Preferred groups        '                                  /         
 !
 !lout = lout_in .and. mmc_out_feed    ! Combine system and user settings
 !
@@ -380,20 +383,24 @@ ENDIF
 !     Reset all achieved correlations                                   
 !                                                                       
 !
-      DO ic = 1, CHEM_MAX_COR 
-         DO je = 1, MC_N_ENERGY 
-            DO is = - 1, MAXSCAT 
-               DO js = - 1, MAXSCAT 
-                  mmc_ach_corr (ic, je, is, js) = 0.0 
-                  mmc_ach_sigm (ic, je, is, js) = 0.0 
-               ENDDO 
-            ENDDO 
-         ENDDO 
-      ENDDO 
-      DO i = 1, CHEM_MAX_COR * MMC_MAX_ANGLES 
-         mmc_ach_angl (i) = 0.0 
-         mmc_ang_sigm (i) = 0.0 
-      ENDDO 
+mmc_ach_corr = 0.0_PREC_DP
+mmc_ach_SIGM = 0.0_PREC_DP
+!     DO ic = 1, CHEM_MAX_COR 
+!        DO je = 1, MC_N_ENERGY 
+!           DO is = - 1, MAXSCAT 
+!              DO js = - 1, MAXSCAT 
+!                 mmc_ach_corr (ic, je, is, js) = 0.0 
+!                 mmc_ach_sigm (ic, je, is, js) = 0.0 
+!              ENDDO 
+!           ENDDO 
+!        ENDDO 
+!     ENDDO 
+mmc_ach_angl = 0.0_PREC_DP
+mmc_ach_sigm = 0.0_PREC_DP
+!DO i = 1, CHEM_MAX_COR * MMC_MAX_ANGLES 
+!   mmc_ach_angl(i) = 0.0 
+!   mmc_ang_sigm(i) = 0.0 
+!ENDDO 
 ALLOCATE(ncentral(0:MAXSCAT))
 !                                                                       
 !     Loop over all correlations                                        
@@ -482,6 +489,7 @@ is_cent:  IF (i == iatom (0, icent) ) THEN
 is_energy:  IF (mmc_cor_energy (ic, MC_OCC)        .OR. &
                 mmc_cor_energy (ic, MC_UNI)        .OR. &
                 mmc_cor_energy (ic, MC_GROUP)      .OR. &
+                mmc_cor_energy (ic, MC_PREF)       .OR. &
                 mmc_cor_energy (ic, MC_DISP)       .OR. &
                 mmc_cor_energy (ic, MC_SPRING)     .OR. &
                 mmc_cor_energy (ic, MC_LENNARD)    .OR. &
@@ -504,17 +512,42 @@ loop_neig:  DO j = 1, natom (icent)
 !                                                                       
 !     ----------- Chemical correlation, add number of atom pairs        
 !                                                                       
-                  IF(mmc_pair(ic, MC_OCC,is,js) /=0) THEN
+!                 IF(mmc_pair(ic, MC_OCC,is,js) /=0) THEN
 !write(*,'(5i5)') i, is, j, iatom(j, icent), js
-                  mmc_pneig (is, js, ic) = mmc_pneig (is, js, ic) + 1 
+!                 mmc_pneig(is, js, ic) = mmc_pneig(is, js, ic) + 1 
+                  IF(mmc_left (ic, MC_OCC,is)/=0) THEN                    ! (A) => 
+                     IF(    mmc_right(ic, MC_OCC,js)/=0) THEN                ! (A) => (B) 
+                        mmc_pneig (1 , 2, ic ) = mmc_pneig (1 , 2, ic ) + 1 
+                     ELSEIF(mmc_left (ic, MC_OCC,js)/=0) THEN                ! (A) => (A)
+                        mmc_pneig (1 , 1, ic ) = mmc_pneig (1 , 1, ic ) + 1 
+                     ELSE                                                      ! (A) => (other)
+                        mmc_pneig (1 , 3, ic ) = mmc_pneig (1 , 3, ic ) + 1 
+                     ENDIF
+                  ELSEIF(mmc_right(ic, MC_OCC,is)/=0) THEN                ! (B) =>
+                     IF(    mmc_left (ic, MC_OCC,js)/=0) THEN                ! (B) => (A)
+                        mmc_pneig (2 , 1, ic ) = mmc_pneig (2 , 1, ic ) + 1 
+                     ELSEIF(mmc_right(ic, MC_OCC,js)/=0) THEN                ! (B) => (B) 
+                        mmc_pneig (2 , 2, ic ) = mmc_pneig (2 , 2, ic ) + 1 
+                     ELSE                                                      ! (B) => (other)
+                        mmc_pneig (2 , 3, ic ) = mmc_pneig (2 , 3, ic ) + 1 
+                     ENDIF
+                  ELSE                                                    ! (C) =>
+                     IF(    mmc_left (ic, MC_OCC,js)/=0) THEN                ! (C) => (A) 
+                        mmc_pneig (3 , 1, ic ) = mmc_pneig (3 , 1, ic ) + 1 
+                     ELSEIF(mmc_right(ic, MC_OCC,js)/=0) THEN                ! (C) => (B) 
+                        mmc_pneig (3 , 2, ic ) = mmc_pneig (3 , 2, ic ) + 1 
+                     else
+                        mmc_pneig (3 , 3, ic ) = mmc_pneig (3 , 3, ic ) + 1       ! (other) => (other)
+                     ENDIF
                   ENDIF
+!                 ENDIF
                ENDIF 
                IF (mmc_cor_energy (ic, MC_UNI) ) THEN 
 !                                                                       
 !     ----------- Chemical correlation, add number of atom pairs        
 !                                                                       
                   IF(mmc_pair(ic, MC_UNI,is,js) /=0) THEN
-                  mmc_pneig (is, js, ic) = mmc_pneig (is, js, ic) + 1 
+                     mmc_pneig(is, js, ic) = mmc_pneig(is, js, ic) + 1 
                   ENDIF
                ENDIF 
                IF(mmc_cor_energy(ic, MC_GROUP) ) THEN 
@@ -558,6 +591,52 @@ loop_neig:  DO j = 1, natom (icent)
                   ENDIF
                ENDIF 
 !read(*,*) k
+               IF(mmc_cor_energy(ic, MC_PREF ) ) THEN 
+!                                                                       
+!     ----------- Chemical correlation preferred, add number of atom pairs        
+!                                                                       
+!write(*,*) is, js
+!write(*,*) mmc_left (ic, MC_PREF,:), ' | ', &
+!mmc_left (ic, MC_PREF,is),  &
+!mmc_left (ic, MC_PREF,js)
+
+!write(*,*) mmc_right(ic, MC_PREF,:), ' | ',  &
+!mmc_right(ic, MC_PREF,is), &
+!mmc_right(ic, MC_PREF,js)
+
+                  IF(mmc_left (ic, MC_PREF,is)/=0) THEN                    ! (A) => 
+                     IF(    mmc_right(ic, MC_PREF,js)/=0) THEN                ! (A) => (B) 
+                        mmc_pneig (1 , 2, ic ) = mmc_pneig (1 , 2, ic ) + 1 
+!write(*,*) ' (A) => (B)'
+                     ELSEIF(mmc_left (ic, MC_PREF,js)/=0) THEN                ! (A) => (A)
+                        mmc_pneig (1 , 1, ic ) = mmc_pneig (1 , 1, ic ) + 1 
+!write(*,*) ' (A) => (A)'
+                     ELSE                                                      ! (A) => (other)
+                        mmc_pneig (1 , 3, ic ) = mmc_pneig (1 , 3, ic ) + 1 
+!write(*,*) ' (A) => (o)'
+                     ENDIF
+                  ELSEIF(mmc_right(ic, MC_PREF,is)/=0) THEN                ! (B) =>
+                     IF(    mmc_left (ic, MC_PREF,js)/=0) THEN                ! (B) => (A)
+                        mmc_pneig (2 , 1, ic ) = mmc_pneig (2 , 1, ic ) + 1 
+!write(*,*) ' (B) => (A)'
+                     ELSEIF(mmc_right(ic, MC_PREF,js)/=0) THEN                ! (B) => (B) 
+                        mmc_pneig (2 , 2, ic ) = mmc_pneig (2 , 2, ic ) + 1 
+!write(*,*) ' (B) => (B)'
+                     ELSE                                                      ! (B) => (other)
+                        mmc_pneig (2 , 3, ic ) = mmc_pneig (2 , 3, ic ) + 1 
+!write(*,*) ' (B) => (o)'
+                     ENDIF
+                  ELSE
+                     IF(    mmc_left (ic, MC_PREF,js)/=0) THEN                ! (other) => (A)
+                        mmc_pneig (3 , 1, ic ) = mmc_pneig (3 , 1, ic ) + 1 
+                     ELSEIF(mmc_right(ic, MC_PREF,js)/=0) THEN                ! (other) => (B) 
+                        mmc_pneig (3 , 2, ic ) = mmc_pneig (3 , 2, ic ) + 1 
+                     else
+                        mmc_pneig (3 , 3, ic ) = mmc_pneig (3 , 3, ic ) + 1   ! (other) => (other)
+                     ENDIF
+!write(*,*) ' (o) => (o)'
+                  ENDIF
+               ENDIF 
 !
 !
 !--- Coordination number, ic
@@ -667,22 +746,29 @@ ENDDO main_atoms       ! i     ! Loop over all atoms
 !                                                                       
 !     ----- Chemical correlation                                        
 !                                                                       
-IF (mmc_cor_energy (0, MC_OCC)) THEN
-   CALL mmc_correlations_occ(ic, mmc_pneig, rel_cycl, damp, lout, lfeed,        &
+IF (mmc_cor_energy (ic, MC_OCC)) THEN
+   CALL mmc_correlations_occ(ic, mmc_pneig, rel_cycl, damp, lout, lfeed, ldetail,  &
         max(MAXSCAT,3), CHEM_MAX_COR, maxdev)
 ENDIF
 !                                                                       
 !     ----- Unidirectional Chemical correlation                                        
 !                                                                       
-IF (mmc_cor_energy (0, MC_UNI)) THEN
+IF (mmc_cor_energy (ic, MC_UNI)) THEN
    CALL mmc_correlations_uni(ic, mmc_pneig, rel_cycl, damp, lout, lfeed,        &
         max(MAXSCAT,3), CHEM_MAX_COR, maxdev)
 ENDIF
 !                                                                       
 !     ----- Group wise correlations
 !                                                                       
-IF (mmc_cor_energy (0, MC_GROUP)) THEN
+IF (mmc_cor_energy (ic, MC_GROUP)) THEN
 CALL mmc_correlations_group(ic, mmc_pneig, rel_cycl, damp, lout, lfeed,         &
+     max(MAXSCAT,3), CHEM_MAX_COR, maxdev)
+ENDIF
+!                                                                       
+!     ----- Group wise preferencess
+!                                                                       
+IF (mmc_cor_energy (ic, MC_PREF)) THEN
+CALL mmc_correlations_pref(ic, mmc_pneig, rel_cycl, damp, lout, lfeed, ldetail,&
      max(MAXSCAT,3), CHEM_MAX_COR, maxdev)
 ENDIF
 !
@@ -1231,6 +1317,11 @@ loop_cor: DO ic = 1, CHEM_MAX_COR
                                             mmc_cor_energy(0, MC_GROUP)   .and.        &
                                             mmc_ach_corr(ic, je, is, js)/=0.0D0 .and.  & 
                                             mmc_target_corr(ic, je, is, js)/=0.0D0)    & !12 Group Correlations
+                     .or.                                                              &
+                     (je==MC_PREF     .and. is/=js .and. is>0 .and. js>0 .and.         & !12 Group correlations
+                                            mmc_cor_energy(0, MC_PREF )   .and.        &
+                                            mmc_ach_corr(ic, je, is, js)/=0.0D0 .and.  & 
+                                            mmc_target_corr(ic, je, is, js)/=0.0D0)    & !13 Group Preferrences
                     )  then 
 !
 ! write(*,'(4i5, f10.4, i5)') ic, je,    (is),    (js), mmc_ach_corr (ic, je, is, js), &
@@ -1261,8 +1352,8 @@ endif
      &    ' Def.   Type    central  Neighbors',13x,'Angle'              &
      &   ,27x,'Target  of pairs')                                               
  2100 FORMAT (1x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
- 3100 FORMAT (1x,i3,3x,'Occupancy',a5,3x,a5,      8x,2(f7.3,3x),        &
-     &        10x,f7.3,3x,i8)
+!3100 FORMAT (1x,i3,3x,'Occupancy',a5,3x,a5,      8x,2(f7.3,3x),        &
+!    &        10x,f7.3,3x,i8)
  3150 FORMAT (1x,i3,3x,'Coord.No.',a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,f7.3,3x,i8)
  3200 FORMAT (1x,i3,3x,'Disp.Cor.',a5,3x,a5,      8x,2(f7.3,3x),        &
@@ -1282,58 +1373,106 @@ END SUBROUTINE mmc_correlations
 !
 !*******************************************************************************
 !
-SUBROUTINE mmc_correlations_occ(ic, pneig, rel_cycl, damp, lout, lfeed, MAXSCAT_L, &
-                                MAX_COR, maxdev)
+SUBROUTINE mmc_correlations_occ_old(ic, pneig, rel_cycl, damp, lout, lfeed, ldetail, &
+           MAXSCAT_L, MAX_COR, maxdev)
 !
 !     ----- Chemical correlation                                        
 !
-USE crystal_mod 
-USE mc_mod 
-USE mmc_mod 
+!  The correlation is expressed as Warren-Cowley SRO alpha: = 1. - p_(dist)^{BA}/m_A
+!  p_(dist)^{BA}/m_A is the conditional probability to find an A neighbor to a B atom
+!  at distance/vector "dist"
+!  To improve the situation for ternary alloys, both 
+!  alpha 1.-p_(dist)^{BA}/m_A
+!  beta  1.-p_(dist)^{AB}/m_B
+!  are used
 !
-USE prompt_mod
-USE precision_mod
+!  For binary sorting this is the same as the Welberry correlation parameter:
+!  C = (P^{AA} - m_a^2) / m_A / m_B
+!  where P^{AA} is the fraction of {AA} pairs in this neighborhood.
 !
-IMPLICIT NONE
+!  For ternary and higher sorting, the Warren-Cowley parameters provide much better
+!  numerical values, P^{AA} does depend on the relative fraction of A and B 
 !
-INTEGER, INTENT(IN) :: ic
-INTEGER, INTENT(IN) :: MAXSCAT_L
-INTEGER, INTENT(IN) :: MAX_COR
-INTEGER, DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L, 1:MAX_COR) , INTENT(IN) :: pneig
-REAL(kind=PREC_DP)   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
-REAL(kind=PREC_DP)   , INTENT(IN) :: damp
-LOGICAL, INTENT(IN) :: lout
-LOGICAL, INTENT(IN) :: lfeed
+use crystal_mod 
+use mc_mod 
+use mmc_mod 
+!
+use prompt_mod
+use precision_mod
+!
+implicit none
+!
+integer              , intent(in) :: ic             ! Current correlation number
+integer              , intent(in) :: MAXSCAT_L      ! Array size number of atom types
+integer              , intent(in) :: MAX_COR        ! Maximum correlation number
+integer, DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L, 1:MAX_COR) , intent(in) :: pneig    ! Accumulated neighbor numbers
+real(kind=PREC_DP)   , intent(in) :: rel_cycl ! Relative progress along cycles
+real(kind=PREC_DP)   , intent(in) :: damp     ! Damping coefficient for PID feedback
+logical              , intent(in) :: lout     ! Screen output T/F
+logical              , intent(in) :: lfeed    ! Feedback T/F
+logical              , intent(in) :: ldetail  ! Print detaild correlation info 
 real(kind=PREC_DP), dimension(2), intent(inout) :: maxdev
 !
 !
-INTEGER :: pair11
-INTEGER :: pair12
-INTEGER :: pair21
-INTEGER :: pair22
-INTEGER :: is, js, je
-INTEGER :: nneigh
-LOGICAL :: lfirst
-REAL(kind=PREC_DP) :: prob11, prob12, prob22 
-REAL(PREC_DP) :: thet !, thet2
-REAL(PREC_DP) :: divisor
-REAL(PREC_DP) :: change
+integer :: pair11
+integer :: pair12
+integer :: pair21
+integer :: pair22
+integer :: is, js, ks, je
+integer :: nneigh
+integer :: ngrand
+logical :: lfirst
+real(PREC_DP) :: divisor
+real(PREC_DP) :: change
+!
+integer :: sumA, sumB
+real(kind=PREC_DP) :: probBA
+real(kind=PREC_DP) :: probAB
+real(kind=PREC_DP) :: beta
+real(kind=PREC_DP) :: alpha
+real(kind=PREC_DP) :: comp_1
+real(kind=PREC_DP) :: comp_2
+real(kind=PREC_DP) :: welb_a, welb_b
+real(kind=PREC_DP) :: prob11, prob22
+real(kind=PREC_DP) :: thet  , thet2
+real(kind=PREC_DP) :: r_nneigh      ! Grand number of pairs 
+real(kind=PREC_DP) :: m_left        ! Relative composition of left  group
+real(kind=PREC_DP) :: m_right       ! Relative composition of right group
+real(kind=PREC_DP) :: m_other       ! Relative composition of other group
+real(kind=PREC_DP) :: achieved      ! achieved SRO parameter
 integer :: k
 !
+!write(*,*) ' IN MMC_CORRELATIONS_OCC; ic ', ic, mmc_cor_energy(ic, MC_OCC)
+r_nneigh = real(sum(pneig(:,:,ic)), kind=PREC_DP)
+m_left   = real(sum(pneig(1,:,ic))) / r_nneigh
+m_right  = real(sum(pneig(2,:,ic))) / r_nneigh
+m_other  = real(sum(pneig(3,:,ic))) / r_nneigh
+!
+if(m_left>0.0_PREC_DP .and. m_right>0.0_PREC_DP) then
+   achieved = ( (1.0 - real(pneig(2,1, ic), kind=PREC_DP)/real(sum(pneig(2,:,ic)))/m_left)   &
+               +(1.0 - real(pneig(1,2, ic), kind=PREC_DP)/real(sum(pneig(1,:,ic)))/m_right)) *0.5_PREC_DP
+else
+   achieved = 1.0_PREC_DP
+endif
+!write(*,*) ' PROB BA alpha ', real(pneig(2,1, ic), kind=PREC_DP)/real(sum(pneig(2,:,ic))), &
+!           (1.0 - real(pneig(2,1, ic), kind=PREC_DP)/real(sum(pneig(2,:,ic)))/m_left)
+!write(*,*) ' PROB AB alpha ', real(pneig(1,2, ic), kind=PREC_DP)/real(sum(pneig(1,:,ic))), &
+!           (1.0 - real(pneig(1,2, ic), kind=PREC_DP)/real(sum(pneig(1,:,ic)))/m_right)
 je = MC_OCC 
-prob11 = 0.0
-prob12 = 0.0
-prob22 = 0.0
 pair11 = 0
 pair12 = 0
 pair21 = 0
 pair22 = 0
-thet   = 0.0
 k = 0
+comp_1 = 0
+comp_2 = 0
+sumA = 0
+sumB = 0
 DO is = 0, cr_nscat 
 !IF(MAxVAL(mmc_pair (ic, MC_OCC, is, 0:cr_nscat))>0 .OR.   &
 !   minval(mmc_pair (ic, MC_OCC, is, 0:cr_nscat))<0      ) then
-!write(*,*) 'PAIRS is= : ',is,' :: ',pneig(is, 0:cr_nscat, ic), ' ::', ic, ' :: ', mmc_pair (ic, MC_OCC, is, 0:cr_nscat)
+!write(*,'(a,i2,a,6i6,a,i2,a,6i3)') 'PAIRS is= : ',is,' :: ',pneig(is, 0:cr_nscat, ic), ' ::', ic, ' :: ', mmc_pair (ic, MC_OCC, is, 0:cr_nscat)
+!write(*,*) 'PAIRS ', is, ' ||', pneig (is,:,ic), ' || ', mmc_pair (ic, MC_OCC, is,1:)
 !endif
    DO js =  0, cr_nscat 
       IF     (mmc_pair (ic, MC_OCC, is, js) == -1 ) THEN 
@@ -1346,18 +1485,40 @@ DO is = 0, cr_nscat
          pair22 = pair22 + pneig (is,js, ic)
       ENDIF
    ENDDO
+   if    (mmc_pair (ic, MC_OCC, is, is) == +1 ) then 
+      sumA   = sumA   + sum(pneig(is,:,ic))            ! Add up pairs (IS)(..)
+   elseif(mmc_pair (ic, MC_OCC, is, is) == +2 ) then 
+      sumB   = sumB   + sum(pneig(is,:,ic))            ! Add up pairs (..)(JS)
+   endif
 ENDDO
 je = MC_OCC 
-!write(*,'(a,4i8)') 'PAIRS ', pair11, pair22, pair12, pair21
+!write(*,'(a,4i8, 2f6.3)') 'PAIRS ', pair11, pair22, pair12, pair21, comp_1, comp_2
+!!!
+ngrand = sum(pneig(:,:, ic))       ! Add up all pairs
+!write(*,*) ' SUMs ', sumA, sumB, ngrand
+probBA = pair21                    /real(sumB, kind=PREC_DP)      ! Conditional probability p^(BA)
+probAB = pair12                    /real(sumA, kind=PREC_DP)      ! Conditional probability p^(AB)
+comp_1 = real(sumA,kind=PREC_DP) / real(ngrand, kind=PREC_DP)     ! Fractional composition for this correlation 
+comp_2 = real(sumB,kind=PREC_DP) / real(ngrand, kind=PREC_DP)     ! Fractional composition for this correlation 
+alpha  = (1.0_PREC_DP - probBA/comp_1)                            ! Warren-Cowley alpha for BA
+beta   = (1.0_PREC_DP - probAB/comp_2)                            ! Warren-Cowley alpha for AB
+!welb_a = (pair11                    /real(ngrand, kind=PREC_DP)- comp_1**2      )/comp_1 /comp_2 
+!welb_b = (pair22                    /real(ngrand, kind=PREC_DP)- comp_2**2      )/comp_1 /comp_2 
+!write(*,'(''Correlations '', 6f8.4)') alpha, beta, welb_a, welb_b, 0.5*(alpha+beta), 0.5*(welb_a+welb_b)
+!read(*,*) js
 !                                                                       
 nneigh = pair11 + pair12 + pair21 + pair22 
+!nneigh = sum(pneig(1:2, 1:2, ic))
 IF (nneigh > 0.) THEN 
    prob11 =  pair11           / REAL(nneigh) 
-   prob12 = (pair12 + pair21) / REAL(nneigh) 
+!   prob12 = (pair12 + pair21) / REAL(nneigh) 
    prob22 =  pair22           / REAL(nneigh) 
    thet = 0.5 * (2.0 * pair11 + pair12 + pair21) / REAL(nneigh)                                                     
-!  thet2= 0.5 * (2.0*prob11 + prob12)
+   thet2= 0.5 * (2.0 * pair22 + pair12 + pair21) / REAL(nneigh)                                                     
+!!  thet2= 0.5 * (2.0*prob11 + prob12)
 ENDIF 
+welb_a = (prob11 - thet**2 ) /(thet  * (1 - thet ) )
+welb_b = (prob22 - thet2**2) /(thet2 * (1 - thet2) )
 !write(*,'(a,4i8,  i8)'      ) 'PAIRS ', pair11, pair12, pair21, pair22, nneigh
 !write(*,'(a,3f7.3,3x,2f7.3)') 'PROBs ', prob11, prob22, prob12, thet, thet2 !0.5 * ((pair22 + pair11) + pair12 + pair21) / REAL(nneigh)
 !write(*,'(a,2F7.3)'         ) 'corrs ', (prob11 - thet**2) / (thet * (1 - thet)) , &
@@ -1367,11 +1528,16 @@ lfirst = .TRUE.
 corr_pair: DO is = 0, cr_nscat 
    DO js = is, cr_nscat 
       IF     (mmc_pair (ic, MC_OCC, is, js) /=  0 ) THEN 
-        IF (thet /= 0.0.AND.thet /= 1.0) THEN 
-           mmc_ach_corr (ic, je, is, js) = (prob11 - thet**2) /&
-                                           (thet * (1 - thet) )
-           mmc_ach_corr (ic, je, js, is) = (prob11 - thet**2) /&
-                                           (thet * (1 - thet) )
+!       IF (thet /= 0.0.AND.thet /= 1.0) THEN 
+        if(comp_1/=0.0_PREC_DP .and. comp_2/=0.0_PREC_DP) then
+!          mmc_ach_corr (ic, je, is, js) = (prob11 - thet**2) /&
+!                                          (thet * (1 - thet) )
+!          mmc_ach_corr (ic, je, js, is) = (prob11 - thet**2) /&
+!                                          (thet * (1 - thet) )
+!          mmc_ach_corr (ic, je, is, js) = 0.5*(welb_a+welb_b)
+!          mmc_ach_corr (ic, je, js, is) = 0.5*(welb_a+welb_b)
+           mmc_ach_corr (ic, je, is, js) = 0.5*(alpha + beta )
+           mmc_ach_corr (ic, je, js, is) = 0.5*(alpha + beta )
         ELSE 
            IF((pair11>0 .OR. pair22>0) .AND. (pair12==0 .AND. pair21==0)) THEN
               mmc_ach_corr (ic, je, is, js) = 1.0 
@@ -1444,9 +1610,15 @@ corr_pair: DO is = 0, cr_nscat
                 nneigh! , &
 !                mmc_depth(ic, MC_OCC, is, js), change
 !write(*,'(a,f16.8)') ' depth ', mmc_depth(ic, MC_OCC, is,js)
+           do ks=1, 3
+              write(output_io, '(a, 3i10, f10.5)') ' Pairs     ', pneig(ks,1:3,ic), &
+              real(sum(pneig(ks,1:3,ic)))/real(sum(pneig(1:,1:,ic)))
+           enddo
+           write(output_io, '(a, 4f10.5)') ' Prob^BA, alpha^BA ', probBA, alpha, welb_b, thet2
+           write(output_io, '(a, 4f10.5)') ' Prob^AB, alpha^AB ', probAB,  beta, welb_a, thet
 !                                                                     
          ENDIF 
-            mmc_ach_pairs(ic, je, is, js) = nneigh
+!           mmc_ach_pairs(ic, je, is, js) = nneigh
 !                                                                       
       ENDIF 
    ENDDO 
@@ -1455,28 +1627,19 @@ ENDDO corr_pair
  3100 FORMAT (1x,i3,3x,'Occupancy',a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,f7.3,3x,i8) !, 2f9.5)
 !
-END SUBROUTINE mmc_correlations_occ
+END SUBROUTINE mmc_correlations_occ_old
 !
 !*****7*************************************************************************
 !
 SUBROUTINE mmc_correlation_write!(lcurrent)
 !-                                                                      
-!     Determines the achieved correlations                              
+!     Writes the achieved correlations                              
 !                                                                       
 !+                                                                      
 USE crystal_mod 
 USE chem_mod 
-!USE chem_menu
-!USE chem_aver_mod
-!USE chem_neig_multi_mod
-!USE atom_env_mod
-!USE celltoindex_mod
-!USE metric_mod
-!USE mc_mod 
 USE mmc_mod 
 !
-!USE debug_mod 
-!USE errlist_mod 
 use precision_mod
 USE prompt_mod 
 !
@@ -1522,6 +1685,31 @@ main_corr: do ic = 1, chem_ncor
       mmc_ini_corr   (ic, je, is, js),                                &
       mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js), &
       (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor
+   endif
+!
+!  Group Preferences CORRELATION 
+!
+   je = MC_PREF 
+   lfirst = .TRUE.
+   IF (mmc_cor_energy (0, MC_PREF)) THEN
+   is = MAXLOC(abs(mmc_left( ic, MC_PREF,:)), 1) - 1
+   js = MAXLOC(abs(mmc_right(ic, MC_PREF,:)), 1) - 1
+!write(*,*) ' LEFT     ', mmc_left( ic, MC_PREF,:)
+!write(*,*) ' RIGHT    ', mmc_left( ic, MC_PREF,:)
+!write(*,*) 'PREFERRED ', is, js, mmc_pneig(1,  2, ic)
+   IF(mmc_target_corr(ic, je, is, js) /= 0.0) then
+      divisor = ABS(mmc_target_corr(ic, je, is, js))
+   ELSE
+      divisor = 1.0
+   ENDIF
+!  write(output_io, 3100) ic, 'Prefer   ', cr_at_lis (is), cr_at_lis (js),         &
+   write(output_io, 3100) ic, 'Prefer   ', 'GR1', 'GR2',                           &
+      mmc_target_corr(ic, je, is, js),                                &
+      mmc_ini_corr   (ic, je, is, js),                                &
+      mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js), &
+      (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor,    &
+      mmc_ach_pairs(ic, je, is, js)
+!     mmc_pneig(1,  2, ic)
    endif
 !
 !  Unidirectional OCCUPATION CORRELATION 
@@ -1786,10 +1974,229 @@ end subroutine calc_change_pid
 !
 !*******************************************************************************
 !
+SUBROUTINE mmc_correlations_occ(ic, pneig, rel_cycl, damp, lout, lfeed, ldetail, &
+           MAXSCAT_L, MAX_COR, maxdev)
+!
+!     ----- Chemical correlation                                        
+!
+!  The correlation is expressed as Warren-Cowley SRO alpha: = 1. - p_(dist)^{BA}/m_A
+!  p_(dist)^{BA}/m_A is the conditional probability to find an A neighbor to a B atom
+!  at distance/vector "dist"
+!  To improve the situation for ternary alloys, both 
+!  alpha 1.-p_(dist)^{BA}/m_A
+!  beta  1.-p_(dist)^{AB}/m_B
+!  are used
+!
+!  For binary sorting this is the same as the Welberry correlation parameter:
+!  C = (P^{AA} - m_a^2) / m_A / m_B
+!  where P^{AA} is the fraction of {AA} pairs in this neighborhood.
+!
+!  For ternary and higher sorting, the Warren-Cowley parameters provide much better
+!  numerical values, P^{AA} does depend on the relative fraction of A and B 
+!
+use crystal_mod 
+use mc_mod 
+use mmc_mod 
+!
+use prompt_mod
+use precision_mod
+!
+implicit none
+!
+integer              , intent(in) :: ic             ! Current correlation number
+integer              , intent(in) :: MAXSCAT_L      ! Array size number of atom types
+integer              , intent(in) :: MAX_COR        ! Maximum correlation number
+integer, DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L, 1:MAX_COR) , intent(in) :: pneig    ! Accumulated neighbor numbers
+real(kind=PREC_DP)   , intent(in) :: rel_cycl ! Relative progress along cycles
+real(kind=PREC_DP)   , intent(in) :: damp     ! Damping coefficient for PID feedback
+logical              , intent(in) :: lout     ! Screen output T/F
+logical              , intent(in) :: lfeed    ! Feedback T/F
+logical              , intent(in) :: ldetail  ! Print detaild correlation info 
+real(kind=PREC_DP), dimension(2), intent(inout) :: maxdev
+!
+!
+integer :: pair11
+integer :: pair12
+integer :: pair21
+integer :: pair22
+integer :: is, js, je
+integer :: nneigh
+!integer :: ngrand
+logical :: lfirst
+real(PREC_DP) :: divisor
+real(PREC_DP) :: change
+!
+!integer :: sumA, sumB
+!real(kind=PREC_DP) :: probBA
+!real(kind=PREC_DP) :: probAB
+!real(kind=PREC_DP) :: beta
+!real(kind=PREC_DP) :: alpha
+!real(kind=PREC_DP) :: fact
+real(kind=PREC_DP) :: comp_1
+real(kind=PREC_DP) :: comp_2
+real(kind=PREC_DP) :: welb_a, welb_b
+real(kind=PREC_DP) :: prob11, prob22
+real(kind=PREC_DP), dimension(2) :: welb_comp
+real(kind=PREC_DP) :: r_nneigh      ! Grand number of pairs 
+real(kind=PREC_DP) :: m_left        ! Relative composition of left  group
+real(kind=PREC_DP) :: m_right       ! Relative composition of right group
+real(kind=PREC_DP) :: m_other       ! Relative composition of other group
+real(kind=PREC_DP) :: achieved      ! achieved SRO parameter
+!integer :: k
+!
+!write(*,*) ' IN MMC_CORRELATIONS_OCC; ic ', ic, mmc_cor_energy(ic, MC_OCC)
+!
+!pair11 = 0
+!pair12 = 0
+!pair21 = 0
+!pair22 = 0
+!
+r_nneigh = real(sum(pneig(:,:,ic)), kind=PREC_DP)
+m_left   = real(sum(pneig(1,:,ic))) / r_nneigh
+m_right  = real(sum(pneig(2,:,ic))) / r_nneigh
+m_other  = real(sum(pneig(3,:,ic))) / r_nneigh
+comp_1 = m_left
+comp_2 = m_right
+!
+if(m_left>0.0_PREC_DP .and. m_right>0.0_PREC_DP) then
+!  alpha = (1.0 - real(pneig(2,1, ic), kind=PREC_DP)/real(sum(pneig(2,:,ic)))/m_left)
+!  beta  = (1.0 - real(pneig(1,2, ic), kind=PREC_DP)/real(sum(pneig(1,:,ic)))/m_right)
+   achieved = ( (1.0 - real(pneig(2,1, ic), kind=PREC_DP)/real(sum(pneig(2,:,ic)))/m_left)   &
+               +(1.0 - real(pneig(1,2, ic), kind=PREC_DP)/real(sum(pneig(1,:,ic)))/m_right)) *0.5_PREC_DP
+else
+   achieved = 1.0_PREC_DP
+endif
+! Calculate Welberry Correlation parameter
+pair11 = pneig(1,1,ic)
+pair12 = pneig(1,2,ic)
+pair21 = pneig(2,1,ic)
+pair22 = pneig(2,2,ic)
+nneigh = pair11 + pair12 + pair21 + pair22 
+welb_a = 1.0_PREC_DP
+welb_b = 1.0_PREC_DP
+IF (nneigh > 0.) THEN 
+   prob11 =  pair11           / REAL(nneigh) 
+   prob22 =  pair22           / REAL(nneigh) 
+   welb_comp(1) = 0.5 * (2.0 * pair11 + pair12 + pair21) / REAL(nneigh)
+   welb_comp(2) = 0.5 * (2.0 * pair22 + pair12 + pair21) / REAL(nneigh)
+   if(welb_comp(1)>0.0_PREC_DP .and. welb_comp(1)<10.0_PREC_DP .and. &
+      welb_comp(2)>0.0_PREC_DP .and. welb_comp(2)<10.0_PREC_DP      ) then
+      welb_a = (prob11 - welb_comp(1)**2) /(welb_comp(1) * (1 - welb_comp(1)) )
+      welb_b = (prob22 - welb_comp(2)**2) /(welb_comp(2) * (1 - welb_comp(2)) )
+   endif
+ENDIF 
+!
+lfirst = .TRUE.
+is = MAXLOC(abs(mmc_left( ic, MC_OCC,:)), 1) - 1
+js = MAXLOC(abs(mmc_right(ic, MC_OCC,:)), 1) - 1
+!
+mmc_ach_corr( ic, MC_OCC, is, js) = achieved
+mmc_ach_pairs(ic, MC_OCC, is, js) = pneig(1,2,ic)
+!
+je = MC_OCC 
+!
+lfirst = .TRUE.
+corr_pair: DO is = 0, cr_nscat 
+   corr_js: DO js = is, cr_nscat 
+      cond_pair: IF     (mmc_pair (ic, MC_OCC, is, js) /=  0 ) THEN 
+        if(comp_1/=0.0_PREC_DP .and. comp_2/=0.0_PREC_DP) then
+           mmc_ach_corr (ic, je, is, js) = achieved
+           mmc_ach_corr (ic, je, js, is) = achieved
+        ELSE 
+           IF((pair11>0 .OR. pair22>0) .AND. (pair12==0 .AND. pair21==0)) THEN
+              mmc_ach_corr (ic, je, is, js) = 1.0 
+              mmc_ach_corr (ic, je, js, is) = 1.0 
+           ELSEIF((pair12>0 .OR. pair12>0) .AND. (pair11==0 .AND. pair22==0)) THEN
+              mmc_ach_corr (ic, je, is, js) =-1.0 
+              mmc_ach_corr (ic, je, js, is) =-1.0 
+           ELSE 
+              mmc_ach_corr (ic, je, is, js) = 0.0 
+              mmc_ach_corr (ic, je, js, is) = 0.0 
+           ENDIF 
+        ENDIF 
+!               Feedback mechanism                                      
+        IF(mmc_target_corr (ic, MC_OCC, is, js) /= 0.0) THEN
+           divisor = ABS(mmc_target_corr (ic, MC_OCC, is, js))
+        ELSE
+           divisor = 1.0
+        ENDIF
+        IF_FEED: IF(lfeed) THEN
+           IF_lfeed: IF(mmc_lfeed(ic,MC_OCC)) THEN
+           IF_RELC: IF(rel_cycl>0.0) THEN
+              call calc_change_pid(ic, MC_OCC, is, js, damp, divisor, 1.0D0, maxdev, change)
+!
+!          change = mmc_cfac(ic, MC_OCC) * (mmc_target_corr(ic, MC_OCC, is, js) -      &
+!                                           mmc_ach_corr   (ic, MC_OCC, is, js) ) / 0.1& !divisor &
+!                  *ABS(mmc_target_corr(ic, MC_OCC, is, js)) * damp
+!ENAGE
+               if(abs(mmc_target_corr(ic, MC_OCC, is, js))<0.001D0) then
+!write(*,*) ' Zerol ', change, change*0.0001, mmc_target_corr(ic, MC_OCC, is, js)
+                  mmc_depth(ic, MC_OCC, is, js) = 0.0D0
+                  mmc_depth(ic, MC_OCC, js, is) = mmc_depth (ic, MC_OCC, is, js)
+                  change = 0.0D0
+               elseif(abs(mmc_target_corr(ic, MC_OCC, is, js))<0.10) then
+!write(*,*) ' Small ', change, change*0.005
+                   change = change*0.005
+               elseif(abs(mmc_target_corr(ic, MC_OCC, is, js))<0.2) then
+!write(*,*) ' SMALL ', change, change*0.05
+                   change = change*0.05
+               elseIF(mmc_target_corr(ic, MC_OCC, is, js)*mmc_ach_corr(ic, MC_OCC, is, js)>=0.0  .AND. &
+                  mmc_depth(ic, MC_OCC, is, js)*(mmc_depth(ic, MC_OCC, is, js)+change)<0.0         ) THEN
+!write(*,*) ' CHANGE ', change, -mmc_depth(ic, MC_OCC, is, js)*0.100
+!                  change = change*0.05
+!                  change = -mmc_depth(ic, MC_OCC, is, js)*0.005
+                   change = -mmc_depth(ic, MC_OCC, is, js)*0.100
+               ENDIF
+!
+               mmc_depth(ic, MC_OCC, is, js) = mmc_depth (ic, MC_OCC, is, js) + change
+               mmc_depth(ic, MC_OCC, js, is) = mmc_depth (ic, MC_OCC, is, js)
+            ENDIF IF_RELC
+            ENDIF IF_lfeed
+         ENDIF IF_FEED
+!                                                                       
+!if(ic==1 .and. rel_cycl==0.0) then
+!write(88,'(5g18.6e3)') rel_cycl, mmc_ach_corr(ic, je,1,2),mmc_depth(ic, MC_OCC, 1,2), change, damp
+!endif
+         cond_out: IF (lout .AND. mmc_pair(ic,MC_OCC,is,js) < 0 .AND. lfirst) THEN
+!if(ic==1 .and. lfeed) then
+!write(88,'(5g18.6e3)') rel_cycl, mmc_ach_corr(ic, je,1,2),mmc_depth(ic, MC_OCC, 1,2), change, damp
+!endif
+            mmc_h_ctarg = mmc_h_ctarg + 1          ! Increment targets in history
+            mmc_h_diff(mmc_h_ctarg, mmc_h_index) = mmc_target_corr(ic, je, is, js) - &
+                                                   mmc_ach_corr   (ic, je, is, js)
+            mmc_h_targ(mmc_h_ctarg)              = mmc_target_corr(ic, je, is, js)
+            lfirst = .FALSE.
+            WRITE (output_io, 3100) ic, cr_at_lis (is), cr_at_lis (js),         &
+                mmc_target_corr(ic, je, is, js),                                &
+                mmc_ach_corr   (ic, je, is, js),                                &
+                mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js), &
+               (mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js))/divisor, &
+                nneigh! , &
+!                mmc_depth(ic, MC_OCC, is, js), change
+!write(*,'(a,f16.8)') ' depth ', mmc_depth(ic, MC_OCC, is,js)
+           if(ldetail) then
+              call mmc_write_detail(MAXSCAT_L, MAX_COR, pneig, ic)
+!, m_left, m_right, &
+!              m_other, welb_comp, welb_a, welb_b)
+           endif
+!                                                                     
+         ENDIF cond_out
+      ENDIF cond_pair
+   ENDDO corr_js
+ENDDO corr_pair
+!
+ 3100 FORMAT (1x,i3,3x,'Occupancy',a5,3x,a5,      8x,2(f7.3,3x),        &
+     &        10x,f7.3,3x,f7.3,3x,i8) !, 2f9.5)
+!
+END SUBROUTINE mmc_correlations_occ
+!
+!*******************************************************************************
+!
 SUBROUTINE mmc_correlations_uni(ic, pneig, rel_cycl, damp, lout, lfeed, MAXSCAT_L, &
                                 MAX_COR, maxdev)
 !
 !     ----- Chemical correlation                                        
+! Unidirectional case  Requires an overhaul! Feb 5 2025
 !
 USE crystal_mod 
 USE mc_mod 
@@ -1954,6 +2361,8 @@ SUBROUTINE mmc_correlations_group(ic, pneig, rel_cycl, damp, lout, lfeed, MAXSCA
                                 MAX_COR, maxdev)
 !
 !     ----- Chemical correlation                                        
+!  Groupwise correlations  Requires overhaul Feb 5, 2025
+!  Needs transformation into Warren-Cowley
 !
 USE crystal_mod 
 USE mc_mod 
@@ -2112,6 +2521,318 @@ ENDIF
      &        10x,f7.3,3x,f7.3,3x,i8)
 !
 END SUBROUTINE mmc_correlations_group
+!
+!*******************************************************************************
+!
+SUBROUTINE mmc_correlations_pref(ic, pneig, rel_cycl, damp, lout, lfeed, ldetail, &
+           MAXSCAT_L, MAX_COR, maxdev)
+!
+!     ----- Chemical correlation,preferred neighbors, unidirectional
+! atoms are in left group or right group, the number of interest is the
+! (left)-(right) pairs
+! m_left  = sum(pneig(1,:,ic)) / sum(pneig(:,:,ic))
+! m_right = sum(pneig(2,:,ic)) / sum(pneig(:,:,ic))
+! Maximum probability is: min(m_left , m_right)
+! Random probability  is      m_left * m_right 
+! Correlation : [P_left_right - m_left * m_right] / [ min(m_left , m_right) - m_left * m_right]
+! Warren-Cowley: 1 - P_left_right/m_left
+! Warren-Cowley: 1 - P_right_left/m_right
+!
+USE crystal_mod 
+USE mc_mod 
+USE mmc_mod 
+!
+USE prompt_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER              , INTENT(IN) :: ic
+INTEGER              , INTENT(IN) :: MAXSCAT_L
+INTEGER              , INTENT(IN) :: MAX_COR
+INTEGER, DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L, 1:MAX_COR) , INTENT(IN) :: pneig
+REAL(kind=PREC_DP)   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
+REAL(kind=PREC_DP)   , INTENT(IN) :: damp
+LOGICAL              , INTENT(IN) :: lout
+LOGICAL              , INTENT(IN) :: lfeed
+logical              , intent(in) :: ldetail                 ! Write more detailed output
+real(kind=PREC_DP), dimension(2), intent(inout) :: maxdev
+!
+INTEGER :: is, js, je
+LOGICAL :: lfirst
+real(kind=PREC_DP) :: m_left
+real(kind=PREC_DP) :: m_right
+real(kind=PREC_DP) :: m_other
+real(kind=PREC_DP) :: r_nneigh
+integer :: pair11
+integer :: pair12
+integer :: pair21
+integer :: pair22
+integer :: nneigh
+real(kind=PREC_DP) :: welb_a, welb_b
+real(kind=PREC_DP) :: prob11, prob22
+REAL(PREC_DP), dimension(2) :: welb_comp      ! Compositions from group1 and 2 in common space pneig(1:2,1:2,ic)
+REAL(PREC_DP) :: achieved
+REAL(PREC_DP) :: target_corr
+REAL(PREC_DP) :: depth    
+REAL(PREC_DP) :: divisor
+REAL(PREC_DP) :: change
+real(kind=PREC_DP) :: fact
+!write(*,*) ' IN MMC_CORRELATIONS_PREF;ic ', ic, mmc_cor_energy(ic, MC_PREF)
+!write(*,*) ' IN PREF CORRELATIONS ', ic, lout, lfeed
+!do is=0, cr_nscat
+!write(*,*) 'PAIRS ', is, ' ||', pneig (is,:,ic)
+!enddo
+!
+r_nneigh = real(sum(pneig(:,:,ic)), kind=PREC_DP)
+m_left   = real(sum(pneig(1,:,ic))) / r_nneigh
+m_right  = real(sum(pneig(2,:,ic))) / r_nneigh
+m_other  = real(sum(pneig(3,:,ic))) / r_nneigh
+!
+if(m_left>0.0_PREC_DP .and. m_right>0.0_PREC_DP) then
+   achieved = ( (1.0 - real(pneig(2,1, ic), kind=PREC_DP)/real(sum(pneig(2,:,ic)))/m_left)   &
+               +(1.0 - real(pneig(1,2, ic), kind=PREC_DP)/real(sum(pneig(1,:,ic)))/m_right)) *0.5_PREC_DP
+else
+   achieved = 1.0_PREC_DP
+endif
+!
+! Calculate Welberry Correlation parameter
+pair11 = pneig(1,1,ic)
+pair12 = pneig(1,2,ic)
+pair21 = pneig(2,1,ic)
+pair22 = pneig(2,2,ic)
+nneigh = pair11 + pair12 + pair21 + pair22 
+welb_a = 1.0
+welb_b = 1.0
+IF (nneigh > 0.) THEN 
+   prob11 =  pair11           / REAL(nneigh) 
+   prob22 =  pair22           / REAL(nneigh) 
+   welb_comp(1) = 0.5 * (2.0 * pair11 + pair12 + pair21) / REAL(nneigh)
+   welb_comp(2) = 0.5 * (2.0 * pair22 + pair12 + pair21) / REAL(nneigh)
+   if(welb_comp(1)>0.0_PREC_DP .and. welb_comp(1)<10.0_PREC_DP .and. &
+      welb_comp(2)>0.0_PREC_DP .and. welb_comp(2)<10.0_PREC_DP      ) then
+      welb_a = (prob11 - welb_comp(1)**2) /(welb_comp(1) * (1 - welb_comp(1)) )
+      welb_b = (prob22 - welb_comp(2)**2) /(welb_comp(2) * (1 - welb_comp(2)) )
+   endif
+ENDIF 
+!
+je = MC_PREF 
+!write(*,'(a,5f9.4)') ' PREF : ', achieved
+!
+lfirst = .TRUE.
+is = MAXLOC(abs(mmc_left( ic, MC_PREF,:)), 1) - 1
+js = MAXLOC(abs(mmc_right(ic, MC_PREF,:)), 1) - 1
+!write(*,*) ' FEEDBACK ', is, js
+target_corr = mmc_target_corr (ic, MC_PREF, is, js)
+IF(target_corr /= 0.0) then
+   divisor = ABS(target_corr)
+ELSE
+   divisor = 1.0
+ENDIF
+if(target_corr<0.0) then
+  fact = -1.0          ! Adjust shift for PID parameters
+else
+  fact = +1.0
+endif
+!write(*,*) ' Achieved ', achieved, is, js, target_corr
+mmc_ach_corr(ic, MC_PREF, is, js) = achieved
+mmc_ach_pairs(ic, MC_PREF, is, js) = pneig(1,2,ic)
+!write(*,*) ' IS, JS ', is, js, divisor
+IF_FEED: IF(lfeed) THEN
+   IF_lfeed: IF(mmc_lfeed(ic, MC_PREF)) THEN
+   IF_RELC: IF(rel_cycl>0.0) THEN
+      CFAC: IF(mmc_cfac(ic, MC_PREF)>0.0) THEN
+!write(*,*) ' PREF ', is, js
+              call calc_change_pid(ic, MC_PREF, is, js,  damp, divisor, fact, maxdev,  change)
+!     change = mmc_cfac (ic, MC_PREF) * (target_corr- achieved)/2.             &
+!                                      * ABS(target_corr) * damp
+!write(*,*) '         CHANGE ', mmc_cfac (ic, MC_PREF) , (target_corr- achieved)/2.,            &
+!                                        ABS(target_corr) , damp, change
+       change = -change
+!SIG  IF(target_corr*achieved>=0.0  .AND. &
+!SIG          mmc_depth(ic, MC_PREF, is, js)*(mmc_depth(ic, MC_PREF, is, js)-change)<0.0         ) THEN
+!SIG     change = -mmc_depth(ic, MC_PREF, is, js)*0.005
+!SIG  ENDIF
+      mmc_depth(ic, MC_PREF, is, js) = mmc_depth (ic, MC_PREF, is, js) - change
+!     mmc_depth(ic, MC_PREF, js, is) = mmc_depth (ic, MC_PREF, is, js)
+      depth = mmc_depth(ic, MC_PREF, is, js)
+!     mmc_depth_def = ABS(depth)
+
+      DO is = 0, cr_nscat 
+         DO js = 0 , cr_nscat 
+            IF(mmc_left(ic, MC_PREF, is) /= 0  .AND. mmc_right(ic, MC_PREF, js) /= 0 ) THEN
+               mmc_depth   (ic, MC_PREF, is, js) = depth
+               mmc_ach_corr(ic, MC_PREF, is, js) = achieved
+               mmc_ach_pairs(ic, MC_PREF, is, js) = pneig(1,2,ic)
+            ENDIF
+         ENDDO
+      ENDDO
+      ENDIF CFAC
+   ENDIF IF_RELC
+   ENDIF IF_lfeed
+ENDIF IF_FEED
+!
+IF(lout .AND. lfirst) THEN
+   mmc_h_ctarg = mmc_h_ctarg + 1          ! Increment targets in history
+   mmc_h_diff(mmc_h_ctarg, mmc_h_index) = target_corr - achieved
+   mmc_h_targ(mmc_h_ctarg)              = target_corr
+   lfirst = .FALSE.
+   WRITE(output_io, 3100) ic, 'GR1 ', 'GR2 ', target_corr, achieved ,          &
+         target_corr - achieved, (target_corr - achieved)/divisor, pneig(1,2,ic) !nneigh
+   if(ldetail) then
+      call mmc_write_detail(MAXSCAT_L, MAX_COR, pneig, ic)
+!, m_left, m_right, &
+!      m_other, welb_comp, welb_a, welb_b)
+   endif
+ENDIF
+!
+ 3100 FORMAT (1x,i3,3x,'Prefer   ',a5,3x,a5,      8x,2(f7.3,3x),        &
+     &        10x,f7.3,3x,f7.3,3x,i8)
+!
+END SUBROUTINE mmc_correlations_pref
+!
+!*****7*****************************************************************
+!
+subroutine mmc_write_detail(MAXSCAT, MAX_COR, pneig, ic) !, m_left, m_right, &
+!           m_other, welb_comp, welb_a, welb_b)
+!-
+!  Print detailed pair par info
+!+
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer , intent(in) :: MAXSCAT
+integer, intent(in) :: MAX_COR
+INTEGER, DIMENSION(0:MAXSCAT, 0:MAXSCAT, 1:MAX_COR) , INTENT(IN) :: pneig
+integer, intent(in) :: ic
+!
+real(kind=PREC_DP)               :: m_left
+real(kind=PREC_DP)               :: m_right
+real(kind=PREC_DP)               :: m_other
+real(kind=PREC_DP), dimension(3) :: welb_comp
+!real(kind=PREC_DP)               :: welb_a
+!real(kind=PREC_DP)               :: welb_b
+!
+integer :: is
+integer :: nneigh
+!integer :: pair11, pair12, pair21, pair22
+real(kind=PREC_DP) :: r_nneigh
+real(kind=PREC_DP) :: prob11
+real(kind=PREC_DP) :: prob22
+REAL(PREC_DP), dimension(3,3) :: warren       ! Full matrix of Warren-Cowley
+REAL(PREC_DP), dimension(3,3) :: welberry     ! Full matrix of Welberry
+!
+r_nneigh = real(sum(pneig(:,:,ic)), kind=PREC_DP)
+m_left   = real(sum(pneig(1,:,ic))) / r_nneigh
+m_right  = real(sum(pneig(2,:,ic))) / r_nneigh
+m_other  = real(sum(pneig(3,:,ic))) / r_nneigh
+!
+welberry = 1.0_PREC_DP
+!
+nneigh = sum(pneig(1:2, 1:2, ic))
+if(nneigh>0) then
+   prob11 =  pneig(1, 1, ic)  / REAL(nneigh) 
+   prob22 =  pneig(2, 2, ic)  / REAL(nneigh) 
+   welb_comp(1) = 0.5 * (2.0 * pneig(1, 1, ic) + pneig(1, 2, ic) + pneig(2, 1, ic)) / REAL(nneigh)
+   welb_comp(2) = 0.5 * (2.0 * pneig(2, 2, ic) + pneig(1, 2, ic) + pneig(2, 1, ic)) / REAL(nneigh)
+   if(welb_comp(1)>0.0_PREC_DP .and. welb_comp(1)<1.0_PREC_DP .and. &
+      welb_comp(2)>0.0_PREC_DP .and. welb_comp(2)<1.0_PREC_DP      ) then
+      welberry(1,2) = (prob11 - welb_comp(1)**2) /(welb_comp(1) * (1 - welb_comp(1)) )
+      welberry(2,1) = (prob22 - welb_comp(2)**2) /(welb_comp(2) * (1 - welb_comp(2)) )
+   endif
+!write(*,'(7f10.5)') prob11, prob22, welb_comp, welberry(1,2), welberry(2,1)
+endif
+!
+nneigh = sum(pneig(1:3:2, 1:3:2, ic))
+if(nneigh>0) then
+   prob11 =  pneig(1, 1, ic)  / REAL(nneigh) 
+   prob22 =  pneig(3, 3, ic)  / REAL(nneigh) 
+   welb_comp(1) = 0.5 * (2.0 * pneig(1, 1, ic) + pneig(1, 3, ic) + pneig(3, 1, ic)) / REAL(nneigh)
+   welb_comp(2) = 0.5 * (2.0 * pneig(3, 3, ic) + pneig(1, 3, ic) + pneig(3, 1, ic)) / REAL(nneigh)
+   if(welb_comp(1)>0.0_PREC_DP .and. welb_comp(1)<1.0_PREC_DP .and. &
+      welb_comp(2)>0.0_PREC_DP .and. welb_comp(2)<1.0_PREC_DP      ) then
+      welberry(1,3) = (prob11 - welb_comp(1)**2) /(welb_comp(1) * (1 - welb_comp(1)) )
+      welberry(3,1) = (prob22 - welb_comp(2)**2) /(welb_comp(2) * (1 - welb_comp(2)) )
+   endif
+!write(*,'(7f10.5)') prob11, prob22, welb_comp, welberry(1,3), welberry(3,1)
+endif
+!
+nneigh = sum(pneig(2:3, 2:3, ic))
+if(nneigh>0) then
+   prob11 =  pneig(2, 2, ic)  / REAL(nneigh) 
+   prob22 =  pneig(3, 3, ic)  / REAL(nneigh) 
+   welb_comp(1) = 0.5 * (2.0 * pneig(2, 2, ic) + pneig(2, 3, ic) + pneig(3, 2, ic)) / REAL(nneigh)
+   welb_comp(2) = 0.5 * (2.0 * pneig(3, 3, ic) + pneig(2, 3, ic) + pneig(3, 2, ic)) / REAL(nneigh)
+   if(welb_comp(1)>0.0_PREC_DP .and. welb_comp(1)<1.0_PREC_DP .and. &
+      welb_comp(2)>0.0_PREC_DP .and. welb_comp(2)<1.0_PREC_DP      ) then
+      welberry(2,3) = (prob11 - welb_comp(1)**2) /(welb_comp(1) * (1 - welb_comp(1)) )
+      welberry(3,2) = (prob22 - welb_comp(2)**2) /(welb_comp(2) * (1 - welb_comp(2)) )
+   endif
+!write(*,'(7f10.5)') prob11, prob22, welb_comp, welberry(2,3), welberry(3,2)
+endif
+  
+!
+! Calculate Welberry Correlation parameter
+!pair11 = pneig(1,1,ic)
+!pair12 = pneig(1,2,ic)
+!pair21 = pneig(2,1,ic)
+!pair22 = pneig(2,2,ic)
+!nneigh = pair11 + pair12 + pair21 + pair22 
+!welb_a = 1.0
+!welb_b = 1.0
+!IF (nneigh > 0.) THEN 
+!   prob11 =  pair11           / REAL(nneigh) 
+!   prob22 =  pair22           / REAL(nneigh) 
+!   welb_comp(1) = 0.5 * (2.0 * pair11 + pair12 + pair21) / REAL(nneigh)
+!   welb_comp(2) = 0.5 * (2.0 * pair22 + pair12 + pair21) / REAL(nneigh)
+!   if(welb_comp(1)>0.0_PREC_DP .and. welb_comp(1)<1.0_PREC_DP .and. &
+!      welb_comp(2)>0.0_PREC_DP .and. welb_comp(2)<1.0_PREC_DP      ) then
+!      welb_a = (prob11 - welb_comp(1)**2) /(welb_comp(1) * (1 - welb_comp(1)) )
+!      welb_b = (prob22 - welb_comp(2)**2) /(welb_comp(2) * (1 - welb_comp(2)) )
+!   endif
+!ENDIF 
+!
+warren = 1.0_PREC_DP
+!
+if(m_left>0.0_PREC_DP .and. m_right>0.0_PREC_DP) then
+   warren(2,1) = (1.0 - real(pneig(2,1, ic), kind=PREC_DP)/real(sum(pneig(2,:,ic)))/m_left)
+   warren(1,2) = (1.0 - real(pneig(1,2, ic), kind=PREC_DP)/real(sum(pneig(1,:,ic)))/m_right) 
+endif
+!
+if(m_left>0.0_PREC_DP .and. m_other>0.0_PREC_DP) then
+   warren(3,1) = (1.0 - real(pneig(3,1, ic), kind=PREC_DP)/real(sum(pneig(3,:,ic)))/m_left)
+   warren(1,3) = (1.0 - real(pneig(1,3, ic), kind=PREC_DP)/real(sum(pneig(1,:,ic)))/m_other)
+endif
+if(m_right>0.0_PREC_DP .and. m_other>0.0_PREC_DP) then
+   warren(3,2) = (1.0 - real(pneig(3,2, ic), kind=PREC_DP)/real(sum(pneig(3,:,ic)))/m_right)
+   warren(2,3) = (1.0 - real(pneig(2,3, ic), kind=PREC_DP)/real(sum(pneig(2,:,ic)))/m_other)
+endif
+!
+do is=1, 2
+   write(output_io,'(7x,a,3i9,a, i9, a,2f10.5)') 'Pairs   ', pneig(is,1:3,ic),  &
+      ' Sum ', sum(pneig(is,:,ic)), '        Composition ',                     &
+   real(sum(pneig(is,:,ic)))/real(sum(pneig(:,:,ic))), welb_comp(is)
+enddo
+write(output_io,'(7x,a,3i9,a, i9, a, f10.5)') 'Pairs   ', pneig(is,1:3,ic),     &
+   ' Sum ', sum(pneig(is,:,ic)), '        Composition ',                        & 
+   real(sum(pneig(is,:,ic)))/real(sum(pneig(:,:,ic)))
+write(output_io,'(7x, a, 16x, 2f10.5,10x, 2f10.5)')        'Warren-Cowley .. AB AC ',  &
+   warren(1,2), warren(1,3), welberry(1,2), welberry(1,3)
+write(output_io,'(7x, a,    6x, 2(f10.5,10x,f10.5) )')     'Warren-Cowley BA .. BC ',  &
+   warren(2,1), warren(2,3), welberry(2,1), welberry(2,3)
+write(output_io,'(7x, a,    6x, 2(f10.5   ),10x,2f10.5 )') 'Warren-Cowley CA CB .. ',  &
+   warren(3,1), warren(3,2), welberry(3,1), welberry(3,2)
+!
+!open(54,file='correlations.table',status='unknown')
+!write(54, 1000) 'A&',pneig(1,1,ic),'&',pneig(1,2,ic),'&', pneig(1,3,ic), '&', m_left, '& &',warren(1,2), '&',warren(1,3), '& &', welberry(1,2), '&', welberry(1,3),'\\'
+!write(54, 1000) 'B&',pneig(2,1,ic),'&',pneig(2,2,ic),'&', pneig(2,3,ic), '&', m_right, '&'  ,warren(2,1), '& &',warren(2,3), '&'  , welberry(2,1), '& &', welberry(2,3),'\\'
+!write(54, 1000) 'C&',pneig(3,1,ic),'&',pneig(3,2,ic),'&', pneig(3,3,ic), '&', m_other, '&'  ,warren(3,1), '&',warren(3,2), '& &', welberry(3,1), '&', welberry(3,2),'  '
+!close(54)
+!1000 format(a,3(i4,a1), f4.2,a,4(f7.4, a))
+!
+end subroutine mmc_write_detail
 !
 !*****7*****************************************************************
 !

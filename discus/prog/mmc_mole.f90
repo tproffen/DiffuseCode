@@ -62,6 +62,7 @@ real(kind=PREC_DP), dimension(3)                    :: disp  ! Displacement vect
 real(kind=PREC_DP), dimension(3, 3)                 :: matr  ! Rotation matrix
 INTEGER                                      :: ncent
 logical                                      :: laccept      ! Accept move T/F
+logical                                      :: ldetail      ! Print more detailed correlations 
 real(kind=PREC_DP), dimension(0:MC_N_ENERGY) :: e_old        ! old energies
 real(kind=PREC_DP), dimension(0:MC_N_ENERGY) :: e_new        ! new energies
 !
@@ -91,7 +92,8 @@ lfeed = .false.
 lout      = .FALSE.
 lfinished = .FALSE.
 lfeed     = .FALSE.
-CALL mmc_correlations (lout, 0.0D0, done, lfinished, lfeed, maxdev)
+ldetail   = .false.
+CALL mmc_correlations (lout, 0.0D0, done, lfinished, lfeed, ldetail, maxdev)
 !
 tid = 0
 nthreads = 1
@@ -160,7 +162,8 @@ IF(lout_feed) THEN
 ENDIF
 lfinished = .TRUE.
 lfeed     = .FALSE.   ! no feedback algorithm
-CALL mmc_correlations (lout_feed, rel_cycl, done, lfinished, lfeed, maxdev)
+ldetail   = .FALSE.   ! no detailed output  m
+CALL mmc_correlations (lout_feed, rel_cycl, done, lfinished, lfeed, ldetail, maxdev)
 !
 call symm_restore                                  ! restore symmetry settings
 chem_period = old_chem_period                      ! Restore boundary conditions
@@ -230,9 +233,11 @@ INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)    :: imodulus
 LOGICAL                           , INTENT(INOUT) :: done
 !
 integer                                      :: is_move      ! Type of move displacement or switch
+logical                                      :: ldetail      ! Print more detailed correlations 
 !
 real(kind=PREC_DP), dimension(2) :: maxdev = (/ 0.0, 0.0/)
 !
+ldetail = .false.
 if(done) return          ! Quickly cycle to end if an error occured
 if(tid==0) then
    igen = igen + 1
@@ -265,7 +270,7 @@ IF(tid==0) THEN
                 iacc_good, iacc_neut, iacc_bad
 !
       rel_cycl = REAL(igen)/REAL(mo_cyc)*REAL(NTHREADS)
-      CALL mmc_correlations(lout_feed, rel_cycl, done, .FALSE., lfeed, maxdev)
+      CALL mmc_correlations(lout_feed, rel_cycl, done, .FALSE., lfeed, ldetail, maxdev)
 
    endif
 !

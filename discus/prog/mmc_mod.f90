@@ -105,6 +105,7 @@ REAL(kind=PREC_DP) , DIMENSION(:,:,:,:)  , ALLOCATABLE ::  mmc_pid_diff    ! PID
 REAL(kind=PREC_DP) , DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_pid_inte    ! PID Integral term
 REAL(kind=PREC_DP) , DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_pid_deri    ! PID Differential term
 REAL(kind=PREC_DP) , DIMENSION(3,2)                    ::  mmc_pid_pid     ! PID PID parameters, Average of (diff, inte,dervi)
+real(kind=PREC_DP) , dimension(:)        , allocatable ::  mmc_comp        ! Crystal composition
 integer                                  :: mmc_pid_pid_n    ! Number of correlations contributing
 real(kind=PREC_DP) :: mmc_pid_change = 0.0
 REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_pre_corr    ! Previous correlation 

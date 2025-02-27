@@ -60,6 +60,7 @@ INTEGER             :: n_mole = 1 ! dummy for allocation
 logical :: lout
 logical :: lfeed
 logical :: lfinished
+logical :: ldetail     ! Print more detailed correlation output
 logical :: done
 real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 real(kind=PREC_DP) :: rel_cycl
@@ -203,10 +204,12 @@ IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
             if(zeile== ' ' .or.                    & ! No parameter
                str_comp(zeile, 'corr', 4, lp, 4)) then
                lout      = .false.
+               lout      = .true.
                rel_cycl  = 1.0D0
                done      = .true.
                lfinished = .true.
-               CALL mmc_correlations (lout, rel_cycl, done, lfinished, lfeed, maxdev)
+               ldetail   = .true.
+               CALL mmc_correlations (lout, rel_cycl, done, lfinished, lfeed, ldetail, maxdev)
             else
                ier_num = -6
                ier_typ = -6
@@ -393,8 +396,10 @@ IF (mmc_cor_energy (0, MC_OCC) ) THEN
    WRITE (output_io, 2100) 
    IF (mo_sel_atom) THEN 
       DO k = 1, chem_ncor 
+!write(*,*) ' mmc_left  ', mmc_left (k , MC_OCC, 0:)
+!write(*,*) ' mmc_right ', mmc_right(k , MC_OCC, 0:)
 !DO i = 0, cr_nscat 
-!!write(*,*) 'MMC_PAIR ',i,' : ', mmc_pair(k, MC_OCC, i,0:cr_nscat)
+!write(*,*) 'MMC_PAIR ',i,' : ', mmc_pair(k, MC_OCC, i,0:cr_nscat)
 !write(fff,'(a,i1,a,i1,a)') '(a,i2,a,', cr_nscat+1, 'i4,', cr_nscat+1,  'f7.2)'
 !write(*,fff                 ) 'MMC_PAIR ',i,' : ', mmc_pair(k, MC_OCC, i,0:cr_nscat),&
 !                                                   mmc_depth(k,MC_OCC, i,0:cr_nscat)
@@ -465,6 +470,60 @@ IF (mmc_cor_energy (0, MC_UNI)) THEN
       ENDDO 
    ENDIF 
 ENDIF 
+!
+!  Preferred Neighbors
+IF (mmc_cor_energy (0, MC_PREF) ) THEN
+   WRITE (output_io, 2120) 
+   IF (mo_sel_atom) THEN 
+      DO k = 1, chem_ncor 
+         zeile = ' '
+         do i=0, cr_nscat
+            if(mmc_left(k, MC_PREF, i)/=0) then
+               zeile(len_trim(zeile)+1:len_trim(zeile)+1+len_trim(at_name (i))) = at_name (i)
+            endif
+         enddo
+         write(output_io, '(2a)') '      Left  Group 1 :  ', zeile(1:len_trim(zeile))
+         zeile = ' '
+         do i=0, cr_nscat
+            if(mmc_right(k, MC_PREF, i)/=0) then
+               zeile(len_trim(zeile)+1:len_trim(zeile)+1+len_trim(at_name (i))) = at_name (i)
+            endif
+         enddo
+         write(output_io, '(2a)') '      Right Group 2 :  ', zeile(1:len_trim(zeile))
+!DO i = 0, cr_nscat 
+!write(*,*) 'MMC_PAIR ',i,' : ', mmc_pair(k, MC_PREF, i,0:cr_nscat)
+!write(fff,'(a,i1,a,i1,a)') '(a,i2,a,', cr_nscat+1, 'i4,', cr_nscat+1,  'f7.2)'
+!write(*,fff                 ) 'MMC_PAIR ',i,' : ', mmc_pair(k, MC_OCC, i,0:cr_nscat),&
+!                                                   mmc_depth(k,MC_OCC, i,0:cr_nscat)
+!enddo
+         DO ie = MC_PREF, MC_PREF
+            DO i = 0, cr_nscat 
+               DO j = i+1, cr_nscat 
+!                  at_name_i = at_name (i) 
+!                  at_name_j = at_name (j) 
+                  IF (mmc_pair        (k, ie, i, j) <   0.0) THEN 
+                     WRITE (output_io, 7300) 'Group 1', 'Group 2', k,         &
+                     mmc_target_corr (k, MC_PREF, i, j),                       &
+                     mmc_depth (k, MC_PREF,i, j)
+                  ENDIF 
+               ENDDO 
+            ENDDO 
+         ENDDO 
+      ENDDO 
+   ELSE 
+      DO k = 1, chem_ncor 
+         DO i = 1, mole_num_type 
+            DO j = i, mole_num_type 
+               IF (mmc_pair        (k, MC_PREF, i, j) <   0.0) THEN 
+                  WRITE (output_io, 4200) i, j, k,         &
+                        mmc_target_corr (k,MC_PREF, i, j),  &
+                        mmc_depth (k, MC_PREF, i, j)
+                  ENDIF 
+               ENDDO 
+            ENDDO 
+         ENDDO 
+      ENDIF 
+   ENDIF 
 !
 IF (mmc_cor_energy (0, MC_DISP) ) THEN 
    WRITE (output_io, 2200) 
@@ -766,6 +825,8 @@ ENDIF
  1400 FORMAT (  '   Temperature [kT]             : ',f8.4) 
  3000 FORMAT (/,' Correlation definitions        : ',/) 
  2100 FORMAT (/,' Desired correlations for Chemical Occupancy : ',/,/,  &
+     &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
+ 2120 FORMAT (/,' Desired correlations for Chemical Preferrence:',/,/,  &
      &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
  2200 FORMAT (/,' Desired correlations for Displacement : ',/,/,        &
      &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
@@ -1262,8 +1323,10 @@ werte1 = 0.0D0
 werte2 = 0.0D0
 !
 !           IF (ic > 0.AND.ic <= chem_ncor) THEN 
-cond_type: IF(str_comp(cpara(2), 'corr', 2, lpara(2), 4) .OR.  &
-   str_comp(cpara(2), 'unid', 2, lpara(2), 4)) THEN
+cond_type: IF(str_comp(cpara(2), 'corr', 2, lpara(2), 4)) then ! .OR.  &
+   call set_target_occ (MAXW, ianz, cpara, lpara, werte, ic)
+elseIF(str_comp(cpara(2), 'unid', 2, lpara(2), 4)) then  cond_type
+!  str_comp(cpara(2), 'unid', 2, lpara(2), 4)) THEN
 !
    is_corr= str_comp (cpara (2) , 'corr', 2, lpara (2) , 4)
    CALL del_params (2, ianz, cpara, lpara, maxw) 
@@ -1353,8 +1416,12 @@ cond_type: IF(str_comp(cpara(2), 'corr', 2, lpara(2), 4) .OR.  &
       mmc_cor_energy (ic, MC_UNI) = .TRUE. 
       mmc_cor_energy (0, MC_UNI) = .TRUE. 
    ENDIF
+!write(*,*) ' MC_COR_ENERGY OCC : ', mmc_cor_energy(:, MC_OCC ), ' > ', ic
+!write(*,*) ' MC_COR_ENERGY PREF: ', mmc_cor_energy(:, MC_PREF), ' > ', ic
 ELSEIF(str_comp(cpara(2), 'group', 2, lpara(2) , 5)) THEN  cond_type ! Group wise correlations
    CALL set_target_group(MAXW, ianz, cpara, lpara, werte, ic)
+ELSEIF(str_comp(cpara(2), 'pref', 2, lpara(2) , 4)) THEN  cond_type ! Group wise preferrences
+   CALL set_target_pref(MAXW, ianz, cpara, lpara, werte, ic)
 ELSEIF(str_comp(cpara(2), 'cd', 2, lpara(2), 2) ) THEN     cond_type 
    CALL del_params (2, ianz, cpara, lpara, maxw) 
    iianz = 1 
@@ -1833,6 +1900,99 @@ end subroutine mmc_set_target
 !
 !*****7*****************************************************************
 !
+SUBROUTINE set_target_occ (MAXW, ianz, cpara, lpara, werte, ic)
+!-
+!  Set the target values for the "corr" correlations 
+!  set target, corr, 1, (a,b,c), (d,e,f), corr, ener, "CORR" | "ENER"
+!
+USE get_iscat_mod
+USE mc_mod
+USE mmc_mod
+!
+USE ber_params_mod
+USE errlist_mod
+USE get_params_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN)    :: MAXW
+INTEGER, INTENT(INOUT) :: ianz
+CHARACTER(LEN=*)  , DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER           , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(INOUT) :: werte
+INTEGER, INTENT(IN)    :: ic
+!
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara1
+INTEGER                   , DIMENSION(MAXW) :: lpara1
+REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte1
+REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte2
+real(kind=PREC_DP)                          :: winit
+!
+INTEGER :: ianz1
+INTEGER :: ianz2
+!
+!
+!do i=1, ianz
+!  write(*,*) ' TARGET ', cpara(i)(1:len_trim(cpara(i))), ' || ', lpara(i)
+!enddo
+!
+cpara1 = ' '
+lpara1 =  0
+cpara1(1) = cpara(3)
+lpara1(1) = lpara(3)
+ianz1     = 1
+CALL get_iscat(ianz1, cpara1, lpara1, werte1, MAXW, .FALSE.)
+!write(*,*) ' WERTE1 ', werte1(1:ianz1)
+!
+!
+cpara1 = ' '
+lpara1 =  0
+cpara1(1) = cpara(4)
+lpara1(1) = lpara(4)
+ianz2     = 1
+CALL get_iscat(ianz2, cpara1, lpara1, werte2, MAXW, .FALSE.)
+!write(*,*) ' WERTE2 ', werte2(1:ianz2)
+!
+!
+CALL del_params (4, ianz, cpara, lpara, maxw) 
+!
+!
+IF (cpara(ianz)(1:2)  == 'CO') THEN 
+   mmc_cfac(ic, MC_OCC) =  1.0 
+   mmc_lfeed(ic, MC_OCC) =  .true.
+   ianz = ianz - 1 
+ELSEIF(cpara(ianz)(1:2)  == 'EN') THEN 
+   mmc_cfac(ic, MC_OCC) = 0.0 
+   mmc_lfeed(ic, MC_OCC) =  .false.
+   ianz = ianz - 1 
+ENDIF 
+!
+CALL ber_params(ianz, cpara, lpara, werte, maxw)
+!
+IF(mmc_cfac(ic, MC_OCC) > 0.0) THEN 
+   if(abs(werte(1))<0.1) then
+      winit = 0.0D0
+   else
+!     winit = -2.0D0*werte(1) - 3.0D0*werte(1)**5
+      winit = -1.0D0*werte(1)  - 3.0D0*werte(1)**5
+   endif
+   CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
+        MAXW, werte1, werte2, werte(1) , winit          )                                   
+   mmc_depth(ic, MC_OCC, 0, 0) = winit
+ELSEIF(mmc_cfac(ic, MC_OCC) ==0.0) THEN 
+   CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
+        MAXW, werte1, werte2, werte(1) , werte(2) )                                   
+   mmc_depth(ic, MC_OCC, 0, 0) = werte (2)
+ENDIF
+mmc_cor_energy(ic, MC_OCC) = .TRUE. 
+mmc_cor_energy(0,  MC_OCC) = .TRUE. 
+!write(*,*) ' MC_COR_ENERGY OCC: ', mmc_cor_energy(:, MC_OCC), ' > ', ic
+!
+END SUBROUTINE set_target_occ
+!
+!*****7*****************************************************************
+!
 SUBROUTINE set_target_group(MAXW, ianz, cpara, lpara, werte, ic)
 !-
 !  Set the target values for the "group" correlations 
@@ -1907,6 +2067,90 @@ mmc_cor_energy(ic, MC_GROUP) = .TRUE.
 mmc_cor_energy(0,  MC_GROUP) = .TRUE. 
 !
 END SUBROUTINE set_target_group
+!
+!*****7*****************************************************************
+!
+SUBROUTINE set_target_pref(MAXW, ianz, cpara, lpara, werte, ic)
+!-
+!  Set the target values for the "pref" correlations 
+!  set target, pref, 1, (a,b,c), (d,e,f), corr, ener, "CORR" | "ENER"
+!
+USE get_iscat_mod
+USE mc_mod
+USE mmc_mod
+!
+USE ber_params_mod
+USE errlist_mod
+USE get_params_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN)    :: MAXW
+INTEGER, INTENT(INOUT) :: ianz
+CHARACTER(LEN=*)  , DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER           , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(INOUT) :: werte
+INTEGER, INTENT(IN)    :: ic
+!
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara1
+INTEGER                   , DIMENSION(MAXW) :: lpara1
+REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte1
+REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte2
+!
+INTEGER :: ianz1
+INTEGER :: ianz2
+!
+!
+!do i=1, ianz
+!  write(*,*) ' TARGET ', cpara(i)(1:len_trim(cpara(i))), ' || ', lpara(i)
+!enddo
+!
+cpara1 = ' '
+lpara1 =  0
+cpara1(1) = cpara(3)
+lpara1(1) = lpara(3)
+ianz1     = 1
+CALL get_iscat(ianz1, cpara1, lpara1, werte1, MAXW, .FALSE.)
+!write(*,*) ' WERTE1 ', werte1(1:ianz1)
+!
+!
+cpara1 = ' '
+lpara1 =  0
+cpara1(1) = cpara(4)
+lpara1(1) = lpara(4)
+ianz2     = 1
+CALL get_iscat(ianz2, cpara1, lpara1, werte2, MAXW, .FALSE.)
+!write(*,*) ' WERTE2 ', werte2(1:ianz2)
+!
+!
+CALL del_params (4, ianz, cpara, lpara, maxw) 
+!
+!
+IF (cpara(ianz)(1:2)  == 'CO') THEN 
+   mmc_cfac(ic, MC_PREF) =  1.0 
+   mmc_lfeed(ic, MC_PREF) =  .true.
+   ianz = ianz - 1 
+ELSEIF(cpara(ianz)(1:2)  == 'EN') THEN 
+   mmc_cfac(ic, MC_PREF) = 0.0 
+   mmc_lfeed(ic, MC_PREF) =  .false.
+   ianz = ianz - 1 
+ENDIF 
+!
+CALL ber_params(ianz, cpara, lpara, werte, maxw)
+!
+IF(mmc_cfac(ic, MC_PREF) > 0.0) THEN 
+   CALL mmc_set_pref_occ (ic, MC_PREF, ianz1, ianz2, &
+        MAXW, werte1, werte2, werte(1) , -0.50*werte(1) )                                   
+ELSEIF(mmc_cfac(ic, MC_PREF) ==0.0) THEN 
+   CALL mmc_set_pref_occ (ic, MC_PREF, ianz1, ianz2, &
+        MAXW, werte1, werte2, werte(1) , werte(2) )                                   
+ENDIF
+mmc_cor_energy(ic, MC_PREF) = .TRUE. 
+mmc_cor_energy(0,  MC_PREF) = .TRUE. 
+!write(*,*) ' MC_COR_ENERGY PREF: ', mmc_cor_energy(:, MC_PREF), ' > ', ic
+!
+END SUBROUTINE set_target_pref
 !
 !*****7*****************************************************************
 !
@@ -2138,8 +2382,15 @@ REAL(KIND=PREC_DP)   ,                  INTENT(IN) :: depth  ! Energy Depth
 INTEGER                              :: is, js ! Dummy atom types
 INTEGER                              :: i, j   ! Loop indices
 !
+mmc_left (ic, ie, :) = 0
+mmc_right(ic, ie, :) = 0
+mmc_target_corr(ic, ie, :,:) = 0.0
+mmc_depth      (ic, ie, :,:) = 0.0
+mmc_pair       (ic, ie, :,:) = 0.0
+!
       DO i=1,ianz1              ! Set "equal" pairs first group
          is = NINT(werte1(i))
+         mmc_left(ic, ie, is    ) =  1     ! These types are in left group
          mmc_allowed(is) = .TRUE.
          DO j=1,ianz1
             js = NINT(werte1(j))
@@ -2150,6 +2401,7 @@ INTEGER                              :: i, j   ! Loop indices
       END DO
       DO i=1,ianz2              ! Set "equal" pairs second group
          is = NINT(werte2(i))
+         mmc_right(ic, ie, is   ) =  1     ! These types are in right group 
          mmc_allowed(is) = .TRUE.
          DO j=1,ianz2
             js = NINT(werte2(j))
@@ -2170,6 +2422,7 @@ INTEGER                              :: i, j   ! Loop indices
             mmc_pair        (ic, ie, js, is) = -2     ! Second ==> first group
          END DO
       END DO
+!
 !
 END SUBROUTINE mmc_set_disp_occ
 !
@@ -2223,22 +2476,95 @@ DO i=1,ianz2              ! Set "equal" pairs second group
    END DO
 END DO
 !
+mmc_target_corr(ic, ie, :,:) = 0.0
+mmc_depth      (ic, ie, :,:) = 0.0
+mmc_pair       (ic, ie, :,:) = 0.0
 DO i=1,ianz1              ! Set "opposite" pairs
    is = NINT(werte1(i))
    DO j=1,ianz2
       js = NINT(werte2(j))
       mmc_target_corr (ic, ie, is, js) = corr 
-      mmc_target_corr (ic, ie, js, is) = corr 
+!     mmc_target_corr (ic, ie, js, is) = corr 
       mmc_depth       (ic, ie, is, js) = depth 
-      mmc_depth       (ic, ie, js, is) = depth 
+!     mmc_depth       (ic, ie, js, is) = depth 
       mmc_pair        (ic, ie, is, js) = -1     ! These pairs contribute negatively to energy
-      mmc_pair        (ic, ie, js, is) = -2     ! Second ==> first group
+!     mmc_pair        (ic, ie, js, is) = -2     ! Second ==> first group
    END DO
 END DO
 !
       mmc_target_corr (ic, ie, 0 , 0 ) = corr 
+!write(*,*) ' MMC PAIR ', ic, ie
+!do is=1,4
+!  write(*,*) 'mmc_pair(.,.,is, js) ', mmc_pair(ic, ie, is,1:)
+!enddo
 !
 END SUBROUTINE mmc_set_unid_occ
+!
+!*****7*****************************************************************
+!
+SUBROUTINE mmc_set_pref_occ (ic, ie, ianz1, ianz2, &
+                             MAXW, werte1, werte2, corr, depth )
+!
+! Chemical correlation, preferential neighbor case
+! Atoms in group one are at center, atoms in group two are at neighbor position
+! Only a pair with an atom from the first group and the other atom from the
+! "right" group give values in mmc_pair. 
+! This is inherently uni directional
+!
+USE crystal_mod 
+USE mmc_mod 
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                 , INTENT(IN) :: ic     ! Correlation number
+INTEGER                 , INTENT(IN) :: ie     ! Energy number == MC_OCC
+INTEGER                 , INTENT(IN) :: ianz1  ! No of atom types in first group
+INTEGER                 , INTENT(IN) :: ianz2  ! No of atom types in second group
+INTEGER                 , INTENT(IN) :: MAXW   ! Array Dimension 
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW), INTENT(IN) :: werte1 ! Actual atom types group1
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW), INTENT(IN) :: werte2 ! Actual atom types group1
+REAL(KIND=PREC_DP)   ,                  INTENT(IN) :: corr   ! Desired correlation
+REAL(KIND=PREC_DP)   ,                  INTENT(IN) :: depth  ! Energy Depth
+! 
+INTEGER                              :: is, js ! Dummy atom types
+INTEGER                              :: i, j   ! Loop indices
+!
+mmc_left (ic, ie, :) = 0
+mmc_right(ic, ie, :) = 0
+mmc_target_corr(ic, ie, :,:) = 0.0
+mmc_depth      (ic, ie, :,:) = 0.0
+mmc_pair       (ic, ie, :,:) = 0.0
+!write(*,*) ' WERTE 1', werte1(1), ' >> ', ianz1, corr, depth
+!write(*,*) ' WERTE 2', werte2(1), ' >> ', ianz2
+DO i=1,ianz1              ! Set "opposite" pairs
+   is = NINT(werte1(i))
+   mmc_left(ic, ie, is    ) = -1     ! These pairs contribute positively to energy
+   DO j=1,ianz2
+      js = NINT(werte2(j))
+      mmc_target_corr (ic, ie, is, js) = corr 
+      mmc_depth       (ic, ie, is, js) = depth 
+      mmc_pair        (ic, ie, is, js) = -1     ! These pairs contribute negatively to energy
+      mmc_right(ic, ie, js    ) = -2     ! These pairs contribute positively to energy
+   END DO
+END DO
+!
+mmc_target_corr (ic, ie, 0 , 0 ) = corr 
+!write(*,*) ' MMC PAIR PREF ', ic, ie
+!do is=1,cr_nscat
+!  write(*,*) 'mmc_targ(.,.,is, js) ', mmc_target_corr(ic, ie, is,1:)
+!enddo
+!do is=1,cr_nscat
+!  write(*,*) 'mmc_dept(.,.,is, js) ', mmc_depth      (ic, ie, is,1:)
+!enddo
+!do is=1,cr_nscat
+!  write(*,*) 'mmc_pair(.,.,is, js) ', mmc_pair(ic, ie, is,1:)
+!enddo
+!write(*,*)   'mmc_left             ', mmc_left(ic, ie,1:)
+!write(*,*)   'mmc_right            ', mmc_right(ic, ie,1:)
+!read(*,*) is
+!
+END SUBROUTINE mmc_set_pref_occ
 !
 !*****7*****************************************************************
 !
@@ -2690,6 +3016,7 @@ USE crystal_mod
 USE chem_mod 
 USE chem_neig_multi_mod
 USE chem_menu
+use chem_aver_mod
 !
 USE celltoindex_mod
 USE atom_env_mod
@@ -2759,7 +3086,7 @@ integer, dimension(      :), allocatable       :: natoms_p
 INTEGER :: ic
 INTEGER :: nocc
 INTEGER :: i, natoms
-integer :: iiii
+integer :: iiii, iex
 INTEGER :: ncent 
 INTEGER :: NALLOWED   ! Current size mmc_allowed
 INTEGER :: zh, zm, zs 
@@ -2769,6 +3096,7 @@ logical :: lout_feed  ! Output on/off as combination of system and user settings
 LOGICAL :: lfeed      ! Perform feedback algorithm
 LOGICAL :: loop, laccept, done 
 LOGICAL :: lout, lfinished
+logical :: ldetail     ! Print more detailed correlation output
 logical :: lmodulus
 !                                                                       
 REAL(kind=PREC_DP), DIMENSION(0:MC_N_ENERGY) :: e_old
@@ -2791,7 +3119,8 @@ DATA c_energy /                    &
      'Repulsive     Potential ',   &
      'Coordination Number     ',   &
      'Unidirectional Corr     ',   &
-     'Groupwise correlation   ' /
+     'Groupwise correlation   ',   &
+     'Preferred groups        ' /
 !
 call mmc_initial(old_chem_period, itry, igen, iacc_good, iacc_neut, iacc_bad, & 
            done, loop)                 ! Perform initialization
@@ -2807,6 +3136,14 @@ ALLOCATE(natom(                    MMC_MAX_CENT))
 if(mmc_cor_energy (0, MC_DISP)) then
    call alloc_chem_dir(chem_ncor)
 endif
+if(allocated(mmc_comp)) deallocate(mmc_comp)
+allocate(mmc_comp(0:cr_nscat))
+call chem_elem(.true.)
+do i=0,cr_nscat
+  mmc_comp(i) = res_para(i+1)
+enddo
+!write(*,*) ' COMPOSITIONS ', mmc_comp
+!read(*,*) ic
 !
 !                                                                       
 !     Normalize the correlation directions                              
@@ -2840,7 +3177,8 @@ ENDIF
 lout = .FALSE. 
 lfinished = .FALSE.
 lfeed = .FALSE.
-CALL mmc_correlations (lout, 0.0D0, done, lfinished, lfeed, maxdev) 
+ldetail = .false.
+CALL mmc_correlations (lout, 0.0D0, done, lfinished, lfeed, ldetail, maxdev) 
 lfeed = .TRUE.
 IF(ier_num /= 0) RETURN 
 !
@@ -2863,8 +3201,9 @@ ENDDO check_conn
 !                                                                       
 lout_feed = lout_feed_in .and. mmc_out_feed    ! Combine system and user feedback settings
 lfinished = .false.
+ldetail   = .false.
 done      = .false.
-CALL mmc_correlations (.false., rel_cycl, done, lfinished, lfeed, maxdev) 
+CALL mmc_correlations (.false., rel_cycl, done, lfinished, lfeed, ldetail, maxdev) 
 mmc_ini_corr  = mmc_ach_corr 
 mmc_ini_sigm  = mmc_ach_sigm 
 mmc_ini_angl  = mmc_ach_angl 
@@ -2914,6 +3253,7 @@ IF(ier_ctrlc) THEN
       DEALLOCATE(iatom)
       DEALLOCATE(tatom)
       DEALLOCATE(natom)
+   deallocate(mmc_comp)
       call alloc_mmc_pid  (1, 1, 1, 1)
    ier_num = -14
    ier_typ = ER_COMM
@@ -2928,6 +3268,7 @@ IF(ier_num/=0) THEN
    IF(ALLOCATED(iatom)) DEALLOCATE(iatom)
    IF(ALLOCATED(tatom)) DEALLOCATE(tatom)
    IF(ALLOCATED(natom)) DEALLOCATE(natom)
+   deallocate(mmc_comp)
    call alloc_mmc_pid  (1, 1, 1, 1)
    chem_period = old_chem_period
    RETURN      ! An error occured or CTRL-C
@@ -2954,6 +3295,7 @@ IF(nthreads > 1) THEN
    itry_loop: do itry=1, mo_cyc/nthreads   !Serial loop over cycles/nthread
 !     Select nthread atom (pairs)
       do iiii=1, nthreads
+         loop_exclude: do
          CALL mmc_select_atoms(isel_p(:,iiii), is_p(:,iiii), iz_p(:,:,iiii),         &
          iz1_p(:,iiii), iz2_p(:,iiii), iselz_p(  iiii), iselz2_p(  iiii), natoms_p(  iiii), &
                                laccept, loop, NALLOWED, MMC_MAX_ATOM)
@@ -2961,6 +3303,17 @@ IF(nthreads > 1) THEN
             done = .TRUE.
             exit itry_loop
          ENDIF
+            if(mmc_move==MC_MOVE_SWCHEM) then      ! Check selected pairs to exclude previous selections
+               do iex=1, iiii-1
+                  if(isel_p(1,iex)==isel_p(1,iiii) .or. isel_p(1,iex)==isel_p(2,iiii) .or. &
+                     isel_p(2,iex)==isel_p(1,iiii) .or. isel_p(2,iex)==isel_p(2,iiii)     ) then
+                     cycle loop_exclude            ! Equalities, try another pair
+                  endif
+               enddo
+               exit loop_exclude
+            endif
+            exit loop_exclude
+         enddo loop_exclude
       enddo
 !  Start parallel assessment for selected atom (pairs)
    !$OMP PARALLEL PRIVATE(tid, isel, is, iz, iz1, iz2, iselz, iselz2,                &
@@ -3066,6 +3419,8 @@ ELSE     ! Use nonparallel code
    serial_loop: DO itry=1, mo_cyc     ! Do mmc serially
       CALL mmc_select_atoms(isel, is, iz, iz1, iz2, iselz, iselz2, natoms, &
                             laccept, loop, NALLOWED, MMC_MAX_ATOM)
+      if(ier_num==0) then
+!write(*,*) 'ISEL ', isel(1), isel(2), cr_iscat(1,isel(1)),cr_iscat(1,isel(2))
       CALL    mmc_run_loop(tid, nthreads, igen, itry, &
                            isel, is, iz, iz1, iz2, iselz, iselz2, &
                            natoms, &
@@ -3075,6 +3430,7 @@ ELSE     ! Use nonparallel code
                            lout_feed, lfeed, imodulus, lmodulus,                     &
                            NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
       IF(ier_num/=0 .OR. done) EXIT serial_loop
+      endif
    ENDDO serial_loop
 ENDIF
 ELSEIF(mmc_algo .EQV. MMC_GROWTH) THEN           !Use the growth MMC algorithm
@@ -3098,6 +3454,7 @@ IF(ier_num/=0) THEN
    IF(ALLOCATED(iatom)) DEALLOCATE(iatom)
    IF(ALLOCATED(tatom)) DEALLOCATE(tatom)
    IF(ALLOCATED(natom)) DEALLOCATE(natom)
+   deallocate(mmc_comp)
    call alloc_mmc_pid  (1, 1, 1, 1)
    chem_period = old_chem_period
    RETURN      ! An error occured or CTRL-C
@@ -3123,8 +3480,9 @@ ENDIF
 !     lout = .TRUE. 
 lfinished = .TRUE.
 lfeed     = .FALSE.   ! no feedback algorithm
+ldetail   = .false.
 done      = .TRUE.
-CALL mmc_correlations (lout_feed, rel_cycl, done, lfinished, lfeed, maxdev) 
+CALL mmc_correlations (lout_feed, rel_cycl, done, lfinished, lfeed, ldetail, maxdev) 
 !                                                                       
 !     Give average energy changes for the different energy terms        
 !                                                                       
@@ -3166,6 +3524,7 @@ DEALLOCATE(rdj)
 DEALLOCATE(iatom)
 DEALLOCATE(tatom)
 DEALLOCATE(natom)
+deallocate(mmc_comp)
 call alloc_mmc_pid  (1, 1, 1, 1)
 !
 chem_period = old_chem_period
@@ -3249,6 +3608,9 @@ REAL(kind=PREC_DP)   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !
 REAL(KIND=PREC_DP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
 real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 !integer :: i
+logical :: ldetail  ! Print more detailed correlations
+!
+ldetail = .false.
 !
 IF(tid==0) then
    igen = igen + 1
@@ -3302,7 +3664,8 @@ valid_all = .FALSE.
 CALL mmc_energies(isel, is, iz, natoms, iatom, patom, tatom, natom, ncent, &
                   rdi, rdj, valid_all, e_old, CHEM_MAX_COR,         &
                   MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, .true.)
-!write(*,*) ' Old Energy ', e_old(MC_COORDNUM)
+!write(*,*) ' Old Energy ', e_old(MC_PREF), ' P1: ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1),  &
+!                                           ' P2: ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1)
 IF(ier_num/=0) THEN             ! Error, cycle to end of loop
    done = .TRUE.
    RETURN
@@ -3330,6 +3693,8 @@ IF(valid_all) THEN
                      rdi, rdj, valid_all, e_new, CHEM_MAX_COR,         &
                      MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, .false.)
 !write(*,*) ' New Energy ', e_new(MC_COORDNUM)
+!write(*,*) ' New Energy ', e_new(MC_PREF), ' P1: ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1),  &
+!                                           ' P2: ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1)
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
       done = .TRUE.
       RETURN
@@ -3391,7 +3756,7 @@ ENDIF
 !                                                                       
       rel_cycl = REAL(igen)/REAL(mo_cyc)*REAL(NTHREADS)
       maxdev = 0.0
-      CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE., lfeed, maxdev)
+      CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE., lfeed, ldetail, maxdev)
       if(mmc_feed_auto) then
          if(maxdev(1)<0.1) then
 !           imodulus = max(min(imodulus-1, nint(imodulus*0.999)),nint(cr_natoms*0.05))
@@ -3515,6 +3880,7 @@ INTEGER :: iaccept                        ! DACounter if we want toaccept correl
 INTEGER, DIMENSION(2) :: wjks             ! Index of Correlation, energy, atom types at worst deviation
 integer, dimension(0:2) :: isnei
 LOGICAL :: valid_e
+logical :: ldetail  
 REAL(kind=PREC_DP) :: r1
 REAL(kind=PREC_DP), DIMENSION(2,0:CHEM_MAX_COR) :: en_old    ! Old energy at position 1,2
 REAL(kind=PREC_DP), DIMENSION(2,0:CHEM_MAX_COR) :: en_new    ! New energy at position 1,2
@@ -3528,6 +3894,7 @@ real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 REAL(kind=PREC_DP) :: damp = 1.0
 !
 damp = 0.01 + 0.99*exp(-4.0*rel_cycl)
+ldetail = .false.              ! No detailed output
 !
 mmc_move = MC_MOVE_SWCHEM      ! Needs Work
 IF(tid==0) igen = igen + 1
@@ -3884,7 +4251,7 @@ IF(tid==0) THEN
 !     ----New mmc_correlations for all energies                         
 !                                                                       
       rel_cycl = REAL(igen)/REAL(mo_cyc)*REAL(NTHREADS)
-      CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE., lfeed, maxdev)
+      CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE., lfeed, ldetail, maxdev)
    ENDIF 
    IF(igen> mo_cyc/nthreads) THEN
       done = .TRUE.
@@ -4569,7 +4936,17 @@ REAL(kind=PREC_DP), DIMENSION(3) ::  v, u
 REAL(kind=PREC_DP) :: r1
 !
 !write(*,*) ' MMC_SEL_ATOM ', MMC_MAX_ATOM_L, mmc_move
-laccept = .TRUE. 
+!write(*,*) ' SELECT TWO ATOMS '
+!read(*,*) isel(1:2)
+!      CALL indextocell (isel (1), iz1, is(1))
+!      CALL indextocell (isel (2), iz2, is(2))
+!iz(1,:) = iz1
+!iz(2,:) = iz1
+!natoms  = 2
+!laccept = .TRUE. 
+!mmc_move = 1
+!return
+!*******************************************************************************
 j = 0
 main: DO
    j = j + 1
@@ -4851,7 +5228,8 @@ loop_natoms:DO ia = 1, natoms
 !                                                                       
 !     ------Loop over all defined neighbour interactions                
 !                                                                       
-!write(*,*) ' OLD ENERGIES', e_cur(MC_DISP), isel(1:2), ' SCAT: ',cr_iscat(1,isel(1)), cr_iscat(1,isel(2))
+!write(*,*) ' OLD ENERGIES', e_cur(MC_PREF), isel(1:2), ' SCAT: ',cr_iscat(1,isel(1)), cr_iscat(1,isel(2))
+!write(*,*) ' SELECTED ATOMS ', isel, ' || ', natoms
    loop_corr: DO ic = 1, chem_ncor 
       CALL chem_neighbour_multi(isel(ia), ic, iatom, patom, tatom, natom, &
                                 ncent, MAX_ATOM_ENV_L, MMC_MAX_CENT_L)                                                
@@ -4903,6 +5281,19 @@ loop_natoms:DO ia = 1, natoms
                IF(mmc_move == MC_MOVE_SWCHEM) THEN 
 !                 IF (cr_iscat (1,isel (1) )  /= cr_iscat (1,isel (2) ) ) THEN
                      e_cur (MC_GROUP) = e_cur (MC_GROUP) + mmc_energy_group ( &
+                     isel, ia, ic, iatom, tatom, icent, natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L) 
+                     valid_all = valid_all.OR.valid_e 
+!                 ENDIF 
+               ENDIF 
+            ENDIF 
+!                                                                       
+!     ------- Occupation Correlation, for group wise preferences strictly unidirectional
+!     ------- and the move is switch chemistry                          
+            IF(mmc_cor_energy(ic, MC_PREF) ) THEN 
+!                                                                       
+               IF(mmc_move == MC_MOVE_SWCHEM) THEN 
+!                 IF (cr_iscat (1,isel (1) )  /= cr_iscat (1,isel (2) ) ) THEN
+                     e_cur (MC_PREF) = e_cur (MC_PREF) + mmc_energy_pref ( &
                      isel, ia, ic, iatom, tatom, icent, natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L) 
                      valid_all = valid_all.OR.valid_e 
 !                 ENDIF 
@@ -5024,6 +5415,7 @@ loop_natoms:DO ia = 1, natoms
       ENDDO loop_cent
    ENDDO loop_corr
 ENDDO loop_natoms
+!write(*,*) ' CAL ENERGIES', e_cur(MC_PREF), isel(1:2), ' SCAT: ',cr_iscat(1,isel(1)), cr_iscat(1,isel(2))
 !
 END SUBROUTINE mmc_energies
 !
@@ -5631,7 +6023,8 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
                                 mmc_depth (ic,MC_OCC, is, js) * ival1
             ENDIF 
          ELSE
-            mmc_energy_occ = mmc_energy_occ - 1
+!           mmc_energy_occ = mmc_energy_occ - 1
+mmc_energy_occ = 0.0_PREC_DP
          ENDIF 
 !IF(tatom(ind, icent)) THEN  ! Selected atom is central
 !write(*,'(2(a,i6, i3), f7.2)') ' MMC_OCC Central ', iatom (0, icent), is, ' : ', iatom (ind, icent), js, &
@@ -5643,6 +6036,10 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
       ENDDO
    ENDIF 
 ENDIF 
+!if(ic==1 .and. mmc_energy_occ/=0.0) then
+!write(*,*) is, js, ival1, mmc_pair(ic, MC_OCC,is,js), mmc_depth (ic,MC_OCC, is, js)
+!read(*,*) is
+!endif
 !!      IF (isel (ia)  == iatom (0, icent) ) THEN 
 !!!                                                                       
 !!!     ----The selected atom is the central atom, check all atoms        
@@ -6057,6 +6454,102 @@ ENDIF
 valid_e = .TRUE. 
 !                                                                       
 END FUNCTION mmc_energy_group                   
+!
+!*****7*****************************************************************
+!
+REAL(kind=PREC_DP) FUNCTION mmc_energy_pref(isel, ia, ic, iatom, tatom, icent,  &
+      natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
+!+                                                                      
+!     Calculates the energy for unidirectional chemical disorder 
+!                      , preferred neighbors
+!                                                                       
+!-                                                                      
+USE crystal_mod 
+USE chem_mod 
+USE mc_mod 
+USE mmc_mod 
+!USE modify_mod
+USE modify_func_mod
+!USE param_mod 
+!use precision_mod
+!                                                                       
+IMPLICIT none 
+!                                                                       
+INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
+INTEGER, INTENT(IN) :: MMC_MAX_CENT_L
+INTEGER, INTENT(IN) :: MMC_MAX_ATOM_L
+INTEGER, DIMENSION(MAX_ATOM_ENV_L), INTENT(IN) :: isel
+INTEGER, INTENT(IN) :: ia
+INTEGER, INTENT(IN) :: ic
+!                                                                       
+INTEGER, DIMENSION(0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(IN) :: iatom
+LOGICAL, DIMENSION(0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(IN) :: tatom
+INTEGER                                              , INTENT(IN) :: icent 
+INTEGER, DIMENSION(MMC_MAX_CENT_L)                   , INTENT(IN) :: natom
+LOGICAL                                              , INTENT(OUT) :: valid_e 
+!                                                                       
+!                                                                       
+INTEGER :: is, js, ind
+INTEGER :: in_a, in_e 
+INTEGER :: ncalc 
+!                                                                       
+mmc_energy_pref = 0.0 
+ncalc   = 0 
+valid_e = .FALSE. 
+!ind = 1
+!            is = cr_iscat (1,iatom (0, icent) )
+!            js = cr_iscat (1,iatom (ind, icent) ) 
+!
+!write(*,*) ' PREFERRED ENERGY ', icent, natom(icent), tatom(1,icent), is, js, mmc_left(ic, MC_PREF ,is), mmc_right(ic, MC_PREF ,js), &
+!check_select_status(iatom (ind, icent),  &
+!                                      .TRUE., cr_prop (iatom (ind,  &
+!                                      icent) ), cr_sel_prop)
+!                                                                       
+IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
+    chem_ctyp(ic) == CHEM_ENVIR  .OR. &
+    chem_ctyp(ic) == CHEM_RANGE  .OR. &
+    chem_ctyp(ic) == CHEM_DIST   .OR. &
+    chem_ctyp(ic) == CHEM_CON        )   THEN                                               
+!                                                                       
+   IF(natom(icent) /= 0) THEN              ! We do have neighbors
+      in_a = 1 
+      in_e = natom (icent) 
+      DO ind = in_a, in_e 
+         IF(tatom(ind, icent)) THEN  ! Selected atom is central
+            is = cr_iscat (1,iatom (0, icent) )
+            js = cr_iscat (1,iatom (ind, icent) ) 
+         ELSE                        ! Selected atom is a neighbor
+            js = cr_iscat (1,iatom (0, icent) )
+            is = cr_iscat (1,iatom (ind, icent) ) 
+         ENDIF
+         IF(mmc_left(ic, MC_PREF ,is)/=0) THEN          ! starting atom is in left  group
+            IF(mmc_right(ic, MC_PREF ,js)/=0) THEN      ! ending   atom is in right group (A) => (B)
+               IF(check_select_status(iatom (ind, icent),  &
+                                      .TRUE., cr_prop (iatom (ind,  &
+                                      icent) ), cr_sel_prop) ) THEN                         
+                  mmc_energy_pref = mmc_energy_pref - mmc_depth(ic, MC_PREF , is, js) !mmc_depth_def(ic) !(ic,MC_GROUP, is, js)
+!write(*,*) ' PREF  ENREGY ', is, js, ic, mmc_depth   (ic, MC_PREF , is, js) !mmc_depth_def(ic)
+!IF(tatom(ind, icent)) THEN  ! Selected atom is central
+!write(*,'(2(a,i6, i3), f10.4)') ' MMC_PREF  Central ', iatom (0, icent), is, ' : ', iatom (ind, icent), js, &
+!-mmc_depth_def(ic) ! (ic,MC_PREF , is, js)
+!else
+!write(*,'(2(a,i6, i3), f10.4)') ' MMC_PREF  NEIG    ', iatom (0, icent), js, ' : ', iatom (ind, icent), is, &
+!-mmc_depth_def(ic) ! (ic,MC_PREF , is, js) 
+!endif
+               ENDIF 
+            ENDIF 
+         ENDIF 
+      ENDDO
+   ENDIF 
+ENDIF 
+!if(ic==2 .and. mmc_energy_pref/=0.0) then
+!write(*,*) is, js, 0    , mmc_pair(ic, MC_PREF,is,js), mmc_depth (ic,MC_PREF, is, js)
+!read(*,*) is
+!endif
+valid_e = .TRUE. 
+!write(*,*) ' contribution ', mmc_depth(ic, MC_PREF , is, js), is, js
+!                                                                       
+END FUNCTION mmc_energy_pref                   
 !
 !*****7*****************************************************************
 !
@@ -7446,7 +7939,9 @@ REAL(kind=PREC_DP) :: rel_cycl    ! how far are we in the desired number of cycl
 LOGICAL :: lout_feed, done
 REAL(kind=PREC_DP) :: r1
 real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
+logical :: ldetail  ! Print more detailed correlations
 !
+ldetail = .false.
 done = .FALSE.
 rmin = 0.0
 rmax = cr_a0(1)*SQRT(3.0) + 0.1
@@ -7478,7 +7973,7 @@ DO i=1, mo_cyc
    ENDDO
    cr_iscat(1,iatom) = is_max
    IF(MOD(INT(i,PREC_INT_LARGE), mo_feed)==0) THEN
-      CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE., .TRUE., maxdev)
+      CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE., .TRUE., ldetail, maxdev)
    ENDIF
 ENDDO
 !
