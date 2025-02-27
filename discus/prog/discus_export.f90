@@ -25,11 +25,13 @@ CHARACTER(LEN=    PREC_STRING           ), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER  :: ianz
 integer  :: ncycle
-INTEGER, PARAMETER :: NOPTIONAL = 4
+logical  :: lforce
+INTEGER, PARAMETER :: NOPTIONAL = 5
 INTEGER, PARAMETER :: O_RMCVS   = 1
 INTEGER, PARAMETER :: O_CYCLE   = 2
 INTEGER, PARAMETER :: O_SPCGR   = 3
 INTEGER, PARAMETER :: O_SITE    = 4
+INTEGER, PARAMETER :: O_FORCE   = 5
 CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=    PREC_STRING           ), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -42,12 +44,12 @@ INTEGER  :: rmcversion
 integer  :: scatty_site
 !
 !
-DATA oname  / 'version', 'cycle  ', 'spcgr  ', 'site   ' /
-DATA loname /  7       ,  5       ,  5       ,  4        /
+DATA oname  / 'version', 'cycle  ', 'spcgr  ', 'site   ', 'force  ' /
+DATA loname /  7       ,  5       ,  5       ,  4       ,  5        /
 !
-opara  =  (/ '6.00000', '20     ','P1     ', 'average' /)   ! Always provide fresh default values
-lopara =  (/  7       ,  2       ,  7      ,  7        /)
-owerte =  (/  6.0D0   ,  20.0D0  ,  0.0D0  ,  0.0D0 /)
+opara  =  (/ '6.00000', '20     ','P1     ', 'average', 'no     ' /)   ! Always provide fresh default values
+lopara =  (/  7       ,  2       ,  7      ,  7       ,  2        /)
+owerte =  (/  6.0D0   ,  20.0D0  ,  0.0D0  ,  0.0D0   , 0.0D0     /)
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, lp)
 IF (ier_num.ne.0) THEN
@@ -88,7 +90,8 @@ IF (ianz.ge.1) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) RETURN
          ncycle = NINT(owerte(O_CYCLE))
-         CALL discus2ins (ianz, cpara, lpara, MAXW, ncycle)
+         lforce = opara(O_FORCE)=='yes'
+         CALL discus2ins (ianz, cpara, lpara, MAXW, ncycle, lforce)
       ELSE
          ier_num = - 6
          ier_typ = ER_COMM
@@ -234,7 +237,7 @@ END SUBROUTINE discus2cif
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-SUBROUTINE discus2ins (ianz, cpara, lpara, MAXW, ncycle)
+SUBROUTINE discus2ins (ianz, cpara, lpara, MAXW, ncycle, lforce)
 !
 USE chem_aver_mod
 USE class_internal
@@ -268,6 +271,7 @@ INTEGER            ,                  INTENT(INOUT) :: ianz
 CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 integer            ,                  intent(in)    :: ncycle
+logical            ,                  intent(in)    :: lforce
 !
 INTEGER, PARAMETER :: IWR = 35
 integer, parameter :: MAXMASK = 4
@@ -304,7 +308,7 @@ uni_mask(0)   = .true.
 uni_mask(1:3) = .true.
 uni_mask(4)   = .false.
 !
-if(maxval(cr_icc)>1) then
+if(.not.lforce .and. maxval(cr_icc)>1) then
   ier_num = -185
   ier_typ = ER_APPL
   ier_msg(1) = 'To save as SHELX instruction file the '
