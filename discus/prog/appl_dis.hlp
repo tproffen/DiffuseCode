@@ -2645,8 +2645,8 @@
    found near qobs.
 2  export
 !p export "cif",<file{".cif"]> [, {["spcgr:original"] | ["spcgr:"<spacegroup>]}
-!p export "shelx",<file{".ins"]> [, "cycle:"<number>]
-!p export "rmcprofile",<file{".rmc6f"]>  [version:{"6"|"7"}]
+!p export "shelx",<file{".ins"]> [, "cycle:"<number>] [, "force:"{"yes"|"no"}}
+!p export "rmcprofile",<file{".rmc6f"]>  ["version:"{"6"|"7"}]
 !p export "vasp",<file]>
 !p export "poscar",<file]>
 !p export "scatty",<file]> [,site:{"average","indiv"}]
@@ -2664,7 +2664,11 @@
    shelx
    Exports the atoms of the current structure as a SHELXL instruction file
    The optional parameter "cycle:" allows to set the number of 
-   leas-squares cycles to be written as "L.S." instruction.
+   least-squares cycles to be written as "L.S." instruction.
+   If the structure contains molecules, the atom coordinates might extend
+   over more than one unit cell. Usually this triggers an error message.
+   To avoid the error message, use the optional parameter
+   "force:yes"
 
    rmcprofile
    Exports the atoms of the current structure as a RMCprofile 
@@ -7524,11 +7528,11 @@
 
    "uvw"
    Defines the FWHM for the Pseudo-Voigt function. 
-   As default or with the optional parameter "form:cagliotti", the FWHM is 
+   As default or with the optional parameter "fwhm:cagliotti", the FWHM is 
    calculated as:
    FWHM = sqrt( u*tan(2theta)**2 + v*tan(2theta) + w).
 
-   With "form:area", the FWHM is calculated as:
+   With "fwhm:area", the FWHM is calculated as:
    FWHM = sqrt( u*cos(2theta)**4 + v*cos(2theta)**2 + w), 
    as defined in Chernyshov et al, Acta Cryst.A77, 497-505;
    doi 10.1107/S2053273321007506 .
@@ -7537,7 +7541,7 @@
    FWHM for a Q-scale and a 2Theta-scale. The input values u,v,w 
    must be given based on a 2Theta scale.
 
-   With "form:poly", a purely empirical FWHM is calculated as
+   With "fwhm:poly", a purely empirical FWHM is calculated as
    FWHM = sqrt( u*Q**2 + v*Q + w)
 
    "asym"
