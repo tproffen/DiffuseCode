@@ -241,6 +241,7 @@ mmc_style = MMC_IS_ATOM
 !     ENDDO 
 !     mmc_nvec (k, l, m) = 0 
 !     DO j = 0, MC_N_ENERGY 
+mmc_depth = 0.0_PREC_DP
       mmc_target_corr = 0.0 
       mmc_ach_corr    = 0.0 
       mmc_ach_angl    = 0.0 
@@ -249,6 +250,8 @@ mmc_style = MMC_IS_ATOM
       mmc_ini_angl    = 0.0 
       mmc_ini_sigm    = 0.0 
       mmc_pair        = 0
+      mmc_left        = 0
+      mmc_right       = 0
 !     ENDDO 
 !     ENDDO 
 !     ENDDO 
