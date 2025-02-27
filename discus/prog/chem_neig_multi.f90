@@ -289,7 +289,6 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
    natom (  ncent) = 0 
    iatom (:,ncent) = 0 
    CALL indextocell (jatom, jcell, jsite) 
-!write(*,*) ' FIND VECTORS AT ', jatom, 'CELL ', jcell, 'SITE ', jsite, ' MAXW, MAXCENT ',MAXW, MMC_MAX_CENT
    DO i = 1, chem_nvec(ic) 
       iv = chem_use_vec(i, ic) 
 !write(*,*) ' Vectors         ', chem_cvec(1:2, iv), jsite == chem_cvec(1, iv) , jsite == chem_cvec(2, iv), natom(ncent)
