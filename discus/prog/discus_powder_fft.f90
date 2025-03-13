@@ -52,7 +52,7 @@ qmax_l   =  PI/rstep           ! by using 2*PI/rstep, the step size in direct sp
 iqmin = MAX(0,NINT(qmin/deltaq))
 lensav= 4+INT(SQRT(FLOAT(npkt_fft)/2))
 lenwrk= npkt_fft*5/4-1
-ALLOCATE(temp(0:npkt_fft-1))
+ALLOCATE(temp(0:npkt_fft+1))
 ALLOCATE(ip(0:lensav))
 ALLOCATE(w (0:lenwrk))
 ALLOCATE(xfft(0:npkt_fft+1))
@@ -85,9 +85,10 @@ qmax_l = (npkt_fft-1)*dq
 !enddo
 !close(77)
 !open(77,file='POWDER/fft_2.PDF',status='unknown')
-DO i=0,npkt_fft-1
+DO i=0,npkt_fft+1
   xfft (i) = (i+0.50)*PI/qmax_l
   yfft (i) = temp(i  )*2/PI*dq
+!  write(77,'(2(2x,G17.7E3))') xfft(i), yfft(i)
 ENDDO
 !write(*,*) ' temp ', allocated(temp)
 !write(*,*) ' temp ', lbound(temp), ubound(temp), minval(temp), maxval(temp)
@@ -95,6 +96,7 @@ ENDDO
 !write(*,*) ' yfft ', lbound(yfft), ubound(yfft), minval(yfft), maxval(yfft)
 !close(77)
 !write(*,*) 'DO SPLINE ', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, nlow, npkt_fft+1
+!write(*,*) ' DO SPLINE ', nlow, npkt_fft+1, npkt_pdf
 CALL spline_prep(nlow, npkt_fft+1, xfft, yfft, rmin, rmax, rstep, npkt_pdf, xfour, yfour)
 !write(*,*) ' IER ', ier_num, ier_typ
 !write(*,*) ' xfour ', lbound(xfour), ubound(xfour), minval(xfour), maxval(xfour), xfour(ubound(xfour,1))
