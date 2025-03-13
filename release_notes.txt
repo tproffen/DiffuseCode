@@ -7,6 +7,7 @@ GENERAL
               Improved the transformation to a new coordinate system
   KUPLOT      Load HDF5 improved error message in case increment vectors are of length zero
 DISCUS
+  exp2pdf     Added option to load externam atomic form factors
   export      Added a 'force:yes' option to 'export shelx' to force writing even if the
               structure extends over more than one unit cell. Might happen for long molecules. 
   mmc         Changed the correlation parameter to Warren-Cowley, this has no effect for 
@@ -14,6 +15,7 @@ DISCUS
               Added a new 'pref' energy that relies on the AB correlation only and is unidirectional
               'calc' command gives more output
   import      'import shelx' can now set up a DISCUS single crystal and/or powder refinement
+  powder/output  Added automatic inclusion of DiSCaMB atomic form factors
 
 6.18.02  RELEASE 2025_01_18
 
