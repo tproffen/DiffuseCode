@@ -28,32 +28,39 @@ REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: y2a
 REAL(KIND=PREC_DP) :: xequ
 REAL(KIND=PREC_DP) :: yequ
 !
+integer :: ipkt
 INTEGER :: ii
 INTEGER :: all_status
 !
+ipkt = npkt-nlow+1
+!write(*,*) ' SPLINE PREP ', ipkt, nlow, npkt
 !npkt_equi =     NINT((xmax-xmin)/xstep) + 1             
-ALLOCATE(xpl (1:npkt),stat = all_status) ! Allocate array for calculated powder pattern
-ALLOCATE(ypl (1:npkt),stat = all_status) ! Allocate array for calculated powder pattern
-ALLOCATE(y2a (1:npkt),stat = all_status) ! Allocate array for calculated powder pattern
+ALLOCATE(xpl (1:npkt-nlow+1),stat = all_status) ! Allocate array for calculated powder pattern
+ALLOCATE(ypl (1:npkt-nlow+1),stat = all_status) ! Allocate array for calculated powder pattern
+ALLOCATE(y2a (1:npkt-nlow+1),stat = all_status) ! Allocate array for calculated powder pattern
 !ALLOCATE(xequi(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
 !ALLOCATE(yequi(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
-xpl(1:npkt) = xpl_in(0:npkt-1)
-ypl(1:npkt) = ypl_in(0:npkt-1)
+xpl(1:ipkt) = xpl_in(nlow:npkt)   !xpl_in(0:npkt-1)
+ypl(1:ipkt) = ypl_in(nlow:npkt)   !ypl_in(0:npkt-1)
 xequi = 0.0
 yequi = 0.0
 y2a  = 0.0
 !write(*,*) ' PREPARE BD n', npkt+1-nlow, npkt_equi
-!write(*,*) ' PREPARE BD x', lbound(xpl), ubound(xpl), xpl(1), xpl(2), xpl(3)
-!write(*,*) ' PREPARE BD y', lbound(ypl), ubound(ypl), ypl(1), ypl(2), ypl(3)
+!write(*,*) ' PREPARE BD x', lbound(xpl), ubound(xpl), xpl(1), xpl(2), xpl(3), maxval(xpl)
+!write(*,*) ' PREPARE BD X', lbound(xpl), ubound(xpl), xpl(ipkt-2), xpl(ipkt-1), xpl(ipkt-0), maxval(xpl)
+!write(*,*) ' PREPARE BD y', lbound(ypl), ubound(ypl), ypl(1), ypl(2), ypl(3), maxval(ypl)
 !write(*,*) ' PREPARE BD 2', lbound(y2a), ubound(y2a)
 !write(*,*) ' PREPARE xequ', lbound(xequi), ubound(xequi)
 !write(*,*) ' PREPARE yequ', lbound(xequi), ubound(xequi)
 !write(*,*) ' PREPARE BD n', npkt-1-nlow
 !write(*,*) ' PREPARE xmin', xmin, xstep, xmin + (1 -1)*xstep
-CALL spline (npkt-2-nlow, xpl, ypl, 1.D31, 1.D31, y2a)
-DO ii =  1  , npkt_equi
+!CALL spline (npkt-2-nlow, xpl, ypl, 1.D31, 1.D31, y2a)
+CALL spline (ipkt       , xpl, ypl, 1.D31, 1.D31, y2a)
+!write(*,*) ' PREPARE BD 2', lbound(y2a), ubound(y2a), maxval(y2a)
+DO ii = nlow, npkt_equi
    xequ = xmin + (ii-1)*xstep
-   CALL splint (npkt-2-nlow, xpl, ypl, y2a, xequ, yequ, ier_num)
+!  CALL splint (npkt-2-nlow, xpl, ypl, y2a, xequ, yequ, ier_num)
+   CALL splint (ipkt       , xpl, ypl, y2a, xequ, yequ, ier_num)
    IF(ier_num/=0) THEN
 !      DEALLOCATE( pow_tmp, stat = all_status)
 !      DEALLOCATE( xpl, stat = all_status)
@@ -63,8 +70,8 @@ DO ii =  1  , npkt_equi
 !     DEALLOCATE( yequi, stat = all_status)
       RETURN
    ENDIF
-   xequi(ii-1) = xequ
-   yequi(ii-1) = yequ
+   xequi(ii) = xequ
+   yequi(ii) = yequ
 ENDDO
 !write(*,*) ' POST xequi  ', xequi(0), xequi(1), xequi(2)
 !write(*,*) ' POST yequi  ', yequi(0), yequi(1), yequi(2)
@@ -118,8 +125,8 @@ frst: DO i = 2, n - 1
    u (i) = (6. * ((y(i+1)-y(i)) / (x(i+1)-x(i)) - (y(i)-y(i-1)) / (x(i)-x(i-1))) / (x(i+1)   &
          - x(i-1)) - sig * u(i - 1)) / p                          
 ENDDO  frst
-!write(*,*) ' AFTER FRST ', p, x(3), x(1), y2(1), y2(2), y2(n-1)
-!write(*,*) ' AFTER u    ',    u(1), u(2),  u(n-2), u(n-1), u(n)
+!write(*,*) ' AFTER FRST ', p, x(3), x(1), y2(1), y2(2), y2(n-1) , maxval(y2)
+!write(*,*) ' AFTER u    ',    u(1), u(2),  u(n-2), u(n-1), u(n) , maxval(u)
 IF(ypn >  .99e30) THEN 
    qn = 0. 
    un = 0. 
@@ -128,11 +135,11 @@ ELSE
    un = (3. / (x(n) - x(n-1))) * (ypn - (y(n)-y(n-1)) / (x(n)-x(n-1)))
 ENDIF 
 y2(n) = (un - qn * u(n-1)) / (qn*y2(n-1) + 1.) 
-!write(*,*) ' PRIOR SCND ', qn, un,  x(1), y2(1), y2(2), y2(n-1), y(n)
+!write(*,*) ' PRIOR SCND ', qn, un,  x(1), y2(1), y2(2), y2(n-1), y(n), maxval(y2)
 scnd: DO k = n - 1, 1, -1 
    y2(k) = y2(k) * y2(k+1) + u(k)
 END DO scnd
-!write(*,*) ' AFTER SCND ', p, x(3), x(1), y2(1), y2(2), y2(n-1), y2(n)
+!write(*,*) ' AFTER SCND ', p, x(3), x(1), y2(1), y2(2), y2(n-1), y2(n), maxval(y2)
 !     RETURN 
 END SUBROUTINE spline                         
 !                                                                       
