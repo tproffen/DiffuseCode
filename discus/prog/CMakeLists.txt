@@ -53,7 +53,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	interpret.f90 inverse_mod.f90 discus_kdo.f90 discus_kdo_common.f90 mc_mod.f90 metric.f90 micro_mod.f90
 	mmc.f90 mmc_mod.f90 mmc_basic.f90 mmc_mole.f90 modify_func_mod.f90 modify_mod.f90 mole_env_mod.f90
 	molecule_alloc.f90 molecule_func.f90 molecule_mod.f90 output_mod.f90 patters.f90 patters_mod.f90 
-        phases_mod.f90 phases_set_mod.f90 phases_stack.f90
+        phases_mod.f90 phases_set_mod.f90 phases_set_form.f90 phases_stack.f90
 	place_molecule.f90  read_internal_mod.f90
 	perioditize.f90 pdf.f90 pdf_mod.f90
 	discus_plot.f90 discus_plot_mod.f90 discus_plot_init.f90  discus_plot_export.f90

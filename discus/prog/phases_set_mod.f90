@@ -149,6 +149,7 @@ USE debye_mod
 USE diffuse_mod
 USE pdf_mod
 USE phases_mod
+use phases_set_form_mod
 USE powder_mod
 USE powder_tables_mod
 !
@@ -195,14 +196,17 @@ stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking 
 !write(*,*) ' Crystal mass ', cr_mass
 !write(*,*) ' SET FORM ', num(1), num(2), num(1)*num(2), npkt
    DO iscat = 1, cr_nscat
-      DO k=0, npkt
-         signum = 1.0D0
-         IF(REAL(cfact_pure(1, iscat),kind=PREC_DP)< 0.0D0) signum = -1.0D0
-         pha_form(k, iscat, pha_curr) = SQRT( DBLE (       cfact_pure (powder_istl (k), iscat)   *   &
-                                                    CONJG (cfact_pure (powder_istl (k), iscat) )  )  &
-                                            )                                                        &
-                                        * signum
-      ENDDO
+      call phases_set_form(iscat, npkt, pha_curr, PHA_MAXPTS, PHA_MAXSCAT, PHA_MAXPHA,    &
+           pha_form, ubound(powder_istl,1), powder_istl, DIF_MAXSCAT,    &
+           cfact_pure, diff_table, RAD_DISC, cr_rten)
+!      DO k=0, npkt
+!         signum = 1.0D0
+!         IF(REAL(cfact_pure(1, iscat),kind=PREC_DP)< 0.0D0) signum = -1.0D0
+!         pha_form(k, iscat, pha_curr) = SQRT( DBLE (       cfact_pure (powder_istl (k), iscat)   *   &
+!                                                    CONJG (cfact_pure (powder_istl (k), iscat) )  )  &
+!                                            )                                                        &
+!                                        * signum
+!      ENDDO
       pha_adp  (iscat, pha_curr) = cr_dw(iscat)
       pha_occ  (iscat, pha_curr) = cr_occ(iscat)
       pha_niscat(iscat, pha_curr) = cr_niscat(iscat)    ! cr_niscat is the number of atoms of type iscat
