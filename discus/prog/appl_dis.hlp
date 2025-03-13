@@ -2506,7 +2506,7 @@
    'data' file, yet its lower and upper limit must include the 
    Q-range of the 'data' file.
 
-   The intensity on teh data file will be multiplied by the 
+   The intensity on the data file will be multiplied by the 
    optional 'scale' parameter.
    Defaults to 1.0
 3  composition
@@ -2537,6 +2537,18 @@
 !p exit
 
    Return to the main DISCUS menu
+
+3  faver
+!p faver  xy,  <form_factor_file>
+!p faver  csv, <form_factor_file>
+!p faver "kuplot", <data_set_number>
+
+   Load a file with the average atomic form factors that correspond
+   to the ==> 'data' file.
+   The file need not to be on the same Q-scale and step width as the 
+   'data' file, yet its lower and upper limit must include the 
+   Q-range of the 'data' file.
+
 3  limits
 !p limits inst:[<qmin>,<qmax>], [fourier:<qmin>,<qmax>]
 
