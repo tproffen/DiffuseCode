@@ -7,6 +7,7 @@ IMPLICIT NONE
 CHARACTER(LEN=PREC_STRING)                                :: exp_load  = ' '  ! Load string data
 CHARACTER(LEN=PREC_STRING)                                :: exp_cback  = ' ' ! Load string Background
 CHARACTER(LEN=PREC_STRING)                                :: exp_csigma = ' ' ! Load string Sigma's
+CHARACTER(LEN=PREC_STRING)                                :: exp_cfaver = ' ' ! Load string faver 
 CHARACTER(LEN=PREC_STRING)                                :: exp_radiation = 'xray' ! Radiation 'xray', 'neutron', 'electron'
 character(len=4)          , DIMENSION(:    ), ALLOCATABLE :: exp_atname       ! Atom names
 REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_atocc        ! Occupancies
@@ -14,6 +15,7 @@ integer                                                   :: exp_natom = 0    ! 
 INTEGER                                                   :: exp_kload = 0    ! Data set within KUPLOT
 INTEGER                                                   :: exp_kback = 0    ! Data set within KUPLOT
 INTEGER                                                   :: exp_ksigma= 0    ! Sigma set within KUPLOT
+INTEGER                                                   :: exp_kfaver= 0    ! Sigma set within KUPLOT
 INTEGER                                                   :: exp_kfq   = 0    ! Sigma set within KUPLOT
 INTEGER                                                   :: exp_kupl  = 0    ! Data set within KUPLOT that needs to be kept
 INTEGER                   , DIMENSION(3)                  :: exp_dim    ! Dimensions of data set

@@ -103,9 +103,12 @@ IF(line(1:6) == 'kuplot') THEN
    elseIF(itype==2) THEN             ! Data loaded from KUPLOT
       exp_cback = ' '
       exp_kback = ndata
-   ELSEif(itype==3) then
+   elseif(itype==3) then
       exp_csigma = ' '        ! Sigma loaded from KUPLOT
       exp_ksigma = ndata
+   elseif(itype==4) then
+      exp_cfaver = ' '        ! Sigma loaded from KUPLOT
+      exp_kfaver = ndata
    ENDIF
 ELSE                               ! Presume a "data xy, filename "
    IF(itype==1) THEN
@@ -117,7 +120,10 @@ ELSE                               ! Presume a "data xy, filename "
    elseif(itype==3) then
       exp_csigma = line
       exp_ksigma = iz - 1
-   ENDIF
+   elseif(itype==3) then
+      exp_cfaver = line
+      exp_kfaver = iz - 1
+   endif
    CALL do_load(line, length,.TRUE.)
    IF(ier_num/= 0) RETURN
    ndata = -1                 ! Will be updated to correct value in refine_load_kuplot
@@ -138,6 +144,7 @@ SUBROUTINE exp2pdf_load_kuplot(itype, ndata) !, is_data, is_sigma)
 ! If itype== 1     it is data
 ! If itype== 2     it is background
 ! If itype== 3     it is sigma
+! If itype== 4     it is faver
 ! If ndata==-1, the last KUPLOT data set is taken
 !
 use exp2pdf_data_mod
@@ -169,6 +176,7 @@ ENDIF
 IF(itype==1) THEN                         ! This is the data set
    IF(ALLOCATED(exp_data))   DEALLOCATE(exp_data)
    IF(ALLOCATED(exp_sigma )) DEALLOCATE(exp_sigma )
+   IF(ALLOCATED(exp_faver2)) DEALLOCATE(exp_faver2)
    IF(ALLOCATED(exp_x     )) DEALLOCATE(exp_x     )
    IF(ALLOCATED(exp_y     )) DEALLOCATE(exp_y     )
 ENDIF
@@ -285,6 +293,19 @@ ENDIF
             ier_msg(1) = ' Check data and define non-zero sigma'
             RETURN
          ENDIF
+      elseif(itype==4) then
+         if(allocated(exp_faver2)) deallocate(exp_faver2)
+         allocate(exp_faver2(exp_dim(1)))
+!
+!        IF(exp_dim(1) /= nx(ndata)) THEN
+!           ier_num = -6
+!           ier_typ = ER_FORT
+!           ier_msg(1) = 'faver  and data set differ  in size'
+!           RETURN
+!        ENDIF
+         do ix=1,exp_dim(1)
+            exp_faver2(ix) = (y(offxy(ndata - 1) + ix))**2
+         enddo
       endif
    ENDIF
 !ENDIF

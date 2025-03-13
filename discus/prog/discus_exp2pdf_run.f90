@@ -311,6 +311,7 @@ integer                   , dimension(MAXW) :: lpara
 !real(kind=PREC_DP)        , dimension(MAXW) :: werte
 real(kind=PREC_DP) :: occ
 !
+if(exp_kfaver==0) then              ! No <faver> loaded from file
 if(.not. exp_comp_current) then     ! We cannot use current structure 
    cpara(1:3) = '1.000'
    lpara(1:3) = 5
@@ -441,6 +442,7 @@ exp_faver2(1:exp_nstep) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
 !
 exp_rlambda = rlambda
 exp_renergy = renergy
+endif
 !
 end subroutine exp2pdf_init_aver
 !

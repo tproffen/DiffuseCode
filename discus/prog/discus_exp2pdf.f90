@@ -131,6 +131,11 @@ loop_main: DO while (.not.lend)                 ! Main exp2pdf loop
    ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then
       lend = .true.
 !
+!  --- External form factor table
+!
+   elseif(str_comp (befehl, 'faver', 5, lbef, 5)) then
+      call exp2pdf_load(4, zeile, lp)
+!
 !     ----Set output file and PDF range
 !
    ELSEIF (str_comp (befehl, 'outfile', 2, lbef, 7) .or.              &
