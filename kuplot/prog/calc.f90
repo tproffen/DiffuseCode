@@ -1245,6 +1245,7 @@ REAL(KIND=PREC_DP) :: werte (maxw)
 REAL(kind=PREC_DP) :: x_igg 
 REAL(kind=PREC_DP) :: yyy 
 REAL(kind=PREC_DP) :: deltax
+REAL(kind=PREC_DP) :: TOL
 REAL(kind=PREC_DP),dimension(:), allocatable :: xpl !(maxarray)
 REAL(kind=PREC_DP),dimension(:), allocatable :: ypl !(maxarray)
 REAL(kind=PREC_DP),dimension(:), allocatable :: y2a !(maxarray)
@@ -1299,18 +1300,27 @@ ENDIF
 allocate(xpl(1:lenc(ik)))
 allocate(ypl(1:lenc(ik)))
 allocate(y2a(1:lenc(ik)))
+TOL = ( x(offxy(ig-1)+2)-x(offxy(ig-1)+1))*0.001_PREC_DP
 !                                                                       
 !------ Now we interpolate the data                                     
 !                                                                       
 !ascend = x (offxy (ik - 1) +1) < x (offxy (ik - 1) + lenc(ik))
 !write(*,*) 'x(1), x(E) ', x (offxy (ik - 1) +1), x (offxy (ik - 1) + lenc(ik))
-!write(*,*) 'min , max K', xmin(ik), xmax(ik), ascend
+!write(*,*) 'min , max K', xmin(ik), xmax(ik)!, ascend
 !write(*,*) 'min , max G', xmin(ig), xmax(ig)
+!do i=1, 4
+!write(*,*) 'first Point', x (offxy (ik - 1) + i) < xmin(ig), x (offxy (ik - 1) + i) - xmin(ig), &
+!x (offxy (ik - 1) + i) , xmin(ig), (x (offxy (ik - 1) + i) - xmin(ig)<-TOL)
+!enddo
+!do i=lenc(ik)-3, lenc(ik)
+!write(*,*) 'LAST  Point', x (offxy (ik - 1) + i) > xmax(ig), x (offxy (ik - 1) + i) - xmax(ig), &
+!x (offxy (ik - 1) + i) , xmax(ig), (x (offxy (ik - 1) + i) - xmax(ig)>TOL)
+!enddo
 j = 0
 loop_copy: DO i = 1, lenc (ik) 
 !   if(ascend) then
-      if(x (offxy (ik - 1) + i) < xmin(ig)              ) cycle loop_copy
-      if(x (offxy (ik - 1) + i) > xmax(ig)              ) exit  loop_copy
+      if(x(offxy(ik - 1) + i) - xmin(ig)<-TOL         ) cycle loop_copy
+      if(x(offxy(ik - 1) + i) - xmax(ig)> TOL         ) exit  loop_copy
 !   else
 !      if(x (offxy (ik - 1) + i) < xmax(ig)              ) cycle loop_copy
 !      if(x (offxy (ik - 1) + i) > xmin(ig)              ) exit  loop_copy
