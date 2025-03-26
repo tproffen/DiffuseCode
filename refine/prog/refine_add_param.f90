@@ -270,7 +270,7 @@ IF(lrefine) THEN
    refine_range(ipar,1) = range_low
    refine_range(ipar,2) = range_high
    refine_shift(ipar)   = owerte(OSHIFT)
-   refine_nderiv(ipar)  = owerte(ONDERIV)
+   refine_nderiv(ipar)  = nint(owerte(ONDERIV))
    IF(opara(OVALUE)/='current') THEN                      ! User did not specify "current"
 !      READ(opara(OVALUE)(1:lopara(OVALUE)), *) refine_p(ipar)
       refine_p(ipar) = temp_val
@@ -284,7 +284,7 @@ IF(lrefine) THEN
             refine_fixed(i) = ' '
             refine_f    (i) = 1.0D0
             refine_shift_fix(i) = owerte(OSHIFT)
-            refine_nderiv_fix(i) = owerte(ONDERIV)
+            refine_nderiv_fix(i) = nint(owerte(ONDERIV))
             refine_range_fix(ipar,1) = range_low
             refine_range_fix(ipar,2) = range_high
             refine_fix_n = refine_fix_n - 1
@@ -324,7 +324,7 @@ ELSE
       refine_fixed(refine_fix_n) = pname
       refine_f(refine_fix_n)     = temp_val
       refine_shift_fix(refine_fix_n) = owerte(OSHIFT)
-      refine_nderiv_fix(refine_fix_n) = owerte(ONDERIV)
+      refine_nderiv_fix(refine_fix_n) = nint(owerte(ONDERIV))
       refine_range_fix(refine_fix_n,1)= range_low
       refine_range_fix(refine_fix_n,2)= range_high
    ENDIF
