@@ -125,7 +125,7 @@ IF(ianz==1) THEN
          refine_range (refine_par_n,1) =  1.0
          refine_range (refine_par_n,2) = -1.0
          refine_shift (refine_par_n)   =  0.005
-         refine_nderiv(refine_par_n)   =  0.005
+         refine_nderiv(refine_par_n)   =  0
          EXIT params
       ENDIF
    ENDDO params   

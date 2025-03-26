@@ -265,9 +265,9 @@ WRITE(iounit, * ) ' '
 WRITE(iounit,'(a)') ' Refined parameters' 
 DO i=1, npara
    IF(prange(i,1)<=prange(i,2)) THEN
-      IF(prange(i,1)< -0.5*HUGE(0)) THEN
+      IF(prange(i,1)< -0.5_PREC_DP*real(HUGE(0), kind=PREC_DP)) THEN
          WRITE(iounit,1110) params(i), pp(i), dpp(i)             , prange(i,2)
-      ELSEIF(prange(i,2)> 0.5*HUGE(0)) THEN
+      ELSEIF(prange(i,2)> 0.5_PREC_DP*real(HUGE(0), kind=PREC_DP)) THEN
          WRITE(iounit,1111) params(i), pp(i), dpp(i), prange(i,1)
       ELSE
          WRITE(iounit,1112) params(i), pp(i), dpp(i), prange(i,1), prange(i,2)

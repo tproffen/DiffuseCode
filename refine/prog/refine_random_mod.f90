@@ -23,6 +23,7 @@ IMPLICIT NONE
 refine_nseed = random_nseeds()
 !
 CALL random_current(refine_nseed, refine_seeds)
+!CALL random_current(refine_seeds)
 !
 END SUBROUTINE refine_save_seeds
 !

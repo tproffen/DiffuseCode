@@ -148,8 +148,8 @@ dimen(2) = ref_dim(2)
 dimen(3) = ref_dim(3)
 dimen(4) = refine_par_n
 CALL gl_alloc(dimen)             ! Turn usage of global data on
-call gl_set_data(dimen(1),dimen(2), dimen(3), 1    , -2, ref_data( :,:,:))
-call gl_set_data(dimen(1),dimen(2), dimen(3), 1    , -3, ref_sigma(:,:,:))
+call gl_set_data(dimen(1),dimen(2), dimen(3), -2, ref_data( :,:,:))
+call gl_set_data(dimen(1),dimen(2), dimen(3), -3, ref_sigma(:,:,:))
 call gl_set_x(dimen(1), ref_x)
 call gl_set_y(dimen(2), ref_y)
 call gl_set_z(dimen(3), ref_z)
@@ -333,7 +333,7 @@ initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user 
    CALL refine_save_seeds             ! Save current random number seeds
    CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
                      data_dim, refine_calc)
-   CALL gl_set_data(data_dim(1), data_dim(2), data_dim(3), 0, -1,  &
+   CALL gl_set_data(data_dim(1), data_dim(2), data_dim(3), -1,  &
         refine_calc(1:data_dim(1),1:data_dim(2),1:data_dim(3)))
 !
    IF(ier_num /= 0) RETURN
