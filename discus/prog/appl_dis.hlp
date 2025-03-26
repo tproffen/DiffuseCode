@@ -1,11 +1,15 @@
 1  discus
 
-   The program is invoked by typing 'discus' at the operating system or 
-   at the shell prompt. The program uses a command language to interact 
-   with the user. The command 'exit' or a CTRL Z terminates the program.
+   The discus section is reached from the main discus_suite level by
+   by typing 'discus' at the uite prompt.
+   The program uses a command language to interact with the user. 
+   The command 'exit' or a CTRL Z terminates the program.
 
    More information about the syntax, expressions etc. of the command
-   language can be obtained by typing 'command' at the help prompt.
+   language can be obtained by typing 'Command' at the help prompt.
+
+   The discus manual is available through the 'manual' command at the
+   discus main level.
 
    Help on the program is obtained by typing "help" or "help <command>" to
    get specific help on the command <command>. The command may be abbreviated.
@@ -1017,6 +1021,20 @@
 4  boundary
 
    A cylindrical boundary has been added.
+2  manual
+!p manual ["section:"{"suite"  | "discus"  | "diffev" |
+!p                    "kuplot" | "package" | "mixscat"}
+!p        [,"viewer:"<name>]
+
+   Opens a PDF viewer for one of the Manuals
+
+   The section defaults to the current program section that you are
+   working with.
+   On Linux systems, the viewer defaults to "qpdfview", on Windows 
+   system it defaults to "firefox". If DISCUS does not find the
+   default or the user provided viewer, DISCUS will search
+   a list of common PDF viewers. If none is found an error message
+   points to the folder that contains the manuals.
 2  Menu
 
    The DISCUS section is structured into several menus that 

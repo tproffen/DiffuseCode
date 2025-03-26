@@ -1,6 +1,12 @@
 1  experi
 
    Section to handle experimental data treatment
+   
+   The experi manual is available through the 'manual' command at the
+   experi main level.
+
+   Commands available at this level are:
+
 2  Summary
 !p exp2pdf    ! Transform experimental powder pattern into PDF
 !p reset      ! Reset EXPERI to initial program start conditions
@@ -9,6 +15,20 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2024_April
    initial release
+2  manual
+!p manual ["section:"{"suite"  | "discus"  | "diffev" |
+!p                    "kuplot" | "package" | "mixscat"}
+!p        [,"viewer:"<name>]
+
+   Opens a PDF viewer for one of the Manuals
+
+   The section defaults to the current program section that you are
+   working with.
+   On Linux systems, the viewer defaults to "qpdfview", on Windows 
+   system it defaults to "firefox". If DISCUS does not find the
+   default or the user provided viewer, DISCUS will search
+   a list of common PDF viewers. If none is found an error message
+   points to the folder that contains the manuals.
 2  exp2pdf
 !p exp2pdf
 

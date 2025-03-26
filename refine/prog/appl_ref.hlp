@@ -17,6 +17,11 @@
    parallel NNN, refinement_macro
       Here NNN can be omitted to use all CPUs
 
+   The refine manual is available through the 'manual' command at the
+   refine main level.
+
+   Further help topics are:
+
 2  Summary
 
    Here is a list and brief description of valid REFINE commands. Further
@@ -67,6 +72,20 @@
 !p                              !   data set F_data that was loaded by refine.
 !p exit                         ! Back to REFINE
 !p finished                     ! Special keyword signals end of user macro
+2  manual
+!p manual ["section:"{"suite"  | "discus"  | "diffev" |
+!p                    "kuplot" | "package" | "mixscat"}
+!p        [,"viewer:"<name>]
+
+   Opens a PDF viewer for one of the Manuals
+
+   The section defaults to the current program section that you are
+   working with.
+   On Linux systems, the viewer defaults to "qpdfview", on Windows 
+   system it defaults to "firefox". If DISCUS does not find the
+   default or the user provided viewer, DISCUS will search
+   a list of common PDF viewers. If none is found an error message
+   points to the folder that contains the manuals.
 2  data
 !p data "kuplot", <number>
 !p data <type>, <infile>

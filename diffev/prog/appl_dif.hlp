@@ -1,8 +1,8 @@
 1  diffev
 
-   The program is invoked by typing 'diffev' at the operating system or 
-   at the shell prompt. The program uses a command language to interact 
-   with the user. The command 'exit' or a CTRL Z terminates the program.
+   The diffev section is invoked by typing 'diffev' at the main suite level.
+   The program uses a command language to interact with the user. 
+   The command 'exit' or a CTRL Z terminates the program.
 
    More information about the syntax, expressions etc. of the command
    language can be obtained by typing 'command' at the help prompt.
@@ -11,6 +11,9 @@
    get specific help on the command <command>. The command may be abbreviated.
    If the abbreviation is not unique, only the first help topic that matches
    the command is listed.
+
+   The diffev manual is available through the 'manual' command at the
+   diffev main level.
 
    The first line of the help text gives the syntax of the command that is
    explained in the following lines. For a few commands the syntax line is
@@ -568,6 +571,20 @@
    pop_c[1] = <new_value>
 
    You may increase or decrease the population size as needed.
+2  manual
+!p manual ["section:"{"suite"  | "discus"  | "diffev" |
+!p                    "kuplot" | "package" | "mixscat"}
+!p        [,"viewer:"<name>]
+
+   Opens a PDF viewer for one of the Manuals
+
+   The section defaults to the current program section that you are
+   working with.
+   On Linux systems, the viewer defaults to "qpdfview", on Windows 
+   system it defaults to "firefox". If DISCUS does not find the
+   default or the user provided viewer, DISCUS will search
+   a list of common PDF viewers. If none is found an error message
+   points to the folder that contains the manuals.
 2  allocate
 !p allocate
 !p allocate "default"
