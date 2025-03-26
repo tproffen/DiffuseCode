@@ -223,9 +223,9 @@ if(str_comp (cpara(1), 'ncells', 2, lpara(1), 6) ) then
 elseif(str_comp (cpara(1), 'natoms', 2, lpara(1), 6) ) then
    call perioditize_set_natoms(ianz, cpara, lpara, werte, maxw)
 elseif(str_comp (cpara(1), 'site', 2, lpara(2), 4) ) then
-   call perioditize_set_site  (ianz, cpara, lpara, werte, maxw, .false.)
+   call perioditize_set_site  (ianz, cpara, lpara, maxw, .false.)
 elseif(str_comp (cpara(1), 'wyckoff', 2, lpara(2), 7) ) then
-   call perioditize_set_site  (ianz, cpara, lpara, werte, maxw, .true.)
+   call perioditize_set_site  (ianz, cpara, lpara, maxw, .true.)
 endif
 !
 end subroutine perioditize_set
@@ -331,7 +331,7 @@ end subroutine perioditize_set_natoms
 !
 !*******************************************************************************
 !
-subroutine perioditize_set_site(ianz, cpara, lpara, werte, maxw, lwyckoff)
+subroutine perioditize_set_site(ianz, cpara, lpara, maxw, lwyckoff)
 !-
 !  Set explicit positions expected in the average unit cell
 !+
@@ -354,7 +354,7 @@ integer :: MAXW          ! max number of parameters
 integer :: ianz          ! Number of parameters
 character(len=PREC_STRING), dimension(MAXW), intent(inout)     :: cpara
 integer                   , dimension(MAXW), intent(inout)     :: lpara
-real(kind=PREC_DP)        , dimension(MAXW), intent(inout)     :: werte
+!real(kind=PREC_DP)        , dimension(MAXW), intent(inout)     :: werte
 logical                                    , intent(in)        :: lwyckoff
 !
 !
@@ -632,7 +632,7 @@ integer                                       :: temp_nsite    ! Initial number 
 integer           , dimension(  4*nint(aver)) :: pdt_temp_n    ! Number of atoms per site
 logical           , dimension(  4*nint(aver)) :: is_valid      ! This site is OK T/F
 !
-pdt_nsite = aver                       ! Initialize number of sites per unit cell
+pdt_nsite = nint(aver)                 ! Initialize number of sites per unit cell
 eps = 0.30                             ! Start with 0.5 Angstroem
 if(pdt_asite==0) then                  ! No sites yet
    pdt_asite = 1                              ! No sites yet
