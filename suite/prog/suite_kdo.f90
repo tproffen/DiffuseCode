@@ -327,7 +327,7 @@ ELSE
 !     -- Test a simple jmol plot
 !
    ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'testjmol', 8, lbef, 8) ) then
-      call suite_test_jmol(zeile, lcomm, lend)
+      call suite_test_jmol(lend)
 !
 !     -- Test a simple plot
 !
@@ -440,7 +440,7 @@ end subroutine suite_test_plot
 !
 !*******************************************************************************
 !
-subroutine suite_test_jmol(zeile, lcomm, lend)
+subroutine suite_test_jmol(lend)
 !-
 ! Do an automatic jmol plot , serves to test if jmol works
 !+
@@ -474,8 +474,8 @@ use precision_mod
 use variable_mod
 !
 implicit none
-character(len=*), intent(in)    :: zeile
-integer         , intent(in)    :: lcomm
+!character(len=*), intent(in)    :: zeile
+!integer         , intent(in)    :: lcomm
 logical         , intent(  out) :: lend 
 !
 character(len=PREC_STRING) :: line

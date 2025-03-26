@@ -317,7 +317,7 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
    mpi_slave_error = ier_num
    mpi_slave_err_typ = ier_typ
    mpi_slave_msg = ier_msg
-   CALL macro_close_mpi(mac, mac_l)
+   CALL macro_close_mpi!(mac, mac_l)
    IF(ier_num /= 0) mpi_slave_error = ier_num
 !
    IF(rvalue_yes) THEN    ! We got an r-value
