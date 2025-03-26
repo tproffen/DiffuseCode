@@ -821,7 +821,7 @@ END SUBROUTINE macro_close
 !
 !*****7*****************************************************************
 !
-SUBROUTINE macro_close_mpi(first_mac, mac_l)
+SUBROUTINE macro_close_mpi!(first_mac, mac_l)
 !
 ! close the tree associated with currently running mpi slave
 !
@@ -832,8 +832,8 @@ USE prompt_mod
 !
 IMPLICIT NONE
 !
-CHARACTER (LEN=*), INTENT(IN) :: first_mac
-INTEGER          , INTENT(IN) :: mac_l
+!CHARACTER (LEN=*), INTENT(IN) :: first_mac
+!INTEGER          , INTENT(IN) :: mac_l
 !
 IF(ASSOCIATED(mac_tree_root)) THEN                ! We have stored macros
    CALL macro_rem_tree(mac_tree_root)

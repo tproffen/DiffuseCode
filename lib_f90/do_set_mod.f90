@@ -283,7 +283,7 @@ integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name retu
 logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte    ! Calculated values
 integer, parameter                        :: ncalc = 0 ! Number of values to calculate
-integer :: nthreads    ! local variable number of threads
+!integer :: nthreads    ! local variable number of threads
 !
 data oname  / 'author' /   ! 
 data loname /  6       /

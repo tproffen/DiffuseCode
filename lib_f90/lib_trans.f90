@@ -1277,7 +1277,7 @@ lib_iocorners(:, 8) =  (/inc(1)-old_icenter(1), inc(2)-old_icenter(2), inc(3)-ol
 do i=1, 8
    vect = lib_iocorners(:,i)
    resl = matmul(lib_tr_mat, vect)
-   lib_incorners(:,i) = resl
+   lib_incorners(:,i) = nint(resl)
 enddo
 !
 new_inc(1) = maxval(lib_incorners(1,:))-minval(lib_incorners(1,:)) + 1

@@ -85,11 +85,12 @@ if(this%lcpu) then
 else
    call date_and_time(VALUES=wtimes)
 !
-   current_time = 86400.0_PREC_DP*wtimes(3) + 3600.0_PREC_DP*wtimes(5) &
-      + 60.0_PREC_DP*wtimes(6) + real(wtimes(7),kind=PREC_DP) + 0.001_PREC_DP*wtimes(8)
+   current_time = real( 86400.0_PREC_DP*wtimes(3) + 3600.0_PREC_DP*wtimes(5) &
+      + 60.0_PREC_DP*wtimes(6) + real(wtimes(7),kind=PREC_DP) + 0.001_PREC_DP*wtimes(8), &
+      kind=PREC_SP)
 endif
 this%is_started = .false.
-elapsed = current_time - this%start_time
+elapsed = current_time - real(this%start_time, kind=PREC_SP)
 !
 end function stop_timer
 !

@@ -71,7 +71,7 @@ ENDIF
 !------ if we are in a loop or macro do nothing !!                      
 !                                                                       
 IF (lmakro.OR.lblock) RETURN 
-10 CONTINUE 
+!10 CONTINUE 
 main_loop: DO
 !                                                                       
 !------ - print help file entry                                         

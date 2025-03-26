@@ -557,7 +557,7 @@ end function dgl5_get_is_grid
 !
 !*******************************************************************************
 !
-real function dgl5_get_height()
+real(kind=PREC_DP) function dgl5_get_height()
 !
 implicit none
 !
@@ -567,11 +567,11 @@ end function dgl5_get_height
 !
 !*******************************************************************************
 !
-subroutine dgl5_get_dims(idata, dims)
+subroutine dgl5_get_dims(dims)
 !
 implicit none
 !
-integer,               intent(in)  :: idata
+!integer,               intent(in)  :: idata
 integer, dimension(3), intent(out) :: dims
 !
 dims = h5_temp%dims
@@ -580,11 +580,11 @@ end subroutine dgl5_get_dims
 !
 !*******************************************************************************
 !
-subroutine dgl5_get_lattice(idata, lattice)
+subroutine dgl5_get_lattice(lattice)
 !
 implicit none
 !
-integer,                          intent(in)  :: idata
+!integer,                          intent(in)  :: idata
 real(kind=PREC_DP), dimension(6), intent(out) :: lattice
 !
 lattice(1:3) = h5_temp%cr_a0
@@ -594,13 +594,13 @@ end subroutine dgl5_get_lattice
 !
 !*******************************************************************************
 !
-subroutine dgl5_get_llims(idata, llims)
+subroutine dgl5_get_llims(llims)
 !
 use precision_mod
 !
 implicit none
 !
-integer,               intent(in)  :: idata
+!integer,               intent(in)  :: idata
 real(kind=PREC_DP), dimension(3), intent(out) :: llims
 !
 llims = h5_temp%llims
@@ -609,13 +609,13 @@ end subroutine dgl5_get_llims
 !
 !*******************************************************************************
 !
-subroutine dgl5_get_corners(idata, corners)
+subroutine dgl5_get_corners(corners)
 !
 use precision_mod
 !
 implicit none
 !
-integer,               intent(in)  :: idata
+!integer,               intent(in)  :: idata
 real(kind=PREC_DP), dimension(3,4), intent(out) ::  corners
 !
 corners = h5_temp%corners
@@ -624,13 +624,13 @@ end subroutine dgl5_get_corners
 !
 !*******************************************************************************
 !
-subroutine dgl5_get_minmax(idata, minmax)
+subroutine dgl5_get_minmax(minmax)
 !
 use precision_mod
 !
 implicit none
 !
-integer,               intent(in)  :: idata
+!integer,               intent(in)  :: idata
 real(kind=PREC_DP), dimension(2), intent(out) :: minmax
 !
 minmax = h5_temp%minmaxval
@@ -639,13 +639,13 @@ end subroutine dgl5_get_minmax
 !
 !*******************************************************************************
 !
-subroutine dgl5_get_minmaxcoor(idata, minmax)
+subroutine dgl5_get_minmaxcoor(minmax)
 !
 use precision_mod
 !
 implicit none
 !
-integer,               intent(in)  :: idata
+!integer,               intent(in)  :: idata
 real(kind=PREC_DP), dimension(3,2), intent(out) :: minmax
 !
 minmax = h5_temp%minmaxcoor
@@ -654,14 +654,14 @@ end subroutine dgl5_get_minmaxcoor
 !
 !*******************************************************************************
 !
-subroutine dgl5_get_steps(idata, steps)
+subroutine dgl5_get_steps(steps)
 !
 !use hdf5_def_mod
 use precision_mod
 !
 implicit none
 !
-integer,               intent(in)  :: idata
+!integer,               intent(in)  :: idata
 real(kind=PREC_DP), dimension(3,3), intent(out) :: steps
 !
 if(ALL(yd_present(YD_step_sizes_abs:YD_step_sizes_TOP))) then
@@ -789,11 +789,11 @@ end function dgl5_get_data
 !
 !*******************************************************************************
 !
-subroutine dgl5_get_infile(idata, infile)
+subroutine dgl5_get_infile(infile)
 !
 ! Get the file name for the current data set
 !
-integer         , intent(in)  :: idata
+!integer         , intent(in)  :: idata
 character(len=*), intent(out) :: infile
 !
 infile = h5_temp%infile
@@ -852,13 +852,13 @@ end subroutine dgl5_set_h5_is_ku
 !
 !*******************************************************************************
 !
-subroutine dgl5_set_llims(idata, llims)
+subroutine dgl5_set_llims(llims)
 !
 use precision_mod
 !
 implicit none
 !
-integer,                          intent(in) :: idata
+!integer,                          intent(in) :: idata
 real(kind=PREC_DP), dimension(3), intent(in) :: llims
 !
 h5_temp%llims = llims
@@ -867,14 +867,14 @@ end subroutine dgl5_set_llims
 !
 !*******************************************************************************
 !
-subroutine dgl5_set_steps(idata, steps_full)
+subroutine dgl5_set_steps(steps_full)
 !
 !use hdf5_def_mod
 use precision_mod
 !
 implicit none
 !
-integer,               intent(in)  :: idata
+!integer,               intent(in)  :: idata
 real(kind=PREC_DP), dimension(3,3), intent(in) :: steps_full
 !
 h5_temp%steps_full = steps_full

@@ -272,7 +272,7 @@ integer           , dimension(3)                         , intent(in )   :: inc 
 real(kind=PREC_DP), dimension(inc(1), inc(2), inc(3))    , intent(in )   ::  infield
 integer           , dimension(3)                         , intent(in )   :: idims  !Input dimensions
 real(kind=PREC_DP), dimension(idims(1), idims(2), idims(3)), intent(out) :: outfield
-logical , intent(in) :: flag
+logical , intent(in) :: flag             ! Dummy flag to distinguish cart/FFT
 !
 integer :: i1, i2, i3 !,j,k
 integer :: hl, hh   ! lower, higher limit
@@ -347,7 +347,7 @@ integer           , dimension(2)                         , intent(in )   :: inc 
 real(kind=PREC_DP), dimension(inc(1), inc(2))            , intent(in )   ::  infield
 integer           , dimension(2)                         , intent(in )   :: idims  !Input dimensions
 real(kind=PREC_DP), dimension(idims(1), idims(2))        , intent(out) :: outfield
-logical , intent(in) :: flag
+logical , intent(in) :: flag             ! Dummy flag to distinguish cart/FFT
 !
 integer :: i1, i2 !,j,k
 integer :: hl, hh   ! lower, higher limit
@@ -413,7 +413,7 @@ integer                                                  , intent(in )   :: inc 
 real(kind=PREC_DP), dimension(inc)                    , intent(in )   ::  infield
 integer                                                  , intent(in )   :: idims  !Input dimensions
 real(kind=PREC_DP), dimension(idims)                  , intent(out) :: outfield
-logical , intent(in) :: flag
+logical , intent(in) :: flag             ! Dummy flag to distinguish cart/FFT
 !
 integer :: i1 !,j,k
 integer :: hl, hh   ! lower, higher limit

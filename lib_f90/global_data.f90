@@ -284,7 +284,7 @@ end subroutine gl_get_maxdims
 !
 !*******************************************************************************
 !
-SUBROUTINE gl_set_data_1d(idim1, NPARA, ipara, ext_data)
+SUBROUTINE gl_set_data_1d(idim1, ipara, ext_data)
 !
 ! popluate global data, 1D 
 USE errlist_mod
@@ -293,7 +293,7 @@ USE precision_mod
 IMPLICIT NONE
 !
 INTEGER                            , INTENT(IN) :: idim1
-INTEGER                            , INTENT(IN) :: NPARA
+!INTEGER                            , INTENT(IN) :: NPARA
 INTEGER                            , INTENT(IN) :: ipara
 REAL(KIND=PREC_DP), DIMENSION(idim1), INTENT(IN) :: ext_data
 !
@@ -305,7 +305,7 @@ END SUBROUTINE gl_set_data_1d
 !
 !*******************************************************************************
 !
-SUBROUTINE gl_set_data_2d(idim1, idim2, NPARA, ipara, ext_data)
+SUBROUTINE gl_set_data_2d(idim1, idim2, ipara, ext_data)
 !
 ! popluate global data, 2D 
 USE errlist_mod
@@ -315,7 +315,7 @@ IMPLICIT NONE
 !
 INTEGER                            , INTENT(IN) :: idim1
 INTEGER                            , INTENT(IN) :: idim2
-INTEGER                            , INTENT(IN) :: NPARA
+!INTEGER                            , INTENT(IN) :: NPARA
 INTEGER                            , INTENT(IN) :: ipara
 REAL(KIND=PREC_DP), DIMENSION(idim1, idim2), INTENT(IN) :: ext_data
 !
@@ -327,7 +327,7 @@ END SUBROUTINE gl_set_data_2d
 !
 !*******************************************************************************
 !
-SUBROUTINE gl_set_data_3d(idim1, idim2, idim3, NPARA, ipara, ext_data)
+SUBROUTINE gl_set_data_3d(idim1, idim2, idim3, ipara, ext_data)
 !
 ! popluate global data, 3D 
 USE errlist_mod
@@ -338,7 +338,7 @@ IMPLICIT NONE
 INTEGER                            , INTENT(IN) :: idim1
 INTEGER                            , INTENT(IN) :: idim2
 INTEGER                            , INTENT(IN) :: idim3
-INTEGER                            , INTENT(IN) :: NPARA
+!INTEGER                            , INTENT(IN) :: NPARA
 INTEGER                            , INTENT(IN) :: ipara
 REAL(KIND=PREC_DP), DIMENSION(idim1, idim2, idim3), INTENT(IN) :: ext_data
 !

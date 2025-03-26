@@ -2,6 +2,8 @@ MODULE lib_random_func
 !
 ! Routines for random number generation
 !
+use precision_mod
+!
 CONTAINS
 !                                                                       
 !*****7*****************************************************************
@@ -276,7 +278,7 @@ ELSE
    t = 0.9E0 * (1. + y**2) * exp (em * alxm - gammln (em + 1.E0) - g)
    IF (ran1 (idum) .gt.t) goto 1 
 ENDIF 
-poidev = em 
+poidev = real(em, kind=PREC_SP) 
 !     RETURN 
 END FUNCTION poidev                           
 !*****7*****************************************************************
@@ -304,7 +306,7 @@ DO j = 1, 6
    y = y + 1.d0 
    ser = ser + cof(j) / y 
 ENDDO 
-gammln = REAL(tmp + LOG(stp * ser / x) , kind=PREC_DP)
+gammln = REAL(tmp + LOG(stp * ser / x) , kind=PREC_SP)
 !
 END FUNCTION gammln                           
 !

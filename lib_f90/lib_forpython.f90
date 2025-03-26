@@ -54,7 +54,7 @@ integer, intent(out) :: ier_num
 !type(module_py) , intent(in) :: python_script
 !
 type(list)      :: paths_to_module    ! python script path
-type(object)    :: return_value       ! forpy return value
+!type(object)    :: return_value       ! forpy return value
 !
 ier_num = get_sys_path(paths_to_module)
 ier_num = paths_to_module%append(module_path)

@@ -578,7 +578,7 @@ REAL(kind=PREC_SP), INTENT(IN) :: s
 REAL(kind=PREC_DP) :: current
 !                                                                       
 CALL CPU_TIME(current) 
-seknds_sp = current - s
+seknds_sp = real(current, kind=PREC_SP) - s
 !
 END FUNCTION seknds_sp                           
 !

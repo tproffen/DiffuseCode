@@ -635,9 +635,9 @@ real(kind=PREC_DP), dimension(3,3)  :: t       ! Trialvectors
 !write(*,*) ' GTEN          ', gten(1,:)
 !write(*,*) ' GTEN          ', gten(2,:)
 !write(*,*) ' GTEN          ', gten(3,:)
-!do i= 1, 3
-!   t(:,i) = matmul(a, eigen_vec(:,i))
-!enddo
+do i= 1, 3
+   t(:,i) = matmul(a, eigen_vec(:,i))
+enddo
 !write(*,*) ' IN TEST_T     ', t(:,1)
 !write(*,*) ' IN TEST_T     ', t(:,2)
 !write(*,*) ' IN TEST_T     ', t(:,3)

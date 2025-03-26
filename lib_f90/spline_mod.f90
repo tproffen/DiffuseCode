@@ -35,6 +35,10 @@ INTEGER :: all_status
 ipkt = npkt-nlow+1
 !write(*,*) ' SPLINE PREP ', ipkt, nlow, npkt
 !npkt_equi =     NINT((xmax-xmin)/xstep) + 1             
+if(nint((xmax-xmin)/xstep) +1 /= npkt_equi) then
+  ! ERROR MESAGE
+   return
+endif
 ALLOCATE(xpl (1:npkt-nlow+1),stat = all_status) ! Allocate array for calculated powder pattern
 ALLOCATE(ypl (1:npkt-nlow+1),stat = all_status) ! Allocate array for calculated powder pattern
 ALLOCATE(y2a (1:npkt-nlow+1),stat = all_status) ! Allocate array for calculated powder pattern

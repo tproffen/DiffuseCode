@@ -51,7 +51,7 @@ loop_main: do
    endif
    string = '(' // line(ibro+1:ibrc-1) // ')'         ! Index at [...] should have no "EXPR" in it
    length = ibrc - ibro + 1
-   kpara = berechne(string, length)       ! Calculate the current index
+   kpara = nint(berechne(string, length))       ! Calculate the current index
    zeile = ' '
    if(indxe>1) then
       zeile(1:indxe-1) = line(1:indxe-1)  ! Prepend start of line
@@ -124,7 +124,7 @@ loop_done: do                  ! Grand loop to allow arbitrary sequence of neste
          endif
          string = '(' // line(ibro+1:ibrc-1) // ')'         ! Index at [...] should have no "EXPR" in it
          length = ibrc - ibro + 1
-         kpara = berechne(string, length)       ! Calculate the current index
+         kpara = nint(berechne(string, length))       ! Calculate the current index
          if(done(kpara)) then                   ! EXPR has been done, OK
             zeile = ' '
             if(ibro>5) zeile = line(1:ibro-5)      
@@ -230,7 +230,7 @@ loop_main: do i=1, ianz
       endif
       string = '(' // line(ibro+1:ibrc-1) // ')'         ! Index at [...] should have no "EXPR" in it
       length = ibrc - ibro + 1
-      kpara = berechne(string, length)       ! Calculate the current index
+      kpara = nint(berechne(string, length))       ! Calculate the current index
       zeile = ' '
       if(ibro>5) zeile = line(1:ibro-5)
       length = len_trim(zeile)

@@ -1125,8 +1125,8 @@ v = 0.5D0* beta*( beta*sg2    - 2.0D0*dt)
 y = sqrt_1_2*(alpha*sg2    + dt)/ sg
 z = sqrt_1_2*( beta*sg2    - dt)/ sg
 !
-p = cmplx(-alpha*dt, 0.5D0*alpha*big_gamma)
-q = cmplx(- beta*dt, 0.5D0* beta*big_gamma)
+p = cmplx(-alpha*dt, 0.5D0*alpha*big_gamma, kind=PREC_DP)
+q = cmplx(- beta*dt, 0.5D0* beta*big_gamma, kind=PREC_DP)
 !
 p_r =       -alpha*dt
 p_i =                  0.5D0*alpha*big_gamma

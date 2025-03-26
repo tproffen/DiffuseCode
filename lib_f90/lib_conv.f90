@@ -44,7 +44,7 @@ allocate(in_pattern(1:idims))
 allocate(out_pattern(1:idims))
 allocate(temp(1:idims))
 !
-in_pattern = cmplx(infield, 0.0D0)
+in_pattern = cmplx(infield, 0.0D0, kind=PREC_DP)
 plan = fftw_plan_dft_1d(idims, in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
 !
 call maptofftfd(num_a, dsort,secfield, in_pattern)      ! Prepare second field
@@ -109,7 +109,7 @@ allocate(in_pattern (1:idims(1), 1:idims(2)))
 allocate(out_pattern(1:idims(1), 1:idims(2)))
 allocate(temp       (1:idims(1), 1:idims(2)))
 !
-in_pattern = cmplx(infield, 0.0D0)
+in_pattern = cmplx(infield, 0.0D0, kind=PREC_DP)
 plan = fftw_plan_dft_2d(idims(1), idims(2), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
 !
 call maptofftfd(num_a, dsort,secfield, in_pattern)      ! Prepare second field
@@ -179,7 +179,7 @@ allocate(in_pattern (1:idims(1), 1:idims(2), 1:idims(3)))
 allocate(out_pattern(1:idims(1), 1:idims(2), 1:idims(3)))
 allocate(temp       (1:idims(1), 1:idims(2), 1:idims(3)))
 !
-in_pattern = cmplx(infield, 0.0D0)
+in_pattern = cmplx(infield, 0.0D0, kind=PREC_DP)
 plan = fftw_plan_dft_3d(idims(1), idims(2), idims(3), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
 !
 call maptofftfd(num_a, dsort,secfield, in_pattern)      ! Prepare second field

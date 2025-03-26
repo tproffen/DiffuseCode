@@ -619,7 +619,7 @@ ik = nint(owerte(O_DATA))
 !
 call dgl5_set_pointer(ik, ier_num, ier_typ, node_number)
 ndims = dgl5_get_ndims()
-call dgl5_get_dims(node_number, dims)
+call dgl5_get_dims(dims)
 allocate(res_data(dims(1), dims(2), dims(3)))
 allocate(fil_data(dims(1), dims(2), dims(3)))
 res_data = HUGE(1.0)
@@ -630,7 +630,7 @@ loop_filter:do l=1, janz              ! Loop over all filters
    if(ier_num/=0) exit loop_filter
 !
    f_ndims =  dgl5_get_ndims()
-   call dgl5_get_dims(node_number, f_dims)
+   call dgl5_get_dims(f_dims)
    if(ndims/=f_ndims .or. ALL(dims/=f_dims)) then
       ier_num = -56
       ier_typ = ER_FORT
@@ -755,9 +755,9 @@ allocate(k_data (num(1)))          ! Complex array for FFT
 allocate( in_pattern(num(1)))          ! Complex array for FFT in shifted sequence           
 allocate(out_pattern(num(1)))          ! Complex array for FFT in shifted sequence           
 !
-k_data = cmplx(0.0D0, 0.0D0)
+k_data = cmplx(0.0D0, 0.0D0, kind=PREC_DP)
 do i=1, ik1_dims(1)
-   k_data(istart+i) = CMPLX(ik1_data(i,1,1), ik2_data(i,1,1))
+   k_data(istart+i) = CMPLX(ik1_data(i,1,1), ik2_data(i,1,1), kind=PREC_DP)
 enddo
 if(leven(1)) then 
    k_data(istart+ik1_dims(1)+1) = k_data(istart+1)
@@ -929,12 +929,12 @@ num(dsort(3)) = -num(dsort(3))
 num = -num
 !
 allocate(k_data (num(1), num(2)))
-k_data = cmplx(0.0D0,0.0D0)
+k_data = cmplx(0.0D0,0.0D0, kind=PREC_DP)
 allocate( in_pattern(num(dsort(1)), num(dsort(2)) ))
 allocate(out_pattern(num(dsort(1)), num(dsort(2)) ))
 do j=1, ik1_dims(2)
    do i=1, ik1_dims(1)
-      k_data(istart+i,jstart+j) = CMPLX(ik1_data(i,j,1), ik2_data(i,j,1))
+      k_data(istart+i,jstart+j) = CMPLX(ik1_data(i,j,1), ik2_data(i,j,1), kind=PREC_DP)
    enddo
 enddo
 if(leven(1)) then 
@@ -1127,11 +1127,11 @@ ALLOCATE(k_data (num(1)       , num(2)       ,num(3)         ))
 ALLOCATE( in_pattern(num(dsort(1)), num(dsort(2)), num(dsort(3)) ))
 ALLOCATE(out_pattern(num(dsort(1)), num(dsort(2)), num(dsort(3)) ))
 !
-k_data = cmplx(0.0D0,0.0D0)        ! Initialize for padding
+k_data = cmplx(0.0D0,0.0D0, kind=PREC_DP)        ! Initialize for padding
 do k=1, ik1_dims(3)
    do j=1, ik1_dims(2)
       do i=1, ik1_dims(1)
-         k_data(istart+i,jstart+j,kstart+k) = CMPLX(ik1_data(i,j,k), ik2_data(i,j,k))
+         k_data(istart+i,jstart+j,kstart+k) = CMPLX(ik1_data(i,j,k), ik2_data(i,j,k), kind=PREC_DP)
       enddo
    enddo
 enddo
@@ -1411,7 +1411,7 @@ sumwrn = 0.0D0
 !
 lout = .false.
 !
-offs = ik1_llims - ik2_llims
+offs = nint(ik1_llims - ik2_llims)
 !
 l = 0
 m = 0
