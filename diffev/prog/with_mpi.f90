@@ -850,11 +850,11 @@ gen_mpi_myid = local_id ! BUG PATCH MPI_ID gest messed up by receive with struct
 1100 FORMAT ( a,'.',i4.4)
 2000 FORMAT ( a,' -macro ',a,' ',a,i8,2x,i8,' > ',a) 
 2100 FORMAT ( a,' -macro ',a,' ',a,i8,      ' > ',a) 
-4000 FORMAT ( a, ' -remote -access=127.0.0.1 -port=',I4.4,' > ',a,' &')
-4010 FORMAT ( a,' = ',i8)
-4020 FORMAT ( 'cd ',a)
-4030 FORMAT ( '@',a)
-4040 FORMAT ( 'r[',i3.3,'] = ',e20.10)
+!4000 FORMAT ( a, ' -remote -access=127.0.0.1 -port=',I4.4,' > ',a,' &')
+!4010 FORMAT ( a,' = ',i8)
+!4020 FORMAT ( 'cd ',a)
+!4030 FORMAT ( '@',a)
+!4040 FORMAT ( 'r[',i3.3,'] = ',e20.10)
 !
 END SUBROUTINE run_mpi_slave
 !
