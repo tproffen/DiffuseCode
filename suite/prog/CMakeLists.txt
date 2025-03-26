@@ -141,10 +141,15 @@ add_custom_target(suitehlp
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp 
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp   
                ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp   
                ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp   
                ${DIFFUSE_SOURCE_DIR}/experi/prog/appl_exp.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp   
                ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp   
                ${DIFFUSE_SOURCE_DIR}/refine/prog/appl_ref.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp   
                >
                ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp)
 
