@@ -665,9 +665,9 @@ IF(standalone .AND. local_mpi_myid==0) THEN
 ENDIF
 CALL lib_f90_findterminal
 !                                                                       
-  900 FORMAT     (1x,'Manual files in  : ',a) 
- 1000 FORMAT     (1x,'User macros in   : ',a) 
- 1100 FORMAT     (1x,'System macros in : ',a) 
+! 900 FORMAT     (1x,'Manual files in  : ',a) 
+!1000 FORMAT     (1x,'User macros in   : ',a) 
+!1100 FORMAT     (1x,'System macros in : ',a) 
  1200 FORMAT     (1x,'Start directory  : ',a) 
  1300 FORMAT     (1x,'Access manuals at each section with   : ','manual')
  1400 FORMAT     (1x,'Access help at each section/menu with : ','help  ')
@@ -676,9 +676,9 @@ CALL lib_f90_findterminal
  1700 FORMAT     (1x,'Preferences: Right click + Preferences: ' )
  1750 FORMAT     (1x,'Recommend to update Ubuntu at DISCUS exit : ')
  1800 FORMAT     (1x,'New DISCUS version available at GIThub: ',a)
- 1900 FORMAT     (1x,a,'Manual files in  : ',a,a,a) 
- 2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
- 2100 FORMAT     (1x,a,'System macros in : ',a,a,a) 
+!1900 FORMAT     (1x,a,'Manual files in  : ',a,a,a) 
+!2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
+!2100 FORMAT     (1x,a,'System macros in : ',a,a,a) 
  2200 FORMAT     (1x,a,'Start directory  : ',a,a,a) 
  2300 FORMAT     (1x,a,'Access manuals at each section with   : ',a,'manual',a)
  2400 FORMAT     (1x,a,'Access help at each section/menu with : ',a,'help  ',a)
