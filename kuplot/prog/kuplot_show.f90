@@ -231,10 +231,10 @@ real(kind=PREC_DP),dimension(3,2) :: minmaxcoor  ! Coordinate extreme in data se
 DO ik = ia, ie 
    if(ku_ndims(ik)==3) then
       call dgl5_set_pointer(ik, ier_num, ier_typ, node_number)
-      call dgl5_get_dims (node_number, dims )
-      call dgl5_get_minmaxcoor(node_number, minmaxcoor)
-!     call dgl5_get_steps(node_number, steps)
-      call dgl5_get_minmax(node_number, minmax)
+      call dgl5_get_dims (dims )
+      call dgl5_get_minmaxcoor(minmaxcoor)
+!     call dgl5_get_steps(steps)
+      call dgl5_get_minmax(minmax)
       write(output_io, 1020) ik, fname (ik) (1:len_str (fname (ik))), dims,     &
            minmaxcoor(1,1), minmaxcoor(1,2), &
            minmaxcoor(2,1), minmaxcoor(2,2), &

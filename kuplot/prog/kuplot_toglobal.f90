@@ -133,7 +133,7 @@ if(ku_ndims(ik)==3) then         ! Data set is 3D
      ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
 !
    dimen = ik1_dims
-   CALL gl_set_data(dimen(1), dimen(2), dimen(3), NNPARA, ig, ik1_data )
+   CALL gl_set_data(dimen(1), dimen(2), dimen(3), ig, ik1_data )
    deallocate(ik1_data)
    if(allocated(ik1_sigma)) deallocate(ik1_sigma)
    if(allocated(ik1_x    )) deallocate(ik1_x    )
@@ -149,7 +149,7 @@ elseif(ku_ndims(ik)==2) then     ! Data set is 2D (NIPL)
          ext_data(i,j,1) = z(offz(ik-1) + (i - 1) * ny (ik) + j)
       enddo
    enddo
-   CALL gl_set_data(dimen(1), dimen(2), NNPARA, ig, ext_data(:,:,1))
+   CALL gl_set_data(dimen(1), dimen(2), ig, ext_data(:,:,1))
    DEALLOCATE(ext_data)
 elseif(ku_ndims(ik)==1) then      ! 1D data set
    dimen(1) = lenc(ik)
@@ -157,7 +157,7 @@ elseif(ku_ndims(ik)==1) then      ! 1D data set
    dimen(3) = 1
    ALLOCATE(ext_data(1:lenc(ik), 1, 1))
    ext_data(1:lenc(ik), 1, 1) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
-   CALL gl_set_data(dimen(1), NNPARA, ig, ext_data(:,1,1))
+   CALL gl_set_data(dimen(1), ig, ext_data(:,1,1))
    DEALLOCATE(ext_data)
 ENDIF
 END SUBROUTINE kuplot_to_global

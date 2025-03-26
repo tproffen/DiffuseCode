@@ -502,7 +502,7 @@ exy(1) = xmin(iz-1)              ! Current lowest x
 exy(2) = ymin(iz-1)              ! Current lowest y
 
 !                                                                       
-call dgl5_get_dims(0, h5_dims)
+call dgl5_get_dims(h5_dims)
 main_loop: DO
    n_layer   = dgl5_get_layer()
 !  zz        = dgl5_get_height()
@@ -539,10 +539,10 @@ main_loop: DO
    MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, xmin, xmax, ymin, ymax,     &
    offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
    ENDIF 
-      ex (iwin, iframe, 1) = ex (iwin, iframe, 1) + ( xmin(iz - 1) - exy(1) )
-      ex (iwin, iframe, 2) = ex (iwin, iframe, 2) + ( xmin(iz - 1) - exy(1) )
-      ey (iwin, iframe, 1) = ey (iwin, iframe, 1) + ( ymin(iz - 1) - exy(2) )
-      ey (iwin, iframe, 2) = ey (iwin, iframe, 2) + ( ymin(iz - 1) - exy(2) )
+      ex (iwin, iframe, 1) = ex (iwin, iframe, 1) + ( real(xmin(iz - 1) - exy(1), kind=PREC_SP) )
+      ex (iwin, iframe, 2) = ex (iwin, iframe, 2) + ( real(xmin(iz - 1) - exy(1), kind=PREC_SP) )
+      ey (iwin, iframe, 1) = ey (iwin, iframe, 1) + ( real(ymin(iz - 1) - exy(2), kind=PREC_SP) )
+      ey (iwin, iframe, 2) = ey (iwin, iframe, 2) + ( real(ymin(iz - 1) - exy(2), kind=PREC_SP) )
    call skalieren
    exy(1) = xmin(iz-1)              ! Current lowest x
    exy(2) = ymin(iz-1)              ! Current lowest y
@@ -913,11 +913,11 @@ use kuplot_plot_low_mod
          ENDIF 
 !                                                                       
       ELSE 
-         dxx = (xmax (ini) - xmin (ini) ) / REAL(nx (ini) - 1) 
-         dyy = (ymax (ini) - ymin (ini) ) / REAL(ny (ini) - 1) 
+         dxx = real((xmax (ini) - xmin (ini)), kind=PREC_SP ) / REAL(nx (ini) - 1) 
+         dyy = real((ymax (ini) - ymin (ini)), kind=PREC_SP ) / REAL(ny (ini) - 1) 
          nxx = nint ( ( (wx - xmin (ini) ) / dxx) ) + 1 
          nyy = nint ( ( (wy - ymin (ini) ) / dyy) ) + 1 
-         wz = z (offz (ini - 1) + (nxx - 1) * ny (ini) + nyy) 
+         wz = real(z (offz (ini - 1) + (nxx - 1) * ny (ini) + nyy) , kind=PREC_SP)
          WRITE (zeile, 2210) wx, wy, wz 
          IF (res_para (0) - 3.le.maxpar_res) then 
             res_para (0) = res_para (0) + 3 
@@ -988,11 +988,11 @@ use kuplot_plot_low_mod
          res_para (2) = wy 
          res_para (3) = REAL(ikey) 
       ELSE 
-         dxx = (xmax (ini) - xmin (ini) ) / REAL(nx (ini) - 1) 
-         dyy = (ymax (ini) - ymin (ini) ) / REAL(ny (ini) - 1) 
+         dxx = real(xmax (ini) - xmin (ini), kind=PREC_SP ) / REAL(nx (ini) - 1) 
+         dyy = real(ymax (ini) - ymin (ini), kind=PREC_SP ) / REAL(ny (ini) - 1) 
          nxx = nint ( ( (wx - xmin (ini) ) / dxx) ) + 1 
          nyy = nint ( ( (wy - ymin (ini) ) / dyy) ) + 1 
-         wz = z (offz (ini - 1) + (nxx - 1) * ny (ini) + nyy) 
+         wz = real(z (offz (ini - 1) + (nxx - 1) * ny (ini) + nyy), kind=PREC_SP) 
          res_para (0) = 4 
          res_para (1) = wx 
          res_para (2) = wy 

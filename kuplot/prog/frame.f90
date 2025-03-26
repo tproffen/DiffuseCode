@@ -46,7 +46,7 @@ INTEGER, intent(inout) :: lp
             ier_typ = ER_APPL 
          ELSE 
             iwin = iw 
-            IF (ianz.eq.2) dev_sf (iwin, x11) = werte (2) 
+            IF (ianz.eq.2) dev_sf (iwin, x11) = real(werte (2), kind=PREC_SP) 
             IF (dev_id (iw, x11) .eq. - 1) call copy_window (1, iw) 
          ENDIF 
       ELSE 
@@ -148,9 +148,9 @@ INTEGER, intent(inout) :: lp
             IF (werte (2) .le.1.0.and.werte (2) .ge.0.0.and.werte (3)   &
             .le.1.0.and.werte (3) .ge.0.0.and.werte (4)                 &
             .le.1.0.and.werte (4) .ge.0.0) then                         
-               frback (iwin, ifr, 1) = werte (2) 
-               frback (iwin, ifr, 2) = werte (3) 
-               frback (iwin, ifr, 3) = werte (4) 
+               frback (iwin, ifr, 1) = real(werte (2), kind=PREC_SP) 
+               frback (iwin, ifr, 2) = real(werte (3), kind=PREC_SP) 
+               frback (iwin, ifr, 3) = real(werte (4), kind=PREC_SP) 
             ELSE 
                ier_num = - 18 
                ier_typ = ER_APPL 
@@ -253,10 +253,10 @@ INTEGER, intent(inout) :: lp
          ELSE 
             IF (werte (2) .lt.werte (4) .and.werte (3) .lt.werte (5) )  &
             then                                                        
-               frame (iwin, ifr, 1) = werte (2) 
-               frame (iwin, ifr, 2) = werte (3) 
-               frame (iwin, ifr, 3) = werte (4) 
-               frame (iwin, ifr, 4) = werte (5) 
+               frame (iwin, ifr, 1) = real(werte (2), kind=PREC_SP) 
+               frame (iwin, ifr, 2) = real(werte (3), kind=PREC_SP) 
+               frame (iwin, ifr, 3) = real(werte (4), kind=PREC_SP) 
+               frame (iwin, ifr, 4) = real(werte (5), kind=PREC_SP) 
             ELSE 
                ier_num = - 7 
                ier_typ = ER_APPL 

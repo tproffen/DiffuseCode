@@ -115,7 +115,7 @@ nianz: IF (ianz.eq.1) then
          DO i = 1, nx (ikfit) * ny (ikfit)
             xx = REAL(i)
             CALL kupl_theory (xx, f, ddf, - i) 
-            df = ddf
+            df = real(ddf, kind=PREC_SP)
             z (offz (iz - 1) + i) = f
          ENDDO
          DO ii = 1, nx (iz) 
@@ -138,7 +138,7 @@ nianz: IF (ianz.eq.1) then
          DO i = 1, ii 
             xx = x (offxy (iref - 1) + i) 
             CALL kupl_theory (xx, f, ddf, - i) 
-            df = ddf
+            df = real(ddf, kind=PREC_SP)
             x (offxy (iz - 1) + i) = xx 
             y (offxy (iz - 1) + i) = f 
             dx (offxy (iz - 1) + i) = 0.0 
@@ -213,9 +213,9 @@ nianz: IF (ianz.eq.1) then
 !                                                                       
 ELSEIF (ianz.eq.3) THEN  nianz
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         xstart = werte (1) 
-         xend = werte (2) 
-         xdelta = werte (3) 
+         xstart = real(werte (1) , kind=PREC_SP)
+         xend   = real(werte (2) , kind=PREC_SP)
+         xdelta = real(werte (3) , kind=PREC_SP)
          ii = nint ( (xend-xstart) / xdelta) + 1 
          IF (ii.gt.0.and.ii.le.maxpkt) then 
          ku_ndims(iz) = 1
@@ -226,7 +226,7 @@ ELSEIF (ianz.eq.3) THEN  nianz
                DO i = 1, ii 
                xx = xstart + (i - 1) * xdelta 
                CALL kupl_theory (xx, f, ddf, - i) 
-               df = ddf
+               df = real(ddf, kind=PREC_SP)
                x (offxy (iz - 1) + i) = xx 
                y (offxy (iz - 1) + i) = f 
                dx (offxy (iz - 1) + i) = 0.0 
@@ -266,12 +266,12 @@ ELSEIF (ianz.eq.3) THEN  nianz
 ELSEIF (ianz.eq.6) THEN nianz
          ku_ndims(iz) = 2
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         xstart = werte (1) 
-         xend = werte (2) 
-         xdelta = werte (3) 
-         ystart = werte (4) 
-         yend = werte (5) 
-         ydelta = werte (6) 
+         xstart = real(werte (1), kind=PREC_SP) 
+         xend   = real(werte (2), kind=PREC_SP) 
+         xdelta = real(werte (3), kind=PREC_SP) 
+         ystart = real(werte (4), kind=PREC_SP) 
+         yend   = real(werte (5), kind=PREC_SP) 
+         ydelta = real(werte (6), kind=PREC_SP) 
          nx (iz) = nint ( (xend-xstart) / xdelta) + 1 
          ny (iz) = nint ( (yend-ystart) / ydelta) + 1 
          IF (nx (iz) .gt.0.and.ny (iz) .gt.0.and.nx (iz) * ny (iz)      &
@@ -284,10 +284,10 @@ ELSEIF (ianz.eq.6) THEN nianz
                xx = xstart + (ii - 1) * xdelta 
                DO jj = 1, ny (iz) 
                kk = (ii - 1) * ny (iz) + jj 
-               xkk = REAL(kk, kind=PREC_DP) 
+               xkk = REAL(kk, kind=PREC_SP) 
                yy = ystart + (jj - 1) * ydelta 
                CALL kupl_theory (xkk, f, ddf, - kk) 
-               df = ddf
+               df = real(ddf, kind=PREC_SP)
                z (offz (iz - 1) + (ii - 1) * ny (iz) + jj) = f 
                x (offxy (iz - 1) + ii) = xx 
                y (offxy (iz - 1) + jj) = yy 
@@ -1309,8 +1309,8 @@ REAL(KIND=PREC_DP), intent(in) :: werte (maxw)
       ymin (iz) = range (1, icut (2) ) 
       ymax (iz) = range (2, icut (2) ) 
 !                                                                       
-      dxx = (xmax (iz) - xmin (iz) ) / REAL(nx (iz) - 1) 
-      dyy = (ymax (iz) - ymin (iz) ) / REAL(ny (iz) - 1) 
+      dxx = real(xmax (iz) - xmin (iz) , kind=PREC_SP) / REAL(nx (iz) - 1, kind=PREC_SP) 
+      dyy = real(ymax (iz) - ymin (iz) , kind=PREC_SP) / REAL(ny (iz) - 1, kind=PREC_SP) 
 !                                                                       
 !-------check array size                                                
 !                                                                       
@@ -1569,8 +1569,8 @@ logical, intent(in) :: pgm
 !                                                                       
 !------ set values for X and Y                                          
 !                                                                       
-      dxx = (xmax (iz) - xmin (iz) ) / REAL(nx (iz) - 1) 
-      dyy = (ymax (iz) - ymin (iz) ) / REAL(ny (iz) - 1) 
+      dxx = real(xmax (iz) - xmin (iz) , kind=PREC_SP) / REAL(nx (iz) - 1, kind=PREC_SP) 
+      dyy = real(ymax (iz) - ymin (iz) , kind=PREC_SP) / REAL(ny (iz) - 1, kind=PREC_SP) 
       DO i = 1, nx (iz) 
       x (offxy (iz - 1) + i) = xmin (iz) + (i - 1) * dxx 
       ENDDO 
@@ -1952,9 +1952,9 @@ INTEGER, DIMENSION(MAXWW) :: llpara
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             icell (1) = nint (werte (1) ) 
             IF (lkev) then 
-               mca_par (1) = werte (2) 
-               mca_par (2) = werte (3) 
-               mca_par (3) = werte (4) 
+               mca_par (1) = real(werte (2), kind=PREC_SP) 
+               mca_par (2) = real(werte (3), kind=PREC_SP) 
+               mca_par (3) = real(werte (4), kind=PREC_SP) 
             ELSE 
                mca_par (1) = 0.0 
                mca_par (2) = 1.0 
@@ -3624,7 +3624,7 @@ ENDIF
 !                                                                       
  1000 FORMAT     (1x,'Column assignement (x y dx dy): ',4i5) 
  1010 FORMAT     (1x,'Header lines skipped: ',i5) 
- 9999 FORMAT     (a) 
+!9999 FORMAT     (a) 
 !                                                                       
       END SUBROUTINE read_xy                        
 !*****7**************************************************************** 

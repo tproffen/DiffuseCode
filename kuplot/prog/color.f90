@@ -79,9 +79,9 @@ ELSEIF (ianz.eq.4 .and. .not.lpresent(O_CMAP)) then
       IF (werte(2) .le. 1.0 .and. werte(2) .ge. 0.0 .and.   &
           werte(3) .le. 1.0 .and. werte(3) .ge. 0.0 .and.   &
           werte(4) .le. 1.0 .and. werte(4) .ge. 0.0       ) then                         
-         colour (iwin, icol, 1) = werte (2) 
-         colour (iwin, icol, 2) = werte (3) 
-         colour (iwin, icol, 3) = werte (4) 
+         colour (iwin, icol, 1) = real(werte (2) , kind=PREC_SP)
+         colour (iwin, icol, 2) = real(werte (3) , kind=PREC_SP)
+         colour (iwin, icol, 3) = real(werte (4) , kind=PREC_SP)
       ELSE 
          ier_num = - 18 
          ier_typ = ER_APPL 
@@ -108,8 +108,8 @@ elseif(lpresent(O_CMAP)) then
       if(werte(1)>=0.0 .and. werte(1)<=1.0 .and. &
          werte(2)>=0.0 .and. werte(2)<=1.0 .and. &
          werte(1)<= werte(2)                   ) then
-         low  = werte(1)
-         high = werte(2)
+         low  = real(werte(1), kind=PREC_SP)
+         high = real(werte(2), kind=PREC_SP)
       else
          ier_num = -76
          ier_typ = ER_APPL

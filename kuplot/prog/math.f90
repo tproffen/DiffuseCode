@@ -28,7 +28,7 @@ integer         , intent(inout) :: lp
 CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
 INTEGER                    :: lpara (maxw)
 INTEGER  :: ianz, ik, ir, l, i, j 
-REAL :: xxx, yyy, dxx, dyy 
+REAL(kind=PREC_DP) :: xxx, yyy, dxx, dyy 
 REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -716,8 +716,8 @@ INTEGER, DIMENSION(3) :: dsort
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: k_data   ! The Kuplot in data set)
 COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:), ALLOCATABLE  ::  in_pattern  ! The Curve to be FFT'd
 COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:), ALLOCATABLE  :: out_pattern  ! The Result   of FFT
-REAL :: xrange
-REAL :: xstep
+REAL(kind=PREC_DP) :: xrange
+REAL(kind=PREC_DP) :: xstep
 type(c_ptr) :: plan    ! FFWT3 plan
 !
 !write(*,*) ' IDATA(1)',     (idata(1))
@@ -742,15 +742,15 @@ ALLOCATE( in_pattern(length))
 ALLOCATE(out_pattern(length))
 IF(idata(1)>0 .and. idata(2)>0) THEN            ! Got real and imag part
    DO i=1,length
-      k_data(i) = CMPLX(y(offxy(idata(1)-1)+i), y(offxy(idata(2)-1)+i))
+      k_data(i) = CMPLX(y(offxy(idata(1)-1)+i), y(offxy(idata(2)-1)+i), kind=PREC_DP)
    ENDDO
 ELSEIF(idata(1)>0) THEN                         ! Got real only
    DO i=1,length
-      k_data(i) = CMPLX(y(offxy(idata(1)-1)+i), 0.0D0)
+      k_data(i) = CMPLX(y(offxy(idata(1)-1)+i), 0.0D0, kind=PREC_DP)
    ENDDO
 ELSEIF(idata(2)>0) THEN                         ! Got imag only
    DO i=1,length
-      k_data(i) = CMPLX(0.0D0, y(offxy(idata(2)-1)+i))
+      k_data(i) = CMPLX(0.0D0, y(offxy(idata(2)-1)+i), kind=PREC_DP)
    ENDDO
 ENDIF
 !
@@ -821,10 +821,10 @@ INTEGER, DIMENSION(3) :: dsort
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:),   ALLOCATABLE  :: k_data   ! The Kuplot in data set)
 COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:), ALLOCATABLE  ::  in_pattern  ! The Curve to be FFT'd
 COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:), ALLOCATABLE  :: out_pattern  ! The result of   FFT
-REAL :: xrange
-REAL :: xstep
-REAL :: yrange
-REAL :: ystep
+REAL(kind=PREC_DP) :: xrange
+REAL(kind=PREC_DP) :: xstep
+REAL(kind=PREC_DP) :: yrange
+REAL(kind=PREC_DP) :: ystep
 type(c_ptr) :: plan    ! FFWT3 plan
 !
 !
@@ -862,15 +862,15 @@ ALLOCATE( in_pattern(num(dsort(1)), num(dsort(2)) ))
 ALLOCATE(out_pattern(num(dsort(1)), num(dsort(2)) ))
 IF(idata(1)>0 .and. idata(2)>0) THEN            ! Got real and imag part
    DO i=1,length
-      k_data(i) = CMPLX(z(offz(idata(1)-1)+i), z(offz(idata(2)-1)+i))
+      k_data(i) = CMPLX(z(offz(idata(1)-1)+i), z(offz(idata(2)-1)+i), kind=PREC_DP)
    ENDDO
 ELSEIF(idata(1)>0) THEN                         ! Got real only
    DO i=1,length
-      k_data(i) = CMPLX(z(offz(idata(1)-1)+i), 0.0D0)
+      k_data(i) = CMPLX(z(offz(idata(1)-1)+i), 0.0D0, kind=PREC_DP)
    ENDDO
 ELSEIF(idata(2)>0) THEN                         ! Got imag only
    DO i=1,length
-      k_data(i) = CMPLX(0.0D0, z(offz(idata(2)-1)+i))
+      k_data(i) = CMPLX(0.0D0, z(offz(idata(2)-1)+i), kind=PREC_DP)
    ENDDO
 ENDIF
 !
@@ -1162,7 +1162,7 @@ IF (lni (ik) ) then
          IF (x (offxy (ik - 1) + ix) .ge.wx1.and.y (offxy (ik - 1)      &
          + iy) .ge.wy1.and.x (offxy (ik - 1) + ix) .le.wx2.and.y (offxy &
          (ik - 1) + iy) .le.wy2) then                                   
-            zwert = z (offz (ik - 1) + (ix - 1) * ny (ik) + iy) 
+            zwert = real(z (offz (ik - 1) + (ix - 1) * ny (ik) + iy), kind=PREC_SP) 
             IF (zwert.ne. - 9999.0) then 
                rint = rint + zwert 
                ipkt = ipkt + 1 
@@ -1891,10 +1891,10 @@ IF(ixx.lt.ip.or. (ixx + ip) .gt.nx (ik) .or.iyy.lt.ip.or. (iyy + ip) .gt.ny (ik)
 ENDIF 
 DO ii = 1, nsize 
    DO jj = 1, nsize 
-      xf (ii) = x (offxy (ik - 1) + ii - ip + ixx) 
-      yf (jj) = y (offxy (ik - 1) + jj - ip + iyy) 
-      zf (ii, jj) = z (offz (ik - 1) + (ii - ip + ixx) * ny (ik)        &
-      + jj - ip + iyy)                                                  
+      xf (ii) = real(x (offxy (ik - 1) + ii - ip + ixx), kind=PREC_SP) 
+      yf (jj) = real(y (offxy (ik - 1) + jj - ip + iyy), kind=PREC_SP) 
+      zf (ii, jj) = real(z (offz (ik - 1) + (ii - ip + ixx) * ny (ik)        &
+      + jj - ip + iyy), kind=PREC_SP)                                                  
       IF (zf (ii, jj) .eq. - 9999.) then 
          ie = - 1 
          RETURN 
@@ -2005,9 +2005,9 @@ DO m = 1, n - 1
    END DO 
 !
    IF (2 * ns.lt.n - m) then 
-      dy = c (ns + 1) 
+      dy = real(c (ns + 1), kind=PREC_SP)
    ELSE 
-      dy = d (ns) 
+      dy = real(d (ns), kind=PREC_SP)
       ns = ns - 1 
    ENDIF 
    y = y + dy 
@@ -2154,7 +2154,7 @@ DO k = - nl, nr
       sum = sum + b (mm + 1) * fac 
    ENDDO 
    kk = mod (np - k, np) + 1 
-   c (kk) = sum 
+   c (kk) = real(sum, kind=PREC_SP)
 ENDDO 
 !      RETURN 
 !

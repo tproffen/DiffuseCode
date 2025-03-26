@@ -177,7 +177,7 @@ REAL            , intent(in)    :: awert
       ELSEIF (ianz.eq.1) then 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          IF (ier_num.ne.0) return 
-         array = werte (1) 
+         array = real(werte (1), kind=PREC_SP) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -332,14 +332,14 @@ integer         , intent(inout) :: lp
          fillrange (iwin, iframe, ik, 4) = - 9999. 
 !                                                                       
          IF (ianz.eq.5) then 
-            fillrange (iwin, iframe, ik, 1) = werte (4) 
-            fillrange (iwin, iframe, ik, 2) = werte (5) 
+            fillrange (iwin, iframe, ik, 1) = real(werte (4), kind=PREC_SP) 
+            fillrange (iwin, iframe, ik, 2) = real(werte (5), kind=PREC_SP) 
          ENDIF 
          IF (ianz.eq.7) then 
-            fillrange (iwin, iframe, ik, 1) = werte (4) 
-            fillrange (iwin, iframe, ik, 2) = werte (5) 
-            fillrange (iwin, iframe, ik, 3) = werte (6) 
-            fillrange (iwin, iframe, ik, 4) = werte (7) 
+            fillrange (iwin, iframe, ik, 1) = real(werte (4), kind=PREC_SP) 
+            fillrange (iwin, iframe, ik, 2) = real(werte (5), kind=PREC_SP) 
+            fillrange (iwin, iframe, ik, 3) = real(werte (6), kind=PREC_SP) 
+            fillrange (iwin, iframe, ik, 4) = real(werte (7), kind=PREC_SP) 
          ENDIF 
 !                                                                       
       ELSE 
@@ -391,16 +391,16 @@ integer         , intent(inout) :: lp
          ib = nint (werte (1) ) 
          IF (ib.ge.1.and.ib.le.maxbond) then 
             IF (ianz.eq.2) then 
-               bond_rad (iwin, iframe, ib) = werte (2) 
+               bond_rad (iwin, iframe, ib) = real(werte (2), kind=PREC_SP) 
             ELSEIF (ianz.eq.3) then 
-               bond_rad (iwin, iframe, ib) = werte (2) 
-               bond_sig (iwin, iframe, ib) = werte (3) 
+               bond_rad (iwin, iframe, ib) = real(werte (2), kind=PREC_SP) 
+               bond_sig (iwin, iframe, ib) = real(werte (3), kind=PREC_SP) 
             ELSEIF (ianz.eq.6) then 
-               bond_rad (iwin, iframe, ib) = werte (2) 
-               bond_sig (iwin, iframe, ib) = werte (3) 
+               bond_rad (iwin, iframe, ib) = real(werte (2), kind=PREC_SP) 
+               bond_sig (iwin, iframe, ib) = real(werte (3), kind=PREC_SP) 
                bond_ltyp (iwin, iframe, ib) = nint (werte (4) ) 
                bond_lcol (iwin, iframe, ib) = nint (werte (5) ) 
-               bond_lwid (iwin, iframe, ib) = werte (6) 
+               bond_lwid (iwin, iframe, ib) = real(werte (6), kind=PREC_SP) 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -459,7 +459,7 @@ integer         , intent(inout) :: lp
          IF (ier_num.ne.0) return 
          ik = nint (werte (1) ) 
          IF (ik.le. (iz - 1) .and.ik.ge.0) then 
-            linewid (iwin, iframe, ik) = werte (2) 
+            linewid (iwin, iframe, ik) = real(werte (2) , kind=PREC_SP)
          ELSE 
             ier_num = - 4 
             ier_typ = ER_APPL 
@@ -567,7 +567,7 @@ integer         , intent(inout) :: lp
          IF (ier_num.ne.0) return 
          ik = nint (werte (1) ) 
          IF (ik.le. (iz - 1) .and.ik.ge.0) then 
-            sizemark (iwin, iframe, ik) = werte (2) 
+            sizemark (iwin, iframe, ik) = real(werte (2 ), kind=PREC_SP)
          ELSE 
             ier_num = - 4 
             ier_typ = ER_APPL 
@@ -654,8 +654,8 @@ integer         , intent(inout) :: lp
                IF (ianz.eq.3) then 
                   CALL del_params (1, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  info_orig (iwin, iframe, 1) = werte (1) 
-                  info_orig (iwin, iframe, 2) = werte (2) 
+                  info_orig (iwin, iframe, 1) = real(werte (1), kind=PREC_SP) 
+                  info_orig (iwin, iframe, 2) = real(werte (2), kind=PREC_SP)
                ELSE 
                   info_orig (iwin, iframe, 1) = - 9999. 
                ENDIF 
@@ -723,8 +723,8 @@ integer         , intent(inout) :: lp
                IF (ianz.eq.2.or.ianz.eq.3.or.ianz.eq.4.or.ianz.eq.6)    &
                then                                                     
                   CALL ber_params (2, cpara, lpara, werte, maxw) 
-                  antx (iwin, iframe, ik) = werte (1) 
-                  anty (iwin, iframe, ik) = werte (2) 
+                  antx (iwin, iframe, ik) = real(werte (1) , kind=PREC_SP)
+                  anty (iwin, iframe, ik) = real(werte (2) , kind=PREC_SP)
 !                                                                       
                   IF (ianz.ge.3) then 
                      IF (str_comp (cpara (3) , 'left', 1, lpara (3) , 4)) then
@@ -745,14 +745,14 @@ integer         , intent(inout) :: lp
                      cpara (3) = '0.0' 
                      lpara (3) = 3 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     anangle (iwin, iframe, ik) = werte (4) 
+                     anangle (iwin, iframe, ik) = real(werte (4) , kind=PREC_SP)
                   ELSE 
                      anangle (iwin, iframe, ik) = 0.0 
                   ENDIF 
 !                                                                       
                   IF (ianz.eq.6) then 
-                     anx (iwin, iframe, ik) = werte (5) 
-                     any (iwin, iframe, ik) = werte (6) 
+                     anx (iwin, iframe, ik) = real(werte (5) , kind=PREC_SP)
+                     any (iwin, iframe, ik) = real(werte (6) , kind=PREC_SP)
                   ELSE 
                      anx (iwin, iframe, ik) = antx (iwin, iframe, ik) 
                      any (iwin, iframe, ik) = anty (iwin, iframe, ik) 
@@ -803,17 +803,17 @@ integer         , intent(inout) :: lp
       IF (ianz.eq.1) then 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          IF (ier_num.ne.0) return 
-         ibuf (iwin, iframe, 1) = werte (1) 
-         ibuf (iwin, iframe, 2) = werte (1) 
-         ibuf (iwin, iframe, 3) = werte (1) 
-         ibuf (iwin, iframe, 4) = werte (1) 
+         ibuf (iwin, iframe, 1) = real(werte (1) , kind=PREC_SP)
+         ibuf (iwin, iframe, 2) = real(werte (1) , kind=PREC_SP)
+         ibuf (iwin, iframe, 3) = real(werte (1) , kind=PREC_SP)
+         ibuf (iwin, iframe, 4) = real(werte (1) , kind=PREC_SP)
       ELSEIF (ianz.eq.4) then 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          IF (ier_num.ne.0) return 
-         ibuf (iwin, iframe, 1) = werte (1) 
-         ibuf (iwin, iframe, 2) = werte (2) 
-         ibuf (iwin, iframe, 3) = werte (3) 
-         ibuf (iwin, iframe, 4) = werte (4) 
+         ibuf (iwin, iframe, 1) = real(werte (1) , kind=PREC_SP)
+         ibuf (iwin, iframe, 2) = real(werte (2) , kind=PREC_SP)
+         ibuf (iwin, iframe, 3) = real(werte (3) , kind=PREC_SP)
+         ibuf (iwin, iframe, 4) = real(werte (4) , kind=PREC_SP)
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -858,12 +858,12 @@ integer         , intent(inout) :: lp
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          IF (ier_num.ne.0) return 
          IF (werte (1) .lt.werte (2) ) then 
-            ex (iwin, iframe, 1) = werte (1) 
-            ex (iwin, iframe, 2) = werte (2) 
+            ex (iwin, iframe, 1) = real(werte (1) , kind=PREC_SP)
+            ex (iwin, iframe, 2) = real(werte (2) , kind=PREC_SP)
             IF (ianz.eq.4) then 
                IF (werte (3) .lt.werte (4) ) then 
-                  ey (iwin, iframe, 1) = werte (3) 
-                  ey (iwin, iframe, 2) = werte (4) 
+                  ey (iwin, iframe, 1) = real(werte (3) , kind=PREC_SP)
+                  ey (iwin, iframe, 2) = real(werte (4) , kind=PREC_SP)
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
@@ -925,7 +925,7 @@ integer         , intent(inout) :: lp
          CALL skalieren 
          CALL no_error 
          IF (werte (1) .gt.0.0) then 
-            t (iwin, iframe, 1) = werte (1) 
+            t (iwin, iframe, 1) = real(werte (1), kind=PREC_SP) 
          elseif(abs(werte(1)+9999.000D0)<0.1) then
             t (iwin, iframe, 1) = - 9999.0
          ELSE 
@@ -934,7 +934,7 @@ integer         , intent(inout) :: lp
          ENDIF 
          IF (ianz.eq.2) then 
             IF (werte (2) .gt.0.0) then 
-                  t (iwin, iframe, 2) = werte (2) 
+                  t (iwin, iframe, 2) = real(werte (2), kind=PREC_SP) 
             elseif(abs(werte(2)+9999.000D0)<0.1) then
                t (iwin, iframe, 2) = - 9999.0
             ELSE 
@@ -1110,40 +1110,40 @@ ELSE
                      zlow = zzmin
                   ENDIF
                   IF (zhub.eq.0) zhub = 100.0 
-                  z_min(iwin, iframe, ihl) = zlow + 0.01 * zhub * werte(2)
-                  z_inc(iwin, iframe, ihl) = 0.01 * zhub * ABS(werte(3))
+                  z_min(iwin, iframe, ihl) = zlow + 0.01 * zhub * real(werte(2), kind=PREC_SP)
+                  z_inc(iwin, iframe, ihl) = 0.01 * zhub * ABS(real(werte(3), kind=PREC_SP))
                ELSE                        ! User specified "delta, n, %"
                   IF(zzmin>= 0.0) THEN     ! positive values only
                      zhub = zzmax
                      IF (zhub.eq.0) zhub = 100.0 
                      z_min(iwin, iframe, ihl) = MAX(zzmin, 0.00)
-                     z_inc(iwin, iframe, ihl) = 0.01 * zhub * ABS(werte(2) )
+                     z_inc(iwin, iframe, ihl) = 0.01 * zhub * ABS(real(werte(2), kind=PREC_SP) )
                   ELSEIF(zzmin<0.0 .AND. zzmax > 0.0) THEN    ! neg and positive
                      zhub = zzmax          ! The maximum intensity
                      IF (zhub.eq.0) zhub = 100.0 
-                     z_min(iwin, iframe, ihl) = -0.50 * zhub * ABS(werte(2))
-                     z_inc(iwin, iframe, ihl) =  0.01 * zhub * ABS(werte(2))
+                     z_min(iwin, iframe, ihl) = -0.50 * zhub * ABS(real(werte(2), kind=PREC_SP))
+                     z_inc(iwin, iframe, ihl) =  0.01 * zhub * ABS(real(werte(2), kind=PREC_SP))
                   ELSE                     ! Negative values only
                      zhub = -zzmin 
                      IF (zhub.eq.0) zhub = 100.0 
                      z_min(iwin, iframe, ihl) = MIN(zzmin, 0.00)
-                     z_inc(iwin, iframe, ihl) = 0.01 * zhub * ABS(werte(2))
+                     z_inc(iwin, iframe, ihl) = 0.01 * zhub * ABS(real(werte(2), kind=PREC_SP))
                   ENDIF
                ENDIF
             ELSE                           ! Contour lines in absolute values
                IF(ianz==4) THEN            ! User specified "hmin, delta, n"
-                  z_min(iwin, iframe, ihl) = werte (2) 
-                  z_inc(iwin, iframe, ihl) = werte (3) 
+                  z_min(iwin, iframe, ihl) = real(werte (2) , kind=PREC_SP)
+                  z_inc(iwin, iframe, ihl) = real(werte (3) , kind=PREC_SP)
                ELSE                        ! User specified "delta, n"
                   IF(zzmin>= 0.0) THEN     ! positive values only
                      z_min(iwin, iframe, ihl) = MAX(zzmin, 0.00)
-                     z_inc(iwin, iframe, ihl) = werte(2) 
+                     z_inc(iwin, iframe, ihl) = real(werte(2) , kind=PREC_SP)
                   ELSEIF(zzmin<0.0 .AND. zzmax > 0.0) THEN    ! neg and positive
-                     z_min(iwin, iframe, ihl) = -ABS(werte(2))*nz(iwin, iframe, ihl)/2.
-                     z_inc(iwin, iframe, ihl) = werte(2) 
+                     z_min(iwin, iframe, ihl) = -ABS(real(werte(2),kind=PREC_SP))*nz(iwin, iframe, ihl)/2.
+                     z_inc(iwin, iframe, ihl) = real(werte(2), kind=PREC_SP) 
                   ELSE                     ! Negative values only
-                     z_min(iwin, iframe, ihl) = -ABS(werte(2))*nz(iwin, iframe, ihl)
-                     z_inc(iwin, iframe, ihl) = werte(2) 
+                     z_min(iwin, iframe, ihl) = -ABS(real(werte(2),kind=PREC_SP))*nz(iwin, iframe, ihl)
+                     z_inc(iwin, iframe, ihl) = real(werte(2), kind=PREC_SP) 
                   ENDIF
                ENDIF
             ENDIF 
@@ -1217,7 +1217,7 @@ IF (ianz.ge.2) then
       IF (ier_num.ne.0) return 
       IF (ianz.eq.2) then 
          ifon = nint (werte (1) ) 
-         fsiz = werte (2) 
+         fsiz = real(werte (2) , kind=PREC_SP)
       IF (ifon.gt.0.and.ifon.le.nfon.and.fsiz.ge.4.0.and.fsiz.le.128.0) then
             fonsize (iwin, iframe, ifon) = 10.0 * fsiz 
          ELSE 
@@ -1225,7 +1225,7 @@ IF (ianz.ge.2) then
             ier_typ = ER_APPL 
          ENDIF 
       ELSEIF (ianz.eq.1) then 
-         fonscal (iwin, iframe) = werte (1) 
+         fonscal (iwin, iframe) = real(werte (1) , kind=PREC_SP)
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -1338,8 +1338,8 @@ REAL(kind=PREC_DP) :: delta
          ex (iwin, iframe, 2) = - 1.0e19 
          DO i = 1, iz - 1 
          IF (k_in_f (i) ) then 
-            ex (iwin, iframe, 1) = min (real(ex (iwin, iframe, 1),kind=PREC_DP), xmin (i) ) 
-            ex (iwin, iframe, 2) = max (real(ex (iwin, iframe, 2),kind=PREC_DP), xmax (i) ) 
+            ex (iwin, iframe, 1) = real(min (real(ex (iwin, iframe, 1),kind=PREC_DP), xmin (i) ) , kind=PREC_SP)
+            ex (iwin, iframe, 2) = real(max (real(ex (iwin, iframe, 2),kind=PREC_DP), xmax (i) ) , kind=PREC_SP)
          ENDIF 
          ENDDO 
       ENDIF 
@@ -1355,20 +1355,20 @@ REAL(kind=PREC_DP) :: delta
             ELSE
               CALL get_extrema_xy_local (i, ymi, yma) 
             ENDIF
-            ey (iwin, iframe, 1) = min (real(ey (iwin, iframe, 1),kind=PREC_DP), ymi) 
-            ey (iwin, iframe, 2) = max (real(ey (iwin, iframe, 2),kind=PREC_DP), yma) 
+            ey (iwin, iframe, 1) = real(min (real(ey (iwin, iframe, 1),kind=PREC_DP), ymi) , kind=PREC_SP)
+            ey (iwin, iframe, 2) = real(max (real(ey (iwin, iframe, 2),kind=PREC_DP), yma) , kind=PREC_SP)
          ENDIF 
          ENDDO 
       ENDIF 
 !                                                                       
       IF (ey (iwin, iframe, 2) .eq.ey (iwin, iframe, 1) ) then 
          IF(ABS(ey(iwin, iframe, 1)) > 0.0) THEN
-            delta = 0.2*ABS(ey(iwin, iframe, 1))
+            delta = 0.2D0*ABS(ey(iwin, iframe, 1))
          ELSE
-            delta = 1.0
+            delta = 1.0D0
          ENDIF
-         ey (iwin, iframe, 1) = ey (iwin, iframe, 1) - delta
-         ey (iwin, iframe, 2) = ey (iwin, iframe, 2) + delta
+         ey (iwin, iframe, 1) = ey (iwin, iframe, 1) - real(delta, kind=PREC_SP)
+         ey (iwin, iframe, 2) = ey (iwin, iframe, 2) + real(delta, kind=PREC_SP)
 !        ey (iwin, iframe, 1) = ey (iwin, iframe, 1) - 0.2 * ey (iwin,  &
 !        iframe, 1)                                                     
 !        ey (iwin, iframe, 2) = ey (iwin, iframe, 2) + 0.2 * ey (iwin,  &
@@ -1381,8 +1381,8 @@ REAL(kind=PREC_DP) :: delta
          ELSE
             delta = 1.0
          ENDIF
-         ex (iwin, iframe, 1) = ex (iwin, iframe, 1) - delta
-         ex (iwin, iframe, 2) = ex (iwin, iframe, 2) + delta
+         ex (iwin, iframe, 1) = ex (iwin, iframe, 1) - real(delta, kind=PREC_SP)
+         ex (iwin, iframe, 2) = ex (iwin, iframe, 2) + real(delta, kind=PREC_SP)
 !        ex (iwin, iframe, 1) = ex (iwin, iframe, 1) - 0.2 * ex (iwin,  &
 !        iframe, 1)                                                     
 !        ex (iwin, iframe, 2) = ex (iwin, iframe, 2) + 0.2 * ex (iwin,  &
@@ -1392,12 +1392,12 @@ REAL(kind=PREC_DP) :: delta
 !------ set tick marks                                                  
 !                                                                       
       IF (t (iwin, iframe, 1) .eq. - 9999.) then 
-         t (iwin, iframe, 1) = (ex (iwin, iframe, 2) - ex (iwin, iframe, 1) ) * 0.125D0
+         t (iwin, iframe, 1) = (ex (iwin, iframe, 2) - ex (iwin, iframe, 1) ) * 0.125_PREC_SP
          WRITE (ct, '(g8.1)') t (iwin, iframe, 1) 
          READ (ct, * ) t (iwin, iframe, 1) 
       ENDIF 
       IF (t (iwin, iframe, 2) .eq. - 9999.) then 
-         t (iwin, iframe, 2) = (ey (iwin, iframe, 2) - ey (iwin, iframe, 1) ) * 0.125D0
+         t (iwin, iframe, 2) = (ey (iwin, iframe, 2) - ey (iwin, iframe, 1) ) * 0.125_PREC_SP
          WRITE (ct, '(g8.1)') t (iwin, iframe, 2) 
          READ (ct, * ) t (iwin, iframe, 2) 
       ENDIF 
@@ -1560,11 +1560,11 @@ if(ik>0 .and. ik<iz) then
    if(ier_num /= 0) return
    if(dgl5_get_ndims()==3) ltop = .true.
    is_direct = dgl5_get_direct()
-   call dgl5_get_lattice(ik, lattice)
+   call dgl5_get_lattice(lattice)
    call lib_tensor(gten, lattice(1:3), lattice(4:6))
    call matinv(gten, rten)
-   call dgl5_get_dims(ik, inc)
-   call dgl5_get_steps(ik, vi)
+   call dgl5_get_dims(inc)
+   call dgl5_get_steps(vi)
    call dgl5_get_calccoor(calc_coor, use_coor)
    if(is_direct) then
       call lib_angles(ltop, length, &

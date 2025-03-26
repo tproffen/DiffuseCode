@@ -327,14 +327,14 @@ IF (ier_num /= 0) RETURN
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 !
-k2dm_scale = owerte(O_SCALE)
+k2dm_scale = real(owerte(O_SCALE), kind=PREC_SP)
 !
 IF(str_comp (cpara(1), 'off', 3, lpara(1), 3) ) THEN
    k2dm_line_b = ' '
    RETURN
 ELSEIF(str_comp (cpara(1), 'csv', 3, lpara(1), 3) ) THEN
    k2dm_type   = K2DM_CSV
-   k2dm_scale  = owerte(O_SCALE)
+   k2dm_scale  = real(owerte(O_SCALE), kind=PREC_SP)
 !ELSEIF(str_comp (cpara(1), 'xy', 2, lpara(1), 2) ) THEN
 !   k2dm_type = K2DM_XY
 ELSE
@@ -410,14 +410,14 @@ CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
 !
 i = 0
 IF(opara(O_COUNT) == 'LOOP') THEN
-   k2dm_start(0) = owerte(O_START)
-   k2dm_end(  0) = owerte(O_END)
-   k2dm_step( 0) = owerte(O_STEP)
+   k2dm_start(0) = nint(owerte(O_START))
+   k2dm_end(  0) = nint(owerte(O_END))
+   k2dm_step( 0) = nint(owerte(O_STEP))
    i = 0
 ELSEIF(opara(O_COUNT) == 'SLOW') THEN
-   k2dm_start(1) = owerte(O_START)
-   k2dm_end(  1) = owerte(O_END)
-   k2dm_step( 1) = owerte(O_STEP)
+   k2dm_start(1) = nint(owerte(O_START))
+   k2dm_end(  1) = nint(owerte(O_END))
+   k2dm_step( 1) = nint(owerte(O_STEP))
    i = 1
 ENDIF
 IF(k2dm_step(i) == 0) THEN
@@ -510,7 +510,7 @@ ELSE
    ianz = 1
    CALL ber_params (ianz, cpara, lpara, werte, MAXW) 
    IF(ier_num==0) THEN
-      k2dm_xmin = werte(1)
+      k2dm_xmin = real(werte(1), kind=PREC_SP)
    ELSE
       RETURN
    ENDIF
@@ -524,7 +524,7 @@ ELSE
    ianz = 1
    CALL ber_params (ianz, cpara, lpara, werte, MAXW) 
    IF(ier_num==0) THEN
-      k2dm_xmax = werte(1)
+      k2dm_xmax = real(werte(1), kind=PREC_SP)
    ELSE
       RETURN
    ENDIF
@@ -737,18 +737,18 @@ ik   = iz - 1                 ! This is the number of the current data set
 imin = 1                      ! Default to first data point
 imax = lenc(ik)                ! Default to length of data sets
 IF(k2dm_lxmin) THEN           ! user specified xmin:xmin
-   xxmin = x(offxy(ik-1)+1)
+   xxmin = real(x(offxy(ik-1)+1), kind=PREC_SP)
    imin  = 1
 ELSE
    xxmin = k2dm_xmin
 ENDIF
 IF(k2dm_lxmax) THEN           ! user specified xmin:xmin
-   xxmax = x(offxy(ik-1)+lenc(ik))
+   xxmax = real(x(offxy(ik-1)+lenc(ik)), kind=PREC_SP)
    imin  = 1
 ELSE
    xxmax = k2dm_xmax
 ENDIF
-DELTA = ABS(x(offxy(ik-1)+2)-x(offxy(ik-1)+1))*0.01    ! Calculate a sigma as (x(2)-x(1))/10
+DELTA = ABS(real(x(offxy(ik-1)+2)-x(offxy(ik-1)+1), kind=PREC_SP))*0.01    ! Calculate a sigma as (x(2)-x(1))/10
 minmax:DO i=1,lenc(ik)                                  ! Find number of user xmin, xmax
    IF(ABS(x(offxy(ik-1)+i)-xxmin)<DELTA) imin = i
    IF(ABS(x(offxy(ik-1)+i)-xxmax)<DELTA) THEN
@@ -820,9 +820,10 @@ main:DO i=k2dm_start(0), k2dm_end(0), k2dm_step(0)
          yy = 0
       ELSE
          IF(ikb/=0) THEN                                  ! Subtract background
-            yy = y(offxy(ik-1) + ix) - y(offxy(ikb-1) + ix)* k2dm_scale
+            yy = real(y(offxy(ik-1) + ix), kind=PREC_SP) -  &
+                 real(y(offxy(ikb-1) + ix), kind=PREC_SP)* k2dm_scale
          ELSE                                             ! No background
-            yy = y(offxy(ik-1) + ix)
+            yy = real(y(offxy(ik-1) + ix), kind=PREC_SP)
          ENDIF
       ENDIF
       z(offz(ikm - 1) + (iix- 1) * ny(ikm) + iy) = yy  ! Finally place value

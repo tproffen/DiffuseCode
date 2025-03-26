@@ -207,11 +207,11 @@ REAL(kind=PREC_DP) ::  zmax(maxkurvtot),zmin(maxkurvtot)
       CHARACTER(LEN=1)      dummy_spacer
       REAL w(maxarray)
 REAL(kind=PREC_DP), dimension(MAXPARA) :: p !(maxpara)
-real ::pinc(maxpara),dp(maxpara)
-      REAL pra(maxpara,2)                        ! Fit range
-      REAL p_merk(maxpara),pinc_merk(maxpara)
-      REAL cl(maxpara,maxpara)
-      REAL urf
+real(kind=PREC_DP) :: pinc(maxpara),dp(maxpara)
+real(kind=PREC_DP) :: pra(maxpara,2)                        ! Fit range
+real(kind=PREC_DP) ::  p_merk(maxpara),pinc_merk(maxpara)
+real(kind=PREC_DP) :: cl(maxpara,maxpara)
+real(kind=PREC_DP) :: urf
       REAL zalt,zwert,zdif
       REAL r4,re,fend
 REAL(kind=PREC_DP) ::            wval

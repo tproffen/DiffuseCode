@@ -62,10 +62,10 @@ if(lib_global_flags(1) == 1) then   ! Save last data set
    call execute_command_line(string, CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg, wait=.true.)
    string='REF_KID'
    length = 7
-   kid = berechne(string, length)
+   kid = nint(berechne(string, length))
    string='REF_INDIV'
    length = 9
-   indiv = berechne(string, length)
+   indiv = nint(berechne(string, length))
    string = ' '
    write(string,'(a,i4.4,a)') 'DISCUS_SUITE_DERIVATIVES/data.', kid! , '.', indiv
    length = 35

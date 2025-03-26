@@ -646,10 +646,10 @@ loop_curves: DO ikurv = 1, iz - 1
       ELSE 
          IF (fform (ikurv) .ne.'CR') then 
             DO ipkt = 2, lenc(ikurv) 
-            xpl (ipkt - 1) = x (offxy (ikurv - 1) + (ipkt - 1) ) 
-            ypl (ipkt - 1) = y (offxy (ikurv - 1) + (ipkt - 1) ) 
-            xpl (ipkt) = x (offxy (ikurv - 1) + ipkt) 
-            ypl (ipkt) = y (offxy (ikurv - 1) + ipkt) 
+            xpl (ipkt - 1) = real(x (offxy (ikurv - 1) + (ipkt - 1) ), kind=PREC_SP) 
+            ypl (ipkt - 1) = real(y (offxy (ikurv - 1) + (ipkt - 1) ), kind=PREC_SP) 
+            xpl (ipkt) = real(x (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+            ypl (ipkt) = real(y (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
             ENDDO 
             npkt = lenc(ikurv) 
             IF (npkt.gt.1) then 
@@ -663,10 +663,10 @@ loop_curves: DO ikurv = 1, iz - 1
       IF (fform (ikurv) .eq.'CR') then 
          CALL draw_bonds (ikurv) 
          DO ipkt = 1, lenc(ikurv) 
-         delx = dy (offxy (ikurv - 1) + ipkt) * sizemark (iwin, iframe, &
+         delx = real(dy (offxy (ikurv - 1) + ipkt), kind=PREC_SP) * sizemark (iwin, iframe, &
          ikurv)                                                         
-         xma = x (offxy (ikurv - 1) + ipkt) 
-         yma = y (offxy (ikurv - 1) + ipkt) 
+         xma = real(x (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+         yma = real(y (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
          iicol = int (dx (offxy (ikurv - 1) + ipkt) / 1000) 
          iityp = int (dx (offxy (ikurv - 1) + ipkt) - 1000.0 * iicol) 
          CALL draw_marker (xma, yma, iityp, iicol, delx) 
@@ -677,16 +677,16 @@ loop_curves: DO ikurv = 1, iz - 1
             IF(rel_mark(iwin, iframe, ikurv) == 0 ) THEN
             CALL draw_bonds (ikurv) 
             DO ipkt = 1, lenc(ikurv) 
-            xma = x (offxy (ikurv - 1) + ipkt) 
-            yma = y (offxy (ikurv - 1) + ipkt) 
+            xma = real(x (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+            yma = real(y (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
             CALL draw_marker (xma, yma, imarktyp (iwin, iframe, ikurv), &
             imarkcol (iwin, iframe, ikurv), sizemark (iwin, iframe,     &
             ikurv) )                                                    
             ENDDO 
             ELSE    ! proportional marker sizes
                IF(rel_mark(iwin, iframe, ikurv) == -1 ) THEN  ! x-scale
-                  max_value = ABS(x (offxy (ikurv - 1) + 1))
-                  min_value = ABS(x (offxy (ikurv - 1) + 1))
+                  max_value = ABS(real(x (offxy (ikurv - 1) + 1), kind=PREC_SP))
+                  min_value = ABS(real(x (offxy (ikurv - 1) + 1), kind=PREC_SP))
                   range = 0.0
                   DO ipkt = 1, lenc(ikurv)
                      max_value = MAX(max_value, ABS(real(x (offxy (ikurv - 1) + ipkt))))
@@ -698,17 +698,17 @@ loop_curves: DO ikurv = 1, iz - 1
                       range = (max_value-min_value)
                   ENDIF
                   DO ipkt = 1, lenc(ikurv)
-                     xma = x (offxy (ikurv - 1) + ipkt) 
-                     yma = y (offxy (ikurv - 1) + ipkt) 
-                     factor = 0.1+0.9*(ABS(x (offxy (ikurv - 1) + ipkt))-min_value)/range
+                     xma = real(x (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+                     yma = real(y (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+                     factor = 0.1+0.9*(ABS(real(x (offxy (ikurv - 1) + ipkt), kind=PREC_SP))-min_value)/range
                      IF(factor==0.0) factor = 1.0
                      sma = MAX(0.01,sizemark (iwin, iframe,ikurv)*factor)
                      CALL draw_marker (xma, yma, imarktyp (iwin, iframe, ikurv), &
                      imarkcol (iwin, iframe, ikurv), sma )
                   ENDDO
                ELSEIF(rel_mark(iwin, iframe, ikurv) == -2 ) THEN  ! y-scale
-                  max_value = ABS(y (offxy (ikurv - 1) + 1))
-                  min_value = ABS(y (offxy (ikurv - 1) + 1))
+                  max_value = ABS(real(y (offxy (ikurv - 1) + 1), kind=PREC_SP))
+                  min_value = ABS(real(y (offxy (ikurv - 1) + 1), kind=PREC_SP))
                   range = 0.0
                   DO ipkt = 1, lenc(ikurv)
                      max_value = MAX(max_value, ABS(real(y (offxy (ikurv - 1) + ipkt))))
@@ -720,9 +720,9 @@ loop_curves: DO ikurv = 1, iz - 1
                       range = (max_value-min_value)
                   ENDIF
                   DO ipkt = 1, lenc(ikurv)
-                     xma = x (offxy (ikurv - 1) + ipkt) 
-                     yma = y (offxy (ikurv - 1) + ipkt) 
-                     factor = 0.1+0.9*(ABS(y (offxy (ikurv - 1) + ipkt))-min_value)/range
+                     xma = real(x (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+                     yma = real(y (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+                     factor = 0.1+0.9*(ABS(real(y (offxy (ikurv - 1) + ipkt), kind=PREC_SP))-min_value)/range
                      IF(factor==0.0) factor = 1.0
                      sma = MAX(0.01,sizemark (iwin, iframe,ikurv)*factor)
                      CALL draw_marker (xma, yma, imarktyp (iwin, iframe, ikurv), &
@@ -730,8 +730,8 @@ loop_curves: DO ikurv = 1, iz - 1
                   ENDDO
                ELSEIF(rel_mark(iwin, iframe, ikurv) >   0 ) THEN  ! scale by data set
                   jkurv = rel_mark(iwin, iframe, ikurv)
-                  max_value = ABS(y (offxy (jkurv - 1) + 1))
-                  min_value = ABS(y (offxy (jkurv - 1) + 1))
+                  max_value = ABS(real(y (offxy (jkurv - 1) + 1), kind=PREC_SP))
+                  min_value = ABS(real(y (offxy (jkurv - 1) + 1), kind=PREC_SP))
                   range = 0.0
                   DO ipkt = 1, lenc(jkurv)
                      max_value = MAX(max_value, ABS(real(y (offxy (jkurv - 1) + ipkt))))
@@ -743,9 +743,9 @@ loop_curves: DO ikurv = 1, iz - 1
                       range = (max_value-min_value)
                   ENDIF
                   DO ipkt = 1, lenc(ikurv)
-                     xma = x (offxy (ikurv - 1) + ipkt) 
-                     yma = y (offxy (ikurv - 1) + ipkt) 
-                     factor = 0.1+0.9*(ABS(y (offxy (jkurv - 1) + ipkt))-min_value)/range
+                     xma = real(x (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+                     yma = real(y (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+                     factor = 0.1+0.9*(ABS(real(y (offxy (jkurv - 1) + ipkt), kind=PREC_SP))-min_value)/range
                      IF(factor==0.0) factor = 1.0
                      sma = MAX(0.01,sizemark (iwin, iframe,ikurv)*factor)
                      CALL draw_marker (xma, yma, imarktyp (iwin, iframe, ikurv), &
@@ -766,8 +766,8 @@ loop_curves: DO ikurv = 1, iz - 1
          ENDIF 
          DO ipkt = 1, ima 
          IF (.not.lni (ikurv) ) iym (ipkt) = ixm (ipkt) 
-         xma = x (ixm (ipkt) ) 
-         yma = y (iym (ipkt) ) 
+         xma = real(x (ixm (ipkt) ) , kind=PREC_SP)
+         yma = real(y (iym (ipkt) ) , kind=PREC_SP)
          CALL draw_marker (xma, yma, imarkmax (iwin, iframe, ikurv),    &
          imarkcol (iwin, iframe, ikurv), sizemark (iwin, iframe, ikurv) &
          )                                                              
@@ -784,12 +784,12 @@ loop_curves: DO ikurv = 1, iz - 1
 !                                                                       
          IF (ierr (iwin, iframe, ikurv) .eq.1.or.ierr (iwin, iframe,    &
          ikurv) .eq.3) then                                             
-            xfehl (1) = x (offxy (ikurv - 1) + ipkt) - dx (offxy (ikurv &
-            - 1) + ipkt)                                                
-            yfehl (1) = y (offxy (ikurv - 1) + ipkt) 
-            xfehl (2) = x (offxy (ikurv - 1) + ipkt) + dx (offxy (ikurv &
-            - 1) + ipkt)                                                
-            yfehl (2) = y (offxy (ikurv - 1) + ipkt) 
+            xfehl (1) = real(x (offxy (ikurv - 1) + ipkt) - dx (offxy (ikurv &
+            - 1) + ipkt), kind=PREC_SP)                                                
+            yfehl (1) = real(y (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+            xfehl (2) = real(x (offxy (ikurv - 1) + ipkt) + dx (offxy (ikurv &
+            - 1) + ipkt) , kind=PREC_SP)                                               
+            yfehl (2) = real(y (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
             CALL koor_shear (2, xfehl, yfehl) 
             CALL koor_log (2, xfehl, yfehl) 
             CALL PGERRX (1, xfehl (1), xfehl (2), yfehl (1), 1.0) 
@@ -797,12 +797,12 @@ loop_curves: DO ikurv = 1, iz - 1
 !                                                                       
          IF (ierr (iwin, iframe, ikurv) .eq.2.or.ierr (iwin, iframe,    &
          ikurv) .eq.3) then                                             
-            xfehl (1) = x (offxy (ikurv - 1) + ipkt) 
-            yfehl (1) = y (offxy (ikurv - 1) + ipkt) - dy (offxy (ikurv &
-            - 1) + ipkt)                                                
-            xfehl (2) = x (offxy (ikurv - 1) + ipkt) 
-            yfehl (2) = y (offxy (ikurv - 1) + ipkt) + dy (offxy (ikurv &
-            - 1) + ipkt)                                                
+            xfehl (1) = real(x (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+            yfehl (1) = real(y (offxy (ikurv - 1) + ipkt) - dy (offxy (ikurv &
+            - 1) + ipkt) , kind=PREC_SP)                                               
+            xfehl (2) = real(x (offxy (ikurv - 1) + ipkt), kind=PREC_SP) 
+            yfehl (2) = real(y (offxy (ikurv - 1) + ipkt) + dy (offxy (ikurv &
+            - 1) + ipkt), kind=PREC_SP)                                                
             CALL koor_shear (2, xfehl, yfehl) 
             CALL koor_log (2, xfehl, yfehl) 
             CALL PGERRY (1, xfehl (1), yfehl (1), yfehl (2), 1.0) 
@@ -1251,8 +1251,8 @@ INTEGER :: ninterv
          ELSE 
             CALL spline_old (xpl, ypl, npkt, 1E30, 1E30, y2a) 
 !           CALL spline (npkt, xpl, ypl, 1D30, 1D30, y2a) 
-            xst = max (xmin (ikurv), real(pex (iwin, iframe, 1), kind=PREC_DP) ) 
-            xen = min (xmax (ikurv), real(pex (iwin, iframe, 2), kind=PREC_DP) ) 
+            xst = max (real(xmin (ikurv), kind=PREC_SP), real(pex (iwin, iframe, 1), kind=PREC_SP) ) 
+            xen = min (real(xmax (ikurv), kind=PREC_SP), real(pex (iwin, iframe, 2), kind=PREC_SP) ) 
             dxx = (xen - xst) / maxsp 
             is = 1
             ninterv = IABS( NINT( ((xen-dxx)-(xst+dxx))/dxx )) 
@@ -1471,10 +1471,10 @@ REAL(kind=PREC_SP) :: blow, bhigh
          IF (inrect (eex, eey, x (iii), y (iii) ) ) then 
             DO jpkt = 1, lenc(ikurv) 
             jjj = offxy (ikurv - 1) + jpkt 
-            xpl (1) = x (iii) 
-            ypl (1) = y (iii) 
-            xpl (2) = x (jjj) 
-            ypl (2) = y (jjj) 
+            xpl (1) = real(x (iii), kind=PREC_SP) 
+            ypl (1) = real(y (iii) , kind=PREC_SP)
+            xpl (2) = real(x (jjj), kind=PREC_SP) 
+            ypl (2) = real(y (jjj), kind=PREC_SP) 
             CALL koor_shear (2, xpl, ypl) 
             CALL koor_log (2, xpl, ypl) 
             ypl (1) = yskal (iwin, iframe) * ypl (1) 
@@ -1482,10 +1482,10 @@ REAL(kind=PREC_SP) :: blow, bhigh
             dist = sqrt ( (xpl (2) - xpl (1) ) **2 + (ypl (2) - ypl (1) &
             ) **2)                                                      
             IF (dist.ge.blow.and.dist.le.bhigh) then 
-               xpl (1) = x (iii) 
-               ypl (1) = y (iii) 
-               xpl (2) = x (jjj) 
-               ypl (2) = y (jjj) 
+               xpl (1) = real(x (iii), kind=PREC_SP) 
+               ypl (1) = real(y (iii), kind=PREC_SP) 
+               xpl (2) = real(x (jjj), kind=PREC_SP) 
+               ypl (2) = real(y (jjj), kind=PREC_SP) 
                CALL koor_shear (2, xpl, ypl) 
                CALL koor_log (2, xpl, ypl) 
                CALL PGLINE (2, xpl, ypl) 
@@ -1525,8 +1525,8 @@ REAL(kind=PREC_SP) :: zzmin, zzmax, x1, x2
 INTEGER :: i, ic, ix, iy, ikk 
 INTEGER :: nx_min, nx_max, ny_min, ny_max 
 !                                                                       
-      rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
-      rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
+      rdx = real(xmax (ik) - xmin (ik), kind=PREC_SP ) / REAL(nx (ik) - 1) 
+      rdy = real(ymax (ik) - ymin (ik) , kind=PREC_SP) / REAL(ny (ik) - 1) 
       nx_min = max (1, nint ( (pex (iwin, iframe, 1) - xmin (ik) )      &
       / rdx) + 1)                                                       
       nx_max = min (nx (ik), nint ( (pex (iwin, iframe, 2) - xmin (ik) )&
@@ -1553,16 +1553,16 @@ allocate(zpl(nx_max, ny_max))
       DO iy = ny_min, ny_max 
       DO ix = nx_min, nx_max 
       ikk = offz (ik - 1) + (ix - 1) * ny (ik) + iy 
-      zpl (ix, iy) = z (ikk) 
+      zpl (ix, iy) = real(z (ikk), kind=PREC_SP) 
       ENDDO 
       ENDDO 
 !                                                                       
 !------ Transformation matrix                                           
 !                                                                       
-      tr (1) = xmin (ik) - rdx 
+      tr (1) = real(xmin (ik), kind=PREC_SP) - rdx 
       tr (2) = rdx 
       tr (3) = 0.0 
-      tr (4) = ymin (ik) - rdy 
+      tr (4) = real(ymin (ik), kind=PREC_SP) - rdy 
       tr (5) = 0.0 
       tr (6) = rdy 
 !                                                                       
@@ -1661,8 +1661,8 @@ REAL(kind=PREC_SP) :: rdx, rdy, zm, zi, h, log10, yf
 INTEGER :: il, ic, ix, iy, ikk, ihp, ihl, lmi, lin 
 INTEGER :: nx_min, nx_max, ny_min, ny_max 
 !                                                                       
-      rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
-      rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
+      rdx = real(xmax (ik) - xmin (ik), kind=PREC_SP ) / REAL(nx (ik) - 1) 
+      rdy = real(ymax (ik) - ymin (ik), kind=PREC_SP ) / REAL(ny (ik) - 1) 
       nx_min = max (1, nint ( (pex (iwin, iframe, 1) - xmin (ik) )      &
       / rdx) + 1)                                                       
       nx_max = min (nx (ik), nint ( (pex (iwin, iframe, 2) - xmin (ik) )&
@@ -1692,16 +1692,16 @@ allocate(zpl(nx_max, ny_max))
       DO iy = ny_min, ny_max 
       DO ix = nx_min, nx_max 
       ikk = offz (ik - 1) + (ix - 1) * ny (ik) + iy 
-      zpl (ix, iy) = z (ikk) 
+      zpl (ix, iy) = real(z (ikk), kind=PREC_SP) 
       ENDDO 
       ENDDO 
 !                                                                       
 !------ Transformation matrix                                           
 !                                                                       
-      tr (1) = xmin (ik) - rdx 
+      tr (1) = real(xmin (ik), kind=PREC_SP) - rdx 
       tr (2) = rdx 
       tr (3) = 0.0 
-      tr (4) = ymin (ik) - rdy 
+      tr (4) = real(ymin (ik), kind=PREC_SP) - rdy 
       tr (5) = 0.0 
       tr (6) = rdy 
 !                                                                       

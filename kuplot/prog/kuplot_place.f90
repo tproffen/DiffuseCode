@@ -144,10 +144,10 @@ ENDIF
 CALL dgl5_set_pointer(izz, ier_num, ier_typ, node_number)
 if(ier_num /= 0) return
 !
-call dgl5_get_dims(node_number, h5_dims)
-call dgl5_get_llims(node_number, h5_llims)
-call dgl5_get_steps(node_number, h5_steps)
-call dgl5_get_infile(node_number, h5_infile)
+call dgl5_get_dims(h5_dims)
+call dgl5_get_llims(h5_llims)
+call dgl5_get_steps(h5_steps)
+call dgl5_get_infile(h5_infile)
 !
 if(h5_dims(1)>1 .and. h5_dims(2)>1 .and. h5_dims(3)>1) then
   ku_ndims(izz) = 3
@@ -163,7 +163,7 @@ ELSE
   h5_layer = MAX(1,MIN(INT(           h5_dims(3)),         h5_layer+nlayer))
 ENDIF
 call dgl5_get_calccoor(calc_coor, use_coor)      ! Need to calculate coordinates
-call dgl5_get_corners(node_number, h5_corners)
+call dgl5_get_corners(h5_corners)
 ll = 0
 k = h5_layer
 !
@@ -289,10 +289,10 @@ ENDIF
 CALL dgl5_set_pointer(izz, ier_num, ier_typ, node_number)
 if(ier_num /= 0) return
 !
-call dgl5_get_dims(node_number, h5_dims)
-call dgl5_get_llims(node_number, h5_llims)
-call dgl5_get_steps(node_number, h5_steps)
-call dgl5_get_infile(node_number, h5_infile)
+call dgl5_get_dims(h5_dims)
+call dgl5_get_llims(h5_llims)
+call dgl5_get_steps(h5_steps)
+call dgl5_get_infile(h5_infile)
 !
 IF(lset) THEN
   call dgl5_set_layer(nlayer)

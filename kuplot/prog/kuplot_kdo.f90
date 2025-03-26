@@ -514,7 +514,7 @@ owerte = (/ 1.0D0 /)
             if(lpresent(O_DATA)) then       ! Optional parameter data: 
                j = nint(owerte(O_DATA))
                call get_aver_angle(MAXW, j, werte)
-               yskal_u(iwin, iframe) = werte(1)
+               yskal_u(iwin, iframe) = real(werte(1), kind=PREC_SP)
             else
                CALL para_setr(zei, lc, yskal_u(iwin, iframe), bef, -9999.)
             endif
@@ -526,7 +526,7 @@ owerte = (/ 1.0D0 /)
             if(lpresent(O_DATA)) then       ! Optional parameter data: 
                j = nint(owerte(O_DATA))
                call get_aver_angle(MAXW, j, werte)
-               shear(iwin, iframe) = werte(2)
+               shear(iwin, iframe) = real(werte(2), kind=PREC_SP)
             else
                CALL para_setr (zei, lc, shear (iwin, iframe), bef, 90.0) 
             endif

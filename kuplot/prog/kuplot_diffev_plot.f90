@@ -607,11 +607,11 @@ CALL do_load (string, length, .TRUE.)
 IF(ier_num/=0) RETURN
 !
 ! Determine lowest R-value and its member number
-rvalue_min = y(1)
+rvalue_min = real(y(1), kind=PREC_SP)
 rvalue_ind = 1
 DO i=2,lenc(1)    ! lenc is the length of data sets
    IF(y(i)<rvalue_min) THEN
-      rvalue_min = y(i)
+      rvalue_min = real(y(i), kind=PREC_SP)
       rvalue_ind = i
    ENDIF
 ENDDO

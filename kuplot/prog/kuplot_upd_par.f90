@@ -694,15 +694,15 @@ CALL no_error
       ELSEIF (ctype.eq.'size') then 
          IF (ianz.eq.1) then 
             IF (1.eq.ww (1) ) then 
-               dev_sf (iwin, x11) = wert 
+               dev_sf (iwin, x11) = real(wert , kind=PREC_SP)
             ELSEIF (2.eq.ww (1) ) then 
-               dev_sf (iwin, ps) = wert 
-               dev_sf (iwin, vps) = wert 
+               dev_sf (iwin, ps) = real(wert , kind=PREC_SP)
+               dev_sf (iwin, vps) = real(wert , kind=PREC_SP)
             ELSEIF (3.eq.ww (1) ) then 
-               dev_sf (iwin, pic) = wert 
-               dev_sf (iwin, vpic) = wert 
+               dev_sf (iwin, pic) = real(wert , kind=PREC_SP)
+               dev_sf (iwin, vpic) = real(wert , kind=PREC_SP)
             ELSEIF (4.eq.ww (1) ) then 
-               dev_sf (iwin, png) = wert 
+               dev_sf (iwin, png) = real(wert , kind=PREC_SP)
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -719,7 +719,7 @@ CALL no_error
             IF (1.le.ww (1) .and.ww (1) .le.maxcol.and.1.le.ww (2)      &
             .and.ww (2) .le.3) then                                     
                IF (wert.ge.0.0.and.wert.le.1.0) then 
-                  col_map (iwin, ww (1), ww (2) ) = wert 
+                  col_map (iwin, ww (1), ww (2) ) = real(wert , kind=PREC_SP)
                ELSE 
                   ier_num = - 18 
                   ier_typ = ER_APPL 
@@ -740,17 +740,17 @@ CALL no_error
             IF (1.le.ww (1) .and.ww (1) .le.6.and.1.le.ww (2) .and.ww ( &
             2) .le.2) then                                              
                IF (ww (1) .eq.1) then 
-                  lab_angle (iwin, iframe, ww (2) ) = wert 
+                  lab_angle (iwin, iframe, ww (2) ) = real(wert , kind=PREC_SP)
                ELSEIF (ww (1) .eq.2) then 
-                  tick_ma_h (iwin, iframe, ww (2) ) = wert 
+                  tick_ma_h (iwin, iframe, ww (2) ) = real(wert , kind=PREC_SP)
                ELSEIF (ww (1) .eq.3) then 
-                  tick_ma_h (iwin, iframe, ww (2) ) = wert 
+                  tick_ma_h (iwin, iframe, ww (2) ) = real(wert , kind=PREC_SP)
                ELSEIF (ww (1) .eq.4) then 
                   tick_nsub (iwin, iframe, ww (2) ) = nint (wert) 
                ELSEIF (ww (1) .eq.5) then 
-                  lab_d (iwin, iframe, ww (2) ) = wert 
+                  lab_d (iwin, iframe, ww (2) ) = real(wert , kind=PREC_SP)
                ELSEIF (ww (1) .eq.6) then 
-                  ax_d (iwin, iframe, ww (2) ) = wert 
+                  ax_d (iwin, iframe, ww (2) ) = real(wert , kind=PREC_SP)
                ENDIF 
             ELSE 
                ier_num = - 8 
