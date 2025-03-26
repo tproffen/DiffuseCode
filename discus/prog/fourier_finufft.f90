@@ -55,7 +55,7 @@ N   = (inc-1) * lscales          + 1
 allocate(cj(M))
 allocate(fk(N))
 !
-cj = cmplx(occ, 0.0D0)
+cj = cmplx(occ, 0.0D0, kind=PREC_DP)
 tol = 1d-9
 !
 call finufft_default_opts(opts)                            ! Use default options 
@@ -117,7 +117,7 @@ nj = ms*mt
 allocate(cj(M))
 allocate(fk(nj))
 !
-cj = cmplx(occ, 0.0D0)
+cj = cmplx(occ, 0.0D0, kind=PREC_DP)
 tol = 1d-9
 !
 call finufft_default_opts(opts)
@@ -203,7 +203,7 @@ nj = ms*mt*mu
 allocate(cj(M))
 allocate(fk(nj))
 !
-cj = cmplx(occ, 0.0D0)
+cj = cmplx(occ, 0.0D0, kind=PREC_DP)
 tol = 1.0D-7
 !
 call finufft_default_opts(opts)

@@ -534,7 +534,7 @@ main_if: IF (ier_num.eq.0) THEN
                      enddo
                   enddo
                endif
-               CALL out_prep_3dpdf(laver, l_val_limited, dsmax)
+               CALL out_prep_3dpdf(l_val_limited, dsmax)
                deallocate(dsi3d)
             elseif(value==val_3DBETA) then
                ii = 0
@@ -546,18 +546,18 @@ main_if: IF (ier_num.eq.0) THEN
                         enddo
                      enddo
                   enddo
-               CALL out_prep_3dpdf(laver, l_val_limited, dsmax)
+               CALL out_prep_3dpdf(l_val_limited, dsmax)
             ENDIF
             IF (ityp.eq.0) THEN 
                CALL do_output (value, laver, valmax) 
             ELSEIF (ityp.eq.1) THEN 
-               CALL do_post (value, laver) 
+               CALL do_post! (value, laver) 
             ELSEIF (ityp.eq.2) THEN 
-               CALL do_pgm (value, laver) 
+               CALL do_pgm! (value, laver) 
             ELSEIF (ityp.eq.3) THEN 
                CALL do_output (value, laver, valmax) 
             ELSEIF (ityp.eq.4) THEN 
-               CALL do_ppm (value, laver) 
+               CALL do_ppm! (value, laver) 
             ELSEIF (ityp.eq.5) THEN 
                if(pow_l_partial .and. value==VAL_PDF) then
                   call powder_out_partial(value, .false.)
@@ -1200,7 +1200,7 @@ END SUBROUTINE value_optional
 !
 !*****7*****************************************************************
 !
-SUBROUTINE do_post (value, laver) 
+SUBROUTINE do_post! (value, laver) 
 !-                                                                      
 !     Writes a POSTSCRIPT file                                          
 !+                                                                      
@@ -1215,8 +1215,8 @@ USE support_mod
 !
 IMPLICIT none 
 !
-integer, intent(in) :: value
-logical, intent(in) :: laver
+!integer, intent(in) :: value
+!logical, intent(in) :: laver
 !
 ier_num = -6
 ier_typ = ER_COMM
@@ -1300,7 +1300,7 @@ ier_msg(2) = "to display the data and write the image as POSTSCRIPT format"
 !
 !*****7*****************************************************************
 !
-SUBROUTINE do_pgm (value, laver) 
+SUBROUTINE do_pgm! (value, laver) 
 !-                                                                      
 !     Writes the data in a PGM format                                   
 !-                                                                      
@@ -1314,8 +1314,8 @@ USE support_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
-integer, intent(in) :: value
-logical, intent(in) :: laver
+!integer, intent(in) :: value
+!logical, intent(in) :: laver
 !
 ier_num = -6
 ier_typ = ER_COMM
@@ -1371,7 +1371,7 @@ ier_msg(2) = "to display the data and write the image as PGM format"
 !
 !*****7*****************************************************************
 !
-SUBROUTINE do_ppm (value, laver) 
+SUBROUTINE do_ppm! (value, laver) 
 !+                                                                      
 !     Writes the data in a PGM format                                   
 !-                                                                      
@@ -1384,8 +1384,8 @@ USE errlist_mod
 USE support_mod
 IMPLICIT none 
 !                                                                       
-integer, intent(in) :: value
-logical, intent(in) :: laver
+!integer, intent(in) :: value
+!logical, intent(in) :: laver
 !
 ier_num = -6
 ier_typ = ER_COMM
@@ -2207,7 +2207,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !
 !*******************************************************************************
 !
-SUBROUTINE out_prep_3dpdf(laver, l_val_limited, dsmax)
+SUBROUTINE out_prep_3dpdf(l_val_limited, dsmax)
 !-
 !  Calculate the 3DPDF value via FFT
 !+
@@ -2223,7 +2223,7 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-LOGICAL           , INTENT(IN) :: laver
+!LOGICAL           , INTENT(IN) :: laver
 LOGICAL           , INTENT(IN) :: l_val_limited
 REAL(KIND=PREC_DP), INTENT(IN) :: dsmax
 !
@@ -2260,11 +2260,11 @@ IF(num(2)==1) isdim = isdim - 1
 IF(num(3)==1) isdim = isdim - 1
 !read(*,*) i
 IF(isdim==1) THEN
-   CALL out_prep_3dpdf_1d(laver, dsort)
+   CALL out_prep_3dpdf_1d(dsort)
 ELSEIF(isdim==2) THEN
-   CALL out_prep_3dpdf_2d(laver, dsort)
+   CALL out_prep_3dpdf_2d(dsort)
 ELSEIF(isdim==3) THEN
-   CALL out_prep_3dpdf_3d(laver, dsort)
+   CALL out_prep_3dpdf_3d(dsort)
 ENDIF
 !
 ! Set increments and corners for out_vi, out_eck
@@ -2325,7 +2325,7 @@ END SUBROUTINE out_prep_3dpdf
 !
 !*******************************************************************************
 !
-SUBROUTINE out_prep_3dpdf_1d(laver, dsort)
+SUBROUTINE out_prep_3dpdf_1d(dsort)
 !-
 !  Calculate the 3DPDF value via FFT
 !+
@@ -2339,7 +2339,7 @@ use lib_f90_fftw3
 !
 IMPLICIT NONE
 !
-LOGICAL              , INTENT(IN) :: laver
+!LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !integer :: i
 !
@@ -2370,7 +2370,7 @@ END SUBROUTINE out_prep_3dpdf_1d
 !
 !*******************************************************************************
 !
-SUBROUTINE out_prep_3dpdf_2d(laver, dsort)
+SUBROUTINE out_prep_3dpdf_2d(dsort)
 !-
 !  Calculate the 3DPDF value via FFT
 !  Uses FFTW3 library
@@ -2386,7 +2386,7 @@ use lib_f90_fftw3
 !
 IMPLICIT NONE
 !
-LOGICAL              , INTENT(IN) :: laver
+!LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
 COMPLEX(KIND=C_DOUBLE_COMPLEX)  , DIMENSION(:,:), ALLOCATABLE  :: in_pattern  ! the diffraction pattern!
@@ -2413,7 +2413,7 @@ END SUBROUTINE out_prep_3dpdf_2d
 !
 !*******************************************************************************
 !
-SUBROUTINE out_prep_3dpdf_3d(laver, dsort)
+SUBROUTINE out_prep_3dpdf_3d(dsort)
 !-
 !  Calculate the 3DPDF value via FFT  3D version
 !+
@@ -2427,7 +2427,7 @@ use lib_f90_fftw3
 !
 IMPLICIT NONE
 !
-LOGICAL              , INTENT(IN) :: laver
+!LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  ::  in_pattern  ! the diffraction pattern
@@ -2522,9 +2522,9 @@ DO l = 1, inc(3)
             IF(do_blen(.FALSE., h, NULLV)> dsmax   ) THEN
                iii       =  (i - 1) * inc(3)*inc (2) +        &
                             (j - 1) * inc(3)             + l
-               acsf(i,j,k) = CMPLX(0.0D0, 0.0D0)                     ! How does iii runs? How to rewrite this line for general dimensions?
-                csf(i,j,k) = CMPLX(0.0D0, 0.0D0)                     ! How does iii runs? How to rewrite this line for general dimensions?
-                dsi(i,j,k) = CMPLX(0.0D0, 0.0D0)                     ! How does iii runs? How to rewrite this line for general dimensions?
+               acsf(i,j,k) = CMPLX(0.0D0, 0.0D0, kind=PREC_DP)
+                csf(i,j,k) = CMPLX(0.0D0, 0.0D0, kind=PREC_DP)
+                dsi(i,j,k) = CMPLX(0.0D0, 0.0D0, kind=PREC_DP)
             ENDIF
          ENDDO
       ENDDO

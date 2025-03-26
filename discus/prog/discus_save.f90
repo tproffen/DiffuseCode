@@ -991,7 +991,7 @@ loop_atoms: DO i = i_start, i_end
          ENDIF
       ENDIF
       IF(sav_w_surf) wr_surf(0:3) = cr_surf(0:3,i)
-      IF(sav_w_magn) wr_surf(0:3) = cr_magn(0:3,i)   ! MAGNETIC_WORK
+      IF(sav_w_magn) wr_surf(0:3) = nint(cr_magn(0:3,i))   ! MAGNETIC_WORK
       WRITE (ist, 4) cr_at_lis (cr_iscat (1,i) ),         &
                      (cr_pos (j, i),j = 1, 3),          &
                      cr_dw (cr_iscat (1,i) ), wr_prop,    &
@@ -1019,12 +1019,12 @@ DEALLOCATE(lwrite)
  3021 FORMAT    ('gene  ',12(f9.6,','),i3) 
  3022 FORMAT    ('symm  ',12(f9.6,','),i3) 
  3030 FORMAT    ('ncell ',3(i8,','),i10,5(',',i12)) 
- 3110 FORMAT    (('scat  ', a4,6(',',5x,a4))) 
- 3111 FORMAT    (('scat  ', a4)) 
- 3120 FORMAT    (('adp   ', f9.6,6(',',5x,f9.6))) 
- 3121 FORMAT    (('adp   ', f9.6)) 
- 3220 FORMAT    (('occ   ', f9.6,6(',',5x,f9.6))) 
- 3221 FORMAT    (('occ   ', f9.6)) 
+!3110 FORMAT    (('scat  ', a4,6(',',5x,a4))) 
+!3111 FORMAT    (('scat  ', a4)) 
+!3120 FORMAT    (('adp   ', f9.6,6(',',5x,f9.6))) 
+!3121 FORMAT    (('adp   ', f9.6)) 
+!3220 FORMAT    (('occ   ', f9.6,6(',',5x,f9.6))) 
+!3221 FORMAT    (('occ   ', f9.6)) 
  3800 format    ('format numbers,XYZBPMMOS')
 !3900 FORMAT    ('atoms      x,',14x,'y,',14x,'z,',13x,'Biso,', 4x,'Property,', &
 !                2x,'MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk,  Sl',            &
@@ -1043,9 +1043,9 @@ DEALLOCATE(lwrite)
  4900 FORMAT    (a,' end') 
     4 FORMAT (a4,3(1x,f14.6,','),4x,f10.6,',',i8, ',', I8, ',', &
               I8,', ', F10.6,', ',A1,3(', ',I3):,6(',',f10.6)) 
- 7010 FORMAT    ('(''scat  '', a4  ,',i1,'('','',5x,a4  ))') 
- 7020 FORMAT    ('(''adp   '', f9.6,',i1,'('','',5x,f9.6))') 
- 7030 FORMAT    ('(''occ   '', f9.6,',i1,'('','',5x,f9.6))') 
+!7010 FORMAT    ('(''scat  '', a4  ,',i1,'('','',5x,a4  ))') 
+!7020 FORMAT    ('(''adp   '', f9.6,',i1,'('','',5x,f9.6))') 
+!7030 FORMAT    ('(''occ   '', f9.6,',i1,'('','',5x,f9.6))') 
 !
 END SUBROUTINE save_keyword                   
 !

@@ -673,7 +673,7 @@ endif
      &                    ' = ',F8.4,' A')                              
  1211 FORMAT    ( '   Calculations for axis   : ',a) 
  1220 FORMAT    ( '   TTHmin, TTHmax          : ',f10.5,2x,f10.5) 
- 1221 FORMAT    ( '   d* min, d* max          : ',f10.5,2x,f10.5) 
+!1221 FORMAT    ( '   d* min, d* max          : ',f10.5,2x,f10.5) 
  1230 FORMAT    ( '   DELTA TTH               : ',f10.5) 
  1231 FORMAT    ( '   TTH zero; Obs0 at true  : ',f10.5) 
  2100 FORMAT    ( '   Instrument resolution   : ',A) 
@@ -686,11 +686,11 @@ endif
  2221 FORMAT    ( '       Profile asym linear : ',2(f10.5,2x)) 
  2222 FORMAT    ( '       Profile asym square : ',2(f10.5,2x)) 
  2125 FORMAT    ( '       Profile width *FWHM : ',1(f10.5,2x)) 
- 1240 FORMAT    ( '   dH, dK, dL              : ',3(f10.5,2x)) 
- 1245 FORMAT    ( '   Corr. steps in TTH') 
- 1250 FORMAT    ( '   at TTHmin               : ',3(f10.5,2x)) 
- 1260 FORMAT    ( '   at TTHmax               : ',3(f10.5,2x)) 
- 1270 FORMAT    ( '   shift for dH,dK,dL      : ',3(f10.5,2x)) 
+!1240 FORMAT    ( '   dH, dK, dL              : ',3(f10.5,2x)) 
+!1245 FORMAT    ( '   Corr. steps in TTH') 
+!1250 FORMAT    ( '   at TTHmin               : ',3(f10.5,2x)) 
+!1260 FORMAT    ( '   at TTHmax               : ',3(f10.5,2x)) 
+!1270 FORMAT    ( '   shift for dH,dK,dL      : ',3(f10.5,2x)) 
  1290 FORMAT    ( '   Q  min, Q  max          : ',f10.5,2x,f10.5) 
  1291 FORMAT    ( '   DELTA Q                 : ',f10.5) 
  1292 FORMAT    ( '   Q zero (Obs0 at true Q) : ',f10.5) 
@@ -1002,8 +1002,8 @@ elseif(str_comp(cpara(1), 'partial', 3, lpara(1), 7)) then
       cpara(1) = '0' 
       lpara(1) = 1 
       CALL ber_params(ianz, cpara, lpara, werte, maxw) 
-      pow_ipartial(1) = werte(2) 
-      pow_ipartial(2) = werte(3) 
+      pow_ipartial(1) = nint(werte(2)) 
+      pow_ipartial(2) = nint(werte(3)) 
       pow_l_partial   = .TRUE.
    elseif(ianz==2 .and. str_comp(cpara(2), 'off', 3, lpara(1), 3)) then
       pow_ipartial = 0

@@ -35,7 +35,7 @@ integer, intent(in) :: diff_table
 integer, intent(in) :: RAD_DISC   
 real(kind=PREC_DP), dimension(3,3), intent(in) :: rten
 !
-character(len=48) :: ofile
+!character(len=48) :: ofile
 integer :: hl, kl, ll, hh, kh, lh ! Limits on hkl in discamb table
 integer :: h, k, l
 integer :: i

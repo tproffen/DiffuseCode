@@ -811,7 +811,7 @@ IF(cmd(1:3)=='ALL' .or. cmd (1:3)=='MOD') then
          ELSE 
             WRITE (output_io, 1100) rmc_move_cprob(i)-prob,'??????????' 
          ENDIF 
-         prob = prob + rmc_move_cprob(i)
+         prob = prob + real(rmc_move_cprob(i), kind=PREC_SP)
       endif
    enddo
          IF (rmc_local.eq.rmc_local_all) then 
@@ -1258,7 +1258,7 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: line  !Dummy line
       INTEGER lpara (maxw) , cfile_l
       INTEGER ianz, nsym, rsym 
       INTEGER ip, nx, ny, wx, wy 
-      INTEGER i, j, k 
+      INTEGER i, j
       REAL(KIND=PREC_DP) :: werte (maxw)
 REAL(kind=PREC_DP) :: d1, d2, d3, d4
       REAL(kind=PREC_DP):: e1 (3), e2 (3), e3 (3), vi1 (3), vi2 (3), z (3) 
@@ -2737,7 +2737,7 @@ END SUBROUTINE rmc_inten
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER ip, il 
+!     INTEGER ip, il 
 !                                                                       
 !     DO ip = 1, rmc_max_sq 
 !     DO il = 1, rmc_nlots 
@@ -2907,7 +2907,7 @@ use precision_mod
       LOGICAL, INTENT(IN) :: lplus 
 integer, dimension(3), intent(in) :: fnum ! Number increments (reduced by Friedel)
 !                                                                       
-      INTEGER:: i, iq, jq 
+      INTEGER:: iq, jq 
 !                                                                       
       IF (iscat.eq.0) return 
 !                                                                       

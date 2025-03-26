@@ -176,7 +176,7 @@ REAL(kind=PREC_DP)      :: signum = 1.0
 !
       ELSEIF (value == val_sq) THEN
          IF (laver) THEN 
-            qval = f * CONJG(f)
+            qval = real(f * CONJG(f), kind=PREC_DP)
          ELSE 
             qval = dsi(i,j,k)
          ENDIF 
@@ -198,7 +198,7 @@ REAL(kind=PREC_DP)      :: signum = 1.0
 !
       ELSEIF (value == val_iq) THEN
          IF (laver) THEN 
-            qval = f * CONJG (f)
+            qval = real(f * CONJG (f), kind=PREC_DP)
          ELSE 
             qval = dsi (i,j,k)
          ENDIF 

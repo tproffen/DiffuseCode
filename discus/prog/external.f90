@@ -197,7 +197,7 @@ use precision_mod
       ENDDO                                                                                           ! out of the ii loop
       !tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind (     &                            ! Neder's original code
       !phase) )                                                          
-      tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase), sf * sind (phase))      ! My declaration ( i and j run already in the outer loop, so no need for ij  )
+      tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase), sf * sind (phase), kind=PREC_DP)      ! My declaration ( i and j run already in the outer loop, so no need for ij  )
       ENDDO                                                                                           ! out of the j loop
       ENDDO                                                                                           ! out of the i loop
       ENDDO                                                                                           ! out of the i loop
@@ -282,7 +282,7 @@ real(kind=PREC_DP), dimension(3) :: z
       !tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind (     &                            ! Neder's original code
       !phase) )
       tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase), sf * sind (     &                           ! My declaration ( i and j run already in the outer loop, so no need for ij  )
-      phase) )                                                         
+      phase), kind=PREC_DP )                                                         
       ENDDO                                                                                           ! out of the j loop
       ENDDO                                                                                           ! out of the i loop
       ENDDO                                                                                           ! out of the i loop
@@ -356,7 +356,7 @@ real(kind=PREC_DP), dimension(3) :: hh
       !tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind (     &                      ! Neder's original code
       !phase) )                                                          
       tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase), sf * sind (     &                     ! My declaration ( i and j run already in the outer loop, so no need for ij  )
-      phase) )
+      phase), kind=PREC_DP )
       ENDDO                                                                                     ! out of the j loop
       ENDDO                                                                                     ! out of the i loop
       ENDDO                                                                                     ! out of the i loop
@@ -451,7 +451,7 @@ use precision_mod
             !tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase+90),        &          ! Neder's original code
             !sf * sind (phase+90) )                 
             tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase+90),        &         ! My declaration ( i and j run already in the outer loop, so no need for ij  )
-            sf * sind (phase+90) )
+            sf * sind (phase+90), kind=PREC_DP )
             WRITE ( output_io, * ) ' calculating line' 
          ELSE 
             sf = - 0.5 * sf 
@@ -460,7 +460,7 @@ use precision_mod
             !tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind &          ! Neder's original code
             !(phase) )                                                   
             tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase), sf * sind &         ! My declaration ( i and j run already in the outer loop, so no need for ij  )
-            (phase) )
+            (phase), kind=PREC_DP )
          ENDIF 
       ENDIF                                     
       ENDDO                                                                         ! out of the j loop

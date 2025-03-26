@@ -1698,7 +1698,7 @@ loop_mgroup: do                        ! Loop over group until all atoms are rep
    icent_cr = short(icent)
 !
    origin = cr_pos(:, icent_cr)
-   orig_off = offs  (:, icent)
+   orig_off = nint(offs  (:, icent))
 !write(*,'(a, (3f8.2,2x),3i5, 2i8)') ' Origin at ', origin, orig_off, icent, icent_cr
 !read(*,*) i
    maxdim = 0.0D0

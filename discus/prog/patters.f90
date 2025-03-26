@@ -1324,7 +1324,7 @@ ENDIF
          DO j = 1, rho_inc (2)                                                ! Loop over the number of points in the second direction
          ii = ii + 1                                                          ! Increase the counter
          !csf (ii) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))                   ! Neder's original code 
-         csf (i,j, 1) = cmplx (0.0D0, 0.0D0)                                  ! My declaration. Why only two dimensions again ? i and j are again running on the outer loop. 
+         csf (i,j, 1) = cmplx (0.0D0, 0.0D0, kind=PREC_DP)                                  ! My declaration. Why only two dimensions again ? i and j are again running on the outer loop. 
          ENDDO                                                                ! End of the loop over the second direction
          ENDDO                                                                ! End of the loop over the first direction
       ENDIF 
@@ -1441,7 +1441,7 @@ a_b = (0.0D0,0.0D0)
             ELSE 
                dummy = zz1 * wilson_scale 
             ENDIF 
-            a_b = cmplx (dummy, 0.0) 
+            a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
          ELSEIF (patt_mode.eq.PATT_SHARP) then 
 !           dstar2 = quad (h, h, cr_rten) 
             dstar2 = skalpro (h, h, cr_rten) 
@@ -1455,7 +1455,7 @@ a_b = (0.0D0,0.0D0)
             ELSE 
                dummy = sqrt (abs (zz1) ) * e_f * sqrt (wilson_scale) 
             ENDIF 
-            a_b = cmplx (dummy, 0.0) 
+            a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
          ELSEIF (patt_mode.eq.PATT_SUPER) then 
 !           dstar2 = quad (h, h, cr_rten) 
             dstar2 = skalpro (h, h, cr_rten) 
@@ -1466,7 +1466,7 @@ a_b = (0.0D0,0.0D0)
             ELSE 
                dummy = e_f**2 
             ENDIF 
-            a_b = cmplx (dummy, 0.0) 
+            a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
          ENDIF 
          a_b = a_b * patt_scale * vr 
 !                                                                       
@@ -1494,7 +1494,7 @@ a_b = (0.0D0,0.0D0)
             y (i) = - y (i) 
             ENDDO 
             zz4 = - zz4 
-            a_b = cmplx (dummy, 0.0) 
+            a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
             a_b = a_b * patt_scale * vr 
             CALL calc_patters (a_b, y) 
          ENDIF 
@@ -1541,7 +1541,7 @@ lll = lll + 1
             ELSE 
                dummy = zz1 * wilson_scale 
             ENDIF 
-            a_b = cmplx (dummy, 0.0) 
+            a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
          ELSEIF (patt_mode.eq.PATT_SHARP) then 
             dummy = 0.0 
 !           dstar2 = quad (y, y, cr_rten) 
@@ -1556,7 +1556,7 @@ lll = lll + 1
                   dummy = sqrt (abs (zz1) ) * e_f * sqrt (wilson_scale) 
                ENDIF 
             ENDIF 
-            a_b = cmplx (dummy, 0.0) 
+            a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
          ELSEIF (patt_mode.eq.PATT_SUPER) then 
             dummy = 0.0 
 !           dstar2 = quad (y, y, cr_rten) 
@@ -1570,9 +1570,9 @@ lll = lll + 1
                   dummy = e_f**2 
                ENDIF 
             ENDIF 
-            a_b = cmplx (dummy, 0.0) 
+            a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
          ENDIF 
-         a_b = cmplx (dummy, 0.0) * patt_scale * vr 
+         a_b = cmplx (dummy, 0.0, kind=PREC_DP) * patt_scale * vr 
          CALL calc_patters (a_b, y) 
 !zzz_minv    = min(zzz_minv, zz1)
 !zzz_maxv    = max(zzz_maxv, zz1)
@@ -1825,7 +1825,7 @@ use precision_mod
          ENDIF 
          IF (rho_type (1) .eq.REAL_PART.and.rho_type (2) .eq.IMAG_PART) &
          then                                                           
-            a_b = cmplx (z1 (i), z2 (i) ) 
+            a_b = cmplx (z1 (i), z2 (i), kind=PREC_DP ) 
          ELSEIF (rho_type (1) .eq.INTENSITY.and.rho_type (2)            &
          .eq.PHASE_ANG) then                                            
 !                                                                       
@@ -1836,11 +1836,11 @@ use precision_mod
                RETURN 
             ENDIF 
             a_b = cmplx (sqrt (z1 (i) ) * cosd (z2 (i) ), sqrt (z1 (i) )&
-            * sind (z2 (i) ) )                                          
+            * sind (z2 (i) ), kind=PREC_DP )                                          
          ELSEIF (rho_type (1) .eq.AMPLITUDE.and.rho_type (2)            &
          .eq.PHASE_ANG) then                                            
             a_b = cmplx (z1 (i) * cosd (z2 (i) ), z1 (i) * sind (z2 (i) &
-            ) )                                                         
+            ), kind=PREC_DP )                                                         
          ENDIF 
       ELSEIF (inverse_type.eq.INV_PATT) then 
          IF (patt_excl9999) then 
@@ -1849,7 +1849,7 @@ use precision_mod
                   l_incl = .false. 
                   RETURN 
                ENDIF 
-               a_b = cmplx (z1 (i), 0.0) 
+               a_b = cmplx (z1 (i), 0.0, kind=PREC_DP) 
             ELSEIF (rho_type (1) .eq.REAL_PART.and.rho_type (2)         &
             .eq.IMAG_PART) then                                         
                IF (z1 (i) .eq.patt_excl_val.or.z2 (i) .eq.patt_excl_val)&
@@ -1857,22 +1857,22 @@ use precision_mod
                   l_incl = .false. 
                   RETURN 
                ENDIF 
-               a_b = cmplx (z1 (i) * z1 (i) + z2 (i) * z2 (i), 0.0) 
+               a_b = cmplx (z1 (i) * z1 (i) + z2 (i) * z2 (i), 0.0, kind=PREC_DP) 
             ELSEIF (rho_type (1) .eq.AMPLITUDE) then 
                IF (z1 (i) .eq.patt_excl_val) then 
                   l_incl = .false. 
                   RETURN 
                ENDIF 
-               a_b = cmplx (z1 (i) * z1 (i), 0.0) 
+               a_b = cmplx (z1 (i) * z1 (i), 0.0, kind=PREC_DP) 
             ENDIF 
          ELSE 
             IF (rho_type (1) .eq.INTENSITY) then 
-               a_b = cmplx (z1 (i), 0.0) 
+               a_b = cmplx (z1 (i), 0.0, kind=PREC_DP) 
             ELSEIF (rho_type (1) .eq.REAL_PART.and.rho_type (2)         &
             .eq.IMAG_PART) then                                         
-               a_b = cmplx (z1 (i) * z1 (i) + z2 (i) * z2 (i), 0.0) 
+               a_b = cmplx (z1 (i) * z1 (i) + z2 (i) * z2 (i), 0.0, kind=PREC_DP) 
             ELSEIF (rho_type (1) .eq.AMPLITUDE) then 
-               a_b = cmplx (z1 (i) * z1 (i), 0.0) 
+               a_b = cmplx (z1 (i) * z1 (i), 0.0, kind=PREC_DP) 
             ENDIF 
          ENDIF 
       ENDIF 
@@ -1901,21 +1901,21 @@ use precision_mod
 !                                                                       
       IF (inverse_type.eq.INV_INV) then 
          IF (rho_type (1) .eq.AMPLITUDE) then 
-            a_b = cmplx (zz1 * cosd (zz3), zz1 * sind (zz3) ) 
+            a_b = cmplx (zz1 * cosd (zz3), zz1 * sind (zz3), kind=PREC_DP  ) 
          ELSEIF (rho_type (1) .eq.FCALC) then 
-            a_b = cmplx (zz2 * cosd (zz3), zz2 * sind (zz3) ) 
+            a_b = cmplx (zz2 * cosd (zz3), zz2 * sind (zz3), kind=PREC_DP ) 
          ENDIF 
       ELSEIF (inverse_type.eq.INV_PATT) then 
          IF (rho_type (1) .eq.INTENSITY) then 
-            a_b = cmplx (zz1 * zz1, 0.0) 
+            a_b = cmplx (zz1 * zz1, 0.0, kind=PREC_DP) 
          ELSEIF (rho_type (1) .eq.AMPLITUDE) then 
-            a_b = cmplx (zz1 * zz1, 0.0) 
+            a_b = cmplx (zz1 * zz1, 0.0, kind=PREC_DP) 
          ELSEIF (rho_type (1) .eq.FCALC) then 
-            a_b = cmplx (zz2 * zz2, 0.0) 
+            a_b = cmplx (zz2 * zz2, 0.0, kind=PREC_DP) 
          ENDIF 
       ELSEIF (inverse_type.eq.INV_DIFF) then 
          a_b = cmplx ( (zz1 - zz2) * cosd (zz3), (zz1 - zz2) * sind (   &
-         zz3) )                                                         
+         zz3), kind=PREC_DP )                                                         
       ENDIF 
 !                                                                       
       END SUBROUTINE set_patt_value_s               

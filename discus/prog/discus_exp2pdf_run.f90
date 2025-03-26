@@ -689,10 +689,10 @@ ikk = ik - 1
 y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) ! Copy into previous data set
 iframe = 2
 call get_extrema
-ex(iwin, iframe, 1) = xmin(ikk)
-ex(iwin, iframe, 2) = xmax(ikk)
-ey(iwin, iframe, 1) = ymin(ikk)
-ey(iwin, iframe, 2) = ymax(ikk)
+ex(iwin, iframe, 1) = real(xmin(ikk), kind=PREC_SP)
+ex(iwin, iframe, 2) = real(xmax(ikk), kind=PREC_SP)
+ey(iwin, iframe, 1) = real(ymin(ikk), kind=PREC_SP)
+ey(iwin, iframe, 2) = real(ymax(ikk), kind=PREC_SP)
 !
 call do_fmax_xy(ikk, wmax, ixmax, maxmax, ima)
 call no_error             ! Usually more than the MAXMAX=2 extrema are found ignore this error
@@ -1044,8 +1044,8 @@ length = len_trim(string)
    call set_skal(string,length)
    ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
    ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
-   t(1,iframe,2) = ytic
-   t(iwin, 1, 1)     = mstep
+   t(1,iframe,2) = real(ytic, kind=PREC_SP)
+   t(iwin, 1, 1)     = real(mstep, kind=PREC_SP)
 !  t(iwin, 1, 2)     = ytic
    titel(iwin, 1, 1) = 'Intermediate F(Q)'
    titel(iwin, 1, 2) = 'vertical lines mark Q\dmin\u and Q\dmax\u'
@@ -1068,7 +1068,7 @@ length = len_trim(string)
    t(iwin, iframe, 1)     = 0.5
    ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
    ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
-   t(1,iframe,iframe) = ytic
+   t(1,iframe,iframe) = real(ytic, kind=PREC_SP)
    igrid(iwin, iframe)    = .true.
    ifname(iwin, iframe)   = .false.                    ! 'fname off'
 !
@@ -1220,8 +1220,8 @@ length = len_trim(string)
 call set_skal(string,length)
 ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
 ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
-t(iwin, iframe, 1)     = mstep
-t(iwin, iframe, 2)     = ytic
+t(iwin, iframe, 1)     = real(mstep, kind=PREC_SP)
+t(iwin, iframe, 2)     = real(ytic, kind=PREC_SP)
 titel(iwin, iframe, 1) = 'Final F(Q)'
 if(exp_qfirst_o>0.0D0) then
    titel(iwin, iframe, 2) = 'vertical red lines mark Q\dmin\u and Q\dmax\u; green line marks Q\dscale_o\u'
@@ -1247,7 +1247,7 @@ titel(iwin, iframe, 1) = ' '
 ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
 ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
 t(iwin, iframe, 1)     = 0.5
-t(iwin, iframe, 2)     = ytic
+t(iwin, iframe, 2)     = real(ytic, kind=PREC_SP)
 igrid (iwin, iframe)   = .true.
 ifname(iwin, iframe)   = .false.                    ! 'fname off'
 ibox  (iwin, iframe)   = 3
@@ -1259,7 +1259,7 @@ titel(iwin, iframe, 1) = ' '
 ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
 ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
 t(iwin, iframe, 1)     = 1.0
-t(iwin, iframe, 2)     = ytic
+t(iwin, iframe, 2)     = real(ytic, kind=PREC_SP)
 igrid (iwin, iframe)   = .true.
 ifname(iwin, iframe)   = .false.                    ! 'fname off'
 ibox  (iwin, iframe)   = -3
@@ -1320,10 +1320,10 @@ if(exp_kback>0) then                   ! With background
    infra(iwin,iframe, :) = 0                ! Remove all data sets from frame
    infra(iwin,iframe, 1) = exp_kload        ! Set exp_kload and exp_back into frame 1
    infra(iwin,iframe, 2) = exp_kback
-   ex(iwin, iframe, 1  ) = xmin(exp_kload)  ! Set skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025
-   ex(iwin, iframe, 2  ) = xmax(exp_kload)
+   ex(iwin, iframe, 1  ) = real(xmin(exp_kload), kind=PREC_SP)  ! Set skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025
+   ex(iwin, iframe, 2  ) = real(xmax(exp_kload), kind=PREC_SP)
    ey(iwin, iframe, 1  ) = 0.0
-   ey(iwin, iframe, 2  ) = ymax(exp_kload)*1.025
+   ey(iwin, iframe, 2  ) = real(ymax(exp_kload), kind=PREC_SP)*1.025
    ilinecol(iwin, iframe, exp_kback)  = 1   ! lcol exp_kback, red
    ilinecol(iwin, iframe, exp_kload)  = 3   ! lcol exp_kload, blue
    ilinetyp(iwin, iframe, exp_kback)  = 1   ! lcol exp_kback, red
@@ -1331,10 +1331,10 @@ if(exp_kback>0) then                   ! With background
 else
    infra(iwin,iframe, :) = 0                ! Remove all data sets from frame
    infra(iwin,iframe, 1) = exp_kload        ! Set exp_kload and exp_back into frame 1
-   ex(iwin, iframe, 1  ) = xmin(exp_kload)  ! Set skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025
-   ex(iwin, iframe, 2  ) = xmax(exp_kload)
+   ex(iwin, iframe, 1  ) = real(xmin(exp_kload), kind=PREC_SP)  ! Set skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025
+   ex(iwin, iframe, 2  ) = real(xmax(exp_kload), kind=PREC_SP)
    ey(iwin, iframe, 1  ) = 0.0
-   ey(iwin, iframe, 2  ) = ymax(exp_kload)*1.025
+   ey(iwin, iframe, 2  ) = real(ymax(exp_kload), kind=PREC_SP)*1.025
    ilinecol(iwin, iframe, exp_kload)  = 3   ! lcol exp_kload, blue
    ilinetyp(iwin, iframe, exp_kload)  = 1   ! lcol exp_kload, blue
 endif
@@ -1343,7 +1343,7 @@ t(iwin, iframe, 1)     = 5.0
 t(iwin, iframe, 2)     = 10.0**real(nint(log(abs(ymax(exp_kload)*1.025)/5.0)/log(10.0)))
 ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
 ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
-t(iwin, iframe, 2)     = ytic
+t(iwin, iframe, 2)     = real(ytic, kind=PREC_SP)
 titel(iwin, iframe, 1) = 'Initial intensity'
 titel(iwin, iframe, 2) = ' '
 achse(iwin, iframe, 1) = 'Q [\A\u-1\d]'
@@ -1403,7 +1403,7 @@ length = len_trim(string)
 call set_skal(string,length)
 ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
 ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
-t(1,iframe,iframe) = ytic
+t(1,iframe,iframe) = real(ytic, kind=PREC_SP)
 !
 infra(iwin,iframe,2) = ikk + 2
 ilinecol(iwin, iframe, ikk  ) = 3
@@ -1477,7 +1477,7 @@ call set_skal(string,length)
 ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
 ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
 t(iwin, iframe, 1)     = 0.5
-t(iwin, iframe, 2)     = ytic
+t(iwin, iframe, 2)     = real(ytic, kind=PREC_SP)
 !
 x(offxy(ikk +0) + 1) = max(exp_temp_x(1), exp_qfirst_o)
 x(offxy(ikk +0) + 2) = max(exp_temp_x(1), exp_qfirst_o)

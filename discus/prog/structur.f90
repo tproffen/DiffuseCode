@@ -7009,7 +7009,7 @@ call setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
      cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,  &
      cr_fmat, cr_cartesian,                                 &
      cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
-cr_spcgr   = symmetry_H_M
+cr_spcgr   = symmetry_H_M(1:min(len(cr_spcgr), len_trim(cr_spcgr)))
 spcgr_para = symmetry_origin
 !          = symmetry_abc
 spc_n      = symmetry_n_mat
@@ -7742,13 +7742,13 @@ header: DO
                  ENDIF
              ENDDO
              IF(ianz>=5) THEN
-                natoms = werte(5)
+                natoms = nint(werte(5))
              ENDIF
-             n_cells = werte(1:3)
-             ntypes = werte(6)
-             n_mole = werte(7)
-             n_type = werte(8)
-             n_atom = werte(9)
+             n_cells = nint(werte(1:3))
+             ntypes = nint(werte(6))
+             n_mole = nint(werte(7))
+             n_type = nint(werte(8))
+             n_atom = nint(werte(9))
              ncell_val = nint(werte(1:9))
           ELSE
              ier_num = -163
@@ -8142,7 +8142,7 @@ opara  =  (/ '1  ', 'abc' /)   ! Always provide fresh default values
 lopara =  (/  1   ,  3   /)
 owerte =  (/  1.0 ,  0.0 /)
 !
-spcgr_para = owerte(O_ORIGIN)
+spcgr_para = nint(owerte(O_ORIGIN))
 spcgr_ianz = 2
 werte = 0.0D0
 ianz  = 1

@@ -99,7 +99,7 @@ DO i=1, num(1)
    vector(1) = REAL(i1, KIND=PREC_DP)
    posit = MATMUL(diff_tr, vector)
    dreal = 1.0D0/SQRT(     ZPI)/sigma(1)*EXP(-0.50D0*(posit(1)          )**2)
-   profile(i) = CMPLX(dreal, dimag)
+   profile(i) = CMPLX(dreal, dimag, kind=PREC_DP)
 ENDDO
 !
 plan = fftw_plan_dft_1d(num(1)        , in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
@@ -210,7 +210,7 @@ DO j=1, num(2)
       posit = MATMUL(diff_tr, vector)
       dreal = 1.0D0/SQRT(     ZPI)/sigma(1)*EXP(-0.50D0*(posit(1) )**2) * &
               1.0D0/SQRT(     ZPI)/sigma(2)*EXP(-0.50D0*(posit(2) )**2)
-      profile(i,j) = CMPLX(dreal, dimag)
+      profile(i,j) = CMPLX(dreal, dimag, kind=PREC_DP)
    ENDDO
 ENDDO
 !
@@ -352,7 +352,7 @@ DO k=1, num(3)
          dreal = 1.0D0/SQRT(     ZPI)/sigma(1)*EXP(-0.50D0*(posit(1) )**2) * &
                  1.0D0/SQRT(     ZPI)/sigma(2)*EXP(-0.50D0*(posit(2) )**2) * &
                  1.0D0/SQRT(     ZPI)/sigma(3)*EXP(-0.50D0*(posit(3) )**2)
-         profile(i,j,k) = CMPLX(dreal, dimag)
+         profile(i,j,k) = CMPLX(dreal, dimag, kind=PREC_DP)
       ENDDO
    ENDDO
 ENDDO

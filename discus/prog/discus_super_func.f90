@@ -250,14 +250,14 @@ if(lpresent(O_FILE)) then   ! Set file:
 endif
 !
 if(lpresent(O_CURRENT)) then   ! Set current wave:
-   sup_current = owerte(O_CURRENT)
+   sup_current = nint(owerte(O_CURRENT))
    if(sup_current>sup_nwaves) then
       call alloc_super(cr_ncatoms, cr_nscat, sup_current, sup_ngroups)
       sup_nwaves = sup_current
    endif
 !
    if(lpresent(O_GROUP)) then   ! Set group
-      j = owerte(O_GROUP)
+      j = nint(owerte(O_GROUP))
       if(j>sup_ngroups) then
          i1 = max(1, j, sup_ngroups)
          call alloc_super(cr_ncatoms, cr_nscat, sup_current, i1)
@@ -596,7 +596,7 @@ interface
 end interface
 !
 !interface
-!  real(kind=kind(1.0_D0)) function sup_fun_sine(amp, amp0, arg1, arg2)
+!  real(kind=kind(1.0_D0)) function sup_fun_sine(amp, amp0, arg1)
 !  USE precision_mod
 !  real(kind=PREC_DP), intent(in) :: amp
 !  real(kind=PREC_DP), intent(in) :: amp0

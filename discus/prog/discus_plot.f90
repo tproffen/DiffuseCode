@@ -2027,7 +2027,7 @@ else
       ier_msg(2) = 'Check posit:[,] parameter'
       return
    endif
-   pl_pos = werte(1:2)
+   pl_pos = nint(werte(1:2))
 endif
 !
 tmp_file = tmp_dir(1:tmp_dir_l)//'/discus_jmol_pos.txt'

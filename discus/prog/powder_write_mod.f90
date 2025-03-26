@@ -2000,7 +2000,7 @@ IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN   
       i1 = max(0, i-max_ps)
       i2 = min(   i+max_ps, imax)
       first: do j = i1, i2
-         ii = abs(j-i)*pseudo
+         ii = abs(j-i)*nint(pseudo)
          dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)
       enddo first
    ENDDO main_pts
@@ -2017,7 +2017,7 @@ ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
       i1 = max(0, i-max_ps)
       i2 = min(   i+max_ps, imax)
       first_deb: do j = i1, i2
-         ii = abs(j-i)*pseudo
+         ii = abs(j-i)*nint(pseudo)
          dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)
       enddo first_deb
    ENDDO main_pts_deb
@@ -2235,7 +2235,7 @@ IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN
       i1 = max(0, i-max_ps)
       i2 = min(   i+max_ps, imax)
       first: do j = i1, i2
-         ii = abs(j-i)*pseudo
+         ii = abs(j-i)*nint(pseudo)
          tth1 = (j-i-1)*dtth
          pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2) !, p3, p4) 
          dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)*pra1
@@ -2259,7 +2259,7 @@ ELSEIF(pow_type==POW_DEBYE) THEN
       i1 = max(0, i-max_ps)
       i2 = min(   i+max_ps, imax)
       first_deb: do j = i1, i2
-         ii = abs(j-i)*pseudo
+         ii = abs(j-i)*nint(pseudo)
          tth1 = (j-i-1)*dtth
          pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2) !, p3, p4) 
          dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)*pra1
@@ -2367,7 +2367,7 @@ IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN
       divisor = (alpha*func_beta(eta-0.5D0, 0.5D0))
 !
       first: do j = i1, i2
-         ii = abs(j-i)*pseudo
+         ii = abs(j-i)*nint(pseudo)
          tth1 = (j-i-1)*dtth
          pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2) !, p3, p4) 
          dummy(j) = dummy(j) + dat(i) * pra1 * &
@@ -2394,7 +2394,7 @@ ELSEIF(pow_type==POW_DEBYE) THEN
       i2 = min(   i+max_ps, imax)
       divisor = (alpha*func_beta(eta-0.5D0, 0.5D0))
       first_deb: do j = i1, i2
-         ii = abs(j-i)*pseudo
+         ii = abs(j-i)*nint(pseudo)
          tth1 = (j-i-1)*dtth
          pra1 = profile_asymmetry(tth, tth1, fwhm, p1, p2) !, p3, p4) 
          dummy(j) = dummy(j) + dat(i) * pra1 * &

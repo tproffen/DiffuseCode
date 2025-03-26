@@ -1401,7 +1401,7 @@ ELSE
       IF(cr_surf(0, iatom) == SURF_NONE) THEN  ! Atom was not yet at a surface
          cr_surf(0,   iatom) = surface_type 
                
-         cr_surf(1:3, iatom) = l_normal(:)
+         cr_surf(1:3, iatom) = nint(l_normal(:))
       ELSEIF(cr_surf(0, iatom) < SURF_EDGE) THEN    ! Atom was already at a plane, sphere, cylinder wall
          IF(surface_type > SURF_CYLINDER) THEN      ! New location is at least an edge
             u(:) = cr_pos(:,iatom) - center(:)

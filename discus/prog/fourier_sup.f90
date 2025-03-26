@@ -3370,12 +3370,12 @@ elseif(four_tech == FOUR_NUFFT) then
    eck(1,4) =  eck(1,1)
    eck(2,4) =  eck(2,1)
    eck(3,4) = -eck(3,1)
-   inc(1) = 2*abs(eck(1,1)) + 1
-   inc(2) = 2*abs(eck(2,1)) + 1
-   inc(3) = 2*abs(eck(3,1)) + 1
-   ih_min = eck(1,1)
-   ik_min = eck(2,1)
-   il_min = eck(3,1)
+   inc(1) = nint(2.0_PREC_DP*abs(eck(1,1)), kind=PREC_INT_WORD) + 1
+   inc(2) = nint(2.0_PREC_DP*abs(eck(2,1)), kind=PREC_INT_WORD) + 1
+   inc(3) = nint(2.0_PREC_DP*abs(eck(3,1)), kind=PREC_INT_WORD) + 1
+   ih_min = nint(eck(1,1))
+   ik_min = nint(eck(2,1))
+   il_min = nint(eck(3,1))
 !write(*,'(3f7.2, i4)') eck(:,1)        
 !write(*,'(3f7.2, i4)') eck(:,2), inc(1)
 !write(*,'(3f7.2, i4)') eck(:,3), inc(2)
@@ -3716,7 +3716,7 @@ IF(four_accum==FOUR_ACCUM_SINGLE) THEN
       IF(ALLOCATED(csf_sum)) DEALLOCATE(csf_sum)
       IF(ALLOCATED(dsi_sum)) DEALLOCATE(dsi_sum)
       ALLOCATE(csf_sum(LBOUND(csf,1):UBOUND(csf,1), LBOUND(csf,2):UBOUND(csf,2), LBOUND(csf,3):UBOUND(csf,3)))
-      csf_sum = CMPLX(0.0D0, 0.0D0)
+      csf_sum = CMPLX(0.0D0, 0.0D0, kind=PREC_DP)
       ALLOCATE(dsi_sum(LBOUND(dsi,1):UBOUND(dsi,1), LBOUND(dsi,2):UBOUND(dsi,2), LBOUND(dsi,3):UBOUND(dsi,3)))                                                     ! Discuss with Neder this _sum arrays.
       dsi_sum = 0.0D0
       csf_sum = csf
@@ -3734,7 +3734,7 @@ ELSEIF(four_accum==FOUR_ACCUM_INIT) THEN          ! Initialization, clear *_sum 
 ELSEIF(four_accum==FOUR_ACCUM_ACCUM) THEN         ! Accumulate into current sum
    IF(.NOT.ALLOCATED(csf_sum)) THEN
       ALLOCATE(csf_sum(LBOUND(csf,1):UBOUND(csf,1), LBOUND(csf,2):UBOUND(csf,2), LBOUND(csf,3):UBOUND(csf,3)))
-      csf_sum = CMPLX(0.0D0, 0.0D0)
+      csf_sum = CMPLX(0.0D0, 0.0D0, kind=PREC_DP)
    ENDIF
    IF(.NOT.ALLOCATED(dsi_sum)) THEN
 !     ALLOCATE(dsi_sum(LBOUND(dsi,1):UBOUND(dsi,1)))

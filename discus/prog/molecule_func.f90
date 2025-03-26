@@ -120,7 +120,7 @@ if(ier_num /=0 ) return
 clin  = owerte(O_CLIN)
 cqua  = owerte(O_CQUAD)
 biso  = owerte(O_BISO)
-itype = owerte(O_TYPE)
+itype = nint(owerte(O_TYPE))
 !
 ! Evaluate optional START
 !

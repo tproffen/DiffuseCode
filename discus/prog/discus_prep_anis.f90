@@ -871,74 +871,74 @@ end subroutine anis_symm
 !
 !*******************************************************************************
 !
-subroutine old_anis_symm(ncatoms, nanis, iref, symm_mat, idim1, anis_full, &
-   prin, xx, uij, emat, eimat, ar_inv)
-!-
-!  Apply the symmetry matrix symm_mat to the current displacement tensor XX and the 
-!  principal vectors
-!+
-!
-use matrix_mod
-use precision_mod
-!
-implicit none
-!
-integer                                    , intent(in)    :: ncatoms   ! Number of atoms in unit cell, 
-                                                                        ! dimension of cr_anis_full, cr_prin
-integer                                    , intent(inout) :: nanis     ! Number of different anisotropic ADPs
-integer                                    , intent(in)    :: iref      ! Reference atom
-real(kind=PREC_DP), dimension(3,3)         , intent(in)    :: symm_mat  ! Symmetry matrix
-integer                                    , intent(in)    :: idim1     ! Reference atom
-real(kind=PREC_DP), dimension(6,   idim1  ), intent(inout) :: anis_full ! List of UIJ
-real(kind=PREC_DP), dimension(4,3, idim1  ), intent(inout) :: prin      ! Principal vectors cartesian
-real(kind=PREC_DP), dimension(3,3)         , intent(inout) :: uij       ! Full UIJ matrix
-real(kind=PREC_DP), dimension(3,3)         , intent(inout) :: xx        ! Displacement tensor crystal space
-real(kind=PREC_DP), dimension(3,3)         , intent(in)    :: emat      ! Transformation basis to Cartesian
-real(kind=PREC_DP), dimension(3,3)         , intent(in)    :: eimat     ! Transformation basis to crystal
-real(kind=PREC_DP), dimension(3)           , intent(in)    :: ar_inv    ! Reciprocal lattice parameters
-!
-integer                          :: j
-real(kind=PREC_DP), dimension(3) :: v,w  ! Dummy vector
-real(kind=PREC_DP), dimension(3,3) :: xx_new       ! Displacement tensor after symmetry operation
-!real(kind=PREC_DP), dimension(3,3) :: uij          ! UIJ in (a*.a, b*.b, c*.c) space
-real(kind=PREC_DP), dimension(3,3) :: symm_imat    ! Inverse Symmetry matrix
-!
-symm_imat = 0.0_PREC_DP
-call matinv(symm_mat, symm_imat)
-if(ier_num/=0) then
-   ier_msg(1) = 'Could not invert symmetry operation'
-   return
-endif
-!
-!write(*,*) ' SYMMETRY ', ncatoms, nanis, iref
-!write(*,'(a,4f10.6)') ' OLD  1', prin(:,1,iref )
-!write(*,'(a,4f10.6)') ' OLD  2', prin(:,2,iref )
-!write(*,'(a,4f10.6)') ' OLD  3', prin(:,3,iref )
-do j=1, 3  ! loop over three principal vectors
-   v = matmul(emat, prin(1:3, j, iref))    ! Transform principal vector to crystal space
-!  w = matmul(symm_imat,v)                 ! Apply symmetry matrix
-   w = matmul(symm_mat,v)                 ! Apply symmetry matrix
-!write(*,'(a,i1,2(3f10.6,4x))') ' crys ',j, v, w
-   v = matmul(eimat, w)                    ! Transform back to cartesian space
-   prin(1:3, j, nanis+1) = v
-   prin(4, j, nanis+1) = prin(4, j, iref)
-enddo
-! write(*,'(a,4f10.6)') ' pRIN 1', prin(:,1,nanis+1)
-! write(*,'(a,4f10.6)') ' pRIN 2', prin(:,2,nanis+1)
-! write(*,'(a,4f10.6)') ' pRIN 3', prin(:,3,nanis+1)
-!
- xx_new = matmul(symm_mat, matmul(xx, transpose(symm_mat)))
-!xx_new = matmul(transpose(symm_mat), matmul(xx,          (symm_mat)))
-call uij_to_xx(xx_new, ar_inv, uij)
-xx = xx_new
-anis_full(1,nanis+1) = uij(1,1)
-anis_full(2,nanis+1) = uij(2,2)
-anis_full(3,nanis+1) = uij(3,3)
-anis_full(4,nanis+1) = uij(2,3)
-anis_full(5,nanis+1) = uij(1,3)
-anis_full(6,nanis+1) = uij(1,2)
-!
-end subroutine old_anis_symm
+!subroutine old_anis_symm(ncatoms, nanis, iref, symm_mat, idim1, anis_full, &
+!   prin, xx, uij, emat, eimat, ar_inv)
+!!-
+!!  Apply the symmetry matrix symm_mat to the current displacement tensor XX and the 
+!!  principal vectors
+!!+
+!!
+!use matrix_mod
+!use precision_mod
+!!
+!implicit none
+!!
+!integer                                    , intent(in)    :: ncatoms   ! Number of atoms in unit cell, 
+!                                                                        ! dimension of cr_anis_full, cr_prin
+!integer                                    , intent(inout) :: nanis     ! Number of different anisotropic ADPs
+!integer                                    , intent(in)    :: iref      ! Reference atom
+!real(kind=PREC_DP), dimension(3,3)         , intent(in)    :: symm_mat  ! Symmetry matrix
+!integer                                    , intent(in)    :: idim1     ! Reference atom
+!real(kind=PREC_DP), dimension(6,   idim1  ), intent(inout) :: anis_full ! List of UIJ
+!real(kind=PREC_DP), dimension(4,3, idim1  ), intent(inout) :: prin      ! Principal vectors cartesian
+!real(kind=PREC_DP), dimension(3,3)         , intent(inout) :: uij       ! Full UIJ matrix
+!real(kind=PREC_DP), dimension(3,3)         , intent(inout) :: xx        ! Displacement tensor crystal space
+!real(kind=PREC_DP), dimension(3,3)         , intent(in)    :: emat      ! Transformation basis to Cartesian
+!real(kind=PREC_DP), dimension(3,3)         , intent(in)    :: eimat     ! Transformation basis to crystal
+!real(kind=PREC_DP), dimension(3)           , intent(in)    :: ar_inv    ! Reciprocal lattice parameters
+!!
+!integer                          :: j
+!real(kind=PREC_DP), dimension(3) :: v,w  ! Dummy vector
+!real(kind=PREC_DP), dimension(3,3) :: xx_new       ! Displacement tensor after symmetry operation
+!!!real(kind=PREC_DP), dimension(3,3) :: uij          ! UIJ in (a*.a, b*.b, c*.c) space
+!real(kind=PREC_DP), dimension(3,3) :: symm_imat    ! Inverse Symmetry matrix
+!!
+!symm_imat = 0.0_PREC_DP
+!call matinv(symm_mat, symm_imat)
+!if(ier_num/=0) then
+!   ier_msg(1) = 'Could not invert symmetry operation'
+!   return
+!endif
+!!
+!!write(*,*) ' SYMMETRY ', ncatoms, nanis, iref
+!!write(*,'(a,4f10.6)') ' OLD  1', prin(:,1,iref )
+!!write(*,'(a,4f10.6)') ' OLD  2', prin(:,2,iref )
+!!write(*,'(a,4f10.6)') ' OLD  3', prin(:,3,iref )
+!do j=1, 3  ! loop over three principal vectors
+!   v = matmul(emat, prin(1:3, j, iref))    ! Transform principal vector to crystal space
+!!  w = matmul(symm_imat,v)                 ! Apply symmetry matrix
+!   w = matmul(symm_mat,v)                 ! Apply symmetry matrix
+!!write(*,'(a,i1,2(3f10.6,4x))') ' crys ',j, v, w
+!   v = matmul(eimat, w)                    ! Transform back to cartesian space
+!   prin(1:3, j, nanis+1) = v
+!   prin(4, j, nanis+1) = prin(4, j, iref)
+!enddo
+!! write(*,'(a,4f10.6)') ' pRIN 1', prin(:,1,nanis+1)
+!! write(*,'(a,4f10.6)') ' pRIN 2', prin(:,2,nanis+1)
+!! write(*,'(a,4f10.6)') ' pRIN 3', prin(:,3,nanis+1)
+!!
+! xx_new = matmul(symm_mat, matmul(xx, transpose(symm_mat)))
+!!xx_new = matmul(transpose(symm_mat), matmul(xx,          (symm_mat)))
+!call uij_to_xx(xx_new, ar_inv, uij)
+!xx = xx_new
+!anis_full(1,nanis+1) = uij(1,1)
+!anis_full(2,nanis+1) = uij(2,2)
+!anis_full(3,nanis+1) = uij(3,3)
+!anis_full(4,nanis+1) = uij(2,3)
+!anis_full(5,nanis+1) = uij(1,3)
+!anis_full(6,nanis+1) = uij(1,2)
+!!
+!end subroutine old_anis_symm
 !
 !*******************************************************************************
 !

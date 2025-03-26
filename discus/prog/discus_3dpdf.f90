@@ -27,7 +27,7 @@ logical           , dimension(:,:), allocatable   :: three_matched_xtal ! Matche
 logical           , dimension(:,:), allocatable   :: three_matched_3dpdf! Matched experimental Patterson vector
 logical           , dimension(:,:), allocatable   :: three_matched_site ! This site is matched by 3d-PDF peak (-,+)
 !
-integer :: three_node_num
+!integer :: three_node_num
 !
 type :: three_match
    integer, dimension(2)      :: isite                          ! sites at start/end of Patterson vector
@@ -261,12 +261,12 @@ lecho  = .true.
 call do_load (string, length, lecho)
 node_number = 1
 call dgl5_find_node(node_number, ier_num, ier_typ)
-call dgl5_get_dims(node_number, h5_dims)
+call dgl5_get_dims(h5_dims)
 three_dims(1) = h5_dims(1)
 three_dims(2) = h5_dims(2)
 three_dims(3) = h5_dims(3)
-call dgl5_get_llims(node_number, three_llims)
-call dgl5_get_steps(node_number, three_steps)
+call dgl5_get_llims(three_llims)
+call dgl5_get_steps(three_steps)
 !call dgl5_get_steps(node_number, three_steps)
 !three_steps      = 0.0D0
 !three_steps(1,1) = steps(1)
@@ -621,9 +621,9 @@ use chem_mod
 use chem_aver_mod
 use metric_mod
 !
-character(len=48), dimension(2), parameter :: c_types = (/ &
-         ' --------------- Negative peaks ----------------',  &
-         ' +++++++++++++++ Positive peaks ++++++++++++++++' /)
+!character(len=48), dimension(2), parameter :: c_types = (/ &
+!         ' --------------- Negative peaks ----------------',  &
+!         ' +++++++++++++++ Positive peaks ++++++++++++++++' /)
 !
 logical, parameter :: lout  = .true.         ! Display average structure yes/no
 logical, parameter :: lsite = .true.         ! Treat all atoms on one site as one
@@ -1194,13 +1194,13 @@ real(kind=PREC_DP), dimension(3,3), parameter :: EMAT  = reshape((/ 1.0D0, 0.0D0
 integer :: k,l    ! Dummy loop index
 real(kind=PREC_DP), dimension(3) :: axis              ! Rotation axis
 real(kind=PREC_DP)               :: angle
-real(kind=PREC_DP), dimension(3) :: w
+!real(kind=PREC_DP), dimension(3) :: w
 real(kind=PREC_DP), dimension(3) :: pos
 real(kind=PREC_DP), dimension(3) :: shift
 real(kind=PREC_DP), dimension(3) :: origin
 real(kind=PREC_DP), dimension(3) :: trans
-real(kind=PREC_DP), dimension(3,3) :: mat
-real(kind=PREC_DP), dimension(3,3) :: imat
+!real(kind=PREC_DP), dimension(3,3) :: mat
+!real(kind=PREC_DP), dimension(3,3) :: imat
 !
 !
 call vekprod (vect, wect, axis, cr_eps, cr_rten)
@@ -1480,8 +1480,8 @@ real(kind=PREC_DP), dimension(3,3), parameter :: EMAT  = reshape((/ 1.0D0, 0.0D0
 !
 real(kind=PREC_DP), dimension(2,2) :: mat
 real(kind=PREC_DP), dimension(2,2) :: imat
-real(kind=PREC_DP), dimension(2)   :: ori
-real(kind=PREC_DP), dimension(3)   :: u 
+!real(kind=PREC_DP), dimension(2)   :: ori
+!real(kind=PREC_DP), dimension(3)   :: u 
 real(kind=PREC_DP), dimension(3)   :: w 
 real(kind=PREC_DP), dimension(3)   :: v_rot     ! Rotation axis  if uvw not parallel [001]
 real(kind=PREC_DP)                 :: a_rot     ! Rotation angle if uvw not parallel [001]

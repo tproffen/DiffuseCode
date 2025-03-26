@@ -1630,8 +1630,8 @@ ELSEIF(str_comp(cpara(2) , 'angle', 2, lpara(2), 5) ) THEN cond_type
       CALL get_iscat (jjanz, cpara, lpara, uerte, MAXW, .FALSE.)                               
       CALL del_params (1, ianz, cpara, lpara, maxw) 
       CALL get_iscat (kkanz, cpara, lpara, verte, MAXW, .FALSE.)                               
-      js = min (uerte (1), verte (1) ) 
-      ls = max (uerte (1), verte (1) ) 
+      js = nint(min (uerte (1), verte (1) ) )
+      ls = nint(max (uerte (1), verte (1) ) )
       mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
       mmc_allowed(ls) = .TRUE. ! this atom is allowed in mmc moves
       i = angles2index (ic, mmc_n_angles, is, js, ls, MAXSCAT)                 
@@ -3085,7 +3085,8 @@ integer, dimension(      :), allocatable       :: natoms_p
 !INTEGER :: lbeg (3) 
 INTEGER :: ic
 INTEGER :: nocc
-INTEGER :: i, natoms
+INTEGER :: natoms
+integer(kind=PREC_INT_LARGE) :: i
 integer :: iiii, iex
 INTEGER :: ncent 
 INTEGER :: NALLOWED   ! Current size mmc_allowed
@@ -3294,7 +3295,7 @@ IF(nthreads > 1) THEN
    allocate(natoms_p(              nthreads))
    itry_loop: do itry=1, mo_cyc/nthreads   !Serial loop over cycles/nthread
 !     Select nthread atom (pairs)
-      do iiii=1, nthreads
+      do iiii=1, int(nthreads)
          loop_exclude: do
          CALL mmc_select_atoms(isel_p(:,iiii), is_p(:,iiii), iz_p(:,:,iiii),         &
          iz1_p(:,iiii), iz2_p(:,iiii), iselz_p(  iiii), iselz2_p(  iiii), natoms_p(  iiii), &
@@ -3323,7 +3324,7 @@ IF(nthreads > 1) THEN
    !$OMP          SHARED(done)
    !$      tid = OMP_GET_THREAD_NUM()
    !$OMP DO SCHEDULE(static)
-   parallel_loop: DO iiii=1, nthreads   ! Do mmc in parallel
+   parallel_loop: DO iiii=1, int(nthreads)   ! Do mmc in parallel
       isel   (:) = isel_p  (:,iiii)
       is     (:) = is_p    (:,iiii)
       iz   (:,:) = iz_p  (:,:,iiii)
@@ -3397,7 +3398,8 @@ IF(nthreads > 1) THEN
       imodulus=MAX(1_PREC_INT_LARGE, mo_feed/nnthreads)
    endif
    done = .false.
-   i = max(1_PREC_INT_LARGE, min(nthreads/4*cr_natoms, 2*mo_feed, mo_cyc))
+   i = max(1_PREC_INT_LARGE, min(nthreads/4_PREC_INT_LARGE*int(cr_natoms, kind=PREC_INT_LARGE), &
+                                 2_PREC_INT_LARGE*mo_feed, mo_cyc))
    final_loop: DO iitry=1, i! nthreads/4*cr_natoms !2*mo_feed !nthreads**2*cr_natoms    ! Do mmc serially
       CALL mmc_select_atoms(isel, is, iz, iz1, iz2, iselz, iselz2, natoms, &
                             laccept, loop, NALLOWED, MMC_MAX_ATOM)
@@ -3531,7 +3533,7 @@ chem_period = old_chem_period
 !                                                                       
  2000 FORMAT (/,' Gen: ',I10,' try: ',I10,' acc: (g/n/b): ',I8,        &
      &          ' / ',I8,' / ',I8,'  MC moves ')                                 
- 2500 FORMAT (/,' --- Initial multiple energy configuration ---') 
+!2500 FORMAT (/,' --- Initial multiple energy configuration ---') 
  3000 FORMAT (/,' --- Final multiple energy configuration ---') 
  4000 FORMAT (/,' Elapsed time : ',I4,' h ',I2,' min ',I2,' sec ',/     &
      &          ' Time/cycle   : ',F9.3,' sec',/)                       
@@ -3760,7 +3762,7 @@ ENDIF
       if(mmc_feed_auto) then
          if(maxdev(1)<0.1) then
 !           imodulus = max(min(imodulus-1, nint(imodulus*0.999)),nint(cr_natoms*0.05))
-            imodulus = max(min(imodulus-1, nint(imodulus*0.950,PREC_INT_LARGE)), &
+            imodulus = max(min(imodulus-1, nint(real(imodulus,kind=PREC_DP)*0.950_PREC_DP,PREC_INT_LARGE)), &
                            nint(cr_natoms*0.25, PREC_INT_LARGE))
          else
 !           imodulus = max(imodulus+1,nint(imodulus*1.001))
@@ -7713,7 +7715,7 @@ ELSE
    laccept = .TRUE. 
 ENDIF 
 !                                                                       
- 9000 CONTINUE 
+!9000 CONTINUE 
 !                                                                       
 END SUBROUTINE check_geometry_multi           
 !
@@ -7924,7 +7926,8 @@ IMPLICIT NONE
 !
 INTEGER, PARAMETER :: MAXW = 6
 !
-INTEGER :: i, j, k                        ! Dummy loop indices
+INTEGER ::    j, k                        ! Dummy loop indices
+integer(kind=PREC_INT_LARGE) :: i         ! Dummy loop index
 INTEGER :: ianz                           ! Number of atom types
 INTEGER :: iatom
 INTEGER :: istart                         ! Start index to minimize bias

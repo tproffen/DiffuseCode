@@ -237,7 +237,7 @@ IF(lout) CLOSE (IWR)
 DEALLOCATE(old_vector)
 !
 1000 FORMAT('set vec, ', 5(i3,', '),i3,'  ! symm. equiv. to vector ', i3) 
-1100 FORMAT('!',/,'!')
+!1100 FORMAT('!',/,'!')
 !
 END SUBROUTINE chem_symm
 !

@@ -1015,7 +1015,7 @@ IF(par_omp_use) THEN
 
                ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
                histogram_l(ibin, look(jscat, iscat), islook) = &
-               histogram_l(ibin, look(jscat, iscat), islook) + 1.0!D0
+               histogram_l(ibin, look(jscat, iscat), islook) + 1 !.0!D0
             ENDIF 
          ENDDO
       ENDIF 
@@ -1064,7 +1064,7 @@ ELSE    ! Serial compilation
 
                ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
                histogram  (ibin, look(jscat, iscat), islook) = &
-               histogram  (ibin, look(jscat, iscat), islook) + 1.0!D0
+               histogram  (ibin, look(jscat, iscat), islook) + 1 !.0!D0
             ENDIF 
          ENDDO
       ENDIF 

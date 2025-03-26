@@ -1516,9 +1516,12 @@ IF (nneigh > 0.) THEN
    thet = 0.5 * (2.0 * pair11 + pair12 + pair21) / REAL(nneigh)                                                     
    thet2= 0.5 * (2.0 * pair22 + pair12 + pair21) / REAL(nneigh)                                                     
 !!  thet2= 0.5 * (2.0*prob11 + prob12)
-ENDIF 
 welb_a = (prob11 - thet**2 ) /(thet  * (1 - thet ) )
 welb_b = (prob22 - thet2**2) /(thet2 * (1 - thet2) )
+else
+   welb_a = 0.0_PREC_DP
+   welb_b = 0.0_PREC_DP
+ENDIF 
 !write(*,'(a,4i8,  i8)'      ) 'PAIRS ', pair11, pair12, pair21, pair22, nneigh
 !write(*,'(a,3f7.3,3x,2f7.3)') 'PROBs ', prob11, prob22, prob12, thet, thet2 !0.5 * ((pair22 + pair11) + pair12 + pair21) / REAL(nneigh)
 !write(*,'(a,2F7.3)'         ) 'corrs ', (prob11 - thet**2) / (thet * (1 - thet)) , &
