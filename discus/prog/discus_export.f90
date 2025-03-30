@@ -861,7 +861,7 @@ DO i=1,3
       if(cr_dim(i,2)-cr_dim(i,1) - int(cr_dim(i,2)-cr_dim(i,1))>0.50D0) then
          scalef(i) =  INT((cr_dim(i,2)-cr_dim(i,1))) + 1
       else
-         scalef(i) =  INT((cr_dim(i,2)-cr_dim(i,1)))
+         scalef(i) =  max(1,INT((cr_dim(i,2)-cr_dim(i,1))))
       endif
    ENDIF
 ENDDO
@@ -1144,6 +1144,8 @@ DEALLOCATE(atom_names)
 !
 END SUBROUTINE discus2poscar
 !
+!*******************************************************************************
+!
 SUBROUTINE discus2scatty(ianz, cpara, lpara, MAXW, scatty_site)
 !
 ! Write the current structure in format for SCATTY (Joe Paddison)
@@ -1221,7 +1223,7 @@ if(scatty_site==0) then                   !use average sites
       line = 'OCC '
       types: DO k=1, chem_ave_n(i)
          string = ' '
-         at_name_i = cr_at_lis(chem_ave_iscat(k,i))
+         at_name_i = cr_at_lis(chem_ave_iscat(i,k))
          IF(at_name_i=='VOID') CYCLE types
          CALL do_cap(at_name_i(1:1))
          CALL do_low(at_name_i(2:4))
