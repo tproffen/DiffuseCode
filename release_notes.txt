@@ -10,6 +10,8 @@ DISCUS
   exp2pdf     Added option to load externam atomic form factors
   export      Added a 'force:yes' option to 'export shelx' to force writing even if the
               structure extends over more than one unit cell. Might happen for long molecules. 
+  export      BUG FIX rmc: Fixed output for low dimensional structures
+  export      BUG FIX scatty: Fixed "occ" lines
   mmc         Changed the correlation parameter to Warren-Cowley, this has no effect for 
               binary materials, is much better for ternary searches
               Added a new 'pref' energy that relies on the AB correlation only and is unidirectional
