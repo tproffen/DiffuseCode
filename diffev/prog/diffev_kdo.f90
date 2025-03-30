@@ -824,11 +824,11 @@ ELSE
                      ier_msg(3) = 'Node*core must be <= pop_c*REF_NINDIV+1'
                      RETURN
                   ENDIF
-                  IF(gen_mpi_numprocs>pop_c*run_mpi_senddata%nindiv+1) THEN
+                  IF(gen_mpi_numprocs>pop_c*run_mpi_senddata%nindiv+2) THEN
                      ier_num = -33
                      ier_typ = ER_APPL
                      ier_msg(1) = 'For compute:parallel refinement of indivs'
-                     ier_msg(2) = 'Node number must be <= population size'
+                     ier_msg(2) = 'Node number must be <= population size+1'
                      ier_msg(3) = 'Node*core must be <= pop_c*REF_NINDIV+1'
                      RETURN
                   ENDIF
