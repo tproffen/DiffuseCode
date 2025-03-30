@@ -4162,10 +4162,10 @@ deallocate(uij_at)
 deallocate(nanis)
 deallocate(c_atom)
 !                                                                       
- 1000 FORMAT    (a) 
- 2000 FORMAT    ('title ',a) 
- 2100 FORMAT    ('spcgr P1') 
- 2200 FORMAT    ('cell ',5(2x,f9.4,','),2x,f9.4) 
+!1000 FORMAT    (a) 
+!2000 FORMAT    ('title ',a) 
+!2100 FORMAT    ('spcgr P1') 
+!2200 FORMAT    ('cell ',5(2x,f9.4,','),2x,f9.4) 
  2320 FORMAT    ('gener  1.0, 0.0, 0.0, 0.5,',                          &
      &                     '    0.0, 1.0, 0.0, 0.5,',                   &
      &                     '    0.0, 0.0, 1.0, 0.5,  1')                
@@ -4192,10 +4192,10 @@ deallocate(c_atom)
      &                     '    0.0, 0.0,-1.0, 0.0,  1')                
  2600 FORMAT    ('gener',3(2X,4(1x,f12.8,',')),' 1.') 
 !                                                                       
- 3000 FORMAT    ('atoms') 
- 3100 FORMAT    (a2,2x,4(2x,f9.5)) 
+!3000 FORMAT    ('atoms') 
+!3100 FORMAT    (a2,2x,4(2x,f9.5)) 
 !                                                                       
- 4000 FORMAT    (a) 
+!4000 FORMAT    (a) 
 !                                                                       
 END SUBROUTINE ins2discus                     
 !
@@ -6882,7 +6882,7 @@ find:      DO WHILE (ASSOCIATED(TEMP))
 1100 FORMAT('spcgr ',a)
 1150 FORMAT('spcgr ',i5)
 1170 FORMAT('spcgr  P1')
-1190 FORMAT('gene  ',3(3(f5.1,', '),f12.9,','), I3)
+!1190 FORMAT('gene  ',3(3(f5.1,', '),f12.9,','), I3)
 1180 FORMAT('symm  ',3(3(f5.1,', '),f12.9,','), I3)
 1200 FORMAT('cell  ',5(f12.5,', '),f12.5)
 1300 FORMAT('atoms x,',12x,'y,',12x,'z,',12x,'Biso,', 4x,'Property,', &
@@ -6947,7 +6947,7 @@ integer                                                   :: symmetry_origin
 character(len=3)                                          :: symmetry_abc
 integer                                                   :: symmetry_n_mat    ! Data conform to symmetry
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat ! Actual Symmetry matrices
-integer                   , dimension(:,:  ), allocatable :: unit_cells   ! Number of unit cells
+integer                   , dimension(3,3  )              :: unit_cells   ! Number of unit cells
 !
 integer                                                   :: number_of_types
 character(len=4)          , dimension(:),     allocatable :: types_names
@@ -7009,7 +7009,7 @@ call setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
      cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,  &
      cr_fmat, cr_cartesian,                                 &
      cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
-cr_spcgr   = symmetry_H_M(1:min(len(cr_spcgr), len_trim(cr_spcgr)))
+cr_spcgr   = symmetry_H_M(1:min(len(cr_spcgr), len_trim(symmetry_H_M)))
 spcgr_para = symmetry_origin
 !          = symmetry_abc
 spc_n      = symmetry_n_mat
@@ -7046,6 +7046,7 @@ if(anisotropic_adp%anis_n_type>0) then     ! File contained ADPs
    call alloc_anis(anisotropic_adp%anis_n_type)
    cr_nanis = anisotropic_adp%anis_n_type
    do i=1,anisotropic_adp%anis_n_type
+!write(*,'(a,7f9.6)') ' ANIS ', anisotropic_adp%anis_adp(1:7,i)
       cr_anis_full(1:6,i) = anisotropic_adp%anis_adp(1:6,i)
       uij(1,1) = cr_anis_full(1,i)
       uij(2,2) = cr_anis_full(2,i)
@@ -7066,11 +7067,14 @@ endif
 !
 do i=1,number_of_atoms
    cr_iscat(1,i) = atom_type(  atom_ID(i))
-   cr_iscat(2,i) = 1   ! WORK 
+   cr_iscat(2,i) = 1   ! WORK  SYMMETRY OPERATION that created atom
    if(anisotropic_adp%anis_n_type>0) then
       cr_iscat(3,i) = anisotropic_adp%atom_index(i)
+   else
+      cr_iscat(3,i) = 1
    endif
    cr_dw(cr_iscat(3,i)) = real(cr_iscat(3,i),kind=PREC_DP)
+   cr_dw(cr_iscat(3,i)) = anisotropic_adp%anis_adp(7,cr_iscat(3,i))*8.0_PREC_DP*PI**2
    cr_pos(:,i)   = atom_pos (:,atom_ID(i))
    cr_prop(i)    = atom_property(atom_ID(i))
 enddo
@@ -7133,7 +7137,7 @@ elseif(cmd==1) then        ! Read a cell file, store internally and read
 endif
 !
 deallocate(symmetry_mat)
-deallocate(unit_cells)
+!deallocate(unit_cells)
 deallocate(types_names)
 deallocate(types_ordinal)
 deallocate(types_charge)
