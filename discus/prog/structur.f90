@@ -8430,7 +8430,7 @@ use blanks_mod
 !
 implicit none
 !
-character(len=*), intent(in) :: spcgr
+character(len=*), intent(inout) :: spcgr
 logical         , intent(out) :: l_space_group
 logical         , intent(out) :: l_origin_2
 !
@@ -8450,6 +8450,7 @@ main: do i=1, SPCGR_MAX
    if(line1 == line2) then
 !  if(spcgr == spcgr_name(i)) then
       l_space_group = .TRUE.
+      spcgr = spcgr_name(i)
       if(spcgr_num(i,2)/=0) l_origin_2 = .TRUE.   ! Has an origin choice 2
       exit main
    endif
