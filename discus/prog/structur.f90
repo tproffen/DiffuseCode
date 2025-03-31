@@ -6693,7 +6693,7 @@ find:      DO WHILE (ASSOCIATED(TEMP))
             IF(length > 1) THEN
                call spcgr_test(spcgr, l_space_group, l_origin_2 ) ! Test for known space group
                IF(.NOT. l_space_group) THEN
-                  IF(spcgr(2:2)=='1' .AND. spcgr(length:length)=='1') THEN
+                  IF(spcgr(2:2)=='1' .AND. spcgr(length:length)=='1' .and. length>2) THEN
                      spcgr = spcgr(1:1) // spcgr(3:length-1)
                      call spcgr_test(spcgr, l_space_group, l_origin_2 ) ! Test for known space group
                   ELSE
@@ -8426,18 +8426,29 @@ subroutine spcgr_test(spcgr, l_space_group, l_origin_2)
 !
 use spcgr_mod
 !
+use blanks_mod
+!
 implicit none
 !
 character(len=*), intent(in) :: spcgr
 logical         , intent(out) :: l_space_group
 logical         , intent(out) :: l_origin_2
 !
-integer        :: i
+character(len=16) :: line1
+character(len=16) :: line2
+integer        :: i, length
 !
 l_space_group = .FALSE.
 l_origin_2    = .FALSE.
+line1 = spcgr
+length = len_trim(line1)
+call rem_bl(line1, length)
 main: do i=1, SPCGR_MAX
-   if(spcgr == spcgr_name(i)) then
+   line2 = spcgr_name(i)
+   length = len_trim(line2)
+   call rem_bl(line2, length)
+   if(line1 == line2) then
+!  if(spcgr == spcgr_name(i)) then
       l_space_group = .TRUE.
       if(spcgr_num(i,2)/=0) l_origin_2 = .TRUE.   ! Has an origin choice 2
       exit main
