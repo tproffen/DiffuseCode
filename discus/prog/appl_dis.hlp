@@ -6694,7 +6694,8 @@
 
    Set the number of unit cells, either explicitely with <nx>, <ny>, nz>
    or to be determined automatically with "auto"
-4  natoms {"auto" | <natom>}
+4  natoms
+!p natoms {"auto" | <natom>}
 
    Set the number of atoms per unit cells, either explicitely with <natoms>
    or to be determined automatically with "auto"
