@@ -5883,7 +5883,7 @@ IF(ABS(REAL(natoms)/REAL(nsites) - natoms/nsites) > EPS .OR.         &
    RETURN
 ENDIF
 !
-! Determine average positions, and the shift if atoms a closer to 0,0,0
+! Determine average positions, and the shift if atoms are closer to 0,0,0
 DO i=1,natoms
    xyz(1,1) = r6_pos(1,i)*super(1)     -REAL( INT(r6_pos(1,i)*super(1)))
    xyz(2,1) = r6_pos(2,i)*super(2)     -REAL( INT(r6_pos(2,i)*super(2)))
@@ -5918,13 +5918,14 @@ DO i=1,natoms
    xyz(1,2) = r6_pos(1,i)*super(1)+0.5 -REAL( INT(r6_pos(1,i)*super(1)+0.5))
    xyz(2,2) = r6_pos(2,i)*super(2)+0.5 -REAL( INT(r6_pos(2,i)*super(2)+0.5))
    xyz(3,2) = r6_pos(3,i)*super(3)+0.5 -REAL( INT(r6_pos(3,i)*super(3)+0.5))
+!write(*,'(a,i5, 2(2x, 3f8.4))') ' atom  ', i, xyz(:,1), xyz(:,2)
 !
    si_pos(1,1,r6_site(i)) = si_pos(1,1,r6_site(i)) + (xyz(1,1)-av_pos(1,1,r6_site(i)))**2
-   si_pos(2,1,r6_site(i)) = si_pos(2,1,r6_site(i)) + (xyz(2,1)-av_pos(1,1,r6_site(i)))**2
-   si_pos(3,1,r6_site(i)) = si_pos(3,1,r6_site(i)) + (xyz(3,1)-av_pos(1,1,r6_site(i)))**2
+   si_pos(2,1,r6_site(i)) = si_pos(2,1,r6_site(i)) + (xyz(2,1)-av_pos(2,1,r6_site(i)))**2
+   si_pos(3,1,r6_site(i)) = si_pos(3,1,r6_site(i)) + (xyz(3,1)-av_pos(3,1,r6_site(i)))**2
    si_pos(1,2,r6_site(i)) = si_pos(1,2,r6_site(i)) + (xyz(1,2)-av_pos(1,2,r6_site(i)))**2
-   si_pos(2,2,r6_site(i)) = si_pos(2,2,r6_site(i)) + (xyz(2,2)-av_pos(1,2,r6_site(i)))**2
-   si_pos(3,2,r6_site(i)) = si_pos(3,2,r6_site(i)) + (xyz(3,2)-av_pos(1,2,r6_site(i)))**2
+   si_pos(2,2,r6_site(i)) = si_pos(2,2,r6_site(i)) + (xyz(2,2)-av_pos(2,2,r6_site(i)))**2
+   si_pos(3,2,r6_site(i)) = si_pos(3,2,r6_site(i)) + (xyz(3,2)-av_pos(3,2,r6_site(i)))**2
 ENDDO
 !
 DO i=1,nsites
@@ -5932,23 +5933,45 @@ DO i=1,nsites
       si_pos(:,1,i) = si_pos(:,1,i)/nav_pos(i)
       si_pos(:,2,i) = si_pos(:,2,i)/nav_pos(i)
    ENDIF
+!write(*,'(a, i5, 2(2x,3f13.6), 3l3)') ' site   ', i, si_pos(:,1,i), si_pos(:,2,i), (abs(si_pos(j,1,i)) <  abs(si_pos(j,2,i)), j=1,3)
    DO j=1,3
-      IF(abs(si_pos(j,1,i) -  si_pos(j,2,i))<0.001) THEN
+      if(abs(si_pos(j,1,i))<0.001 .and. abs(si_pos(j,2,i))<0.001) then    ! All sigmas are very small 
+         if(abs(av_pos(j,1,i))<0.25_PREC_DP .or. abs(av_pos(j,1,i))>=0.75_PREC_DP) then
+            ave_pos(j,i) = av_pos(j,2,i) -0.5D0                        ! Close to 0.000
+            sig_pos(j,i) = si_pos(j,2,i)
+            shift(j,i)   = 0.5_PREC_DP
+         else
+            ave_pos(j,i) = av_pos(j,1,i)                               ! Close to 0.500
+            sig_pos(j,i) = si_pos(j,1,i)
+            shift(j,i)   = 0.0_PREC_DP
+         endif
+      else                                                             ! Significant sigma
+!     IF(abs(si_pos(j,1,i) -  si_pos(j,2,i))<0.001) THEN
+      IF(abs(si_pos(j,1,i)) < abs(si_pos(j,2,i))) THEN                 ! Close to 1/2
          ave_pos(j,i) = av_pos(j,1,i)
          sig_pos(j,i) = si_pos(j,1,i)
          shift(j,i)   = 0.0_PREC_DP
       ELSE
-         ave_pos(j,i) = av_pos(j,2,i) -0.5D0
+         ave_pos(j,i) = av_pos(j,2,i) -0.5D0                           ! Close to 0
          sig_pos(j,i) = si_pos(j,2,i)
          shift(j,i)   = 0.5_PREC_DP
       ENDIF
+      endif
    ENDDO
 ENDDO
+!DO i=1,nsites
+!write(*,'(a,i5, 2x, 3f13.6)') ' SHIFT  ', i, shift(:,i)
+!ENDDO
+!write(*,*) ' SUPER ', super
+!read(*,*) i
 ! Copy atoms into DISCUS sequence
 !
 DO i=1,natoms
+!write(*,'(a, 5i5, 2x,4x, 2(2x,3f13.6))') ' ATOM ', i, r6_site(i), &
+!             (INT(r6_pos(j,i)*super(j) + shift(j,r6_site(i))) + 1,j=1,3)     , &
+!(r6_pos(j,i)*super(j),j=1,3)
    DO j=1,3
-      k(j) =  INT(r6_pos(j,i)*super(1) + shift(j,r6_site(i))) + 1
+      k(j) =  INT(r6_pos(j,i)*super(j) + shift(j,r6_site(i))) + 1
       wrap(j) = 0.0_PREC_DP
       IF(k(j)<1) THEN
          wrap(j) = super(j)
@@ -5958,6 +5981,7 @@ DO i=1,natoms
          k(j)    = k(j) -super(j)
       ENDIF
    ENDDO
+!write(*,'(a, 5i5, 2x, a4, 2(2x,3f13.6))') ' ATOM ', i, r6_site(i), k, r6_at_name(i), (r6_pos(j,i)*super(j) + wrap(j), j=1,3)
 !
    dis_atom(  r6_site(i),k(1),k(2),k(3)) = r6_at_name(i)
    dis_pos (1,r6_site(i),k(1),k(2),k(3)) = r6_pos(1,  i)*super(1) + wrap(1)
