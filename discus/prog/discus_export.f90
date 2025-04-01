@@ -855,10 +855,12 @@ ENDDO
 !write(*,'(a,3f8.4)') ' DIMENSIONS z ', cr_dim(3,1), cr_dim(3,2), cr_dim(3,2)-cr_dim(3,1)
 !write(*,'(a,3i8  )') ' CR_ICC       ', cr_icc
 DO i=1,3
+!write(*,'(2l4)') NINT(cr_dim(i,2)-cr_dim(i,1))-(cr_dim(i,2)-cr_dim(i,1))== 0.000D0, &
+!   cr_dim(i,2)-cr_dim(i,1) - int(cr_dim(i,2)-cr_dim(i,1))>=0.50D0
    IF(NINT(cr_dim(i,2)-cr_dim(i,1))-(cr_dim(i,2)-cr_dim(i,1))== 0.000D0) THEN
       scalef(i) = MAX(1,NINT((cr_dim(i,2)-cr_dim(i,1)))+1)
    ELSE
-      if(cr_dim(i,2)-cr_dim(i,1) - int(cr_dim(i,2)-cr_dim(i,1))>0.50D0) then
+      if(cr_dim(i,2)-cr_dim(i,1) - int(cr_dim(i,2)-cr_dim(i,1))>=0.50D0) then
          scalef(i) =  INT((cr_dim(i,2)-cr_dim(i,1))) + 1
       else
          scalef(i) =  max(1,INT((cr_dim(i,2)-cr_dim(i,1))))
@@ -988,8 +990,10 @@ if(allocated(isites)) deallocate(isites)
 !1501 FORMAT('Cell (Ang/deg):',6(1x,F20.15))
 1500 FORMAT('Cell (Ang/deg):',6(1x,F10.5,'0000000000'))
 1600 FORMAT(3(1x,F10.5,'0000000000'))
-1700 FORMAT(i6,3x,a2,3(1x,f9.6,'000000000'),i6,3i4)
-1800 FORMAT(i6,3x,a9,3(1x,f9.6,'000000000'),i6,3i4)
+1700 FORMAT(i6,3x,a2,3(1x,f18.15),i6,3i4)
+1800 FORMAT(i6,3x,a9,3(1x,f18.15),i6,3i4)
+!1700 FORMAT(i6,3x,a2,3(1x,f9.6,'000000000'),i6,3i4)
+!1800 FORMAT(i6,3x,a9,3(1x,f9.6,'000000000'),i6,3i4)
 !
 END SUBROUTINE discus2rmc6f
 !
