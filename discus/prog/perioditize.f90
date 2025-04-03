@@ -31,7 +31,7 @@ contains
 !
 subroutine perioditize_menu
 !-
-!  Main menu routine for periodtizing
+!  Main menu routine for perioditizing
 !+
 !
 use discus_kdo_common_mod
@@ -566,11 +566,19 @@ integer, dimension(3) :: ncell_dummy
 real(kind=PREC_DP) :: aver
 real(kind=PREC_DP) :: sigma
 !
+!integer, dimension(3)              :: ncell_test
+!real(kind=PREC_DP), dimension(3, 2):: test_dims
+!integer           , dimension(3)   :: test_ilow        ! Unit cell dimensions in periodic
+!integer           , dimension(3)   :: test_ihig        ! low and high inidce
+!integer                            :: test_ncells     ! Number of cells in periodic crystal volume
+!
 aver = 0.0
 sigma = 0.0
 if(.not. (pdt_usr_ncell) ) then            ! User did not define number of atoms
    call estimate_ncells(ncell_dummy, pdt_dims, pdt_ilow, pdt_ihig, pdt_ncells)
    pdt_usr_ncell = .false.
+!else                                       ! User did define number of unit cells, ch
+!   call estimate_ncells(ncell_test, test_dims, test_ilow, test_ihig, test_ncells)
 endif
 !
 if(.not. (pdt_usr_nsite) ) then            ! User did not define number of sites in unit cell
@@ -786,6 +794,7 @@ real(kind=PREC_DP) :: dmin
 real(kind=PREC_DP) :: dist
 real(kind=PREC_DP), dimension(3) :: u             ! fractional coordinates of atom
 real(kind=PREC_DP), dimension(3) :: v             ! fractional coordinates of atom
+integer, dimension(3) :: shift                    ! Integer shift vector
 !
 integer, dimension(  :), allocatable ::  tmp_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
 integer, dimension(  :), allocatable ::  tmp_prop   ! (  1:NMAX)  !Property flag
@@ -835,14 +844,27 @@ do k=pdt_ilow(3), pdt_ihig(3)
    enddo
 enddo
 !write(*,*) 'MIN/max x ', minval(tmp_pos(1,:)), maxval(tmp_pos(1,:))
-!write(*,*) 'MIN/max x ', minval(tmp_pos(2,:)), maxval(tmp_pos(2,:))
-!write(*,*) 'MIN/max x ', minval(tmp_pos(3,:)), maxval(tmp_pos(3,:))
+!write(*,*) 'MIN/max y ', minval(tmp_pos(2,:)), maxval(tmp_pos(2,:))
+!write(*,*) 'MIN/max z ', minval(tmp_pos(3,:)), maxval(tmp_pos(3,:))
 !do m=1,pdt_nsite
 !write(*,*) ' LL ', tmp_pos(:,m)
 !enddo
 !do m=natoms+1-pdt_nsite, natoms
 !write(*,*) ' TR ', tmp_pos(:,m)
 !enddo
+!write(*,*) ' CL ', cr_dim(:,1)
+!write(*,*) ' CT ', cr_dim(:,2), cr_dim(:,2)-cr_dim(:,1)
+!write(*,*) 'SHFT', (nint(pdt_ilow(l)-cr_dim(l,1)), l=1,3)
+!
+! if necessary shift the old crystal
+!
+shift = nint(pdt_ilow(:)-cr_dim(:,1))
+if(any(shift/=0)) then
+  v = real(shift,kind=PREC_DP)
+  do i=1, cr_natoms
+    cr_pos(:,i) = cr_pos(:,i) + v(:)
+  enddo
+endif
 !
 ! Map the old crystal onto the new one
 !
@@ -860,6 +882,7 @@ soften: do l=1,2
          u = cr_pos(:, m)
          dist = do_blen(lspace, u, v)                ! Calculate distance
 !if(            m==1713) then !abs(cr_pos(1,m)+9.2)<0.1 .and. abs(cr_pos(2,m)+10.0)<0.1) then
+!if(m<6) then
 !  write(*,*) ' ATOM ', cr_pos(:,m), cr_iscat(1,m), dist, dmin
 !  write(*,*) ' ATOM ', cr_pos(:,m)+20, cr_iscat(1,m), dist, dmin
 !endif
@@ -896,6 +919,7 @@ soften: do l=1,2
                mole_cont(j) = i           ! Change atom number in Molecule
             endif
          enddo
+      else
       endif
    enddo loop_new
    if(n==nprior) exit soften
