@@ -1,4 +1,5 @@
-6.18.03  DRAFT
+6.18.04  DRAFT
+6.18.03  RELEASE 2025_04_03
 
 GENERAL
   HDF         Catching a NaN in the input data
@@ -17,6 +18,7 @@ DISCUS
               Added a new 'pref' energy that relies on the AB correlation only and is unidirectional
               'calc' command gives more output
   import      'import shelx' can now set up a DISCUS single crystal and/or powder refinement
+  perioditize    Improved to automatically center the old structure
   powder/output  Added automatic inclusion of DiSCaMB atomic form factors
 
 6.18.02  RELEASE 2025_01_18
