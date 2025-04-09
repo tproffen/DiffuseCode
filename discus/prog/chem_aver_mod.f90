@@ -9,23 +9,30 @@ SUBROUTINE chem_aver (lout, lsite)
 USE discus_config_mod 
 USE discus_allocate_appl_mod 
 USE crystal_mod 
+use dis_estimate_mod
 USE atom_env_mod
 USE atom_name
 USE chem_mod 
 USE errlist_mod 
+!
+use metric_mod
 USE param_mod 
 use precision_mod
 USE prompt_mod 
 USE lib_f90_allocate_mod
+!
 IMPLICIT none 
 !                                                                       
 LOGICAL, INTENT(IN) :: lout    ! Print output if true
 LOGICAL, INTENT(IN) :: lsite   ! Treat different atoms on each site as one 
 !                                                                       
+logical, parameter :: lspace =.TRUE.
+!
 REAL(kind=PREC_DP), DIMENSION(3) ::  p , ez
 INTEGER, DIMENSION(3) :: iez
 !
 INTEGER            :: i, j, k, ii, jj, kk, ia, is, nvalues
+integer            :: i1, i2, i3
 INTEGER            :: n_res
 LOGICAL            :: flag
 !                                                                       
@@ -42,6 +49,28 @@ REAL(kind=PREC_DP)   , DIMENSION(  :), ALLOCATABLE :: temp_chem_ave_bese
 REAL(kind=PREC_DP)   , DIMENSION(3  )              :: temp_chem_ave_pos
 REAL(kind=PREC_DP)   , DIMENSION(3  )              :: temp_chem_ave_sig
 !
+!
+integer, dimension(3)               :: ncell_out
+integer, dimension(3)               :: iic
+real(kind=PREC_DP), dimension(3, 2) :: pdt_dims
+integer           , dimension(3)    :: pdt_ilow        ! Unit cell dimensions in periodic
+integer           , dimension(3)    :: pdt_ihig        ! low and high inidce
+integer                             :: pdt_ncells     ! Number of cells in periodic crystal volume
+integer                                           :: pdt_nsite    ! Number of sites in an averaged unit cell
+integer                                           :: pdt_asite ! Achieved sites either from set site or find_aver
+integer           , dimension(:,  :), allocatable :: pdt_itype    ! Atom types at each site
+real(kind=PREC_DP), dimension(:,:)  , allocatable :: pdt_pos  ! Atom positions in average cell
+!real(kind=PREC_DP), dimension(3,4*nint(aver)) :: pdt_temp      ! Positions of the average cell
+integer           , dimension(:)    , allocatable :: at_site  ! Atom is at this site
+REAL(kind=PREC_DP)   , DIMENSION(3  )              :: uvw, u, v, shift
+real(kind=PREC_DP)                                 :: dmin        ! minimum distance to average site
+real(kind=PREC_DP)                                 :: dist        ! minimum distance to average site
+real(kind=PREC_DP)                                 :: eps         ! minimum distance to average site
+integer :: istart, ic
+
+real(kind=PREC_DP) :: aver
+real(kind=PREC_DP) :: sigma
+!
 if(cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms>cr_natoms) then
    ier_num = -179
    ier_typ= ER_APPL
@@ -52,10 +81,8 @@ if(cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms>cr_natoms) then
 endif
 is = 1
 !
-!IF ( CHEM_MAXAT_CELL   < MAXAT_CELL .or. &
 IF ( CHEM_MAX_AVE_ATOM < MAX(cr_ncatoms, MAXSCAT) .or. &
      CHEM_MAXAT_CELL   <= cr_ncatoms                    ) THEN
-!  n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL, cr_ncatoms)
    n_atom_cell = MAX(CHEM_MAXAT_CELL,             cr_ncatoms)
    n_max_atom  = MAX(CHEM_MAX_AVE_ATOM, cr_ncatoms, MAXSCAT) + 1
    call alloc_chem_aver ( n_atom_cell, n_max_atom)
@@ -85,18 +112,10 @@ chem_ave_n    = 0    ! (i)   , i=1,cr_ncatoms
 chem_ave_bese = 0.0D0  ! (i, k), i=1,cr_ncatoms, k = 1,chem_max_ave_atom
 chem_ave_pos  = 0.0D0  ! (j, i), i=1,cr_ncatoms, j = 1,3
 chem_ave_sig  = 0.0D0  ! (j, i), i=1,cr_ncatoms, j = 1,3
-!     DO i = 1, cr_ncatoms 
-!     chem_ave_n (i) = 0 
-!     DO k = 1, chem_max_atom 
-!     chem_ave_bese (i, k) = 0.0 
-!     ENDDO 
-!     DO j = 1, 3 
-!     chem_ave_pos (j, i) = 0.0 
-!     chem_ave_sig (j, i) = 0.0 
-!     ENDDO 
-!     ENDDO 
+!
+cond_quick: if(chem_quick) then     ! Fast mode
 !                                                                       
-!------ loop over all unit cells ans atoms within unit cell             
+!------ loop over all unit cells and atoms within unit cell             
 !                                                                       
 iez(1) = NINT(cr_dim(1,1)) - 1
 iez(2) = NINT(cr_dim(2,1)) - 1
@@ -211,6 +230,85 @@ sloopk: DO k = 1, cr_icc (3)
    ENDDO  sloopj
 ENDDO  sloopk
 !
+else  cond_quick           ! Exact mode
+   call estimate_ncells(ncell_out, pdt_dims, pdt_ilow, pdt_ihig, pdt_ncells)
+   if(ier_num/=0) return
+   call estimate_ncatom(aver, sigma, pdt_ilow, pdt_ihig, pdt_ncells)
+   if(ier_num/=0) return
+   chem_ave_n = 1
+   allocate(at_site(1:cr_natoms))
+   at_site = 0
+   call find_average(aver, pdt_dims, pdt_ncells, pdt_nsite, pdt_asite, &
+        pdt_itype, pdt_pos, cr_natoms, at_site)
+   if(ier_num/=0) return
+   chem_ave_pos = pdt_pos
+   shift(:) = REAL(-NINT(cr_dim(:,1))+2)    ! Shift to make atom position positive
+      chem_ave_n = 0        ! Clear number of atom on a site , reused as number of atom types on the site
+!                                                                       
+!------ --- Calculate occupancies ..                                    
+!                                                                       
+   do ia=1, cr_natoms
+      ii = at_site(ia)
+   occup_exact: IF (chem_ave_n (ii) .eq.0) then 
+               chem_ave_n (ii) = 1 
+               chem_ave_iscat (ii,               1 ) = cr_iscat (1, ia) 
+               chem_ave_anis  (ii,               1 ) = cr_iscat (3, ia) 
+               is = 1 
+            ELSE  occup_exact
+               flag = .true. 
+               DO kk = 1, chem_ave_n (ii) 
+                  IF (cr_iscat (1,ia) .eq.chem_ave_iscat (ii, kk) ) then 
+                     is = kk 
+                     flag = .false. 
+                  ENDIF 
+               ENDDO 
+               IF (flag) then 
+                  chem_ave_n (ii) = chem_ave_n (ii) + 1 
+                  is = chem_ave_n (ii) 
+                  IF (chem_ave_n (ii) .gt.CHEM_MAX_AVE_ATOM) then 
+                     ier_typ = ER_CHEM 
+                     ier_num = - 5 
+                     RETURN 
+                  ENDIF 
+                  chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (1,ia) 
+                  chem_ave_anis  (ii, chem_ave_n (ii) ) = cr_iscat (3,ia) 
+               ENDIF 
+            ENDIF occup_exact
+            IF(.not. lsite) THEN   ! Accumulate individual positions for different atoms
+               DO jj = 1, 3 
+                  chem_ave_posit(jj,ii,is) = chem_ave_posit(jj,ii,is) + p(jj)
+!                 chem_ave_sigma(jj,ii,is) = chem_ave_sigma(jj,ii,is) + p(jj)**2
+               ENDDO 
+            ENDIF
+            chem_ave_bese (ii, is) = chem_ave_bese (ii, is) + 1 
+!
+!     Calculate sigma
+!
+         uvw(:) = (cr_pos(:,ia)+shift(:)+ 00.0) - real(int(cr_pos(:,ia)+shift(:)+ 00.0), PREC_DP)   ! Create fractional
+         do jj=1, 3
+            if(uvw(jj)-chem_ave_pos(jj,ii)<-0.50_PREC_DP) then
+               uvw(jj) = uvw(jj) + 1.0_PREC_DP
+            elseif(uvw(jj)-chem_ave_pos(jj,ii)>0.50_PREC_DP) then
+               uvw(jj) = uvw(jj) - 1.0_PREC_DP
+            endif
+         enddo
+      if(lsite) then                 ! No distinction of atom types
+         chem_ave_sig(:, ii) = chem_ave_sig(:, ii) + &
+                         (uvw    - chem_ave_pos (:, ii))**2
+      else
+         is = 1
+         s_site_exact:DO kk = 1, chem_ave_n (ii) 
+            IF (cr_iscat (1,ia) .eq.chem_ave_iscat (ii, kk) ) then 
+               is = kk 
+               EXIT s_site_exact
+            ENDIF
+         ENDDO s_site_exact
+            chem_ave_sigma(:, ii, is) = chem_ave_sigma (:, ii, is) + &
+                         (uvw    - chem_ave_posit (:, ii, is))**2
+      endif
+   enddo
+endif cond_quick
+!
 !------ Sort atom types on a given site
 !
 DO i=1, cr_ncatoms                  ! Loop over all sites
@@ -270,9 +368,7 @@ IF(lsite) THEN           ! one pos for all types on a single site
    nvalues = 0
    DO i = 1, cr_ncatoms 
       DO j = 1, 3 
-!        chem_ave_pos (j, i) = chem_ave_pos (j, i) / REAL(ia) 
          chem_ave_sig (j, i) = chem_ave_sig (j, i) / REAL(ia) !-          &
-!        chem_ave_pos (j, i) **2                                           
          IF (chem_ave_sig (j, i) .gt.0.0) then 
             chem_ave_sig (j, i) = sqrt (chem_ave_sig (j, i) ) 
          ELSE 
@@ -296,9 +392,6 @@ IF(lsite) THEN           ! one pos for all types on a single site
       n_res = MAX(9 * cr_ncatoms,MAXPAR_RES, MAX_ATOM_ENV)
       CALL alloc_param(n_res)
       MAXPAR_RES = n_res
-!     ier_typ = ER_CHEM 
-!     ier_num = - 2 
-!  ELSE 
    ENDIF 
       res_para (0) = 9 * nvalues 
       ii = 0
@@ -316,15 +409,12 @@ IF(lsite) THEN           ! one pos for all types on a single site
             res_para ( (ii - 1) * 9     + 9) = chem_ave_bese(i, k)/ia
          ENDDO 
       ENDDO 
-!  ENDIF 
 ELSE
    nvalues = 0
    DO i = 1, cr_ncatoms 
       DO k = 1, chem_ave_n (i) 
          DO j = 1, 3 
-!           chem_ave_posit (j, i, k) = chem_ave_posit (j, i, k) / chem_ave_bese(i,k) 
             chem_ave_sigma (j, i, k) = chem_ave_sigma (j, i, k) / chem_ave_bese(i,k) !- &
-!           chem_ave_posit (j, i, k) **2                                           
             IF (chem_ave_sigma (j, i, k) .gt.0.0) then 
                chem_ave_sigma (j, i, k) = sqrt (chem_ave_sigma (j, i, k) ) 
             ELSE 
@@ -346,9 +436,6 @@ ELSE
       n_res = MAX(9 * cr_ncatoms,MAXPAR_RES, MAX_ATOM_ENV)
       CALL alloc_param(n_res)
       MAXPAR_RES = n_res
-!     ier_typ = ER_CHEM 
-!     ier_num = - 2 
-!  ELSE 
    ENDIF
       res_para (0) = 9 * nvalues 
       ii = 0
@@ -366,12 +453,7 @@ ELSE
             res_para ( (ii - 1) * 9     + 9) = chem_ave_bese(i, k)/ia
          ENDDO 
       ENDDO 
-!  ENDIF 
 ENDIF
-!IF(.not. lsite) THEN
-!   DEALLOCATE(chem_ave_posit)
-!   DEALLOCATE(chem_ave_sigma)
-!ENDIF
 !                                                                       
  1000 FORMAT (' Average structure : ',//,                               &
      &        3x,'Site',2x,'atom',11x,'average position',8x,            &
