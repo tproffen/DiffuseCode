@@ -26,13 +26,13 @@ IMPLICIT none
 LOGICAL, INTENT(IN) :: lout    ! Print output if true
 LOGICAL, INTENT(IN) :: lsite   ! Treat different atoms on each site as one 
 !                                                                       
-logical, parameter :: lspace =.TRUE.
+!logical, parameter :: lspace =.TRUE.
 !
 REAL(kind=PREC_DP), DIMENSION(3) ::  p , ez
 INTEGER, DIMENSION(3) :: iez
 !
 INTEGER            :: i, j, k, ii, jj, kk, ia, is, nvalues
-integer            :: i1, i2, i3
+!integer            :: i1, i2, i3
 INTEGER            :: n_res
 LOGICAL            :: flag
 !                                                                       
@@ -51,7 +51,7 @@ REAL(kind=PREC_DP)   , DIMENSION(3  )              :: temp_chem_ave_sig
 !
 !
 integer, dimension(3)               :: ncell_out
-integer, dimension(3)               :: iic
+!integer, dimension(3)               :: iic
 real(kind=PREC_DP), dimension(3, 2) :: pdt_dims
 integer           , dimension(3)    :: pdt_ilow        ! Unit cell dimensions in periodic
 integer           , dimension(3)    :: pdt_ihig        ! low and high inidce
@@ -62,11 +62,11 @@ integer           , dimension(:,  :), allocatable :: pdt_itype    ! Atom types a
 real(kind=PREC_DP), dimension(:,:)  , allocatable :: pdt_pos  ! Atom positions in average cell
 !real(kind=PREC_DP), dimension(3,4*nint(aver)) :: pdt_temp      ! Positions of the average cell
 integer           , dimension(:)    , allocatable :: at_site  ! Atom is at this site
-REAL(kind=PREC_DP)   , DIMENSION(3  )              :: uvw, u, v, shift
-real(kind=PREC_DP)                                 :: dmin        ! minimum distance to average site
-real(kind=PREC_DP)                                 :: dist        ! minimum distance to average site
-real(kind=PREC_DP)                                 :: eps         ! minimum distance to average site
-integer :: istart, ic
+REAL(kind=PREC_DP)   , DIMENSION(3  )              :: uvw, shift
+!real(kind=PREC_DP)                                 :: dmin        ! minimum distance to average site
+!real(kind=PREC_DP)                                 :: dist        ! minimum distance to average site
+!real(kind=PREC_DP)                                 :: eps         ! minimum distance to average site
+!integer :: istart, ic
 
 real(kind=PREC_DP) :: aver
 real(kind=PREC_DP) :: sigma
