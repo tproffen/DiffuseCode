@@ -136,7 +136,7 @@ end subroutine estimate_ncatom
 !
 !*******************************************************************************
 !
-subroutine find_average_(aver, pdt_dims, pdt_ncells, pdt_nsite, pdt_asite, &
+subroutine find_average(aver, pdt_dims, pdt_ncells, pdt_nsite, pdt_asite, &
            pdt_itype, pdt_pos, MAXATOM, at_site)
 !-
 !  Find the clusters that form the sites in the average unit cell
