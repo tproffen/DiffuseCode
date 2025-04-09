@@ -935,7 +935,6 @@ if(.not.chem_quick) then                                 ! Nonperiodic strucure
    isites = 0
 endif
 shift(:) = REAL(NINT(cr_dim(:,1)))
-!shift = cr_dim(:,1)
 ii       = 0
 DO iscat=0,MAXSCAT
    DO iatom=1,cr_natoms
@@ -987,13 +986,10 @@ if(allocated(isites)) deallocate(isites)
 1200 FORMAT('Number of atoms: ', I27)
 1300 FORMAT('Number density (Ang^-3): ', F24.15)
 1400 FORMAT('Supercell dimensions:             ',3I4)
-!1501 FORMAT('Cell (Ang/deg):',6(1x,F20.15))
 1500 FORMAT('Cell (Ang/deg):',6(1x,F10.5,'0000000000'))
 1600 FORMAT(3(1x,F10.5,'0000000000'))
 1700 FORMAT(i6,3x,a2,3(1x,f18.15),i6,3i4)
 1800 FORMAT(i6,3x,a9,3(1x,f18.15),i6,3i4)
-!1700 FORMAT(i6,3x,a2,3(1x,f9.6,'000000000'),i6,3i4)
-!1800 FORMAT(i6,3x,a9,3(1x,f9.6,'000000000'),i6,3i4)
 !
 END SUBROUTINE discus2rmc6f
 !
