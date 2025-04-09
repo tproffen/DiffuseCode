@@ -1,4 +1,9 @@
 6.18.04  DRAFT
+
+DISCUS
+  chem         Improved aver command if exact mode is set
+  perioditize  Improved algorithm
+
 6.18.03  RELEASE 2025_04_03
 
 GENERAL
