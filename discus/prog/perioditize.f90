@@ -71,7 +71,7 @@ if(.not.allocated(pdt_pos))   then
    pdt_pos = 0.0
 endif
 if(.not.allocated(pdt_itype)) then
-   allocate(pdt_itype(0:1, 1:1))
+   allocate(pdt_itype( 0:1, 1:1))
    pdt_itype(0,1) =  1
    pdt_itype(1,1) = -1
 endif
@@ -565,6 +565,7 @@ implicit none
 integer, dimension(3) :: ncell_dummy
 real(kind=PREC_DP) :: aver
 real(kind=PREC_DP) :: sigma
+integer           , dimension(:)    , allocatable :: at_site  ! Atom is at this site
 !
 !integer, dimension(3)              :: ncell_test
 !real(kind=PREC_DP), dimension(3, 2):: test_dims
@@ -587,12 +588,16 @@ endif
 !
 if(.not. (pdt_usr_atom) ) then             ! User did not specify unit cell content
    if(pdt_usr_nsite) aver = pdt_nsite      ! User specified number of atoms per cell
-   call find_average(aver)
+   allocate(at_site(cr_natoms))
+   call find_average(aver, pdt_dims, pdt_ncells, pdt_nsite, pdt_asite, &
+           pdt_itype, pdt_pos, cr_natoms, at_site)
+   if(allocated(at_site)) deallocate(at_site)
    if(ier_num /= 0) return
 else                                       ! User specified (partial) unit cell content
    if(pdt_usr_nsite) aver = pdt_nsite      ! User specified number of atoms per cell
    if(pdt_asite*pdt_ncells <cr_natoms) then ! Number of sites does not match
-      call find_average(aver)
+      call find_average(aver, pdt_dims, pdt_ncells, pdt_nsite, pdt_asite, &
+           pdt_itype, pdt_pos, cr_natoms, at_site)
       if(ier_num /= 0) return
    elseif(pdt_nsite*pdt_ncells >2.*cr_natoms) then ! Number of sites does not match
       ier_num = -179
@@ -604,166 +609,13 @@ else                                       ! User specified (partial) unit cell 
    endif
 endif
 !
+call perioditize_show
+!
 call map_to_aver
 !
 if(allocated(pdt_pos)) deallocate(pdt_pos)
 !
 end subroutine perioditize_run
-!
-!*******************************************************************************
-!
-subroutine find_average(aver)
-!-
-!  Find the clusters that form the sites in the average unit cell
-!+
-!
-use crystal_mod
-use metric_mod
-!
-use errlist_mod
-!
-implicit none
-!
-real(kind=PREC_DP), intent(in) :: aver          ! Average number of atoms per unit cell
-!
-logical, parameter :: lspace =.TRUE.
-integer :: i, j, ic, k                 ! Dummy counters
-real(kind=PREC_DP) :: eps              ! Distance to say we are in the same cluster
-real(kind=PREC_DP), dimension(3,4*nint(aver)) :: pdt_temp      ! Positions of the average cell
-real(kind=PREC_DP), dimension(3)              :: uvw           ! fractional coordinates of atom
-real(kind=PREC_DP), dimension(3)              :: u             ! fractional coordinates of atom
-real(kind=PREC_DP) :: dist
-real(kind=PREC_DP) :: dmin
-integer :: istart    ! Start index for atom loop
-integer :: nred      ! Number of sites to remove
-integer                                       :: temp_nsite    ! Initial number of sites
-integer           , dimension(  4*nint(aver)) :: pdt_temp_n    ! Number of atoms per site
-logical           , dimension(  4*nint(aver)) :: is_valid      ! This site is OK T/F
-!
-pdt_nsite = nint(aver)                 ! Initialize number of sites per unit cell
-eps = 0.30                             ! Start with 0.5 Angstroem
-if(pdt_asite==0) then                  ! No sites yet
-   pdt_asite = 1                              ! No sites yet
-   pdt_temp(:, 1) =    (cr_pos(:,1) + 0.0 + 2*nint(abs(pdt_dims(:,1)))) - &
-                   nint(cr_pos(:,1) + 0.0 + 2*nint(abs(pdt_dims(:,1))))            ! Arbitrarily put atom one onto site 1
-   pdt_temp_n(1)  = 1                                                              ! One atom at this site
-   istart = 2
-else
-!   do i = 1, pdt_nsize
-   pdt_temp(:,1:pdt_asite) = pdt_pos(:,1:pdt_asite)
-   istart = 1
-endif
-!
-loop_atoms: do i=istart, cr_natoms
-!  do j=1,3
-!  uvw(:) =  (cr_pos(:,i) + 0.0 + 2*nint(abs(pdt_dims(:,1)))) - &
-!        nint(cr_pos(:,i) + 0.0 + 2*nint(abs(pdt_dims(:,1))))
-   uvw(:) = cr_pos(:,i) - real(int(cr_pos(:,i)), PREC_DP)   ! Create fractionl
-   if(uvw(1) < 0.0E0) uvw(1) = uvw(1) + 1.0                 ! coordinates in 
-   if(uvw(2) < 0.0E0) uvw(2) = uvw(2) + 1.0                 ! range [0,1]
-   if(uvw(3) < 0.0E0) uvw(3) = uvw(3) + 1.0
-!  enddo
-   dmin = 1e12
-   ic   = 0
-   do j=1, pdt_asite
-      u = pdt_temp(:,j)
-      dist = do_blen(lspace, u, uvw)
-      if(dist < dmin) then                 ! Found new shortest distance
-         dmin = dist
-         ic   = j                          ! Archive site
-      endif
-   enddo
-      if(dmin < eps) then                  ! Atom belongs to cluster
-         pdt_temp(:, ic) = (pdt_temp(:,ic)*pdt_temp_n(ic) + uvw) / (pdt_temp_n(ic) + 1)
-         pdt_temp_n( ic) = pdt_temp_n( ic) + 1
-      else                                 ! To far , new cluster
-         pdt_asite = pdt_asite + 1
-         if(pdt_asite>ubound(pdt_temp, 2)) then
-            ier_num = -184
-            ier_typ = ER_APPL
-            write(ier_msg(1),'(a,i6,a)') 'More than ',pdt_asite,' sites'
-            ier_msg(2) = 'Structure appears too disordered to perioditize'
-            return
-         endif
-         pdt_temp(:, pdt_asite) = uvw
-         pdt_temp_n( pdt_asite) = 1
-      endif
-enddo loop_atoms
-!
-temp_nsite = pdt_asite
-do j=1, ubound(pdt_temp_n,1)
-   if(pdt_temp_n(j)>0) then
-      is_valid(j)  = .true.                             ! Initial estimate, all sites are OK
-   else
-      is_valid(j) = .false.
-   endif
-enddo
-!
-if(pdt_asite<pdt_nsite) then                   ! Too few sites, give up
-   ier_num = -179
-   ier_typ = ER_APPL
-   ier_msg(1) = 'Found too few site '
-   return
-endif
-nred = 0
-reduce: do
-   if(pdt_asite-nred == pdt_nsite) then        ! Correct site number
-      if((pdt_asite-nred)*pdt_ncells==cr_natoms) then
-         exit reduce                           ! Correct site number
-      elseif(pdt_usr_ncell .and. (pdt_asite-nred)*pdt_ncells<2*cr_natoms) then 
-         exit reduce                           ! Correct site number
-      else
-         ier_num = -179
-         ier_typ = ER_APPL
-         return
-      endif
-   endif
-!                                              ! Too many sites, delete least occupied
-   j = minloc(pdt_temp_n, dim=1,mask=is_valid)            ! Find least occupied valid site
-   is_valid(j) = .false.                       ! This site is no longer valid
-   uvw  = pdt_temp(:,j)                        ! Store the 'bad' position
-   dmin = 1.e12
-   ic   = 0
-   do k = 1, temp_nsite                        ! Loop over all original sites
-      if(is_valid(k)) then                     ! Use valid sites only
-         u = pdt_temp(:,k)
-         dist = do_blen(lspace, u, uvw)
-         if(dist < dmin) then                 ! Found new shortest distance
-            dmin = dist
-            ic   = k                          ! Archive site
-         endif
-      endif
-   enddo
-   pdt_temp_n(ic) = pdt_temp_n(ic) + pdt_temp_n(j)
-   pdt_temp_n(j) = 0
-!write(*,*) ' REMOVE ', j , is_valid(1:pdt_asite), pdt_temp_n(1:pdt_asite)
-   nred = nred + 1
-enddo reduce
-!
-if(allocated(pdt_pos)) deallocate(pdt_pos)
-if(allocated(pdt_itype)) deallocate(pdt_itype)
-allocate(pdt_pos(3,pdt_asite))                 ! Atom positions in the average unit cell
-allocate(pdt_itype(0:1, 1:pdt_asite))
-pdt_pos = 0.0
-pdt_itype(0,:) =  1
-pdt_itype(1,:) = -1
-!
-k = 0
-do j=1, pdt_asite
-  if(is_valid(j)) then
-    k = k + 1
-    pdt_pos(:,k) = pdt_temp(:,j)
-    do i=1,3
-       if(pdt_pos(i,k)< 0.0) pdt_pos(i,k) = pdt_pos(i,k) + 1.0
-       if(pdt_pos(i,k)>=1.0) pdt_pos(i,k) = pdt_pos(i,k) - 1.0
-    enddo
-!write(*,*) ' POS ', pdt_pos(:,k)
-  endif
-enddo
-pdt_asite = pdt_asite - nred
-!
-!write(*,*) ' PDT_ASITE ', pdt_asite
-end subroutine find_average
 !
 !*******************************************************************************
 !
@@ -773,6 +625,7 @@ subroutine map_to_aver
 !+
 !
 use crystal_mod
+use celltoindex_mod
 use chem_mod
 use discus_allocate_appl_mod , only:alloc_crystal_scat, alloc_crystal_nmax
 use metric_mod
@@ -795,6 +648,7 @@ real(kind=PREC_DP) :: dist
 real(kind=PREC_DP), dimension(3) :: u             ! fractional coordinates of atom
 real(kind=PREC_DP), dimension(3) :: v             ! fractional coordinates of atom
 integer, dimension(3) :: shift                    ! Integer shift vector
+integer, dimension(3) :: icell                    ! Old atom is in this new cell
 !
 integer, dimension(  :), allocatable ::  tmp_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
 integer, dimension(  :), allocatable ::  tmp_prop   ! (  1:NMAX)  !Property flag
@@ -812,6 +666,21 @@ else
    natoms = pdt_nsite*pdt_ncells
 !write(*,*) ' pdt_usr_nsite is ', pdt_usr_nsite, pdt_nsite, pdt_ncells
 endif
+!
+
+do i=1, 3
+   if(mod(pdt_ihig(i)-pdt_ilow(i) + 1,2)==0) then    ! Even number of unit cells
+      pdt_ilow(i) = -(pdt_ihig(i)-pdt_ilow(i) + 1)/2
+      pdt_ihig(i) =  (pdt_ihig(i)-pdt_ilow(i) + 1)/2 - 1
+!        pdt_ihig(i) =  (pdt_ilow(i) + nint(werte(i+1)) - 1
+   else
+      pdt_ilow(i) = -(pdt_ihig(i)-pdt_ilow(i)    )/2
+      pdt_ihig(i) =  (pdt_ihig(i)-pdt_ilow(i)    )/2
+!        pdt_ilow(i) = -nint((werte(i+1)-1.)/2.)
+!        pdt_ihig(i) = pdt_ilow(i) + nint(werte(i+1)) - 1
+   endif
+!      pdt_ncells = pdt_ncells * nint(werte(i+1))
+enddo
 !write(*,*) ' NATOMS ', natoms
 !do l=1, pdt_nsite
 !write(*,*) ' SITE   ', pdt_pos(:,l)
@@ -859,6 +728,9 @@ enddo
 ! if necessary shift the old crystal
 !
 shift = nint(pdt_ilow(:)-cr_dim(:,1))
+!write(*,*) ' SHIFT IN PERIOD ', shift
+!write(*,*) ' CDIM  IN PERIOD ', cr_dim(:,1), cr_dim(:,2)
+!write(*,*) ' PDT_ILOW PERIOD ', pdt_ilow(:), pdt_ihig(:)
 if(any(shift/=0)) then
   v = real(shift,kind=PREC_DP)
   do i=1, cr_natoms
@@ -868,63 +740,151 @@ endif
 !
 ! Map the old crystal onto the new one
 !
-! use : k index of closest atom
+cr_icc = pdt_ihig - pdt_ilow + 1
+!write(*,*) ' cr_icc ', cr_icc
+!do m=1,5
+!   icell = floor(cr_pos(:, m)+0.15) - pdt_ilow + 1
+!   if(icell(1)<1          ) icell(1) = icell(1) + cr_icc(1)
+!   if(icell(2)<1          ) icell(2) = icell(2) + cr_icc(2)
+!   if(icell(3)<1          ) icell(3) = icell(3) + cr_icc(3)
+!   call celltoindex(icell, 1, j)
+!write(*,'(a, i9, 3f12.6, 3i4, i9)') ' ATOM ', m, cr_pos(:,m), icell, j
+!enddo
+!read(*,*) n
 n = 0
-soften: do l=1,2
-   loop_new: do i=1, natoms
-      if(tmp_iscat(i)>=0) cycle loop_new          ! Already occupied
-      k = 0
-      dmin = 1.0E12
-      dist = 1.0E12
+nn = 0
+do m=1, nprior
+   icell = floor(cr_pos(:, m) + 0.15) - pdt_ilow + 1
+   u = cr_pos(:, m)
+   if(icell(1)<0          ) then
+      icell(1) = icell(1) + cr_icc(1)
+      u(1)     = u(1)     + cr_icc(1)
+   elseif(icell(1)==0         ) then
+      icell(1) = 1
+   elseif(icell(1)>cr_icc(1)  ) then
+      icell(1) = icell(1) - cr_icc(1)
+      u(1)     = u(1)     - cr_icc(1)
+   endif
+   if(icell(2)<0          ) then
+      icell(2) = icell(2) + cr_icc(2)
+      u(2)     = u(2)     + cr_icc(2)
+   elseif(icell(2)==0         ) then
+      icell(2) = 1
+   elseif(icell(2)>cr_icc(2)  ) then
+      icell(2) = icell(2) - cr_icc(2)
+      u(2)     = u(2)     - cr_icc(2)
+   endif
+   if(icell(3)<0          ) then
+      icell(3) = icell(3) + cr_icc(3)
+      u(3)     = u(3)     + cr_icc(3)
+   elseif(icell(3)==0         ) then
+      icell(3) = 1
+   elseif(icell(3)>cr_icc(3)  ) then
+      icell(3) = icell(3) - cr_icc(3)
+      u(3)     = u(3)     - cr_icc(3)
+   endif
+   call celltoindex(icell, 1, j)
+   dmin = 1.0E12
+   do i=j, j+pdt_nsite-1    ! Loop over sites in this cell
       v = tmp_pos(:,i)
-      loop_old:do m=1, nprior
-         if( cr_iscat(1,m) <0) cycle loop_old          ! Already transfered
-         u = cr_pos(:, m)
-         dist = do_blen(lspace, u, v)                ! Calculate distance
-!if(            m==1713) then !abs(cr_pos(1,m)+9.2)<0.1 .and. abs(cr_pos(2,m)+10.0)<0.1) then
-!if(m<6) then
-!  write(*,*) ' ATOM ', cr_pos(:,m), cr_iscat(1,m), dist, dmin
-!  write(*,*) ' ATOM ', cr_pos(:,m)+20, cr_iscat(1,m), dist, dmin
-!endif
-         if(dist < dmin) then                 ! Found new shortest distance
-            dmin = dist
-            k    = m                          ! Archive site
-         endif
-         lperiod = .false.                    ! Test if periodic boundary conditions may be needed
-         do nn = 1, 3
-            if(u(nn)<pdt_ilow(nn)) then
-               u(nn) = u(nn) + pdt_ihig(nn) - pdt_ilow(nn) + 1
-               lperiod = .true.
-            endif
-         enddo 
-         if(lperiod) then    ! Test with periodic boundary conditions
-            dist = do_blen(lspace, u, v)                ! Calculate distance
-            if(dist < dmin) then                 ! Found new shortest distance
-               dmin = dist
-               k    = m                          ! Archive site
-            endif
-         endif
-      enddo loop_old
+      dist = do_blen(lspace, u           , v)                ! Calculate distance
+      if(dist < dmin) then                 ! Found new shortest distance
+         dmin = dist
+         k    = i                          ! Archive site
+      endif
+   enddo
       if(dmin < EPS) then                     ! Found close atom
-         tmp_iscat(   i) = cr_iscat(1, k)
-         tmp_prop (   i) = cr_prop (   k)
-         tmp_mole (   i) = cr_mole (   k)
-         tmp_surf (:, i) = cr_surf (:, k)
-         tmp_magn (:, i) = cr_magn (:, k)
-         tmp_pos  (:, i) = cr_pos  (:, k)
-         cr_iscat(1,k) = -1                     ! Flag as done
+      if(tmp_iscat(   k) == -1) then
+         tmp_iscat(   k) = cr_iscat(1, m)
+         tmp_prop (   k) = cr_prop (   m)
+         tmp_mole (   k) = cr_mole (   m)
+         tmp_surf (:, k) = cr_surf (:, m)
+         tmp_magn (:, k) = cr_magn (:, m)
+         tmp_pos  (:, k) = cr_pos  (:, m)
+         cr_iscat(1,m) = -1                     ! Flag as done
            n = n + 1
-         do j=mole_off(cr_mole(k)), mole_off(cr_mole(k))+mole_len(cr_mole(k))
-            if(mole_cont(j) == k) then
-               mole_cont(j) = i           ! Change atom number in Molecule
+         do j=mole_off(cr_mole(m)), mole_off(cr_mole(m))+mole_len(cr_mole(m))
+            if(mole_cont(j) == m) then
+               mole_cont(j) = k           ! Change atom number in Molecule
             endif
          enddo
       else
+         nn = nn + 1
       endif
-   enddo loop_new
-   if(n==nprior) exit soften
-   eps = eps * 2.0
-enddo soften
+      else
+!write(*,'(a, 2i9, 7f12.6, 3i3)') ' Failed ', m, cr_iscat(1, m), cr_pos(:,m), u, dmin, icell
+!read(*,*) k
+      endif
+enddo
+!write(*,'(a, i9, a, 2i9)') ' Mapped ', n, ' out of old/new ', nprior, natoms
+!j=0
+!do i=1, nprior
+!  if(cr_iscat(1,i)>=0) j=j+1
+!enddo
+!write(*,'(a, i9)') ' mismatched old ', j
+!j=0
+!do i=1, natoms
+!  if(tmp_iscat(i)< 0) j=j+1
+!enddo
+!write(*,'(a, i9, i9)') ' mismatched new ', j, nn
+!read(*,*) m
+! use : k index of closest atom
+!Qn = 0
+!Qsoften: do l=1,2
+!Q   loop_new: do i=1, natoms
+!Q      if(tmp_iscat(i)>=0) cycle loop_new          ! Already occupied
+!Q      k = 0
+!Q      dmin = 1.0E12
+!Q      dist = 1.0E12
+!Q      v = tmp_pos(:,i)
+!Q      loop_old:do m=1, nprior
+!Q         if( cr_iscat(1,m) <0) cycle loop_old          ! Already transfered
+!Q         u = cr_pos(:, m)
+!Q         dist = do_blen(lspace, u, v)                ! Calculate distance
+!Q!if(            m==1713) then !abs(cr_pos(1,m)+9.2)<0.1 .and. abs(cr_pos(2,m)+10.0)<0.1) then
+!Q!if(m<6) then
+!Q!  write(*,*) ' ATOM ', cr_pos(:,m), cr_iscat(1,m), dist, dmin
+!Q!  write(*,*) ' ATOM ', cr_pos(:,m)+20, cr_iscat(1,m), dist, dmin
+!Q!endif
+!Q         if(dist < dmin) then                 ! Found new shortest distance
+!Q            dmin = dist
+!Q            k    = m                          ! Archive site
+!Q         endif
+!Q         lperiod = .false.                    ! Test if periodic boundary conditions may be needed
+!Q         do nn = 1, 3
+!Q            if(u(nn)<pdt_ilow(nn)) then
+!Q               u(nn) = u(nn) + pdt_ihig(nn) - pdt_ilow(nn) + 1
+!Q               lperiod = .true.
+!Q            endif
+!Q         enddo 
+!Q         if(lperiod) then    ! Test with periodic boundary conditions
+!Q            dist = do_blen(lspace, u, v)                ! Calculate distance
+!Q            if(dist < dmin) then                 ! Found new shortest distance
+!Q               dmin = dist
+!Q               k    = m                          ! Archive site
+!Q            endif
+!Q         endif
+!Q      enddo loop_old
+!Q      if(dmin < EPS) then                     ! Found close atom
+!Q         tmp_iscat(   i) = cr_iscat(1, k)
+!Q         tmp_prop (   i) = cr_prop (   k)
+!Q         tmp_mole (   i) = cr_mole (   k)
+!Q         tmp_surf (:, i) = cr_surf (:, k)
+!Q         tmp_magn (:, i) = cr_magn (:, k)
+!Q         tmp_pos  (:, i) = cr_pos  (:, k)
+!Q         cr_iscat(1,k) = -1                     ! Flag as done
+!Q           n = n + 1
+!Q         do j=mole_off(cr_mole(k)), mole_off(cr_mole(k))+mole_len(cr_mole(k))
+!Q            if(mole_cont(j) == k) then
+!Q               mole_cont(j) = i           ! Change atom number in Molecule
+!Q            endif
+!Q         enddo
+!Q      else
+!Q      endif
+!Q   enddo loop_new
+!Q   if(n==nprior) exit soften
+!Q   eps = eps * 2.0
+!Qenddo soften
 !
 cr_iscat = 0
 cr_prop  = 0
@@ -1012,6 +972,8 @@ if(pdt_usr_nsite) then
 else
    write(output_io,'(a    )')                                                   &
       ' Number of sites determined automatically'
+   write(output_io,'(a, i5)')                                                   &
+      ' Number of sites estimated               ', pdt_nsite
 endif
 if(pdt_usr_atom) then
    do i=1, pdt_usite
@@ -1023,6 +985,14 @@ if(pdt_usr_atom) then
 else
    write(output_io, '(a)')                                                      &
       ' Sites determined automatically'
+   if(pdt_nsite>0) then
+   do i=1, pdt_nsite
+      write(output_io, '(a,3(f12.3,2x))')                                       &
+      ' estimated    site position              :', pdt_pos  (1:3,i)
+      write(output_io, '(a,4x,20i4)')                                           &
+      ' Estimated    site content               :', pdt_itype(1:pdt_itype(0,i),i)
+   enddo
+   endif
 endif
 if(pdt_usr_ncell) then
    write(output_io,'(a,3i4)')                                                   &
