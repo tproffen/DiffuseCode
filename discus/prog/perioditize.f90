@@ -637,7 +637,7 @@ implicit none
 !
 logical, parameter :: lspace =.TRUE.
 real(kind=PREC_DP) :: EPS = 2.5
-logical :: lperiod               ! Test with periodic boundary conditions
+!logical :: lperiod               ! Test with periodic boundary conditions
 integer :: i,j,k,l,m,n, nn       ! dummy counters
 integer :: nprior                ! Number of atoms in crystal
 integer :: natoms                ! Number of atoms in new crystal
