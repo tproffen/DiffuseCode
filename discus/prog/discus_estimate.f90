@@ -6,6 +6,7 @@ private
 !
 public estimate_ncells
 public estimate_ncatom
+public find_average
 !
 contains
 !
@@ -132,6 +133,296 @@ sigma = sqrt(sigma)/real(pdt_ncells*(pdt_ncells-1), kind=PREC_DP)
 deallocate(pdt_cell)
 !
 end subroutine estimate_ncatom
+!
+!*******************************************************************************
+!
+subroutine find_average_(aver, pdt_dims, pdt_ncells, pdt_nsite, pdt_asite, &
+           pdt_itype, pdt_pos, MAXATOM, at_site)
+!-
+!  Find the clusters that form the sites in the average unit cell
+!+
+!
+use crystal_mod
+use metric_mod
+!
+use errlist_mod
+!
+implicit none
+!
+real(kind=PREC_DP)                               , intent(in)  :: aver       ! Average number of atoms per unit cell
+real(kind=PREC_DP), dimension(3, 2)              , intent(in)  :: pdt_dims   ! Crystal dimensions
+integer                                          , intent(in)  :: pdt_ncells ! Number of cells in periodic crystal volume
+integer                                          , intent(out) :: pdt_nsite  ! Number of sites in an averaged unit cell
+integer                                          , intent(out) :: pdt_asite  ! Achieved sites either from set site or find_aver
+integer           , dimension(:,  :), allocatable, intent(out) :: pdt_itype  ! Atom types at each site
+real(kind=PREC_DP), dimension(:,:)  , allocatable, intent(out) :: pdt_pos    ! Atom positions in average cell
+integer                                          , intent(in)  :: MAXATOM    ! Number of atoms in crystal
+integer           , dimension(MAXATOM)           , intent(out) :: at_site    ! Atom is at this site
+!
+logical, parameter :: lspace =.TRUE.
+integer :: i, j, ic, k                 ! Dummy counters
+integer :: i1,i2,i3
+integer, dimension(3) :: iic
+real(kind=PREC_DP) :: eps              ! Distance to say we are in the same cluster
+real(kind=PREC_DP), dimension(3,4*nint(aver)) :: pdt_temp      ! Positions of the average cell
+real(kind=PREC_DP), dimension(3)              :: uvw           ! fractional coordinates of atom
+real(kind=PREC_DP), dimension(3)              :: u,v           ! fractional coordinates of atom
+real(kind=PREC_DP), dimension(3)              :: shift         ! Shift to make sure atom coordinates are poitive
+real(kind=PREC_DP) :: dist
+real(kind=PREC_DP) :: dmin
+integer :: istart    ! Start index for atom loop
+integer :: nred      ! Number of sites to remove
+integer                                       :: temp_nsite    ! Initial number of sites
+integer           , dimension(  4*nint(aver)) :: pdt_temp_n    ! Number of atoms per site
+logical           , dimension(  4*nint(aver)) :: is_valid      ! This site is OK T/F
+logical :: lsuccess ! Test variable
+!
+pdt_asite = 0
+pdt_nsite = nint(aver)                 ! Initialize number of sites per unit cell
+eps = 0.30                             ! Start with 0.5 Angstroem
+pdt_temp = 0.0_PREC_DP
+pdt_temp_n = 0
+at_site    = 0                         ! Atoms not yet known
+shift(:) = REAL(NINT(cr_dim(:,1))+1)
+!
+if(pdt_asite==0) then                  ! No sites yet
+   pdt_asite = 1                              ! No sites yet
+   pdt_temp(:, 1) =    (cr_pos(:,1) + 2*nint(abs(pdt_dims(:,1)))) - &
+                    int(cr_pos(:,1) + 2*nint(abs(pdt_dims(:,1))))            ! Arbitrarily put atom one onto site 1
+   pdt_temp_n(1)  = 1                                                        ! One atom at this site
+   istart = 2
+else
+   pdt_temp(:,1:pdt_asite) = pdt_pos(:,1:pdt_asite)
+   istart = 1
+endif
+!
+loop_atoms: do i=istart, cr_natoms
+   uvw(:) = (cr_pos(:,i)+shift(:)) - real(int(cr_pos(:,i)+shift(:)), PREC_DP)   ! Create fractional
+   if(uvw(1) < 0.0E0) uvw(1) = uvw(1) + 1.0                 ! coordinates in 
+   if(uvw(2) < 0.0E0) uvw(2) = uvw(2) + 1.0                 ! range [0,1]
+   if(uvw(3) < 0.0E0) uvw(3) = uvw(3) + 1.0
+   dmin = 1e12
+   ic   = 0
+   do j=1, pdt_asite                      ! Loop ovr all old sites
+      u = pdt_temp(:,j)
+      do i3=-1,1                           ! Do each axis at: -1, 0, +1 
+      v(3) = uvw(3) + i3
+      do i2=-1,1                           ! to avoid rounding errors at faces
+      v(2) = uvw(2) + i2
+      do i1=-1,1                           ! of the unit cell
+      v(1) = uvw(1) + i1
+      dist = do_blen(lspace, u, v  )
+      if(dist < dmin) then                 ! Found new shortest distance
+         dmin = dist
+         ic   = j                          ! Archive site
+         iic(1) = i1
+         iic(2) = i2
+         iic(3) = i3
+      endif
+      enddo
+      enddo
+      enddo
+   enddo
+      if(dmin < eps) then                  ! Atom belongs to cluster
+         uvw = uvw + iic
+         pdt_temp(:, ic) = (pdt_temp(:,ic)*pdt_temp_n(ic) + uvw) / (pdt_temp_n(ic) + 1)
+         pdt_temp_n( ic) = pdt_temp_n( ic) + 1
+         at_site(i)      = ic              ! Atom number i is on site ic
+      else                                 ! To far , new cluster
+         pdt_asite = pdt_asite + 1
+         if(pdt_asite>ubound(pdt_temp, 2)) then
+            ier_num = -184
+            ier_typ = ER_APPL
+            write(ier_msg(1),'(a,i6,a)') 'More than ',pdt_asite,' sites'
+            ier_msg(2) = 'Structure appears too disordered to perioditize'
+            return
+         endif
+         pdt_temp(:, pdt_asite) = uvw
+         pdt_temp_n( pdt_asite) = 1
+         at_site(i)      = pdt_asite       ! Atom number i is on site pdt_asite
+      endif
+enddo loop_atoms
+!
+temp_nsite = pdt_asite
+do j=1, ubound(pdt_temp_n,1)
+   if(pdt_temp_n(j)>0) then
+      is_valid(j)  = .true.                             ! Initial estimate, all sites are OK
+   else
+      is_valid(j) = .false.
+   endif
+enddo
+!
+if(pdt_asite<pdt_nsite) then                   ! Too few sites, give up
+   ier_num = -179
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Found too few site '
+   return
+endif
+!
+nred = 0
+reduce_equiv: do j=1, pdt_asite
+   if(pdt_asite-nred == pdt_nsite) then        ! Correct site number
+      if((pdt_asite-nred)*pdt_ncells==cr_natoms) then
+         exit reduce_equiv                     ! Correct site number
+      else
+         ier_num = -179
+         ier_typ = ER_APPL
+         return
+      endif
+   endif
+   if(.not. is_valid(j)) cycle reduce_equiv
+!                                              ! Too many sites, delete least occupied
+   uvw  = pdt_temp(:,j)                        ! Store the 'good' position
+!
+   do k = j+1, temp_nsite                        ! Loop over all original sites
+   dmin = 1.e12
+   ic   = 0
+      if(is_valid(k)) then                     ! Use valid sites only
+         u = pdt_temp(:,k)
+      do i3=-1,1                           ! Do each axis at: -1, 0, +1 
+      v(3) = uvw(3) + i3
+      do i2=-1,1                           ! to avoid rounding errors at faces
+      v(2) = uvw(2) + i2
+      do i1=-1,1                           ! of the unit cell
+      v(1) = uvw(1) + i1
+         dist = do_blen(lspace, u, v)
+         if(dist < dmin) then                 ! Found new shortest distance
+            dmin = dist
+            ic   = k                          ! Archive site
+         endif
+         enddo
+         enddo
+         enddo
+      endif
+   if(dmin<1.0_PREC_DP) then                  ! Found other site close by
+      pdt_temp_n(j) = pdt_temp_n(j) + pdt_temp_n(ic)
+      pdt_temp_n(ic) = 0
+      is_valid(ic) = .false.
+      nred = nred + 1
+   endif
+   enddo
+enddo reduce_equiv
+!
+reduce: do
+   if(pdt_asite-nred == pdt_nsite) then        ! Correct site number
+      if((pdt_asite-nred)*pdt_ncells==cr_natoms) then
+         exit reduce                           ! Correct site number
+      else
+         ier_num = -179
+         ier_typ = ER_APPL
+         return
+      endif
+   endif
+!                                              ! Too many sites, delete least occupied
+   j = minloc(pdt_temp_n, dim=1,mask=is_valid)            ! Find least occupied valid site
+   is_valid(j) = .false.                       ! This site is no longer valid
+   uvw  = pdt_temp(:,j)                        ! Store the 'bad' position
+   dmin = 1.e12
+   ic   = 0
+   do k = 1, temp_nsite                        ! Loop over all original sites
+      if(is_valid(k)) then                     ! Use valid sites only
+         u = pdt_temp(:,k)
+      do i3=-1,1                           ! Do each axis at: -1, 0, +1 
+      v(3) = uvw(3) + i3
+      do i2=-1,1                           ! to avoid rounding errors at faces
+      v(2) = uvw(2) + i2
+      do i1=-1,1                           ! of the unit cell
+      v(1) = uvw(1) + i1
+         dist = do_blen(lspace, u, uvw)
+         if(dist < dmin) then                 ! Found new shortest distance
+            dmin = dist
+            ic   = k                          ! Archive site
+         endif
+         enddo
+         enddo
+         enddo
+      endif
+   enddo
+   pdt_temp_n(ic) = pdt_temp_n(ic) + pdt_temp_n(j)
+   pdt_temp_n(j) = 0
+   nred = nred + 1
+enddo reduce
+!
+!
+if(allocated(pdt_pos)) deallocate(pdt_pos)
+if(allocated(pdt_itype)) deallocate(pdt_itype)
+pdt_asite = pdt_asite-nred                     ! Set final number of sites
+allocate(pdt_pos(3,pdt_asite))                 ! Atom positions in the average unit cell
+pdt_pos = 0.0_PREC_DP
+allocate(pdt_itype(0:cr_nscat+1, 1:pdt_asite))
+pdt_itype(0,:) =  0
+pdt_itype(1,:) = -1
+!
+! Perform loop over all atoms to get more accurate estimate of positions
+!
+shift(:) = REAL(-NINT(cr_dim(:,1))+2)    ! Shift to make atom position positive
+pdt_temp_n    = 0                              ! One atom at this site
+at_site       = 0
+istart = 1
+eps = 1.50_PREC_DP   ! Start with 1.0 Angstroem
+!write(*,*) ' SHIFT ', shift, cr_natoms
+!
+loop_fine: do i=istart, cr_natoms                    ! Loop over all atoms to fine tune the average positions
+   uvw(:) = (cr_pos(:,i)+shift(:)) - real(int(cr_pos(:,i)+shift(:)), PREC_DP)   ! Create fractional
+   if(uvw(1) < 0.0E0) uvw(1) = uvw(1) + 1.0                 ! coordinates in 
+   if(uvw(2) < 0.0E0) uvw(2) = uvw(2) + 1.0                 ! range [0,1]
+   if(uvw(3) < 0.0E0) uvw(3) = uvw(3) + 1.0
+!
+   dmin = 1.e12
+   ic   = 0
+   do j=1, pdt_asite
+      u = pdt_temp(:,j)
+      do i3=-1,1                           ! Do each axis at: -1, 0, +1 
+         v(3) = uvw(3) + i3
+         do i2=-1,1                           ! to avoid rounding errors at faces
+         v(2) = uvw(2) + i2
+         do i1=-1,1                           ! of the unit cell
+         v(1) = uvw(1) + i1
+         dist = do_blen(lspace, u, v  )
+         if(dist < dmin) then                 ! Found new shortest distance
+            dmin = dist
+            ic   = j                          ! Archive site
+            iic(1) = i1
+            iic(2) = i2
+            iic(3) = i3
+         endif
+         enddo
+      enddo
+      enddo
+   enddo
+   cond_found: if(dmin < eps) then                  ! Atom belongs to average site
+      uvw = uvw + iic
+      pdt_pos(:,ic) = pdt_pos(:,ic) + uvw
+      pdt_temp_n(ic)     = pdt_temp_n(ic) + 1   ! Increment number atoms on this site
+      at_site(i)         = ic
+      lsuccess = .false.
+      loop_itype: do j=1, pdt_itype(0,ic)
+         if(pdt_itype(j,ic)==cr_iscat(1,i)) then
+            lsuccess = .true.
+            exit loop_itype
+         endif
+      enddo loop_itype
+      if(.not. lsuccess) then
+         pdt_itype(0,ic) = pdt_itype(0,ic) + 1
+         pdt_itype(pdt_itype(0,ic),ic) = cr_iscat(1,i)
+      endif
+   endif cond_found
+enddo loop_fine
+!
+do ic=1, pdt_asite
+   if(pdt_temp_n(ic)>0) pdt_pos(:,ic) = pdt_pos(:,ic)/pdt_temp_n(ic)
+enddo
+!*******************************************************************************
+!
+k = 0
+do j=1, pdt_asite
+    k = k + 1
+    do i=1,3
+       if(pdt_pos(i,k)<-0.010_PREC_DP) pdt_pos(i,k) = pdt_pos(i,k) + 1.0_PREC_DP
+       if(pdt_pos(i,k)>=0.990_PREC_DP) pdt_pos(i,k) = pdt_pos(i,k) - 1.0_PREC_DP
+    enddo
+enddo
+end subroutine find_average
 !
 !*******************************************************************************
 !
