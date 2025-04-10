@@ -82,7 +82,7 @@ ELSEIF(line(1:3) ==  'end') THEN
 ENDIF 
 !     if do-loop command, evaluate counter                              
 !                                                                       
-IF (line (1:3) .eq.'do ') then 
+cond_com: IF (line (1:3) .eq.'do ') then 
    IF (level.eq.0) then 
       jump (level) = ilevel (level) 
    ENDIF 
@@ -97,7 +97,7 @@ IF (line (1:3) .eq.'do ') then
 !                                                                       
 !     enddo command, check for enddo until                              
 !                                                                       
-ELSEIF (line (1:5) .eq.'enddo') then 
+ELSEIF (line (1:5) .eq.'enddo') then cond_com
    CALL do_end (line, level, laenge) 
    IF (ier_num.ne.0) then 
       RETURN 
@@ -114,7 +114,7 @@ ELSEIF (line (1:5) .eq.'enddo') then
 !                                                                       
 !     if or elseif command                                              
 !                                                                       
-ELSEIF (line (1:2) .eq.'if'.or.line (1:6) .eq.'elseif') then 
+ELSEIF (line (1:2) .eq.'if'.or.line (1:6) .eq.'elseif') then cond_com
    IF (INDEX (line, 'then') .eq.0) then 
       ier_num = - 31 
       ier_typ = ER_FORT 
@@ -135,7 +135,7 @@ ELSEIF (line (1:2) .eq.'if'.or.line (1:6) .eq.'elseif') then
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      IF (ier_num.ne.0) goto 999 
+      IF (ier_num.ne.0) exit cond_com
       IF (.not.ltest (level) ) then 
 !.............If statement is false, ignore the commands that follow    
          DO while(do_comm(ilevel(level)+1,level)(1:4).ne.'else'   &
@@ -147,7 +147,7 @@ ELSEIF (line (1:2) .eq.'if'.or.line (1:6) .eq.'elseif') then
 !                                                                       
 !     else command                                                      
 !                                                                       
-ELSEIF (line (1:5) .eq.'else ') then 
+ELSEIF (line (1:5) .eq.'else ') then cond_com
    IF (ltest (level) ) then 
 !...........A previous block of the currrent if-elseif had been true    
       ltest (level) = .false. 
@@ -156,13 +156,13 @@ ELSEIF (line (1:5) .eq.'else ') then
 !                                                                       
 !     elseif command                                                    
 !                                                                       
-ELSEIF (line.eq.'endif') then 
+ELSEIF (line.eq.'endif') then cond_com
    ltest (level) = .false. 
    level = level - 1 
 !                                                                       
 !     break command                                                     
 !                                                                       
-ELSEIF (line (1:5) .eq.'break') then 
+ELSEIF (line (1:5) .eq.'break') then cond_com
    length = laenge-5
    CALL get_params (line (6:laenge), ianz, cpara, lpara, maxw, length)
    IF (ier_num.eq.0) then 
@@ -188,11 +188,10 @@ ELSEIF (line (1:5) .eq.'break') then
 !                                                                       
 !     regular command                                                   
 !                                                                       
-ELSE 
+ELSE cond_com
    lreg = .true. 
-ENDIF 
+ENDIF cond_com
 !                                                                       
-999 CONTINUE 
 !                                                                       
 END SUBROUTINE do_execute                     
 !
@@ -710,37 +709,36 @@ USE variable_mod
 !
 IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 3) 
+INTEGER, PARAMETER :: maxw = 3 
 !                                                                       
-      CHARACTER ( * ) line 
-      CHARACTER(MAX(PREC_STRING,LEN(line))) :: zeile, cpara (maxw) , cdummy
-      INTEGER lpara (maxw) 
-      INTEGER ipos, ikp, ianz, level, laenge, lll 
-      INTEGER ianz_d, i 
+CHARACTER (len= * ) :: line 
+CHARACTER(MAX(PREC_STRING,LEN(line))) :: zeile, cpara (maxw) , cdummy
+INTEGER, dimension(MAXW) :: lpara !(maxw) 
+INTEGER :: ipos, ikp, ianz, level, laenge, lll 
+integer :: ianz_d, i 
 INTEGER :: idummy
 INTEGER, DIMENSION(2) :: substr = (/0,VAR_CLEN/)    ! Dummy substring indices
 !     LOGICAL if_test 
-      LOGICAL l_var 
-      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+LOGICAL :: l_var 
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP) :: wert
 !                                                                       
 cdummy = ' '
-      ier_num = - 6 
-      ier_typ = ER_FORT 
+ier_num = - 6 
+ier_typ = ER_FORT 
 !                                                                       
 !     search for argument separator on the do-loop command line         
 !                                                                       
-      if(index(line, 'while')==0) then
-        ipos = index(line, '=') 
-      else
-        ipos = 0
-      endif
-      ikp = INDEX (line, '[') 
+if(index(line, 'while')==0) then
+   ipos = index(line, '=') 
+else
+   ipos = 0
+endif
+ikp = INDEX (line, '[') 
 !                                                                       
 !     Do-loop of type: do counter = start,end[,increment]               
 !                                                                       
-      IF (ipos.gt.0) then 
+cond_main: IF (ipos.gt.0) then 
 !                                                                       
 !       The counter is a user defined variable name ?                   
 !                                                                       
@@ -803,12 +801,12 @@ cdummy = ' '
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_FORT 
-                  GOTO 999 
+                  exit cond_main
                ENDIF 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_FORT 
-               GOTO 999 
+               exit cond_main
             ENDIF 
          ENDIF 
          iloop (level) = iloop (level) + 1 
@@ -838,7 +836,7 @@ cdummy = ' '
 !                                                                       
 !     DO WHILE loop                                                     
 !                                                                       
-      ELSEIF (laenge.gt.4.and.INDEX(line (4:laenge),'while') .ne.0) then
+ELSEIF (laenge.gt.4.and.INDEX(line (4:laenge),'while') .ne.0) then cond_main
          ier_num = 0 
          ier_typ = ER_NONE 
          ipos = INDEX (line, '(') 
@@ -851,15 +849,14 @@ cdummy = ' '
 !                                                                       
 !     error, wrong parameter on the do loop command line                
 !                                                                       
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_COMM 
-         ldostart (level) = .true. 
-      ENDIF 
+ELSE  cond_main
+   ier_num = - 8 
+   ier_typ = ER_COMM 
+   ldostart (level) = .true. 
+ENDIF  cond_main
 !                                                                       
-  999 CONTINUE 
 !                                                                       
-      END SUBROUTINE do_do                          
+END SUBROUTINE do_do                          
 !
 !*****7**************************************************************** 
 !

@@ -108,24 +108,28 @@ main_loop: DO
 !                                                                       
 !------ - prompt user for input in online help                          
 !                                                                       
-   15 CONTINUE 
+loop_up: do
    CALL do_status (2, bef, ibef, il, maxw) 
    prom = prompt (1:len_str (prompt) ) //'/help' 
    CALL get_cmd (zeile, ll, befehl, lbef, dummy, lp, prom) 
 !                                                                       
 !------ - we will go up one level '..'                                  
 !                                                                       
-   IF(zeile(1:2)  == '..') THEN 
+   cond_up: IF(zeile(1:2)  == '..') THEN 
       IF (ibef >  1) THEN 
          ibef = ibef - 1 
          WRITE(line, 1000) (bef (i), i = 1, ibef) 
          length = len_str (line) 
       ENDIF 
-      GOTO 15 
+      cycle loop_up
+   else cond_up
+      exit loop_up
+   endif cond_up
+enddo loop_up
 !                                                                       
 !------ - leave help level ' '                                          
 !                                                                       
-   ELSEIF(ll == 0) THEN 
+IF(ll == 0) THEN 
       lende = .true. 
 !                                                                       
 !     - repeat list of sublevels availble from current level            
@@ -227,6 +231,7 @@ REAL(kind=PREC_DP) :: werte
 !                                                                       
 main: DO lev = 1, ibef 
     5 CONTINUE 
+  inner: do
       found = .false. 
       READ (ihl, 1000, end = 10) zeile 
       ll = len_str (zeile) 
@@ -247,13 +252,14 @@ main: DO lev = 1, ibef
             laenge, laenge)                                             
             IF (.not.found) goto 5 
          ELSEIF (nl.gt.lev.or.nl.eq.0) then 
-            GOTO 5 
+            cycle inner
          ELSEIF (nl.lt.lev) then 
-            GOTO 10 
+            exit main
          ENDIF 
       ELSE 
-         GOTO 5 
+         cycle inner
       ENDIF 
+   enddo inner
 ENDDO main
 !                                                                       
 !------ If entry is found, print text and get possible further          

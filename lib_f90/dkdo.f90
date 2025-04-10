@@ -19,49 +19,49 @@ SUBROUTINE do_loop (line, lend, length)
 !     error flag is returned and the block structure is not executed    
 !     at all.                                                           
 !-                                                                      
-      USE doact_mod 
-      USE doexec_mod 
-      USE do_execute_mod
-      USE errlist_mod 
+USE doact_mod 
+USE doexec_mod 
+USE do_execute_mod
+USE errlist_mod 
 USE lib_macro_func
-      USE class_macro_internal 
+USE class_macro_internal 
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !
-      CHARACTER(LEN=*), INTENT(INOUT) :: line 
-      LOGICAL         , INTENT(INOUT) :: lend
-      INTEGER         , INTENT(INOUT) :: length
-!     INTEGER jlevel (0:maxlev) 
+CHARACTER(LEN=*), INTENT(INOUT) :: line 
+LOGICAL         , INTENT(INOUT) :: lend
+INTEGER         , INTENT(INOUT) :: length
 !                                                                       
 !-----      read first block structure command                          
 !                                                                       
-      CALL do_do_init(line, length)
-      IF(ier_num /=0 ) GOTO 999
+CALL do_do_init(line, length)
+!
+cond_error: IF(ier_num ==0 )then
 !                                                                       
 !.....read all commands                                                 
 !                                                                       
-      lblock_read = .true. 
-      DO WHILE (level.gt. - 1) 
-         CALL do_insert_line!(jlevel) ! Moved to separate subroutine
-         IF(ier_num /= 0) GOTO 999
-      ENDDO 
+   lblock_read = .true. 
+   DO WHILE (level.gt. - 1) 
+      CALL do_insert_line!(jlevel) ! Moved to separate subroutine
+      IF(ier_num /= 0) exit cond_error
+   ENDDO 
       lblock_read = .false. 
       ier_num = 0 
       ier_typ = ER_NONE 
 !                                                                       
 !-----      execute the block structure                                 
 !                                                                       
-      CALL do_execute_block(lend)
+   CALL do_execute_block(lend)
 !
+endif cond_error
 !                                                                       
-  999 CONTINUE 
-      lblock = .false. 
-      IF (ier_num.ne.0) THEN 
-         IF(lmakro .AND. lmacro_close) THEN
-            CALL macro_close(-1)
-         ENDIF 
-      ENDIF 
-      do_macro = ' '
+lblock = .false. 
+IF (ier_num.ne.0) THEN 
+   IF(lmakro .AND. lmacro_close) THEN
+      CALL macro_close(-1)
+   ENDIF 
+ENDIF 
+do_macro = ' '
 !                                                                       
 !                                                                       
 !2000 FORMAT    (a1) 
@@ -98,6 +98,8 @@ INTEGER :: i
 !
 DATA cprom / '/do', '/if', '/do', '/do' / 
 !                                                                       
+ier_num = 0
+!
       IF (line (1:2) .eq.'do'.and.INDEX (line, 'while') .ne.0) then 
          jlevel (0) = 2 
          i = length - 3 
@@ -116,25 +118,26 @@ DATA cprom / '/do', '/if', '/do', '/do' /
 !        CALL rem_bl (line, length) 
          CALL rem_insig_bl (line, length) 
       ELSE 
-         ier_num = - 31 
+         ier_num = -31 
          ier_typ = ER_FORT 
          WRITE (ier_msg (1), 3000) 
          WRITE (ier_msg (2), 3100) line (1:41) 
-         GOTO 999 
       ENDIF 
-      prom = prompt (1:len_str (prompt) ) //cprom (jlevel (0) ) 
-      DO i = 0, maxlev 
-      nlevel (i) = - 1 
-      ENDDO 
-      level = 0 
-      nlevel (level) = 0 
-      do_comm (0, 0) = line 
-      do_leng (0, 0) = length 
-      IF(lmakro) do_macro(0,0) = &
-         mac_tree_active%active%macrofile(1:LEN_TRIM(mac_tree_active%active%macrofile))
-      lblock_read = .TRUE. 
 !
-999 CONTINUE
+cond_error:if(ier_num==0) then
+   prom = prompt (1:len_str (prompt) ) //cprom (jlevel (0) ) 
+   DO i = 0, maxlev 
+      nlevel (i) = - 1 
+   ENDDO 
+   level = 0 
+   nlevel (level) = 0 
+   do_comm (0, 0) = line 
+   do_leng (0, 0) = length 
+   IF(lmakro) do_macro(0,0) = &
+      mac_tree_active%active%macrofile(1:LEN_TRIM(mac_tree_active%active%macrofile))
+   lblock_read = .TRUE. 
+endif cond_error
+!
 IF (ier_num.ne.0) then 
    lblock_read = .FALSE. 
    lblock      = .FALSE. 
@@ -225,16 +228,16 @@ nlevel (level) = nlevel (level) + 1
 IF (nlevel (level) .gt.maxcom) then 
    ier_num = - 15 
    ier_typ = ER_FORT 
-   GOTO 999 
 ENDIF 
 !                                                                       
-10 CONTINUE 
+cond_error: if(ier_num==0) then
+   loop_macro: do
 !                                                                       
       prom = prompt (1:len_str (prompt) ) //cprom (jlevel (level) ) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
       IF(length==0) THEN
           nlevel (level) = nlevel (level) - 1 
-          GOTO 999
+          exit cond_error
       ENDIF
       IF (line (1:2) .eq.'do'.and.INDEX (line, 'while') .ne.0) then 
          i = length - 3 
@@ -262,10 +265,14 @@ ENDIF
          ELSE 
             ier_num = - 13 
             ier_typ = ER_MAC 
-            GOTO 999
+            exit cond_error
          ENDIF 
-         GOTO 10 
-      ELSEIF(line(1:6)=='branch') THEN
+      else
+         exit loop_macro
+      endif
+   enddo loop_macro
+!
+      IF(line(1:6)=='branch') THEN
          indxm = INDEX(line,'-macro')
          IF(indxm>0) THEN   ! there is a macro name specified, 
             zeile = line(indxm+7:length)
@@ -274,7 +281,6 @@ ENDIF
             line = line(1:indxm-2)
             length = indxm-2
          ENDIF
-!        GOTO 10 
       ELSEIF(line(1:7)=='run_mpi' .AND. .NOT.mpi_active ) THEN !.AND. .NOT.lstandalone) THEN
 !
 !        run  a slave from diffev within discus_suite at NO MPI
@@ -407,12 +413,12 @@ ENDIF
             ELSE 
                ier_num = - 31 
                ier_typ = ER_FORT 
-               GOTO 999 
+               exit cond_error
             ENDIF 
          ELSE 
             ier_num = - 16 
             ier_typ = ER_FORT 
-            GOTO 999 
+            exit cond_error
          ENDIF 
       ELSEIF (line (1:5) .eq.'enddo') then 
          IF (jlevel (level) .eq.0.and.length.eq.5) then 
@@ -424,7 +430,7 @@ ENDIF
          ELSE 
             ier_num = - 19 
             ier_typ = ER_FORT 
-            GOTO 999 
+            exit cond_error
          ENDIF 
       ELSEIF (line (1:5) .eq.'endif') then 
          IF (jlevel (level) .eq.1) then 
@@ -432,11 +438,12 @@ ENDIF
          ELSE 
             ier_num = - 19 
             ier_typ = ER_FORT 
-            GOTO 999 
+            exit cond_error
          ENDIF 
       ENDIF 
+endif cond_error
+
 !
-999 CONTINUE
 IF (ier_num.ne.0) then 
    WRITE (ier_msg (1), 3000) 
    WRITE (ier_msg (2), 3100) line (1:41) 
@@ -565,7 +572,6 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
    endif
 ENDDO main
 !
-!999 CONTINUE
 !
 IF (ier_num.ne.0) then 
    WRITE (ier_msg (4), 3000) 

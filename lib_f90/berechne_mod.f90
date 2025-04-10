@@ -134,7 +134,7 @@ ELSE
                         ENDIF 
                         werte (i) = do_read_number (cpara (i), lpara (i) ) 
                         IF (ier_num.ne.0) then 
-                           GOTO 999 
+                           return
                         ENDIF 
                      ENDDO 
                      CALL p_ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
@@ -191,7 +191,7 @@ ELSE
 ENDIF 
 r = do_read_number (string, laenge) 
 berechne = do_read_number (string, laenge) 
-  999 CONTINUE 
+! 999 CONTINUE 
 !                                                                       
 END FUNCTION berechne                         
 !
@@ -238,9 +238,9 @@ ier_num = 0
 ier_typ = ER_NONE
 omask = 0
 nmask = 1 
-IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
+cond_main:IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
    CONTINUE 
-ELSE 
+ELSE cond_main
 !
    CALL ersetz_variable (string, laenge, lmask, omask) 
    nmask = MOD(omask+1,2)   ! Shift nmask one index up
@@ -312,7 +312,7 @@ ELSE
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) then 
-                        GOTO 999 
+                        return
                      ENDIF 
                      ENDDO 
                      CALL p_ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
@@ -433,8 +433,8 @@ ELSE
          ENDIF 
          ikla = INDEX_MASK (string, '(', lmask(1:len_trim(string), omask))
    ENDDO  parenth
-ENDIF 
-999 CONTINUE 
+ENDIF cond_main
+!999 CONTINUE 
 !                                                                       
 END SUBROUTINE berechne_char                  
 !

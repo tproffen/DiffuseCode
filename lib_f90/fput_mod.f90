@@ -398,7 +398,9 @@ IF (ianz.gt.0) THEN
          DO while (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') 
             ia = ia + 1 
             IF (ia.gt.ie) THEN 
-               GOTO 998 
+               ier_num = -3 
+               ier_typ = ER_IO 
+               RETURN 
             ENDIF 
             cstr (1:1) = string (ia:ia) 
          ENDDO 
@@ -407,18 +409,17 @@ IF (ianz.gt.0) THEN
 !                                                                       
          ll = 0
          bstr = ' '
-         DO while (.not. (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') ) 
+         loop_string: DO while (.not. (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') ) 
             ll = ll + 1
             lp = lp + 1 
             line (lp:lp) = cstr (1:1) 
             bstr (ll:ll) = cstr (1:1)   ! make copy for character evaluation
             ia = ia + 1 
             IF (ia.gt.ie) THEN 
-               GOTO 997 
+               exit loop_string
             ENDIF 
             cstr (1:1) = string (ia:ia) 
-         ENDDO 
-997      CONTINUE 
+         ENDDO loop_string
          CALL do_math (line, igl, lp) 
          IF(ier_num /= 0) THEN    ! Error in math assum string 
             line = cpara(i)(1:lpara(i)) //' = '''// bstr(1:LEN_TRIM(bstr))//''''  

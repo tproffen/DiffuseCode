@@ -179,8 +179,6 @@ main: DO
    ELSE 
       klo = k 
    ENDIF 
-!   GOTO 1 
-!ENDIF 
 ENDDO main
 h = xa (khi) - xa (klo) 
 IF(h == 0.) THEN
