@@ -1389,7 +1389,7 @@ REAL(kind=PREC_DP) ::  usym (4), ures (4), utest (3)
 !                                                                       
 !-----      Loop over all reflections in input file                     
 !                                                                       
- 1000 CONTINUE 
+cond_read: do
       READ (ird, 2000, end = 999) hkl, inten 
       DO i = 1, 3 
       usym (i) = REAL(hkl (i) ) 
@@ -1415,7 +1415,8 @@ REAL(kind=PREC_DP) ::  usym (4), ures (4), utest (3)
          WRITE (irs, 3000) (ures (j), j = 1, 3), inten, (NINT (usym (j) &
          ), j = 1, 3)                                                   
       ENDIF 
-      GOTO 1000 
+enddo cond_read
+!
   999 CONTINUE 
       CLOSE (ird) 
       CLOSE (iwr) 
