@@ -61,6 +61,7 @@ CHARACTER(LEN=PREC_STRING) :: strucfile    ! Dummy for input files
 INTEGER :: lp, length, lbef 
 INTEGER :: indxg, ianz, i, j, k 
 LOGICAL :: lend
+logical :: lsuccess
 LOGICAL, SAVE :: linit    = .true. 
 !
 INTEGER,SAVE  :: n_types  = 0 ! Current number of layer types
@@ -371,16 +372,21 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
                   st_internal(st_ntypes) = cpara(1)(1:8)=='internal'
                   st_layer (st_ntypes) = cpara (1) (1:lpara(1))
                   st_llayer (st_ntypes) = lpara (1) 
-                  DO i = 1, st_nchem 
-                     IF (cpara (1) .eq.st_layer_c (i) ) then 
+!
+                  lsuccess = .false.
+                  loop_search: DO i = 1, st_nchem 
+                     IF (cpara (1) ==  st_layer_c (i) ) then 
                         st_chem (st_ntypes) = i 
-                        GOTO 5000 
+                        lsuccess = .true.
+                        exit loop_search
                      ENDIF 
-                  ENDDO 
-                  st_nchem = st_nchem + 1 
-                  st_chem (st_ntypes) = st_nchem 
-                  st_layer_c (st_nchem) = cpara (1) (1:lpara(1))
- 5000             CONTINUE 
+                  ENDDO  loop_search
+                  if(.not.lsuccess) then
+                     st_nchem = st_nchem + 1 
+                     st_chem (st_ntypes) = st_nchem 
+                     st_layer_c (st_nchem) = cpara (1) (1:lpara(1))
+                  endif
+!
                   i = st_ntypes
                   strucfile = st_layer(i)
                   call read_to_internal(strucfile, 'internal_stack_layer.')
