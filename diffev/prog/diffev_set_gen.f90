@@ -42,18 +42,18 @@ LOGICAL :: lexist
 IF(gen==0) RETURN         ! No need to do anything
 !
 INQUIRE(FILE='GENERATION',  EXIST=lexist)
-IF(.NOT.lexist) THEN
+cond_exist: IF(.NOT.lexist) THEN
    ier_num = -35          ! GENERATION DOES NOT EXIST
    ier_typ = ER_APPL
    RETURN
-ENDIF
+else cond_exist
 OPEN(IRD, FILE='GENERATION', STATUS='OLD', ACCESS='SEQUENTIAL')
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 READ(line,*, IOSTAT=ios) generation, member, children, dimensions
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 IF(gen==generation) THEN
    CLOSE(IRD)             ! No need to do anything
    RETURN
@@ -64,42 +64,42 @@ ELSEIF(gen>GENERATION) THEN
    RETURN
 ENDIF
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 !
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 logfiles = line(1:LEN_TRIM(line))
 !
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 sumfiles = line(1:LEN_TRIM(line))
 !
 READ(IRD,'(a)', IOSTAT=ios) line 
-IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+IF(ios/=0) exit cond_exist !! Error reading GENERATION
 READ(IRD,'(a)', IOSTAT=ios) line 
-   IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+   IF(ios/=0) exit cond_exist !! Error reading GENERATION
 curfiles = line(1:LEN_TRIM(line))
 !
 ALLOCATE(par_name(-1:dimensions))
 lines_gen = 12
 par_loop: DO
    READ(IRD,'(a)', IOSTAT=ios) line
-   IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+   IF(ios/=0) exit cond_exist !! Error reading GENERATION
    lines_gen = lines_gen + 1
    IF(line(1:11)=='# Parameter') THEN           ! Got the list of parameter names
       DO i=-1, dimensions
          READ(IRD,'(a)', IOSTAT=ios) line
-         IF(ios/=0) GOTO 9999   ! Error reading GENERATION
+         IF(ios/=0) exit cond_exist ! Error reading GENERATION
          lines_gen = lines_gen + 1
          par_name(i) = line(1:MIN(lpar, LEN_TRIM(line)))
       ENDDO
@@ -202,7 +202,8 @@ DEALLOCATE(par_name)
 CALL do_read_values(.TRUE.)   ! Read the new refinement state
 RETURN                    ! SUCCESS
 !
-9999 CONTINUE             ! Error reading GENERATION
+endif cond_exist
+!9999 CONTINUE             ! Error reading GENERATION
 CLOSE(IRD)
 IF(ALLOCATED(par_name)) DEALLOCATE(par_name)
 ier_num = -19
