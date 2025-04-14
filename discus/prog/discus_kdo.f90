@@ -9,7 +9,6 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !     command is identified here and the corresponding subroutine       
 !     executed. A leading @ indicates a macro.                          
 !-                                                                      
-USE addfile_mod
 USE discus_allocate_appl_mod
 USE discus_reset_all_mod
 use bragg_mod
@@ -159,11 +158,6 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )       &
 !
          ELSEIF (str_comp (befehl, 'deallocate', 3, lbef, 10) ) THEN
             CALL discus_do_deallocate_appl (zeile, lcomm)
-!                                                                       
-!-------add two files 'addf'                                            
-!                                                                       
-!        ELSEIF (str_comp (befehl, 'addfile', 2, lbef, 7) ) THEN 
-!           CALL do_addfile (zeile, lcomm) 
 !                                                                       
 !     Set anisotropic APD 'anis'                                        
 !                                                                       
