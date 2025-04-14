@@ -2005,6 +2005,20 @@ IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN   
       enddo first
    ENDDO main_pts
 ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
+!write(*,*) ' powder_conv_psvgt_uvw', u,v,w, imax
+i=imax 
+i= 0
+tth = tthmin + i * dtth
+fwhm = powder_calc_fwhm_symm(i, tth, axis, u,v,w, rlambda, pow_pr_fwhm)
+!write(*,*) ' tth ', tth, dtth, fwhm
+!write(*,*) powder_calc_fwhm_symm(i, tth, axis, u,v,w, rlambda, pow_pr_fwhm)
+      eta  = powder_calc_eta      (i, tth, axis, eta_q,eta_l,eta0, rlambda, pow_pr_fwhm, 0.0_PREC_DP, 1.0_PREC_DP)
+      pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
+      max_ps = min(INT((pow_width * fwhm) / dtth ), int(GLP_MAX/pseudo))
+      i1 = max(0, i-max_ps)
+      i2 = min(   i+max_ps, imax)
+!write(*,*) ' tth ', tth, eta, pseudo, max_ps, i1, i2
+!write(*,*) ' DONE '
    main_pts_deb: DO i = 0, imax 
 !
       tth = tthmin + i * dtth        ! This is tth(axis=2) or Q(axis=1)
@@ -2014,11 +2028,15 @@ ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
       eta  = powder_calc_eta      (i, tth, axis, eta_q,eta_l,eta0, rlambda, pow_pr_fwhm, 0.0_PREC_DP, 1.0_PREC_DP)
       pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
       max_ps = min(INT((pow_width * fwhm) / dtth ), int(GLP_MAX/pseudo))
-      i1 = max(0, i-max_ps)
-      i2 = min(   i+max_ps, imax)
+      i1 = max(0, abs(i-max_ps + 1))
+      i2 = min(   i+max_ps-1, imax)
       first_deb: do j = i1, i2
          ii = abs(j-i)*nint(pseudo)
-         dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)
+!if(ii>40000) then
+!write(*,*) ' i   ', i, tth, fwhm, eta, pseudo
+!write(*,*) ' IND ', i1, i2, j, ii, j - i
+!endif
+         if(ii<=GLP_MAX) dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)
       enddo first_deb
    ENDDO main_pts_deb
 ENDIF
