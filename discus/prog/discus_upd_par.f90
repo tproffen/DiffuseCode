@@ -9,36 +9,36 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !       appropriate Parameter.                                          
 !     This is needed if the parameter is read.                          
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE atom_env_mod 
-      USE molecule_mod 
-      USE mole_env_mod 
-      USE pdf_mod
-      USE wyckoff_mod
-      USE blanks_mod
-      USE errlist_mod 
-      USE lib_upd_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE atom_env_mod 
+USE molecule_mod 
+USE mole_env_mod 
+USE pdf_mod
+USE wyckoff_mod
+USE blanks_mod
+USE errlist_mod 
+USE lib_upd_mod
 USE lib_length
 USE lib_errlist_func
-      USE param_mod 
-      USE random_mod 
+USE param_mod 
+USE random_mod 
 USE precision_mod
 USE precision_command_mod
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER,                    INTENT(IN   ) :: ikl
-      INTEGER,                    INTENT(IN   ) :: iklz
-      CHARACTER (LEN=*),          INTENT(INOUT) :: string 
-      INTEGER,                    INTENT(INOUT) :: ll
-      INTEGER,                    INTENT(IN   ) :: maxw
-      REAL(KIND=PREC_DP)   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
-      INTEGER,                    INTENT(IN   ) :: ianz
+INTEGER,                    INTENT(IN   ) :: ikl
+INTEGER,                    INTENT(IN   ) :: iklz
+CHARACTER (LEN=*),          INTENT(INOUT) :: string 
+INTEGER,                    INTENT(INOUT) :: ll
+INTEGER,                    INTENT(IN   ) :: maxw
+REAL(KIND=PREC_DP)   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
+INTEGER,                    INTENT(IN   ) :: ianz
 !                                                                       
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) zeile 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) zeile 
 !                                                                       
-      INTEGER laenge, ltyp, kpara, kpara2
-      INTEGER lcomm 
+INTEGER :: laenge, ltyp, kpara, kpara2
+INTEGER :: lcomm 
 !
 CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 IF(ier_num == 0) RETURN
@@ -1018,11 +1018,11 @@ cond_lcomm: IF (lcomm.eq.9) THEN
                   DO i = 1, ianz 
                   CALL eval (cpara (i), lpara (i) ) 
                   IF (ier_num.ne.0) THEN 
-                     GOTO 999 
+                     exit cond_lcomm
                   ENDIF 
                   werte (i) = do_read_number (cpara (i), lpara (i) ) 
                   IF (ier_num.ne.0) THEN 
-                     GOTO 999 
+                     exit cond_lcomm
                   ENDIF 
                   ENDDO 
 !thp               ww = inter_aver_dens(werte,maxw)                     
@@ -1045,11 +1045,11 @@ ELSEIF (lcomm.eq.8) THEN  cond_lcomm
                IF (ianz.eq.1) THEN 
                   CALL eval (cpara (1), lpara (1) ) 
                   IF (ier_num.ne.0) THEN 
-                     GOTO 999 
+                     exit cond_lcomm
                   ENDIF 
                   l = nint (do_read_number (cpara (1), lpara (1) ) ) 
                   IF (ier_num.ne.0) THEN 
-                     GOTO 999 
+                     exit cond_lcomm
                   ENDIF 
                   res_para (0) = 0 
                   res_para (1) = 0 
@@ -1062,7 +1062,7 @@ ELSEIF (lcomm.eq.8) THEN  cond_lcomm
                      res_para (1) = i 
                      res_para (2) = j 
                      ww = REAL(i) 
-                     GOTO 8000 
+                     exit cond_lcomm
                   ENDIF 
                   ENDDO 
                   ENDDO 
@@ -1099,11 +1099,11 @@ ELSEIF (lcomm.eq.7) THEN  cond_lcomm
                   DO i = 1, 6 
                   CALL eval (cpara (i), lpara (i) ) 
                   IF (ier_num.ne.0) THEN 
-                     GOTO 999 
+                     exit cond_lcomm
                   ENDIF 
                   werte (i) = do_read_number (cpara (i), lpara (i) ) 
                   IF (ier_num.ne.0) THEN 
-                     GOTO 999 
+                     exit cond_lcomm
                   ENDIF 
                   ENDDO 
                   DO i = 1, 3 
@@ -1199,11 +1199,11 @@ ELSEIF (lcomm.eq.4) THEN  cond_lcomm
                      DO i = 2, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      ENDDO 
                      i = nint (werte (2) ) 
@@ -1248,11 +1248,11 @@ ELSEIF (lcomm.eq.4) THEN  cond_lcomm
                      DO i = 2, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      ENDDO 
                      i = nint (werte (2) ) 
@@ -1285,11 +1285,11 @@ ELSEIF (lcomm.eq.4) THEN  cond_lcomm
                      DO i = 1, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      ENDDO 
                      IF (ianz.eq.6) THEN 
@@ -1325,11 +1325,11 @@ ELSEIF (lcomm.eq.4) THEN  cond_lcomm
                      DO i = 2, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      ENDDO 
                      i = nint (werte (2) ) 
@@ -1351,11 +1351,11 @@ ELSEIF (lcomm.eq.4) THEN  cond_lcomm
                      DO i = 2, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      ENDDO 
                      i = nint (werte (2) ) 
@@ -1376,11 +1376,11 @@ ELSEIF (lcomm.eq.4) THEN  cond_lcomm
                      DO i = 1, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
-                        GOTO 999 
+                        exit cond_lcomm
                      ENDIF 
                      ENDDO 
                      IF (ianz.eq.3) THEN 
@@ -1411,11 +1411,11 @@ ELSEIF (lcomm.eq.4) THEN  cond_lcomm
                   DO i = 1, ianz 
                   CALL eval (cpara (i), lpara (i) ) 
                   IF (ier_num.ne.0) THEN 
-                     GOTO 999 
+                     exit cond_lcomm
                   ENDIF 
                   werte (i) = do_read_number (cpara (i), lpara (i) ) 
                   IF (ier_num.ne.0) THEN 
-                     GOTO 999 
+                     exit cond_lcomm
                   ENDIF 
                   ENDDO 
                   IF (ianz.eq.6) THEN 
@@ -1441,14 +1441,13 @@ ELSEIF (lcomm.eq.4) THEN  cond_lcomm
             ier_num = - 3 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF (lcomm.eq.0) THEN cond_lcomm
-         CALL ersetz2 (string, ikl, iklz, ww, 0, laenge) 
-      ELSE cond_lcomm
-         ier_num = - 3 
-         ier_typ = ER_FORT 
-      ENDIF cond_lcomm
+ELSEIF (lcomm.eq.0) THEN cond_lcomm
+   CALL ersetz2 (string, ikl, iklz, ww, 0, laenge) 
+ELSE cond_lcomm
+   ier_num = - 3 
+   ier_typ = ER_FORT 
+ENDIF cond_lcomm
 !                                                                       
-  999 CONTINUE 
 !                                                                       
 IF (ier_num.ne.0) THEN 
    WRITE (ier_msg (1), 9000) string (1:min (40, laenge) ) 

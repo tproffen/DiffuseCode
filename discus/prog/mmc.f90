@@ -80,24 +80,23 @@ CALL alloc_mmc_move(n_corr, n_scat, n_mole)
 orig_prompt = prompt
 prompt = prompt (1:len_str (prompt) ) //'/mmc' 
 !
-   10 CONTINUE 
-!                                                                       
+loop_main: do
       CALL no_error 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num == 0) THEN 
          IF (line (1:1)  == ' '.OR.line (1:1)  == '#' .OR.   & 
              line == char(13) .OR. line(1:1) == '!'  ) THEN
             IF(linteractive .OR. lmakro) THEN
-               GOTO 10
+               cycle loop_main
             ELSE
-               RETURN
+               exit loop_main
             ENDIF
          ENDIF
 !                                                                       
 !------ search for "="                                                  
 !                                                                       
-indxg = index (line, '=') 
-IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+   indxg = index (line, '=') 
+   IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
               .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
               .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
                           str_comp (befehl, '?   ',   2, lbef, 4) )    &
@@ -106,7 +105,7 @@ IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
 !                                                                       
 !------ execute a macro file                                            
 !                                                                       
-         ELSEIF (befehl (1:1)  == '@') THEN 
+   ELSEIF (befehl (1:1)  == '@') THEN 
             line(1:length-1) = line(2:length)
             length = length - 1
             CALL file_kdo(line, length)
@@ -129,7 +128,7 @@ IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
 !     exit 'exit'                                                       
 !                                                                       
          ELSEIF (str_comp (befehl, 'exit', 3, lbef, 4) ) THEN 
-            GOTO 9999 
+            exit loop_main
 !                                                                       
 !     help 'help','?'                                                   
 !                                                                       
@@ -277,12 +276,11 @@ IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
          ENDIF 
       ENDIF 
       IF(linteractive .OR. lmakro) THEN
-         GOTO 10
+         cycle loop_main
       ELSE
-         RETURN
+         exit loop_main
       ENDIF
-!                                                                       
- 9999 CONTINUE 
+enddo loop_main
 !
 prompt = orig_prompt
 !                                                                       

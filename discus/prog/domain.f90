@@ -2286,6 +2286,8 @@ integer                                    , intent(in) :: clu_type   !
       INTEGER             :: n_mole_old = 0    ! previous number of molecules in structure
       INTEGER             :: iimole
       INTEGER             :: lline
+integer :: ios       ! IO status variable
+logical :: is_new    ! Test for new atom type
       LOGICAL             :: linternal
       LOGICAL, SAVE       :: at_init = .TRUE.
 logical :: lmole_type    ! The molecule has a 'molecule  type' line
@@ -2368,7 +2370,8 @@ REAL(kind=PREC_DP) :: d100, d010, d001
       ENDIF
 lmole_type = .false.                   ! Assume no 'molecule type' line
 is_mole_type = 1
- 1000 CONTINUE 
+loop_atoms: do
+! 1000 CONTINUE 
    ier_num = - 49 
    ier_typ = ER_APPL 
    line = ' ' 
@@ -2379,8 +2382,8 @@ is_mole_type = 1
          IF( ier_num == -105 ) THEN  ! read "end_of_file" 
             ier_num = 0
             ier_typ = ER_NONE
-             mk_iatom =  mk_iatom - 1   ! Increment internal atom number
-            GOTO 2
+            mk_iatom =  mk_iatom - 1   ! Increment internal atom number
+            exit loop_atoms
          ELSEIF(ier_num/=0) then
             RETURN
          ENDIF
@@ -2391,7 +2394,18 @@ is_mole_type = 1
          werte(1:3) = xyz
          werte(4)   = mk_dw(dummy_iscat(1))
       ELSE
-         READ (ist, 2000, END = 2, ERR = 999) line 
+!        READ (ist, 2000, END = 2, ERR = 999, iostat=ios) line 
+         READ (ist, 2000,                     iostat=ios) line 
+         if(is_iostat_end(ios)) exit loop_atoms    ! Regular end of file
+         if(ios/=0            ) then               ! Error on input
+            IF(n_read_atoms == 0) THEN
+               ier_num = -127
+               ier_typ = ER_APPL
+               ier_msg(1) = 'There were no atoms in the content file'
+               ier_msg(2)(1:44) = infile(1:44)
+            ENDIF
+            return
+         endif
       ENDIF
       lline = len_str (line)
       call tab2blank(line,lline)
@@ -2523,9 +2537,9 @@ inside:     IF (linside) then
 noblank:      IF (line (1:4) .ne.'    ') then 
                   ibl = ibl - 1 
                   CALL do_cap (line (1:ibl) ) 
-                  DO j = 0, cr_nscat 
-                  IF (line (1:ibl) .eq.cr_at_lis (j) .and.dw1.eq.cr_dw (&
-                  j) ) then                                             
+                  is_new = .true.
+                  loop_old: DO j = 0, cr_nscat 
+                  IF(line(1:ibl).eq.cr_at_lis(j).and.dw1.eq.cr_dw(j)) then                                             
                      cr_iscat (1,i) = j 
                      cr_prop (i) = 0 
                      cr_prop (i) = ibset (cr_prop (i), PROP_NORMAL) 
@@ -2533,9 +2547,11 @@ noblank:      IF (line (1:4) .ne.'    ') then
                      IF(linternal) THEN
                         cr_prop (i) = ibset (cr_prop (i), PROP_SURFACE_INT) 
                      ENDIF
-                     GOTO 11 
+                     is_new = .false.
+                     exit loop_old
                   ENDIF 
-                  ENDDO 
+                  ENDDO loop_old
+                  cond_isnew: if(is_new) then
                   IF (cr_nscat == MAXSCAT) then 
                      new_nscat = MAX(MAXSCAT + 5, INT ( MAXSCAT * 1.025 ))
                      CALL alloc_crystal_scat(new_nscat)
@@ -2580,7 +2596,8 @@ noblank:      IF (line (1:4) .ne.'    ') then
                      as_pos (j, as_natoms) = cr_pos (j, i) 
                      ENDDO 
                   ENDIF 
-   11             CONTINUE 
+                  endif cond_isnew
+!   11             CONTINUE 
 !!        Assign correct ADP from loop up table
                   cr_iscat(3,i) = adp_look(clu_type, dummy_iscat(3))
 !                 cr_iscat(3,i) = adp_look(clu_type, dummy_iscat(3))
@@ -2595,7 +2612,14 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   IF (mole_l_on .AND. .NOT. mk_infile_internal) then 
                      CALL mole_insert_current (cr_natoms, mole_num_curr) 
                      IF (ier_num.lt.0.and.ier_num.ne. - 49) then 
-                        GOTO 999 
+                        CLOSE (ist) 
+                        IF(n_read_atoms == 0) THEN
+                           ier_num = -127
+                           ier_typ = ER_APPL
+                           ier_msg(1) = 'There were no atoms in the content file'
+                           ier_msg(2)(1:44) = infile(1:44)
+                        ENDIF
+                        return
                      ENDIF 
                      cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
                      cr_mole(cr_natoms) = mole_num_curr
@@ -2611,9 +2635,9 @@ noblank:      IF (line (1:4) .ne.'    ') then
             ENDIF inside
          ENDIF is_mole
       ENDIF blank1
-      GOTO 1000 
+enddo loop_atoms
 !                                                                       
-    2 CONTINUE 
+!    2 CONTINUE 
 !
 !   If the file was read from internal storage, we need to assign the molecules
 !
@@ -2769,14 +2793,13 @@ mole_int: IF(mk_infile_internal) THEN
          CALL no_error 
       ENDIF 
 !                                                                       
-  999 CONTINUE 
-      CLOSE (ist) 
-      IF(n_read_atoms == 0) THEN
-         ier_num = -127
-         ier_typ = ER_APPL
-         ier_msg(1) = 'There were no atoms in the content file'
-         ier_msg(2)(1:44) = infile(1:44)
-      ENDIF
+CLOSE (ist) 
+IF(n_read_atoms == 0) THEN
+   ier_num = -127
+   ier_typ = ER_APPL
+   ier_msg(1) = 'There were no atoms in the content file'
+   ier_msg(2)(1:44) = infile(1:44)
+ENDIF
 !                                                                       
  2000 FORMAT    (a) 
  3000 FORMAT    (a4, 4(f16.8, ','), 3(i8, ','), f16.8)
@@ -2826,6 +2849,7 @@ INTEGER, dimension(3)  :: dummy_iscat
 INTEGER  :: dummy_prop
 INTEGER  :: dummy_mole
 INTEGER  :: dummy_moleatom
+integer  :: ios                ! IO status variable
 INTEGER, DIMENSION(0:3)  :: dummy_surf
 REAL(kind=PREC_DP)   , DIMENSION(0:3)  :: dummy_magn
 !                                                                       
@@ -2846,7 +2870,11 @@ IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
    WRITE(line, 1000) mk_at_lis(dummy_iscat(1)), xyz ! copy into line
 !if(clu_infile=='internal/STRU/cubo.0002.0001.pt') goto 1234
 ELSE
-  READ (imd, '(a)', end = 999) line 
+  READ (imd, '(a)', iostat=ios) line 
+  if(is_iostat_end(ios)) then
+    lend = .true.              ! Regular end of file flag lend
+    return
+  endif
 ENDIF
 IF(line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!'.AND.line.ne.char(13)) THEN
    CALL do_cap(line(1:4))
@@ -2907,7 +2935,6 @@ clu_current = ii                       ! Transfer current cluster type
 !write(*,*) ' CLU_IATOM', clu_iatom, '>>',infile(1:len_trim(infile)),'<<', dummy_iscat, ier_num, ier_typ
 RETURN 
 !                                                                       
-999 CONTINUE 
 lend = .true. 
 !
 1000  FORMAT(a4, 3(f16.8))
@@ -3000,7 +3027,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !                                                                       
       DO i = 1, natoms_old 
       separation = 1.0e03 
-      IF (cr_iscat (1,i) .ne.0) then 
+      cond_iscat: IF (cr_iscat (1,i) .ne.0) then 
 !                                                                       
 !     ----Check if the atom is inside a domain or object,               
 !         keep atom if inside a domain or object                        
@@ -3008,7 +3035,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
          IF (mole_char (j) .lt.MOLE_ATOM) then 
             DO k = 1, mole_len (j) 
             IF (mole_cont (mole_off (j) + k) .eq.i) then 
-               GOTO 999 
+               exit cond_iscat
             ENDIF 
             ENDDO 
          ENDIF 
@@ -3041,8 +3068,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
             ENDIF 
             ENDDO 
          ENDIF 
-      ENDIF 
-  999 CONTINUE 
+      ENDIF cond_iscat
       IF (separation.lt.surf_in_dist (cr_iscat (1,i) ) ) then 
          IF (BTEST (cr_prop (i), PROP_NORMAL) ) then 
             cr_prop (i) = IBSET (cr_prop (i), PROP_SURFACE_INT) 

@@ -181,7 +181,7 @@ ELSE
          ELSE 
             CALL indextocell (ja, jcell, jsite) 
          ENDIF 
-         DO i = 1, iianz 
+         loop_param: DO i = 1, iianz 
             IF( cr_iscat (1,ja) .eq.nint(uerte(i)) .and. &
                (jsite.eq.isite.or.isite.eq. - 1) .and. & 
                 ran1 (idum) .le.prob                   )  then                                                        
@@ -192,11 +192,10 @@ ELSE
                   ELSE 
                      cr_prop (ja) = IBCLR (cr_prop (ja), PROP_NORMAL) 
                   ENDIF 
-                  GOTO 999 
+                  exit loop_param
                ENDIF 
             ENDIF 
-         ENDDO 
-         999       CONTINUE 
+         ENDDO  loop_param
          lrepl = .false. 
 !           do i=1,iianz                                                
 !             lrepl = lrepl .or. cr_iscat(1,ja).eq.nint(uerte(i))         
@@ -562,7 +561,7 @@ REAL(kind=PREC_DP), dimension(3) :: w (3), v (3)
 !                                                                       
 !     If there is still space in the crystal, try to insert the atom    
 !                                                                       
-      IF (cr_natoms.lt.nmax) then 
+cond_space: IF (cr_natoms.lt.nmax) then 
          CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
          IF (ier_num.eq.0) then 
             IF (ianz.ge.8) then 
@@ -645,9 +644,8 @@ REAL(kind=PREC_DP), dimension(3) :: w (3), v (3)
                            v (1) = werte (2) 
                            v (2) = werte (3) 
                            v (3) = werte (4) 
-                           IF (do_blen (lspace, w, v) .lt. - werte (8) )&
-                           then                                         
-                              GOTO 10 
+                           IF(do_blen(lspace, w, v) .lt. - werte(8) )then
+                              exit cond_space
                            ENDIF 
                         ENDIF 
                         ENDDO 
@@ -685,7 +683,7 @@ REAL(kind=PREC_DP), dimension(3) :: w (3), v (3)
                            .lt.werte (8) .and.abs (cr_pos (2, i)        &
                            - werte (3) ) .lt.werte (9) .and.abs (cr_pos &
                            (3, i) - werte (4) ) .lt.werte (10) ) then   
-                              GOTO 10 
+                              exit cond_space
                            ENDIF 
                         ENDIF 
                         ENDDO 
@@ -712,12 +710,12 @@ REAL(kind=PREC_DP), dimension(3) :: w (3), v (3)
             ier_num = - 6 
             ier_typ = ER_COMM 
          ENDIF 
-      ELSE 
+ELSE  cond_space
          ier_num = - 10 
          ier_typ = ER_APPL 
-      ENDIF 
-   10 CONTINUE 
-      END SUBROUTINE do_app                         
+ENDIF  cond_space
+!
+END SUBROUTINE do_app                         
 !
 !****7******************************************************************
 !

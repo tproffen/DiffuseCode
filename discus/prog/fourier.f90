@@ -117,7 +117,7 @@ orig_prompt = prompt
 prompt = prompt (1:len_str (prompt) ) //'/fourier' 
 diff_lsingle = .TRUE.
 !                                                                       
-   10 CONTINUE 
+loop_main: do
 !                                                                       
       CALL no_error 
       divis (1) = REAL(max (1, inc (1) - 1) ) 
@@ -129,9 +129,9 @@ diff_lsingle = .TRUE.
          IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
              line == char(13) .or. line(1:1) == '!'  ) THEN
             IF(linteractive .OR. lmakro) THEN
-               GOTO 10
+               cycle loop_main
             ELSE
-               RETURN
+               exit loop_main
             ENDIF
          ENDIF
 !                                                                       
@@ -185,7 +185,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
 !     Terminate Fourier 'exit'                                          
 !                                                                       
             ELSEIF (str_comp (befehl, 'exit', 3, lbef, 4) ) then 
-               GOTO 9999 
+               exit loop_main
 !                                                                       
 !     help 'help' , '?'                                                 
 !                                                                       
@@ -1051,14 +1051,15 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
          ENDIF 
       ENDIF 
       IF(linteractive .OR. lmakro) THEN
-         GOTO 10
+         cycle loop_main
       ELSE
-         RETURN
+         exit loop_main
       ENDIF
- 9999 CONTINUE 
-      prompt = orig_prompt
+enddo loop_main
+!
+prompt = orig_prompt
 !                                                                       
-      END SUBROUTINE fourier                        
+END SUBROUTINE fourier                        
 !
 !*****7*****************************************************************
 !

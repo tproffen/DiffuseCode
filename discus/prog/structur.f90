@@ -120,17 +120,22 @@ cr_icc (3) = 1
 orig_prompt = prompt
 prompt = prompt (1:len_str (prompt) ) //'/read' 
 !
-9000  CONTINUE
 !
+loop_main: do      ! Reduces loop, just for comments
    CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
 !                                                                       
    IF(ier_num.ne.0) RETURN 
    IF(line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
-      line == char(13) .or. line(1:1) == '!'  ) GOTO 9000
+      line == char(13) .or. line(1:1) == '!'  ) then
+      cycle loop_main
+   else
+      exit loop_main
+   endif
+enddo loop_main
 !                                                                       
 !------ execute a macro file                                            
 !                                                                       
-   IF (line (1:1) .eq.'@') THEN 
+cond_command:   IF (line (1:1) .eq.'@') THEN 
       IF (length.ge.2) THEN 
          line(1:length-1) = line(2:length)
          line(length:length) = ' '
@@ -143,14 +148,14 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !                                                                       
 !------ Echo a string, just for interactive check in a macro 'echo'     
 !                                                                       
-      ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
-         CALL echo (zeile, lp) 
+ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN  cond_command
+   CALL echo (zeile, lp) 
 !                                                                       
 !     execute command                                                   
 !     help                                                              
 !                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) THEN                                      
+ELSEIF(str_comp(befehl, 'help', 2, lbef, 4) .or.                                 &
+       str_comp(befehl, '?   ', 1, lbef, 4) ) THEN   cond_command
          IF (zeile.eq.' '.or.zeile.eq.char (13) ) THEN 
             zeile = 'commands' 
             lp = lp + 8 
@@ -165,10 +170,10 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !                                                                       
 !------  -----waiting for user input                                    
 !                                                                       
-      ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
-         CALL do_input (zeile, lp) 
+ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN  cond_command
+   CALL do_input (zeile, lp) 
 !                                                                       
-      ELSE 
+ELSE  cond_command
 !                                                                       
 !     --all other commands                                              
 !                                                                       
@@ -176,7 +181,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !                                                                       
          CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
          IF (ier_num.ne.0) THEN 
-            GOTO 8888              ! Jump to handle error messages, amd macro conditions
+            exit cond_command ! Jump to handle error messages, amd macro conditions
          ENDIF 
          IF (ianz.ge.1) THEN 
 !                                                                       
@@ -184,7 +189,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !                                                                       
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             IF (ier_num.ne.0) THEN 
-               GOTO 8888              ! Jump to handle error messages, amd macro conditions
+               exit cond_command ! Jump to handle error messages, amd macro conditions
             ENDIF 
          ENDIF 
 !
@@ -195,7 +200,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
          owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    /)
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, lpresent, owerte)
-         IF(ier_num/=0) GOTO 8888              ! Jump to handle error messages, amd macro conditions
+         IF(ier_num/=0) exit cond_command      ! Jump to handle error messages, amd macro conditions
 !                                                                       
 !     --reset epsilon tensors                                           
 !                                                                       
@@ -303,14 +308,14 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
                four_last = FOUR_NN
             ENDIF 
          ELSEIF (str_comp (befehl, 'exit', 1, lbef, 4) ) THEN 
-            GOTO 9999 
+            exit cond_command
          ELSE 
-            ier_num = - 6 
+            ier_num = -6 
             ier_typ = ER_COMM 
-            GOTO 9999 
+            exit cond_command
          ENDIF 
-8888     CONTINUE    ! Target for errors, in order to handle these properly
-         IF (ier_num.eq.0) THEN 
+!
+         cond_error: IF (ier_num.eq.0) THEN 
             IF(cr_syst==4) THEN
                WRITE (output_io, 1000) cr_spcgr, cr_spcgrno , cr_set, cr_spcgr_set
             ELSE
@@ -327,7 +332,12 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
                CALL get_symmetry_matrices 
                call prep_anis(cr_natoms, l_not_full)
             ENDIF
-         ELSE 
+   ELSE  cond_error
+      exit cond_command
+   ENDIF  cond_error
+ENDIF  cond_command
+!
+cond_final_error: if(ier_num /= 0) then                 ! Handle errors
             CALL errlist 
             IF (ier_sta.ne.ER_S_LIVE) THEN 
                IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
@@ -355,10 +365,8 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
                sprompt = ' '
             ENDIF 
             CALL no_error 
-         ENDIF 
-      ENDIF 
+ENDIF  cond_final_error
 !                                                                       
- 9999 CONTINUE 
 !
 DO i=1,3
   IF(cr_icc(i)==1) chem_period(i) = .FALSE.
@@ -647,7 +655,6 @@ cond_mole:IF (mole_num_mole.gt.0) THEN
                   ier_num = - 65 
                   ier_typ = ER_APPL 
                   RETURN                 ! Jump to handle error messages, amd macro conditions
-!                 GOTO 8888              ! Jump to handle error messages, amd macro conditions
                ENDIF 
 ENDIF  cond_mole
 !                                                                       
@@ -1317,7 +1324,11 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
    IF(IS_IOSTAT_END(io_line)) THEN    ! Handle End Of File
       EXIT main
    ELSEIF(io_line /= 0 ) THEN         ! Handle input error
-      GOTO 999
+      CLOSE (ist) 
+      IF (ier_num.eq. - 49) THEN 
+         WRITE (ier_msg (1), 3000) as_natoms + 1 
+      ENDIF 
+      return
    ENDIF
    lline = len_str (line) 
 !23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
@@ -1347,21 +1358,21 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
          ier_typ = ER_APPL 
       ENDIF
 !
-      lbef = 10 
-      befehl = ' ' 
-      ibl = index (line (1:lline) , ' ') 
-      IF (ibl.eq.0) THEN 
-         ibl = lline+1 
-      ENDIF 
-      lbef = min (ibl - 1, lbef) 
-      befehl = line (1:lbef) 
-typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
-         str_comp (befehl, 'domain',   4, lbef, 6) .or.       &
-         str_comp (befehl, 'object',   4, lbef, 6)     ) THEN
+   lbef = 10 
+   befehl = ' ' 
+   ibl = index (line (1:lline) , ' ') 
+   IF (ibl.eq.0) THEN 
+      ibl = lline+1 
+   ENDIF 
+   lbef = min (ibl - 1, lbef) 
+   befehl = line (1:lbef) 
+   typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
+            str_comp (befehl, 'domain',   4, lbef, 6) .or.       &
+            str_comp (befehl, 'object',   4, lbef, 6)     ) THEN
 !                                                                       
 !     ----------Start/End of a molecule                                 
 !                                                                       
-         CALL no_error 
+      CALL no_error 
          IF(ibl.le.lline) THEN 
             i = lline-ibl 
             zeile = line (ibl + 1:lline) 
@@ -1374,7 +1385,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             CLOSE(IST)
             RETURN 
          ENDIF
-      ELSE  typus
+   ELSE  typus
          DO j = 1, MAXW 
             werte (j) = 0.0 
          ENDDO 
@@ -1387,7 +1398,11 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                                       AT_MAXP, at_ianz, at_param, at_init)                                          
          n_read = n_read + 1
          IF (ier_num.ne.0.and.ier_num.ne. -49) THEN 
-            GOTO 999 
+            CLOSE (ist) 
+            IF (ier_num.eq. - 49) THEN 
+               WRITE (ier_msg (1), 3000) as_natoms + 1 
+            ENDIF 
+            return
          ENDIF 
          cr_natoms = cr_natoms + 1 
          i = cr_natoms 
@@ -1424,7 +1439,8 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
          cr_magn(:,i) = 0.0_PREC_DP !werte(19:22)           ! Read for MAGNETIC_WORK
          IF(MAXVAL(ABS(werte(13:16)))> 0.0) cr_magnetic = .TRUE.  ! Crystal has magnetic atoms
 !                                                                       
-         if_blk: IF(line(1:ibl) .ne.'    ') THEN 
+      j = -1             ! Default to type not found
+      if_blk: IF(line(1:ibl) .ne.'    ') THEN 
             ibl = ibl - 1 
             CALL do_cap (line (1:ibl) ) 
 !                                                                       
@@ -1433,7 +1449,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !------ ----------- types ..                                            
 !                                                                       
             nw_name = line(1:ibl)              ! Default to user provided atom name
-            IF (.not.cr_newtype) THEN          ! lcell == .true.; always apply unique mask 
+            cond_newtype: IF (.not.cr_newtype) THEN          ! lcell == .true.; always apply unique mask 
                j = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
                                  cr_at_lis, cr_dw, cr_occ,        &
                                  nw_name, dw1, occ1, uni_mask)
@@ -1441,7 +1457,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                   cr_iscat(1,i) = j
                   cr_iscat(2:,i) = 1
                   call symmetry
-                  goto 22
+                  exit if_blk
                endif
 !              DO j = 0, cr_nscat 
 !                 IF (line (1:ibl)  == cr_at_lis (j)              &
@@ -1464,7 +1480,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                          GOTO 22 
 !                 ENDIF 
 !              ENDDO 
-            else                          !lcell = .false. Use optional parameter
+            else cond_newtype             !lcell = .false. Use optional parameter
 !              TEST FOR ATOM NAMES in HEADER
                nw_name = line(1:ibl)
                j = atom_get_type(MAXSCAT, 0, hdr_nscat, MAXMASK,   &
@@ -1500,9 +1516,9 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      cr_occ(cr_nscat) = occ1                    ! WORK OCC
                   enddo
                endif
-                  goto 22
+                  exit if_blk
                endif
-            ENDIF 
+            ENDIF cond_newtype
 !                                                                       
 !------ ----------- end new code                                        
 !                                                                       
@@ -1550,7 +1566,9 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             ELSE 
                ier_num = -26 
                ier_typ = ER_APPL 
-               GOTO 2 
+               CLOSE(IST)
+               WRITE (ier_msg (1), 3000) n_read
+               RETURN
             ENDIF 
    22       CONTINUE 
          ENDIF  if_blk
@@ -1560,7 +1578,7 @@ ENDDO main
 !
 CALL test_identical (l_identical, r_identical) ! Test if atoms are too close
 !                                                                       
-2    CONTINUE 
+!
 IF (ier_num.eq. -49) THEN 
    CALL no_error 
 !                                                                       
@@ -1603,12 +1621,12 @@ call guess_atom_all
 CLOSE (ist) 
 IF (ier_num.eq. - 49) THEN 
    WRITE (ier_msg (1), 3000) as_natoms + 1 
- 3000 FORMAT      ('At atom number = ',i8) 
 ENDIF 
 !
 CALL test_mole_gap
 !                                                                       
  2000 FORMAT    (a) 
+ 3000 FORMAT      ('At atom number = ',i8) 
 !
 END SUBROUTINE readcell                       
 !
@@ -2913,10 +2931,12 @@ REAL(KIND=PREC_DP) , DIMENSION(1) :: rpara
 !
 INTEGER :: ii, i 
 INTEGER :: j
+logical :: l_not_found
 !                                                                       
 !
 DATA setting /'abc', 'bac', 'cab', 'cba', 'bca', 'acb'/
 !                                                                       
+l_not_found = .true.
 CALL no_error 
 ii = 1 
 IF (ianz.eq.1) THEN 
@@ -2951,7 +2971,7 @@ ier_typ = ER_APPL
 !                                                                       
 !  Test regular tabulated space groups
 !
-DO i = 1, SPCGR_MAX 
+loop_regular: DO i = 1, SPCGR_MAX 
    spcgr_noblank(1) = cr_spcgr
    spcgr_noblank(2) = spcgr_name(i)
    j = len_trim(spcgr_noblank(1))
@@ -2964,13 +2984,15 @@ DO i = 1, SPCGR_MAX
       cr_spcgrno = spcgr_num (i, ii) 
       cr_syst = spcgr_syst (cr_spcgrno) 
       CALL no_error 
-      GOTO 10 
+      l_not_found = .false.
+      exit loop_regular
    ENDIF 
-ENDDO 
+ENDDO loop_regular
 !
 ! Test for alternative settings in orthorhombic space groups
 !                                                                       
-DO i = 16,74
+cond_alternative: if(l_not_found) then
+loop_alternative: DO i = 16,74
    DO j = 1,6
       IF (cr_spcgr.eq.spcgr_name_set (i,j) ) THEN 
          cr_spcgrno   = i                       ! Here we can use number i as spcgr number instead of spcgr_num (i, ii) 
@@ -2980,11 +3002,13 @@ DO i = 16,74
          cr_set       = setting(j)
          cr_iset      = j
          CALL no_error 
-         GOTO 10 
+         exit cond_alternative
       ENDIF 
    ENDDO 
-ENDDO 
+ENDDO loop_alternative
+endif cond_alternative
 !                                                                       
+cond_final: if(l_not_found) then
 CALL no_error 
 cpara(1) = cr_spcgr 
 lpara = len_str (cpara(1)) 
@@ -3002,12 +3026,13 @@ IF (ier_num.eq.0) THEN
       spcgr_para = 2
       spcgr_ianz = 1
    ENDIF
-ELSE 
+ELSE
    ier_num = - 7 
    ier_typ = ER_APPL 
 ENDIF 
+endif cond_final
 !                                                                       
-10 CONTINUE 
+!10 CONTINUE 
 !                                                                       
 IF (ier_num == 0) THEN 
    ier_num = - 14 
@@ -3749,7 +3774,10 @@ loop_read: do
       if(is_iostat_end(ios)) then
           close(IRD)
           close(iWR)
-          goto 900      ! Serious error, continuation line missing, abort
+          deallocate(c_atom )
+          deallocate(content)
+          deallocate(spc_mat)
+          return !         ! Serious error, continuation line missing, abort
       endif
       line = line1(1:icont -1) // ' ' // line2(1:len_trim(line2))
    else
@@ -4390,511 +4418,8 @@ end subroutine apply_center
 !
 !*****7**************************************************************** 
 !
-SUBROUTINE ins2discus_old (ianz, cpara, lpara, MAXW, ofile) 
-!-                                                                      
-!     converts a SHELXL "ins" or "res" file to DISCUS                   
-!+                                                                      
-USE ber_params_mod
-USE blanks_mod
-USE build_name_mod
-USE get_params_mod
-USE lib_length
-use string_convert_mod
-USE wink_mod
-USE precision_mod
-USE support_mod
-!
-IMPLICIT none 
-!                                                                       
-!                                                                       
-INTEGER                             , INTENT(INOUT) :: ianz 
-INTEGER                             , INTENT(IN)    :: MAXW 
-CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara ! (MAXW) 
-INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara ! (MAXW) 
-CHARACTER(LEN=*)                    , INTENT(OUT)   :: ofile 
-!                                                                       
-INTEGER, PARAMETER :: NFV = 50 
-!                                                                       
-      REAL(KIND=PREC_DP) :: werte (3) 
-!                                                                       
-      INTEGER shelx_num 
-      PARAMETER (shelx_num = 61) 
-      CHARACTER(4) shelx_ign (1:shelx_num) 
-      CHARACTER(2) c_atom (20) 
-      CHARACTER(4) command 
-CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE :: eadp_names
-      CHARACTER(80) line1 
-      CHARACTER(80) line2 
-      CHARACTER(160) line 
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(ofile))) :: infile 
-character(len=160), dimension(:), allocatable :: content      ! Complete content of Shelx file
-integer :: lcontent   ! Number of lines in content
-integer :: ios        ! I/O status
-      INTEGER ird, iwr 
-      INTEGER i, j, jj 
-      INTEGER ix, iy, iz, idot 
-      INTEGER ntyp , ntyp_prev
-      INTEGER length, length1, length2, lp 
-      INTEGER icont 
-      INTEGER centering 
-      INTEGER ityp 
-      INTEGER ifv 
-INTEGER   :: MAX_EADP
-INTEGER   :: n_eadp
-      LOGICAL lmole, lmole_wr 
-      LOGICAL lcontinue 
-      REAL(KIND=PREC_DP) :: z, latt (6) 
-      REAL(KIND=PREC_DP) :: xyz (3) 
-      REAL(KIND=PREC_DP) :: uiso, uij (6) 
-      REAL(KIND=PREC_DP) :: gen (3, 4) 
-      REAL(KIND=PREC_DP) :: fv (NFV) 
-REAL(KIND=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: eadp_values
-!
-      INTEGER                               :: iianz      ! Dummy number of parameters
-      INTEGER, PARAMETER                    :: MAXP  = 11 ! Dummy number of parameters
-      CHARACTER (LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(MAXP) :: ccpara     ! Parameter needed for SFAC analysis
-      INTEGER             , DIMENSION(MAXP) :: llpara
-      REAL(KIND=PREC_DP)  , DIMENSION(MAXP) :: wwerte
-!                                                                       
-!                                                                       
-      DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
-      'BOND', 'BUMP', 'CGLS', 'CHIV', 'CONF', 'CONN', 'DAMP', 'DANG',   &
-      'DEFS', 'DELU', 'DFIX', 'DISP',         'EQIV', 'EXTI', 'EXYZ',   &
-      'FEND', 'FLAT', 'FMAP', 'FRAG', 'FREE', 'GRID', 'HFIX', 'HOPE',   &
-      'HTAB', 'ISOR', 'L.S.', 'LAUE', 'LIST', 'MERG', 'MORE', 'MOVE',   &
-      'MPLA', 'NCSY', 'OMIT', 'PART', 'PLAN', 'REM ', 'RESI', 'RTAB',   &
-      'SADI', 'SAME', 'SHEL', 'SIMU', 'SIZE', 'SPEC', 'SUMP', 'STIR',   &
-      'SWAT', 'TEMP', 'TIME', 'TWIN', 'UNIT', 'WGHT', 'WPDB', 'ZERR' /  
-!
-      DO i = 1, NFV 
-         fv (i) = 0.0 
-      ENDDO 
-!                                                                       
-      lmole    = .false. 
-      lmole_wr = .true. 
-!
-      ntyp      = 0
-      ntyp_prev = 0
-!                                                                       
-      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-      IF (ier_num.ne.0) THEN 
-         RETURN
-      ENDIF 
-      infile = cpara (1) 
-      i = index (infile, '.', .TRUE.) 
-      IF (i.eq.0) THEN 
-         infile = cpara (1) (1:lpara (1) ) //'.ins' 
-         ofile = cpara (1) (1:lpara (1) ) //'.cell' 
-      ELSE 
-         ofile = cpara (1) (1:i) //'cell' 
-      ENDIF 
-      ird = 34 
-      iwr = 35 
-      CALL oeffne (ird, infile, 'old') 
-      IF (ier_num.ne.0) THEN 
-         RETURN
-      ENDIF 
-      CALL oeffne (iwr, ofile, 'unknown') 
-      IF (ier_num.ne.0) THEN 
-         RETURN
-      ENDIF 
-!
-! Read file once to determine line numbers
-!
-lcontent = 0
-loop_count: do
-   read(IRD, '(a)', iostat=ios) line
-   if(is_iostat_end(ios)) exit loop_count
-   lcontent = lcontent + 1
-enddo loop_count
-close(ird)
-open(unit=IRD, file=infile, status='old')  ! Simplified open as we know file exists
-allocate(content(lcontent))
-j = 0
-loop_read: do
-   read(IRD, '(a)', iostat=ios) line1      ! Read a short line
-   if(is_iostat_end(ios)) exit loop_read
-   if(line==' ')  cycle loop_read          ! Empty line, skip
-   icont = index (line1, '=')
-   if(icont>0) then
-      read(IRD, '(a)', iostat=ios) line2   ! Read a short line
-      if(is_iostat_end(ios)) goto 900      ! Serious error, continuation line missing, abort
-      line = line1(1:icont -1) // ' ' // line2(1:len_trim(line2))
-   else
-      line = line1
-   endif
-   j=j+1
-   content(j) = line
-enddo loop_read
-lcontent = j
-!
-close(ird)
-open(unit=IRD, file=infile, status='old')  ! Simplified open as we know file exists
-!
-!   Allocate and initialize the EADP array
-!
-MAX_EADP = 20
-ALLOCATE(eadp_names( 1:MAX_EADP))
-ALLOCATE(eadp_values(1:MAX_EADP))
-!
-n_eadp         = 0
-eadp_names(:)  = ' '
-eadp_values(:) = 0.0
-!                                                                       
-      lcontinue = .false. 
-      READ (ird, 1000, end = 900, err = 900) line1 
-      length1 = len_str (line1) 
-      IF (length1.gt.0) THEN 
-         icont = index (line1, '=') 
-         IF (icont.gt.0) THEN 
-            READ (ird, 1000, end = 900, err = 900) line2 
-            length2 = len_str (line2) 
-            line = line1 (1:icont - 1) //' '//line2 (1:length2) 
-         ELSE 
-            line = line1 
-         ENDIF 
-      ELSE 
-         line = line1 
-      ENDIF 
-      length = len_str (line) 
-      IF (length.gt.0) THEN 
-         command = line (1:4) 
-      ELSE 
-         command = '    ' 
-      ENDIF 
-      DO i = 1, shelx_num 
-         lcontinue = lcontinue.or.command.eq.shelx_ign (i) 
-      ENDDO 
-!                                                                       
-      DO while (command.ne.'FVAR'.and.command.ne.'MOLE') 
-      IF (lcontinue) THEN 
-         CONTINUE 
-      ELSEIF (command.eq.'TITL') THEN 
-         WRITE (iwr, 2000) line (6:length) 
-         WRITE (iwr, 2100) 
-      ELSEIF (command.eq.'CELL') THEN 
-         READ (line (6:length), * ) z, latt 
-         WRITE (iwr, 2200) latt 
-      ELSEIF (command.eq.'LATT') THEN 
-         READ (line (6:length), * ) centering 
-         IF (abs (centering) .eq.1) THEN 
-            CONTINUE 
-         ELSEIF (abs (centering) .eq.2) THEN 
-            WRITE (iwr, 2320) 
-         ELSEIF (abs (centering) .eq.3) THEN 
-            WRITE (iwr, 2330) 
-         ELSEIF (abs (centering) .eq.4) THEN 
-            WRITE (iwr, 2340) 
-            WRITE (iwr, 2341) 
-         ELSEIF (abs (centering) .eq.5) THEN 
-            WRITE (iwr, 2350) 
-         ELSEIF (abs (centering) .eq.6) THEN 
-            WRITE (iwr, 2360) 
-         ELSEIF (abs (centering) .eq.7) THEN 
-            WRITE (iwr, 2370) 
-         ENDIF 
-         IF (centering.gt.0) THEN 
-            WRITE (iwr, 2400) 
-         ENDIF 
-      ELSEIF (command.eq.'SFAC') THEN 
-         j = 5 
-         atom_search: DO while (j.lt.length) 
-            j = j + 1 
-            DO while (j.lt.length.and.line (j:j) .eq.' ') 
-               j = j + 1 
-            ENDDO 
-            IF (j.le.length) THEN 
-               ntyp = ntyp + 1 
-               c_atom (ntyp) = ' ' 
-               i = 0 
-               DO while (j.le.length.and.line (j:j) .ne.' ') 
-                  i = i + 1 
-                  c_atom (ntyp) (i:i) = line (j:j) 
-                  j = j + 1 
-               ENDDO 
-               IF(ntyp == ntyp_prev + 2) THEN
-!
-!                 This is the second parameter, test if this is a numerical
-!                 value. If so only the first parameter is an atom name rest is
-!                 the numerical form factor, which we ignore
-                  ccpara(1) = c_atom(ntyp)
-                  llpara(1) = i
-                  iianz     = 1
-                  CALL ber_params (iianz, ccpara, llpara, wwerte, MAXP) 
-                  IF(ier_num==0) THEN
-                     ntyp = ntyp - 1
-                     EXIT atom_search
-                  ENDIF
-                  ier_num = 0
-                  ier_typ = ER_NONE
-               ENDIF
-            ENDIF 
-         ENDDO atom_search
-!        WRITE (iwr, 2500) (c_atom (i) , ',', i = 1, ntyp - 1) , c_atom &
-!        (ntyp)                                                         
-      ELSEIF (command.eq.'SYMM') THEN 
-         call do_cap(line)
-         lp = length - 5 
-         CALL get_params (line (6:length), ianz, cpara, lpara, maxw, lp) 
-         IF (ianz.eq.3) THEN 
-            DO i = 1, 3 
-            DO jj = 1, 4 
-            gen (i, jj) = 0.0 
-            ENDDO 
-            ix = index (cpara (i) , 'X') 
-            IF (ix.gt.0) THEN 
-               gen (i, 1) = 1.0 
-               IF (ix.gt.1) THEN
-                  IF(cpara (i) (ix - 1:ix - 1) .eq.'-') THEN 
-                  gen (i, 1) = - 1.0 
-                  cpara (i) (ix - 1:ix - 1) = ' ' 
-               ELSEIF (cpara (i) (ix - 1:ix - 1) .eq.'+')   &
-               THEN                                                     
-                  gen (i, 1) = 1.0 
-                  cpara (i) (ix - 1:ix - 1) = ' ' 
-               ENDIF 
-               ENDIF 
-               cpara (i) (ix:ix) = ' ' 
-            ENDIF 
-            iy = index (cpara (i) , 'Y') 
-            IF (iy.gt.0) THEN 
-               gen (i, 2) = 1.0 
-               IF (iy.gt.1) THEN
-                  IF(cpara (i) (iy - 1:iy - 1) .eq.'-') THEN 
-                  gen (i, 2) = - 1.0 
-                  cpara (i) (iy - 1:iy - 1) = ' ' 
-               ELSEIF (cpara (i) (iy - 1:iy - 1) .eq.'+')   &
-               THEN                                                     
-                  gen (i, 2) = 1.0 
-                  cpara (i) (iy - 1:iy - 1) = ' ' 
-               ENDIF 
-               ENDIF 
-               cpara (i) (iy:iy) = ' ' 
-            ENDIF 
-            iz = index (cpara (i) , 'Z') 
-            IF (iz.gt.0) THEN 
-               gen (i, 3) = 1.0 
-               IF (iz.gt.1) THEN
-                  IF(cpara (i) (iz - 1:iz - 1) .eq.'-') THEN 
-                  gen (i, 3) = - 1.0 
-                  cpara (i) (iz - 1:iz - 1) = ' ' 
-               ELSEIF (cpara (i) (iz - 1:iz - 1) .eq.'+')   &
-               THEN                                                     
-                  gen (i, 3) = 1.0 
-                  cpara (i) (iz - 1:iz - 1) = ' ' 
-               ENDIF 
-               ENDIF 
-               cpara (i) (iz:iz) = ' ' 
-            ENDIF 
-            ENDDO 
-            DO i = 1, 3 
-            idot = index (cpara (i) , '.') 
-            IF (idot.eq.0) THEN 
-               cpara (i) (lpara (i) + 1:lpara (i) + 1) = '.' 
-               cpara (i) (lpara (i) + 2:lpara (i) + 2) = '0' 
-               lpara (i) = lpara (i) + 2 
-            ENDIF 
-            CALL rem_bl (cpara (i), lpara (i) ) 
-            ENDDO 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            gen (1, 4) = werte (1) 
-            gen (2, 4) = werte (2) 
-            gen (3, 4) = werte (3) 
-            WRITE (iwr, 2600) ( (gen (i, j), j = 1, 4), i = 1, 3) 
-         ENDIF 
-      ENDIF 
-!                                                                       
-      lcontinue = .false. 
-      READ (ird, 1000, end = 900, err = 900) line1 
-      length1 = len_str (line1) 
-      IF (length1.gt.0) THEN 
-         icont = index (line1, '=') 
-         IF (icont.gt.0) THEN 
-            READ (ird, 1000, end = 900, err = 900) line2 
-            length2 = len_str (line2) 
-            line = line1 (1:icont - 1) //' '//line2 (1:length2) 
-         ELSE 
-            line = line1 
-         ENDIF 
-      ELSE 
-         line = line1 
-      ENDIF 
-      length = len_str (line) 
-      IF (length.gt.0) THEN 
-         command = line (1:4) 
-      ELSE 
-         command = '    ' 
-      ENDIF 
-         DO i = 1, shelx_num 
-            lcontinue = lcontinue.or.command.eq.shelx_ign (i) 
-         ENDDO 
-      ENDDO 
-!                                                                       
-      WRITE (iwr, 3000) 
-!                                                                       
-      atoms: DO while (command.ne.'HKLF') 
-      IF (lcontinue) THEN 
-         CONTINUE 
-      ELSEIF (command.eq.'FVAR') THEN 
-         READ (line (6:length), *, end = 800) (fv (i), i = 1, NFV) 
-  800    CONTINUE 
-      ELSEIF (command.eq.'MOLE') THEN 
-         IF (lmole) THEN 
-            WRITE (iwr, 4000) 'molecule end' 
-            lmole_wr = .true. 
-         ELSE 
-            lmole = .true. 
-            lmole_wr = .true. 
-         ENDIF 
-         CONTINUE 
-      ELSEIF(command=='EADP') THEN
-         CONTINUE
-      ELSEIF (command.eq.'    ') THEN 
-         CONTINUE
-      ELSE 
-         IF (lmole.and.lmole_wr) THEN 
-            WRITE (iwr, 4000) 'molecule' 
-            lmole_wr = .false. 
-         ENDIF 
-!
-!        This is an atom, get the parameters from the input line
-!
-         iianz  = 0
-         j      = 5 
-         ccpara = ' '
-         llpara = 0
-         atom_para: DO while (j.lt.length) 
-            j = j + 1 
-            DO while (j.lt.length.and.line (j:j) .eq.' ') 
-               j = j + 1 
-            ENDDO 
-            IF (j.le.length) THEN 
-               iianz = iianz + 1 
-               ccpara (iianz) = ' ' 
-               i = 0 
-               DO while (j.le.length.and.line (j:j) .ne.' ') 
-                  i = i + 1 
-                  ccpara (iianz) (i:i) = line (j:j) 
-                  j = j + 1 
-               ENDDO 
-               llpara(iianz) = i
-            ENDIF 
-         ENDDO atom_para
-         READ (ccpara(1)(1:llpara(1)),*) ityp
-         READ (ccpara(2)(1:llpara(2)),*) xyz(1)
-         READ (ccpara(3)(1:llpara(3)),*) xyz(2)
-         READ (ccpara(4)(1:llpara(4)),*) xyz(3)
-         uij(:) = 0
-         DO i=1,iianz - 5
-            READ (ccpara(5+i)(1:llpara(5+i)),*) uij(i)
-         ENDDO
-!        READ (line (6:length), *, end = 850) ityp, xyz, sof, (uij (i), &
-!        i = 1, 6)                                                      
-! 850    CONTINUE 
-         DO i=1,3
-            ifv = nint (uij(i)/10.)
-            IF(ifv.gt.1) THEN
-               uij(i) = (uij(i) - ifv * 10) * fv (ifv)
-            ELSEIF (ifv.lt. - 1) THEN
-               uij(i) = (abs (uij(i)) + ifv * 10) * (1. - fv(IABS(ifv)))
-            ENDIF
-         ENDDO
-         IF (iianz == 6) THEN 
-            uiso = uij (1) 
-         ELSE 
-            uiso = (uij (1) + uij (2) + uij (3) ) / 3. 
-         ENDIF 
-         DO i = 1, 3 
-         ifv = nint (xyz (i) / 10.) 
-         IF (ifv.eq.1) THEN 
-            xyz (i) = xyz (i) - 10. 
-         ELSEIF (ifv.gt.1) THEN 
-            xyz (i) = (xyz (i) - ifv * 10) * fv (ifv) 
-         ELSEIF (ifv.lt. - 1) THEN 
-            xyz(i) = (ABS(xyz(i)) + ifv * 10) * (1. - fv(IABS(ifv)))
-         ENDIF 
-         ENDDO 
-!         write(iwr,3100) c_atom(ityp),xyz,REAL(ityp)                  
-         WRITE (iwr, 3100) c_atom (ityp), xyz, uiso *8.*pi**2
-      ENDIF 
-!                                                                       
-      lcontinue = .false. 
-      READ (ird, 1000, end = 900, err = 900) line1 
-      length1 = len_str (line1) 
-      IF (length1.gt.0) THEN 
-         icont = index (line1, '=') 
-         IF (icont.gt.0) THEN 
-            READ (ird, 1000, end = 900, err = 900) line2 
-            length2 = len_str (line2) 
-            line = line1 (1:icont - 1) //' '//line2 (1:length2) 
-         ELSE 
-            line = line1 
-         ENDIF 
-      ELSE 
-         line = line1 
-      ENDIF 
-         length = len_str (line) 
-         IF (length.gt.0) THEN 
-            command = line (1:4) 
-         ELSE 
-            command = '    ' 
-            CYCLE atoms
-         ENDIF 
-         DO i = 1, shelx_num 
-            lcontinue = lcontinue.or.command.eq.shelx_ign (i) 
-         ENDDO 
-      ENDDO  atoms
-!                                                                       
-  900 CONTINUE 
-!                                                                       
-      IF (lmole .AND. .NOT.lmole_wr) THEN   ! Write a final molecule end 
-         WRITE (iwr, 4000) 'molecule end' 
-      ENDIF 
-!                                                                       
-      CLOSE (ird) 
-      CLOSE (iwr) 
-DEALLOCATE(eadp_names)
-DEALLOCATE(eadp_values)
-deallocate(content)
-!                                                                       
- 1000 FORMAT    (a) 
- 2000 FORMAT    ('title ',a) 
- 2100 FORMAT    ('spcgr P1') 
- 2200 FORMAT    ('cell ',5(2x,f9.4,','),2x,f9.4) 
- 2320 FORMAT    ('gener  1.0, 0.0, 0.0, 0.5,',                          &
-     &                     '    0.0, 1.0, 0.0, 0.5,',                   &
-     &                     '    0.0, 0.0, 1.0, 0.5,  1')                
- 2330 FORMAT    ('gener  1.0, 0.0, 0.0, 0.66666667,',                   &
-     &                     '    0.0, 1.0, 0.0, 0.33333333,',            &
-     &                     '    0.0, 0.0, 1.0, 0.33333333,   2')        
- 2340 FORMAT    ('gener  1.0, 0.0, 0.0, 0.0,',                          &
-     &                     '    0.0, 1.0, 0.0, 0.5,',                   &
-     &                     '    0.0, 0.0, 1.0, 0.5,   1')               
- 2341 FORMAT    ('gener  1.0, 0.0, 0.0, 0.5,',                          &
-     &                     '    0.0, 1.0, 0.0, 0.0,',                   &
-     &                     '    0.0, 0.0, 1.0, 0.5,   1')               
- 2350 FORMAT    ('gener  1.0, 0.0, 0.0, 0.0,',                          &
-     &                     '    0.0, 1.0, 0.0, 0.5,',                   &
-     &                     '    0.0, 0.0, 1.0, 0.5,   1')               
- 2360 FORMAT    ('gener  1.0, 0.0, 0.0, 0.5,',                          &
-     &                     '    0.0, 1.0, 0.0, 0.0,',                   &
-     &                     '    0.0, 0.0, 1.0, 0.5,   1')               
- 2370 FORMAT    ('gener  1.0, 0.0, 0.0, 0.5,',                          &
-     &                     '    0.0, 1.0, 0.0, 0.5,',                   &
-     &                     '    0.0, 0.0, 1.0, 0.0,  1')                
- 2400 FORMAT    ('gener -1.0, 0.0, 0.0, 0.0,',                          &
-     &                     '    0.0,-1.0, 0.0, 0.0,',                   &
-     &                     '    0.0, 0.0,-1.0, 0.0,  1')                
- 2600 FORMAT    ('gener',3(2X,4(1x,f12.8,',')),' 1.') 
-!                                                                       
- 3000 FORMAT    ('atoms') 
- 3100 FORMAT    (a2,2x,4(2x,f9.5)) 
-!                                                                       
- 4000 FORMAT    (a) 
-!                                                                       
-      END SUBROUTINE ins2discus_old
-!*****7**************************************************************** 
-      SUBROUTINE cmaker2discus (ianz, cpara, lpara, MAXW, ofile) 
+
+SUBROUTINE cmaker2discus (ianz, cpara, lpara, MAXW, ofile) 
 !-                                                                      
 !     converts a CrystalMaker "xyz" file to DISCUS                   
 !+                                                                      

@@ -71,16 +71,16 @@ real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 real(kind=PREC_DP) :: rel_cycl
 !                                                                       
 !                                                                       
-      CALL no_error 
-      orig_prompt = prompt
-      prompt = prompt (1:len_str (prompt) ) //'/chem' 
+CALL no_error 
+orig_prompt = prompt
+prompt = prompt (1:len_str (prompt) ) //'/chem' 
 !                                                                       
-   10 CONTINUE 
+loop_main: do                 ! Main menu loop
 !                                                                       
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
-      IF (ier_num.eq.0) then 
+   CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
+   cond_error: IF (ier_num.eq.0) then 
          IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
-             line == char(13) .or. line(1:1) == '!'  ) GOTO 10
+             line == char(13) .or. line(1:1) == '!'  ) cycle loop_main
 !                                                                       
 !------ search for "="                                                  
 !                                                                       
@@ -288,7 +288,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !     exit 'exit'                                                       
 !                                                                       
          ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
-            GOTO 9999 
+            exit loop_main
 !                                                                       
 !------ calculate correlation field                                     
 !                                                                       
@@ -450,7 +450,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
             ier_num = - 8 
             ier_typ = ER_COMM 
          ENDIF 
-      ENDIF 
+      ENDIF  cond_error
 !                                                                       
 !------ any errors ?                                                    
 !                                                                       
@@ -483,12 +483,12 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
             lmakro_error = .FALSE.
             sprompt = ' '
          ENDIF 
-      ENDIF 
-      GOTO 10 
+      ENDIF
+enddo loop_main
 !                                                                       
- 9999 CONTINUE 
-      prompt = orig_prompt
-      END SUBROUTINE chem                           
+prompt = orig_prompt
+!
+END SUBROUTINE chem                           
 !*****7*****************************************************************
 !
 subroutine chem_show(cmd)

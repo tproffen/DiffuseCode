@@ -1938,7 +1938,6 @@ lp_gener: DO ipg = 1, generpower (igg)
 !       ABS(abs (compare (2) - previous (2) )-1.) .lt.eps.and.  &
 !       ABS(abs (compare (3) - previous (3) )-1.) .lt.eps)       ) THEN
             lnew = .false. 
-!           GOTO 30 
             EXIT lp_atom
          ENDIF 
       ENDDO lp_atom
@@ -2682,9 +2681,6 @@ REAL(kind=PREC_DP), DIMENSION(1:3) :: v_min
 !DBG                                                                    
 !DBG      write (output_io,5556) u,j,mole_off(i)+j,v,dd                 
 !DBG5556      format(3f10.4,2(2x,i2),2x,3f10.4,2x,f12.4)                
-!!      IF (abs (d-dd) .lt.0.01) then 
-!!         GOTO 10 
-!!      ENDIF 
         IF(abs(d-dd) < d_min ) THEN
            d_min = ABS(d-dd)
            v_min(1) = v(1)

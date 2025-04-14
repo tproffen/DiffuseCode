@@ -2505,6 +2505,7 @@ REAL(kind=PREC_DP), DIMENSION(1:3)      :: pos1, pos2
 INTEGER             :: m_type_new   ! new molecule types 
 INTEGER             :: in_mole,in_moleatom
 INTEGER             :: n_atoms_orig
+logical             :: lsuccess
 !
 maxw     = MAX(MINPARA,nanch)
 !
@@ -2545,6 +2546,7 @@ x(3)     = cr_pos(3,ia)
 !
 angle   = 400.0
 b_l_min = 1.E12
+lsuccess = .true.
 !
 search: DO l=2,ncon
    rmin     = 0.1
@@ -2580,14 +2582,17 @@ search: DO l=2,ncon
          ENDIF
       ENDDO check_prop
       IF(j==0) THEN                                      ! No suitable neighbor, quietly leave
-         GOTO 9999
+         lsuccess = .false.
+         exit search
       ENDIF
       all_surface (l) = atom_env(j)
    ELSE
-      GOTO 9999
+      lsuccess = .false.
+      exit search
    ENDIF  ! 
 ENDDO search
 !
+cond_success: if(lsuccess) then
 !
 pos2(:)   = cr_pos(:,all_surface(2))
 bridge(1) = (cr_pos(1,ia)-cr_pos(1,all_surface(2)))   ! Calculate vector along bridge
@@ -2595,10 +2600,10 @@ bridge(2) = (cr_pos(2,ia)-cr_pos(2,all_surface(2)))
 bridge(3) = (cr_pos(3,ia)-cr_pos(3,all_surface(2)))
 b_l       = sqrt (skalpro (bridge, bridge, cr_gten))     ! Calculate bridge length
 c_ang_ia  = (b_l**2 + dist(1)**2 -dist(2)**2) / (2.*b_l*dist(1))   ! COS(Angle in atom ia)
-IF(ABS(c_ang_ia) > 1.00) GOTO 9999
+IF(ABS(c_ang_ia) > 1.00) exit cond_success
 !
 c_ang_nei = (b_l**2 + dist(2)**2 -dist(1)**2) / (2.*b_l*dist(2))   ! COS(Angle in atom ia)
-IF(ABS(c_ang_nei) > 1.00) GOTO 9999
+IF(ABS(c_ang_nei) > 1.00) exit cond_success
 !
 dist_m    = (dist(1) * c_ang_ia) / b_l            ! relative length of 'midpoint' location
 x(1) = cr_pos(1,ia) + (cr_pos(1,all_surface(2))-cr_pos(1,ia))*dist_m ! Calculate midpoint
@@ -2654,7 +2659,7 @@ DO im=1,mole_natoms                           ! Insert all atoms
    CALL check_symm
    sym_latom(cr_iscat(1,cr_natoms)) = .true.    ! Select atopm type for rotation
 ENDDO
-IF(cr_natoms==nold) GOTO 9999
+IF(cr_natoms==nold) exit cond_success
 !
 IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
   CALL rotate_directly(neig(1), n_atoms_orig, mole_axis, surf_normal)
@@ -2691,7 +2696,9 @@ flagsurf: DO j=1,20
    ENDIF
 ENDDO flagsurf
 !
-9999 CONTINUE                                    ! Jump here from errors to ensure dealloc
+endif cond_success
+!
+!9999 CONTINUE                                    ! Jump here from errors to ensure dealloc
 IF(nold<cr_natoms) THEN                          ! We did insert a molecule
     chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
     chem_quick     = .false.                         ! turn of quick search
@@ -2828,6 +2835,7 @@ real(kind=PREC_DP), dimension(1:3) :: bridge
    INTEGER             :: nold         ! atom number previous to current molecule
    INTEGER             :: m_type_new   ! new molecule types 
    INTEGER             :: in_mole,in_moleatom
+logical  :: lsuccess
 !
 maxw     = MAX(MINPARA,nanch)
 vnull(:) = 0.00D0
@@ -2885,6 +2893,7 @@ chem_quick     = .false.                         ! turn of quick search
 ALLOCATE(all_surface(1:ncon))
 !
 all_surface (1) = ia
+lsuccess = .true.
 !
 !  FIND the other surface partners involved in the bonds.
 !
@@ -2915,13 +2924,17 @@ search: DO l=2,ncon
          ENDIF
       ENDDO check_prop
       IF(j==0) THEN                                      ! No suitable neighbor, quietly leave
-         GOTO 9999
+         lsuccess = .false.
+         exit search
       ENDIF
       all_surface (l) = atom_env(j)
    ELSE
-      GOTO 9999
+      lsuccess = .false.
+      exit search
    ENDIF  ! 
 ENDDO search
+!
+cond_success: if(lsuccess) then
 !  Determine rotation axis for surface vector
 tangent(:) = cr_pos(:,all_surface (2)) - cr_pos(:,ia)  ! Vector between surface atoms
 t_l        = sqrt(skalpro(tangent, tangent, cr_gten))  ! Distance between surface atoms
@@ -2958,7 +2971,7 @@ ENDDO
 arg        = (-(dist(1)**2-dist(2)**2-(t_l-b_l)**2)/ &
                (2.*dist(2)*(t_l-b_l)))
 IF(ABS(arg) > 1.00) THEN
-   GOTO 9999                               ! No solution is found skip
+   exit cond_success                  ! No solution is found skip
 ENDIF
 sym_angle  = ACOS(arg)/REAL(rad)
 !
@@ -2990,7 +3003,7 @@ sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 CALL symm_op_single                           ! Perform the operation
 ELSE
-   GOTO 9999
+   exit cond_success
 ENDIF
 !
 IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
@@ -3035,8 +3048,9 @@ flagsurf: DO j=1,20
    ENDIF
 ENDDO flagsurf
 success = 0 
+endif cond_success
 !
-9999 CONTINUE                                             ! Jump here from errors to ensure dealloc
+!9999 CONTINUE                                             ! Jump here from errors to ensure dealloc
 IF(success /=0) THEN                          ! An error occurred, reset crystal
    cr_natoms = n_atoms_orig
 ENDIF
@@ -3537,9 +3551,7 @@ surface(0) = j
 n1 = n_atoms_orig +     neig(1)  !Absolute number for 1st neighbor in molecule
 CALL deco_find_anchor(natoms_prior, nsites(1), surface(0), surface, dist(1), ia,  &
                       surf_normal, posit, is_good, base, success)
-IF(success/=0) THEN ! DID not find a suitable anchor, flag error
-   GOTO 9999
-ENDIF
+cond_success: if(success==0) then
 !
 !   Move molecule to anchor position
 !
@@ -3579,10 +3591,10 @@ IF(ncon == 2) THEN                            ! We have the second connection
          ENDIF
       ENDDO check_prop
       IF(j==0) THEN                                      ! No suitable neighbor, quietly leave
-         GOTO 9999
+         exit cond_success
       ENDIF
    ELSE
-      GOTO 9999
+      exit cond_success
    ENDIF  ! 
 ENDIF
 !
@@ -3598,7 +3610,7 @@ laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 sym_uvw(:) =  res_para(1:3)
 arg = (dist(1)**2 + dist(2)**2 - b_l**2)/(2.*dist(1)*dist(2))
-IF(ABS(arg)> 1.0) GOTO 9999                ! No suitable solution
+IF(ABS(arg)> 1.0) exit cond_success        ! No suitable solution
 sym_angle  = acos( (dist(1)**2 + dist(2)**2 - b_l**2)/(2.*dist(1)*dist(2)))/REAL(rad)
 v(:) = v(:) *dist(2)/v_l                        ! Scale vector 1st surface to 1st mole to distance2
 vv = v
@@ -3617,7 +3629,7 @@ sym_sel_atom   = .true.                    ! Select atoms not molecules
 sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 CALL symm_ca_single (vv, .true., .false.)
-IF(ier_num /= 0) GOTO 9999                 ! Rotation is erroneous, |Axis| = 0 or similar 
+IF(ier_num /= 0) exit cond_success         ! Rotation is erroneous, |Axis| = 0 or similar 
 posit(:) = cr_pos(:,ia) + res_para(1:3)    ! Add rotated vector to 1st surface
 !
 ! next step rotate molecule for 2nd mole to fall onto target posit
@@ -3635,7 +3647,7 @@ sym_end    =  cr_natoms
 sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 CALL symm_op_single                        ! Perform the operation
-IF(ier_num /= 0) GOTO 9999                 ! Rotation is erroneous, |Axis| = 0 or similar 
+IF(ier_num /= 0) exit cond_success         ! Rotation is erroneous, |Axis| = 0 or similar 
 !
 IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
 !   Rotate molecule up to straighten molecule axis out
@@ -3695,7 +3707,7 @@ CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
                surf_normal, mole_natoms, n1, n2)
 !
 IF(deco_collision(natoms_prior, nold)) THEN
- GOTO 9999
+ exit cond_success
 ENDIF
 !
 cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
@@ -3727,7 +3739,8 @@ m_type_new = m_type_old  + temp_id
 CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
 success = 0                                   ! Clear error flag
 !
-9999 CONTINUE                                 ! Jump here from errors to ensure dealloc
+endif cond_success
+!
    IF(success /=0) THEN                       ! An error occurred, reset crystal
       cr_natoms = n_atoms_orig
 ELSE
@@ -4122,7 +4135,7 @@ REAL(KIND=PREC_DP), PARAMETER         :: EPS = 1.0E-7
    INTEGER             :: in_mole,in_moleatom
 !
 !
-success = -1
+success =  0
 fp(:) = .FALSE.
 fq    = .FALSE.
 !
@@ -4150,7 +4163,9 @@ surf_normal = matmul(cr_rten, surf_normal_r)
 !
 nold = cr_natoms
 !  Accept as surfaces any outside facing surface and all internal "flat" surfaces
-IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
+cond_success: if(success ==0) then
+   success = -1                                          !Assume failure 
+cond_surface: IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
 !
 !  Insert molecule atoms into crystal at correct origin in initial orientation
    normal_l = SQRT (skalpro (surf_normal, surf_normal, cr_gten))
@@ -4187,7 +4202,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
 !
 !  Did we find a proper covalent neighbor at less than 1.2 A?
 !
-   IF(atom_env(0)==0) GOTO 9999                  !Failure, leave
+   IF(atom_env(0)==0) exit cond_success          !Failure, leave
    u(:) = cr_pos(:, atom_env((1))) - cr_pos(:,ia)     ! Vector Hydrogen to Donor
    v(:) = cr_pos(:, nold+neig) - cr_pos(:,ia)          ! Vector Hydrogen to Neighbor in ligand
    WRITE(line,1100) u,v                          ! Do vector product (mol_axis) x (projection)
@@ -4205,7 +4220,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
       CALL vprod(line, laenge)
       d2 = res_para(1)**2 + res_para(2)**2 + res_para(3)**2
       IF(d2 < EPS    ) THEN   !D==>H and H==>A are still parallel, silently give up, should not happen ?
-         GOTO 9999
+         exit cond_success
       ENDIF
    ENDIF
    sym_uvw(:)     =  res_para(1:3)
@@ -4305,14 +4320,16 @@ enddo
       ENDIF
    ENDDO flagsurf
 !
-ENDIF
+ENDIF cond_surface
 chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
 chem_quick     = .false.                         ! turn of quick search
 cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
 cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)  ! Anchor is no longer at a surface
 success = 0
 !
-9999 CONTINUE                                 ! Jump here from errors to ensure dealloc
+endif cond_success
+!
+!9999 CONTINUE                                 ! Jump here from errors to ensure dealloc
    IF(success /=0) THEN                       ! An error occurred, reset crystal
       cr_natoms = nold
    ENDIF

@@ -105,7 +105,8 @@ diff_lsingle = .TRUE.
          prompt = prompt (1:len_str (prompt) ) //'/patterson' 
       ENDIF 
 !                                                                       
-   10 CONTINUE 
+!   10 CONTINUE 
+loop_main: do                ! Main command loop
 !                                                                       
       CALL no_error 
 !                                                                       
@@ -117,7 +118,7 @@ diff_lsingle = .TRUE.
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
-             line == char(13) .or. line(1:1) == '!'  ) GOTO 10
+             line == char(13) .or. line(1:1) == '!'  ) cycle loop_main
 !                                                                       
 !     search for "="                                                    
 !                                                                       
@@ -184,7 +185,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     Terminate invers Fourier / Patterson 'exit'                       
 !                                                                       
             ELSEIF (str_comp (befehl, 'exit', 3, lbef, 4) ) then 
-               GOTO 9999 
+               exit loop_main
 !                                                                       
 !     define the input file names 'file'                                
 !                                                                       
@@ -1201,8 +1202,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             sprompt = ' '
          ENDIF 
       ENDIF 
-      GOTO 10 
- 9999 CONTINUE 
+enddo loop_main
+!
 !
       prompt = orig_prompt
 !
@@ -1333,8 +1334,9 @@ a_b = (0.0D0,0.0D0)
 !write(*,'(a,2f10.6,2x,3f5.1)') 'MINVALS ', minval(real(csf)), minval(imag(csf)), y
 !write(*,'(a,2f10.6,2x,3f5.1)') 'MAXVALS ', maxval(real(csf)), maxval(imag(csf)), a_b
 !                                                                       
-      IF (ftyp.eq.SHELXL.and. (.not.patt_rsym) ) then 
-   10    CONTINUE 
+cond_main: IF (ftyp.eq.SHELXL.and. (.not.patt_rsym) ) then 
+!  10    CONTINUE 
+   loop_shelxl: do       
 !                                                                       
 !     ----read hkl,fobs,fcalc,phase                                     
 !                                                                       
@@ -1357,10 +1359,11 @@ a_b = (0.0D0,0.0D0)
          zz4)                                                           
          a_b = a_b * patt_scale * vr 
          CALL calc_patters (a_b, y) 
-         GOTO 10 
+   enddo loop_shelxl
    20    CONTINUE 
-      ELSEIF (ftyp.eq.SHELXL.and.patt_rsym) then 
-   15    CONTINUE 
+ELSEIF (ftyp.eq.SHELXL.and.patt_rsym) then  cond_main
+!  15    CONTINUE 
+loop_shelx2: do
 !                                                                       
 !     ----read hkl,fobs,fcalc,phase                                     
 !                                                                       
@@ -1405,15 +1408,16 @@ a_b = (0.0D0,0.0D0)
             CALL calc_patters (a_b, y) 
          ENDIF 
          ENDDO 
-         GOTO 15 
+   enddo loop_shelx2
    25    CONTINUE 
-      ELSEIF (ftyp.eq.HKLF4.and.patt_rsym) then 
+ELSEIF (ftyp.eq.HKLF4.and.patt_rsym) then  cond_main
 !lll = 5
 !write(*,*) ' TYPE IS HKLF4 and patterson_symmetry'
 !write(*,*) ' REC Symm', rec_n_sym, acentric
 !write(*,*) ' PATT MOD', patt_mode.eq.PATT_NORMAL, patt_mode.eq.PATT_SHARP, patt_mode.eq.PATT_SUPER
 !write(*,*) ' PATT SUB', patt_origin.eq.PATT_SUBTRACT
-   30    CONTINUE 
+!  30    CONTINUE 
+   loop_hklf4: do
 !                                                                       
 !     ----read hkl,intensity,sigma(intensity)                           
 !                                                                       
@@ -1510,11 +1514,11 @@ a_b = (0.0D0,0.0D0)
 !  write(*,*) ihkl, zz1, a_b, y
 !endif
          ENDDO 
-lll = lll + 1
-         GOTO 30 
+      lll = lll + 1
+   enddo loop_hklf4
    40    CONTINUE 
-      ELSEIF (ftyp.eq.HKLF4.and. (.not.patt_rsym) ) then 
-   50    CONTINUE 
+ELSEIF (ftyp.eq.HKLF4.and. (.not.patt_rsym) ) then  cond_main
+   loop_hklf42: do
 !                                                                       
 !     ----read hkl,intensity,sigma(intensity)                           
 !                                                                       
@@ -1582,9 +1586,9 @@ lll = lll + 1
 !a_b_maxv(2) = max(a_b_maxv(2), imag(a_b))
 !write(*,'(a,2f10.6,2x,3f5.1)') 'MINVALS ', minval(real(csf)), minval(imag(csf)), y
 !write(*,'(a,2f10.6,2x,3f5.1)') 'MAXVALS ', maxval(real(csf)), maxval(imag(csf)), a_b
-         GOTO 50 
+   enddo loop_hklf42
    60    CONTINUE 
-      ELSE 
+ELSE  cond_main
          extr_ima = 6 - extr_abs - extr_ord 
 !                                                                       
 !     --One dimensional input files                                     
@@ -1698,7 +1702,7 @@ lll = lll + 1
                ELSE 
                   ier_num = - 24 
                   ier_typ = ER_APPL 
-                  GOTO 900 
+                  exit cond_main
                ENDIF 
                ENDDO 
                READ (ifa, 1000, end = 900, err = 900) line 
@@ -1709,7 +1713,7 @@ lll = lll + 1
                   IF (line.ne.' '.and.line.ne.char (13) ) then 
                      ier_num = - 23 
                      ier_typ = ER_APPL 
-                     GOTO 900 
+                     exit cond_main
                   ENDIF 
                ENDIF 
                ENDDO 
@@ -1717,7 +1721,7 @@ lll = lll + 1
                ier_typ = ER_NONE 
             ENDIF 
          ENDIF 
-      ENDIF 
+ENDIF  cond_main
 !                                                                       
   900 CONTINUE 
 !                                                                       
@@ -2182,7 +2186,8 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
 !                                                                       
          CALL oeffne (ifa, rho_file (1) , 'old') 
          n = 0 
-   50    CONTINUE 
+!  50    CONTINUE 
+   loop_hklf4: do
 !                                                                       
 !     ----read hkl,intensity,sigma(intensity)                           
 !                                                                       
@@ -2190,10 +2195,10 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
          line = ' '
          READ(ifa,'(a)', END=60, ERR=950) line
          IF(line == ' ') THEN
-           GOTO 50
+           cycle loop_hklf4
          ENDIF
          IF(line(1:4)=='TITL') THEN 
-            GOTO 60
+            exit loop_hklf4
          ENDIF
          READ(line,*,IOSTAT=iostatus) h, zz1
          IF(iostatus /= 0) THEN
@@ -2237,9 +2242,9 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
                n_RR = n_RR + 1 
             ENDIF 
          ELSE
-            GOTO 60
+            exit loop_hklf4
          ENDIF 
-         GOTO 50 
+   enddo loop_hklf4
 !                                                                       
    60    CONTINUE 
          CLOSE (ifa) 
@@ -2285,7 +2290,12 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
 !        READ (ifa, *, end = 904, err = 950) h, zz1 
          line = ' '
          READ(ifa,'(a)', IOSTAT=iostatus) line
-         IF(iostatus /= 0) GOTO 904
+         IF(iostatus /= 0) then
+            close(ifa)
+            return
+         endif
+
+!
          IF(line == ' ') CYCLE loop_main
          IF(line(1:4) == 'TITL') EXIT loop_main
          READ(line,*,IOSTAT=iostatus) h, zz1
@@ -2347,7 +2357,7 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
          ENDIF 
          ENDDO  loop_main
          lsuccess = .true. 
-  904    CONTINUE 
+!
          IF (.not.lsuccess) then 
             RETURN 
          ENDIF 
@@ -3028,9 +3038,10 @@ USE support_mod
 !         sin(theta)/lambda                                             
 !       slots                                                           
 !                                                                       
-   10    CONTINUE 
-         READ (ifa, *, err = 902, end = 902) h, rint, sigma 
-         IF (.not. (h (1) .eq.0.and.h (2) .eq.0.and.h (3) .eq.0) ) then 
+   loop_inte: do
+      READ (ifa, *, err = 902, end = 902) h, rint, sigma 
+      if(h(1)==0 .and. h(2)==0 .and. h(3)==0) exit loop_inte
+!        IF (.not. (h (1) .eq.0.and.h (2) .eq.0.and.h (3) .eq.0) ) then 
             hh (1) = h (1) 
             hh (2) = h (2) 
             hh (3) = h (3) 
@@ -3041,9 +3052,9 @@ USE support_mod
                w_aver (i) = w_aver (i) + rint 
                w_num (i) = w_num (i) + 1 
             ENDIF 
-            GOTO 10 
 !                                                                       
-         ENDIF 
+!        ENDIF 
+   enddo loop_inte
 !                                                                       
   902    CONTINUE 
 !                                                                       

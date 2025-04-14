@@ -148,18 +148,18 @@ orig_prompt = prompt
 prompt = prompt (1:len_str (prompt) ) //'/output' 
 program_version = 'DISCUS ' // version_discus(1:len_trim(version_discus))
 !
-10 CONTINUE 
+loop_main: do             ! Main command loop
 !                                                                       
-CALL no_error 
+   CALL no_error 
 !                                                                       
-CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
-main_if: IF (ier_num.eq.0) THEN 
+   CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
+   main_if: IF (ier_num.eq.0) THEN 
    IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
        line == char(13) .or. line(1:1) == '!'  ) THEN
       IF(linteractive .or. lmakro) THEN
-         GOTO 10
+         cycle loop_main
       ELSE
-         RETURN
+         exit loop_main
       ENDIF
    ENDIF
 !                                                                       
@@ -208,7 +208,7 @@ main_if: IF (ier_num.eq.0) THEN
 !     Terminate output 'exit'                                           
 !                                                                       
       ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
-         GOTO 9999 
+         exit loop_main
 !                                                                       
 !     Determine format for output 'format'                              
 !                                                                       
@@ -939,12 +939,13 @@ IF (ier_num.ne.0) THEN
       sprompt = ' '
    ENDIF 
 ENDIF 
-IF(linteractive .or. lmakro) THEN
-   GOTO 10
-ELSE
-   RETURN
-ENDIF
- 9999 CONTINUE 
+   IF(linteractive .or. lmakro) THEN
+      cycle loop_main
+   ELSE
+      exit loop_main
+   ENDIF
+enddo loop_main
+!
 prompt = orig_prompt
 !                                                                       
  1015 FORMAT ( /1x,'Z-MIN = ',G20.6,/,1x,'Z-MAX = ',G20.6,//            &
