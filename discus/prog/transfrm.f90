@@ -556,7 +556,7 @@ main: DO WHILE (.NOT.lend)
                      CALL tran_setup 
                   ENDIF 
                   lchange = .FALSE. 
-                  IF(ier_num==0) CALL tran_op 
+                  IF(ier_num==0) CALL tran_op (.TRUE.)
 !                                                                       
 !     ----Select which atoms are copied to their image 'sele'           
 !                                                                       
@@ -612,42 +612,7 @@ main: DO WHILE (.NOT.lend)
                      CALL tran_setup 
                   ENDIF 
                   lchange = .FALSE. 
-                  WRITE (output_io, 3000) 
-                  WRITE (output_io, 3010) ( (tran_g (i, j), j = 1, 3),  &
-                  i = 1, 3)                                             
-                  WRITE (output_io, 3020) ( (tran_gi (i, j), j = 1, 3), &
-                  i = 1, 3)                                             
-                  WRITE (output_io, 3030) ( (tran_f (i, j), j = 1, 4),  &
-                  i = 1, 3)                                             
-                  WRITE (output_io, 3040) ( (tran_fi (i, j), j = 1, 4), &
-                  i = 1, 3)                                             
-                  WRITE (output_io, 3050) ( (tran_f (i, j), j = 1, 3),  &
-                  i = 1, 3)                                             
-                  WRITE (output_io, 3060) ( (tran_fi (i, j), j = 1, 3), &
-                  i = 1, 3)                                             
-                  WRITE (output_io, 3061) ( (tran_g (i, j), j = 1, 3),  &
-                  i = 1, 3)                                             
-                  WRITE (output_io, 3062) ( (tran_gi (i, j), j = 1, 3), &
-                  i = 1, 3)                                             
-!                                                                       
-                  IF (tran_det /= 0) THEN 
-                     WRITE (output_io, 3100) tran_det, 1. / tran_det 
-                  ELSE 
-                     WRITE (output_io, 3200) 
-                  ENDIF 
-!                                                                       
-                  WRITE (output_io, 3090) 
-                  WRITE (output_io, 3091) 
-                  DO i = 0, cr_nscat 
-                  IF (tran_latom (i) ) THEN 
-                     WRITE (output_io, 3092) i, cr_at_lis (i) 
-                  ENDIF 
-                  ENDDO 
-                  IF (tran_end ==  - 1) THEN 
-                     WRITE (output_io, 3080) 
-                  ELSE 
-                     WRITE (output_io, 3081) tran_start, tran_end 
-                  ENDIF 
+                  call transfrm_show
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
@@ -814,6 +779,50 @@ ENDDO  main
 !
       prompt = orig_prompt
 !                                                                       
+      END SUBROUTINE transform                      
+!
+!*****7*************************************************************************
+!
+subroutine transfrm_show
+!
+use crystal_mod
+use transfrm_mod
+!
+use prompt_mod
+!
+implicit none
+!
+integer :: i, j
+!
+WRITE (output_io, 3000) 
+WRITE (output_io, 3010) ( (tran_g (i, j), j = 1, 3), i = 1, 3)                                             
+WRITE (output_io, 3020) ( (tran_gi(i, j), j = 1, 3), i = 1, 3)                                             
+WRITE (output_io, 3030) ( (tran_f (i, j), j = 1, 4), i = 1, 3)                                             
+WRITE (output_io, 3040) ( (tran_fi(i, j), j = 1, 4), i = 1, 3)                                             
+WRITE (output_io, 3050) ( (tran_f (i, j), j = 1, 3), i = 1, 3)                                             
+WRITE (output_io, 3060) ( (tran_fi(i, j), j = 1, 3), i = 1, 3)                                             
+WRITE (output_io, 3061) ( (tran_g (i, j), j = 1, 3), i = 1, 3)                                             
+WRITE (output_io, 3062) ( (tran_gi(i, j), j = 1, 3), i = 1, 3)                                             
+!                                                                       
+IF (tran_det /= 0) THEN 
+   WRITE (output_io, 3100) tran_det, 1. / tran_det 
+ELSE 
+   WRITE (output_io, 3200) 
+ENDIF 
+!                                                                       
+WRITE (output_io, 3090) 
+WRITE (output_io, 3091) 
+DO i = 0, cr_nscat 
+   IF (tran_latom (i) ) THEN 
+      WRITE (output_io, 3092) i, cr_at_lis (i) 
+   ENDIF 
+ENDDO 
+IF (tran_end ==  - 1) THEN 
+   WRITE (output_io, 3080) 
+ELSE 
+   WRITE (output_io, 3081) tran_start, tran_end 
+ENDIF 
+!                                                                       
  3000 FORMAT    (20x,'    Unit cell transformations '/                  &
      &                  20x,' ==============================='//)       
  3010 FORMAT    (                                                       &
@@ -864,8 +873,8 @@ ENDDO  main
  3090 FORMAT    (' selected atoms    :') 
  3091 FORMAT    ('                      type name') 
  3092 FORMAT    (16x,2x,i8,1x,a4) 
-!                                                                       
-      END SUBROUTINE transform                      
+!
+end subroutine transfrm_show
 !
 !*****7*************************************************************************
 !
@@ -1014,7 +1023,7 @@ tran_det = a(1, 1) * (a(2, 2) * a(3, 3) - a(2, 3) * a(3, 2) ) &
 END SUBROUTINE tran_setup                     
 !*****7*****************************************************************
 !
-SUBROUTINE tran_op 
+SUBROUTINE tran_op (lout)
 !-                                                                      
 !     Performs the actual transformation operation.                     
 !     All atoms of the structure, all symmetry elements are transformed 
@@ -1032,19 +1041,19 @@ USE errlist_mod
 use precision_mod
 !                                                                       
 IMPLICIT none 
-       
+!
+logical, intent(in) :: lout  ! Output of new lattice
 !                                                                       
-      INTEGER i, j 
-      INTEGER i1, i2, i3 
-      INTEGER i_start, i_end 
-      LOGICAL lspace 
-      LOGICAL lout 
-      REAL(kind=PREC_DP) ::  usym (4), ures (4) 
-      REAL(kind=PREC_DP) :: werte (5) 
-      REAL(kind=PREC_DP) :: u (3), v (3), w (3) 
+INTEGER :: i, j 
+INTEGER :: i1, i2, i3 
+INTEGER :: i_start, i_end 
+LOGICAL :: lspace 
+REAL(kind=PREC_DP) ::  usym (4), ures (4) 
+REAL(kind=PREC_DP) :: werte (5) 
+REAL(kind=PREC_DP) :: u (3), v (3), w (3) 
 !                                                                       
-      DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+DATA usym / 0.0, 0.0, 0.0, 1.0 / 
+DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -1112,7 +1121,7 @@ IMPLICIT none
          cr_spcgrno = 1 
          spcgr_ianz = 0 
          spcgr_para = 1 
-         lout = .TRUE. 
+!        lout = .TRUE. 
          CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
          cr_cartesian, cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
