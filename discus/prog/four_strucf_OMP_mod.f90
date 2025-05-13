@@ -19,8 +19,10 @@ CONTAINS
 SUBROUTINE four_strucf(iscat, lform, ldiscamb, is_anis, isym, ientry, fnum) 
 !
 !+
-!  Interface to four_strucf_serial(iscat, lform, ldiscamb, is_anis, ientry)
-!           and four_strucf_omp   (iscat, lform, ldiscamb, is_anis, ientry)
+!  Interface to four_strucf_serial   (iscat, lform, ldiscamb, is_anis, ientry)
+!           and four_strucf_omp      (iscat, lform, ldiscamb, is_anis, ientry)
+!           and four_strucf_serial_1D(iscat, lform, ldiscamb, is_anis, ientry)
+!           and four_strucf_omp_1D   (iscat, lform, ldiscamb, is_anis, ientry)
 !-
 !
 !$ USE OMP_LIB
@@ -51,9 +53,17 @@ nthreads = 1
 !$   END IF
 !$OMP END PARALLEL
 IF(par_omp_use .AND. nthreads>1) THEN
-   CALL four_strucf_omp   (iscat, lform, ldiscamb, is_anis, isym, ientry, fnum)
+   if(fnum(2)>1 .or. fnum(3)>1) then
+      CALL four_strucf_omp   (iscat, lform, ldiscamb, is_anis, isym, ientry, fnum)
+   else
+      CALL four_strucf_omp_1D(iscat, lform, ldiscamb, is_anis, isym, ientry, fnum)
+   endif
 ELSE
-   CALL four_strucf_serial(iscat, lform, ldiscamb, is_anis, isym, ientry, fnum)
+   if(fnum(2)>1 .or. fnum(3)>1) then
+      CALL four_strucf_serial(iscat, lform, ldiscamb, is_anis, isym, ientry, fnum)
+   else
+      CALL four_strucf_serial_1D(iscat, lform, ldiscamb, is_anis, isym, ientry, fnum)
+   endif
 ENDIF
 END SUBROUTINE four_strucf
 !
@@ -98,9 +108,8 @@ REAL(KIND=PREC_DP)           , DIMENSION(nxat) ::        xincu, xincv , xincw
 REAL(KIND=PREC_DP)           , DIMENSION(nxat) ::        oincu, oincv , oincw
 INTEGER (KIND=PREC_INT_LARGE), DIMENSION(nxat) ::               iincu, iincv, iincw
 INTEGER (KIND=PREC_INT_LARGE), DIMENSION(nxat) ::               jincu, jincv, jincw
-INTEGER (KIND=PREC_INT_LARGE)   :: h, i, ii, j, k, iarg, iarg0, jj
+INTEGER (KIND=PREC_INT_LARGE)   :: h, i, j, k, iarg, iarg0
 INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
-INTEGER (KIND=PREC_INT_LARGE)   :: num23,num123, num123_1
 !
 logical, parameter :: lnufft = .false.
 INTEGER :: IAND, ISHFT 
@@ -109,16 +118,15 @@ COMPLEX(KIND=PREC_DP), DIMENSION(  :,:), ALLOCATABLE, SAVE :: tcsfp   ! Partial 
 !
 !------ zero fourier array                                              
 !
+!write(*,'(a, 3(2x,f6.4))') 'UIN ', uin
+!write(*,'(a, 3(2x,f6.4))') 'VIN ', vin
+!write(*,'(a, 3(2x,f6.4))') 'WIN ', win
+!write(*,'(a, 3i6)') 'LMN ', lmn(1:3) 
+!write(*,'(a, 3i6)') 'LMN ', lmn(4:6) 
+!write(*,'(a, 3(2x,f6.4))') 'shft', off_shift(:,1)
+!write(*,'(a, 3(2x,f6.4))') 'shft', off_shift(:,2)
+!write(*,'(a, 3(2x,f6.4))') 'shft', off_shift(:,3)
 tcsf = cmplx(0.0D0, 0.0D0, kind=kind(0.0D0))
-!
-num23    =        fnum(2)*fnum(3)
-num123   = fnum(1)*fnum(2)*fnum(3)
-num123_1 = fnum(1)*fnum(2)*fnum(3)-1
-!write(*,'(a,3f6.2, 2x, 3f6.2)') ' UIN ', uin, off_shift(:,1)
-!write(*,'(a,3f6.2, 2x, 3f6.2)') ' VIN ', vin, off_shift(:,2)
-!write(*,'(a,3f6.2, 2x, 3f6.2)') ' WIN ', win, off_shift(:,3)
-!write(*,'(a,6i10)')  ' LMN ', lmn
-!write(*,*) ' NXAT ', nxat, fnum
 !
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
@@ -138,26 +146,23 @@ DO k = 1, nxat
    jincu(k) = NINT (64 * I2PI * (oincu(k) - INT (oincu(k)) + 0.0d0) ) 
    jincv(k) = NINT (64 * I2PI * (oincv(k) - INT (oincv(k)) + 0.0d0) ) 
    jincw(k) = NINT (64 * I2PI * (oincw(k) - INT (oincw(k)) + 0.0d0) ) 
-!write(*,*) ' ATOM ', xat(k,:)
 ENDDO
 !$OMP END DO NOWAIT
 !$OMP END PARALLEL
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
-!$OMP PARALLEL PRIVATE(iarg, iarg0, ii, jj)
+!$OMP PARALLEL PRIVATE(iarg, iarg0) !, ii, jj)
    IF(ALLOCATED(tcsfp)) DEALLOCATE(tcsfp)
    ALLOCATE (tcsfp (          1:fnum(2), 1:fnum(3))) !,0:nthreads-1))
    tcsfp = CMPLX(0.0d0, 0.0d0, KIND=KIND(0.0D0))
    !$OMP DO SCHEDULE(STATIC)
       DO j = 1, fnum (1)! - 1
-!        jj = j*fnum(2)*fnum(3)
          tcsfp         = CMPLX(0.0d0, 0.0d0, KIND=KIND(0.0D0))
          loop_k: DO k = 1, nxat 
             iarg0 =  lmn(1)*iincu(k) + lmn(2)*iincv(k) + lmn(3)*iincw(k) + &
                      lmn(4)*jincu(k) + lmn(5)*jincv(k) + lmn(6)*jincw(k) + &
                      (j-1)*iincu(k)
-!           ii = 0 
             DO i = 1, fnum (2)! - 1
                iarg = iarg0 +              iincv(k)*(i-1) 
                DO h = 1, fnum (3) 
@@ -172,36 +177,13 @@ ENDDO
          ENDDO
          ENDDO
       ENDDO 
-!!       !$OMP END CRITICAL
    !$OMP END DO
    DEALLOCATE(tcsfp)
 !$OMP END PARALLEL
 !
 !------ Now we multiply with formfactor                                 
 !                                                                       
-!write(*,*) ' OMP ',  ldiscamb, lform, is_anis
-!write(*,*) ' tcsf  lbound ', lbound(tcsf )
-!write(*,*) ' tcsf  ubound ', ubound(tcsf )
-!write(*,*) ' istl lbound  ', lbound(istl)
-!write(*,*) ' cfact lbound ', lbound(cfact)
-!write(*,*) ' cfact ubound ', ubound(cfact)
-!write(*,*) ' istl lbound  ', lbound(istl)
-!write(*,*) ' istl ubound  ', ubound(istl)
-!write(*,*) ' fnum         ', fnum
-!write(*,*) '  num         ', num
-!write(*,*) '  inc         ', inc
-!write(*,*) ' GEOMETRY ', minval(real(tcsf)), maxval(real(tcsf))
 call tcsf_form_generic(lnufft, ldiscamb, lform, is_anis, iscat, isym, ientry, fnum, tcsf)
-!write(*,*) ' WT FORM  ', minval(real(tcsf)), maxval(real(tcsf))
-!if(ldiscamb) then 
-!   call tcsf_form_discamb(iscat, isym, ientry, fnum)
-!elseif(lform) then 
-!   if(is_anis) then
-!      call tcsf_form_aniso(iscat, ientry, fnum)
-!   else
-!      call tcsf_form_iso(iscat, fnum)
-!   endif
-!endif 
 !                                                                       
 END SUBROUTINE four_strucf_omp
 !
@@ -223,7 +205,7 @@ SUBROUTINE four_strucf_serial (iscat, lform, ldiscamb, is_anis, isym, ientry, fn
 !
 !  This algorithm is roughly twice as fast on an optimized serial compilation
 !  compared to the original serial Fourier calculation. Thus its serial form
-!  replaces the old serial algreal_toniplorithm as well.
+!  replaces the old serial algorithm as well.
 !-                                                                      
 USE discus_config_mod 
 USE diffuse_mod 
@@ -282,42 +264,224 @@ ENDDO
 !                                                           
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
-   IF(ALLOCATED(tcsfp)) DEALLOCATE(tcsfp)
-   ALLOCATE (tcsfp (             1: num(2)  , 1: num(3)  )) !,0:nthreads-1))
-   tcsfp = CMPLX(0.0d0, 0.0d0, KIND=KIND(0.0D0))
-      DO j = 1, num (1)! - 1
-         tcsfp = CMPLX(0.0d0, 0.0d0, KIND=KIND(0.0D0))
-         loop_k: DO k = 1, nxat 
-            iarg0 =  lmn(1)*iincu(k) + lmn(2)*iincv(k) + lmn(3)*iincw(k) + &
-                     lmn(4)*jincu(k) + lmn(5)*jincv(k) + lmn(6)*jincw(k) + &
-                     (j-1)*iincu(k)
-            ii = 0 
-            DO i = 1, num (2)!- 1
-               iarg = iarg0 +              iincv(k)*(i-1) 
-               DO h = 1, num (3) 
-                  tcsf (j, i,h)= tcsf (j, i,h) + cex (IAND  (ISHFT(iarg, shift), MASK) )
-                  iarg     = iarg + iincw(k)
-                  ii       = ii + 1 
-               ENDDO 
-            ENDDO 
-         ENDDO  loop_k
+DO j = 1,fnum (1)! - 1
+   loop_k: DO k = 1, nxat 
+      iarg0 =  lmn(1)*iincu(k) + lmn(2)*iincv(k) + lmn(3)*iincw(k) + &
+               lmn(4)*jincu(k) + lmn(5)*jincv(k) + lmn(6)*jincw(k) + &
+               (j-1)*iincu(k)
+      DO i = 1,fnum (2)!- 1
+         iarg = iarg0 +              iincv(k)*(i-1) 
+         DO h = 1, num (3) 
+            tcsf (j, i,h)= tcsf (j, i,h) + cex (IAND  (ISHFT(iarg, shift), MASK) )
+            iarg     = iarg + iincw(k)
+         ENDDO 
       ENDDO 
-   DEALLOCATE(tcsfp)
+   ENDDO  loop_k
+ENDDO 
 !
 !------ Now we multiply with formfactor                                 
 !                                                                       
 call tcsf_form_generic(lnufft, ldiscamb, lform, is_anis, iscat, isym, ientry, fnum, tcsf)
-!if(ldiscamb) then 
-!   call tcsf_form_discamb(iscat, isym, ientry, fnum)
-!elseif(lform) then 
-!   if(is_anis) then
-!      call tcsf_form_aniso(iscat, ientry, fnum)
-!   else
-!      call tcsf_form_iso(iscat, fnum)
-!   endif
-!endif 
 !                                                                       
 END SUBROUTINE four_strucf_serial
+!
+!*****7*****************************************************************
+!
+SUBROUTINE four_strucf_omp_1D (iscat, lform, ldiscamb, is_anis, isym, ientry, fnum) 
+!+                                                                      
+!     Here the complex structure factor of 'nxat' identical atoms       
+!     from array 'xat' is computed.                                     
+!  1D Version
+!
+!     The phase "iarg0" is calculated via integer math as offset from 
+!     phase = 0 at hkl=0.
+!
+!  Apparently a good OMP version.
+!  The outer loop is j=0,num(1)-1 and the threadprivate variable 
+!  tcsfp is reduced to size (0:num(2)*num(3)-1)
+!  To reduce the number of calculations within the Fourier loop, the
+!  increments xinc*, oinc*, iinc*, jinc* are calculated once up front.
+!
+!  This algorithm is roughly twice as fast on an optimized serial compilation
+!  compared to the original serial Fourier calculation. Thus its serial form
+!  replaces the old serial algorithm as well.
+!-                                                                      
+!$ USE OMP_LIB
+USE discus_config_mod 
+USE diffuse_mod 
+use fourier_form_generic
+!
+USE precision_mod
+!
+IMPLICIT none 
+!                                                                       
+INTEGER, INTENT(IN) :: iscat 
+LOGICAL, INTENT(IN) :: lform 
+logical, intent(in) :: ldiscamb  ! Aspherical atomic form factors
+LOGICAL, INTENT(IN) :: is_anis   ! Crystal has anisotropic ADPs
+INTEGER, INTENT(IN) :: isym      ! Atoms were generated by this symmetry operation
+INTEGER, INTENT(IN) :: ientry    ! Current anisotropic ADP
+integer, dimension(3), intent(in) :: fnum    ! Number data points (reduced by Friedel)
+!                                                                       
+REAL(KIND=PREC_DP)           , DIMENSION(nxat) ::        xincu, xincv , xincw
+REAL(KIND=PREC_DP)           , DIMENSION(nxat) ::        oincu, oincv , oincw
+INTEGER (KIND=PREC_INT_LARGE), DIMENSION(nxat) ::               iincu, iincv, iincw
+INTEGER (KIND=PREC_INT_LARGE), DIMENSION(nxat) ::               jincu, jincv, jincw
+INTEGER (KIND=PREC_INT_LARGE)   ::           j, k, iarg!, iarg0, jj
+INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
+!
+logical, parameter :: lnufft = .false.
+INTEGER :: IAND, ISHFT 
+!COMPLEX(KIND=PREC_DP), DIMENSION(  :,:), ALLOCATABLE, SAVE :: tcsfp   ! Partial structure factor from parallel OMP
+!!$OMP THREADPRIVATE(tcsfp)
+!
+!------ zero fourier array                                              
+!
+!write(*,'(a, 3(2x,f7.4))') 'UIN ', uin
+!write(*,'(a, 3(2x,f7.4))') 'VIN ', vin
+!write(*,'(a, 3(2x,f7.4))') 'WIN ', win
+!write(*,'(a, 3i7)') 'LMN ', lmn(1:3) 
+!write(*,'(a, 3i7)') 'LMN ', lmn(4:6) 
+!write(*,'(a, 3(2x,f7.4))') 'shft', off_shift(:,1)
+!write(*,'(a, 3(2x,f7.4))') 'shft', off_shift(:,2)
+!write(*,'(a, 3(2x,f7.4))') 'shft', off_shift(:,3)
+!do k=1,3
+!write(*,'(f7.4, a, 3(2x,f7.4,i6))') eck(k,1), ' =', uin(k)        , lmn(1) , vin(k)        , lmn(2) , win(k)        , lmn(3)
+!write(*,'(7x  , a, 3(2x,f7.4,i6))')           ' +', off_shift(k,1), lmn(4) , off_shift(k,2), lmn(5) , off_shift(k,3), lmn(6)
+!enddo
+tcsf(1:fnum(1), 1, 1) = cmplx(0.0D0, 0.0D0, kind=kind(0.0D0))
+!
+!------ Loop over all atoms in 'xat'                                    
+!                                                                       
+!$OMP PARALLEL
+!$OMP DO SCHEDULE(STATIC)
+DO k = 1, nxat 
+   xincu(k) = uin(1)        * xat(k, 1) + uin(2)         * xat(k, 2) + uin(3)         * xat(k, 3)
+   xincv(k) = vin(1)        * xat(k, 1) + vin(2)         * xat(k, 2) + vin(3)         * xat(k, 3)
+   xincw(k) = win(1)        * xat(k, 1) + win(2)         * xat(k, 2) + win(3)         * xat(k, 3)
+   oincu(k) = off_shift(1,1)* xat(k, 1) + off_shift(2,1) * xat(k, 2) + off_shift(3,1) * xat(k, 3)
+   oincv(k) = off_shift(1,2)* xat(k, 1) + off_shift(2,2) * xat(k, 2) + off_shift(3,2) * xat(k, 3)
+   oincw(k) = off_shift(1,3)* xat(k, 1) + off_shift(2,3) * xat(k, 2) + off_shift(3,3) * xat(k, 3)
+!                                                                       
+   iincu(k) = NINT (64 * I2PI * (xincu(k) - INT (xincu(k)) + 0.0d0) ) 
+   iincv(k) = NINT (64 * I2PI * (xincv(k) - INT (xincv(k)) + 0.0d0) ) 
+   iincw(k) = NINT (64 * I2PI * (xincw(k) - INT (xincw(k)) + 0.0d0) ) 
+   jincu(k) = NINT (64 * I2PI * (oincu(k) - INT (oincu(k)) + 0.0d0) ) 
+   jincv(k) = NINT (64 * I2PI * (oincv(k) - INT (oincv(k)) + 0.0d0) ) 
+   jincw(k) = NINT (64 * I2PI * (oincw(k) - INT (oincw(k)) + 0.0d0) ) 
+!write(*,*) ' ATOM ', xat(k,:)
+ENDDO
+!$OMP END DO NOWAIT
+!$OMP END PARALLEL
+!                                                                       
+!------ Loop over all atoms in 'xat'                                    
+!                                                                       
+!$OMP PARALLEL PRIVATE(iarg)
+   !$OMP DO SCHEDULE(STATIC)
+      DO j = 1, fnum (1)! - 1
+         loop_k: DO k = 1, nxat 
+            iarg  =  lmn(1)*iincu(k) + lmn(2)*iincv(k) + lmn(3)*iincw(k) + &
+                     lmn(4)*jincu(k) + lmn(5)*jincv(k) + lmn(6)*jincw(k) + &
+                     (j-1)*iincu(k)
+            tcsf (j,1,1) = tcsf (j,1,1) + cex (IAND  (ISHFT(iarg, shift), MASK) )
+         ENDDO  loop_k
+      ENDDO 
+   !$OMP END DO
+!$OMP END PARALLEL
+!
+!------ Now we multiply with formfactor                                 
+!                                                                       
+call tcsf_form_generic(lnufft, ldiscamb, lform, is_anis, iscat, isym, ientry, fnum, tcsf)
+!                                                                       
+END SUBROUTINE four_strucf_omp_1D
+!
+!*******************************************************************************
+!
+SUBROUTINE four_strucf_serial_1D(iscat, lform, ldiscamb, is_anis, isym, ientry, fnum) 
+!+                                                                      
+!     Here the complex structure factor of 'nxat' identical atoms       
+!     from array 'xat' is computed.                                     
+!  1D Version
+!
+!     The phase "iarg0" is calculated via integer math as offset from 
+!     phase = 0 at hkl=0.
+!
+!  Apparently a good OMP version. Very good serial version as well.
+!  The outer loop is j=0,num(1)-1 and the threadprivate variable 
+!  tcsfp is reduced to size (0:num(2)*num(3)-1)
+!  To reduce the number of calculations within the Fourier loop, the
+!  increments xinc*, oinc*, iinc*, jinc* are calculated once up front.
+!
+!  This algorithm is roughly twice as fast on an optimized serial compilation
+!  compared to the original serial Fourier calculation. Thus its serial form
+!  replaces the old serial algreal_toniplorithm as well.
+!-                                                                      
+USE discus_config_mod 
+USE diffuse_mod 
+use fourier_form_generic
+!
+USE precision_mod
+!
+IMPLICIT none 
+!                                                                       
+INTEGER, INTENT(IN) :: iscat 
+LOGICAL, INTENT(IN) :: lform 
+logical, intent(in) :: ldiscamb  ! Aspherical atomic form factors
+LOGICAL, INTENT(IN) :: is_anis   ! Crystal has anisotropic ADPs
+INTEGER, INTENT(IN) :: isym      ! Atoms were generated by this symmetry operation
+INTEGER, INTENT(IN) :: ientry    ! Current anisotropic ADP
+integer, dimension(3), intent(in) :: fnum    ! Number data points (reduced by Friedel)
+!                                                                       
+logical, parameter :: lnufft = .false.
+!
+REAL(KIND=PREC_DP)           , DIMENSION(nxat) ::        xincu, xincv , xincw
+REAL(KIND=PREC_DP)           , DIMENSION(nxat) ::        oincu, oincv , oincw
+INTEGER (KIND=PREC_INT_LARGE), DIMENSION(nxat) ::               iincu, iincv, iincw
+INTEGER (KIND=PREC_INT_LARGE), DIMENSION(nxat) ::               jincu, jincv, jincw
+INTEGER (KIND=PREC_INT_LARGE)   ::           j, k, iarg!, iarg0
+INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
+!
+!  
+COMPLEX(KIND=PREC_DP), DIMENSION(  :,:), ALLOCATABLE, SAVE :: tcsfp     ! Partial structure factor from parallel OMP
+!
+!------ zero fourier array                                              
+!
+tcsf(1:fnum(1), 1,1) = CMPLX(0.0D0, 0.0D0, KIND=KIND(0.0D0))
+!
+!------ Loop over all atoms in 'xat'                                    
+!                                                                       
+DO k = 1, nxat 
+   xincu(k) = uin(1)        * xat(k, 1) + uin(2)         * xat(k, 2) + uin(3)         * xat(k, 3)
+   xincv(k) = vin(1)        * xat(k, 1) + vin(2)         * xat(k, 2) + vin(3)         * xat(k, 3)
+   xincw(k) = win(1)        * xat(k, 1) + win(2)         * xat(k, 2) + win(3)         * xat(k, 3)
+   oincu(k) = off_shift(1,1)* xat(k, 1) + off_shift(2,1) * xat(k, 2) + off_shift(3,1) * xat(k, 3)
+   oincv(k) = off_shift(1,2)* xat(k, 1) + off_shift(2,2) * xat(k, 2) + off_shift(3,2) * xat(k, 3)
+   oincw(k) = off_shift(1,3)* xat(k, 1) + off_shift(2,3) * xat(k, 2) + off_shift(3,3) * xat(k, 3)
+!                                                                       
+   iincu(k) = NINT (64 * I2PI * (xincu(k) - INT (xincu(k)) + 0.0d0) ) 
+   iincv(k) = NINT (64 * I2PI * (xincv(k) - INT (xincv(k)) + 0.0d0) ) 
+   iincw(k) = NINT (64 * I2PI * (xincw(k) - INT (xincw(k)) + 0.0d0) ) 
+   jincu(k) = NINT (64 * I2PI * (oincu(k) - INT (oincu(k)) + 0.0d0) ) 
+   jincv(k) = NINT (64 * I2PI * (oincv(k) - INT (oincv(k)) + 0.0d0) ) 
+   jincw(k) = NINT (64 * I2PI * (oincw(k) - INT (oincw(k)) + 0.0d0) ) 
+ENDDO
+!                                                           
+!------ Loop over all atoms in 'xat'                                    
+!                                                                       
+DO j = 1,fnum (1)! - 1
+   loop_k: DO k = 1, nxat 
+      iarg  =  lmn(1)*iincu(k) + lmn(2)*iincv(k) + lmn(3)*iincw(k) + &
+               lmn(4)*jincu(k) + lmn(5)*jincv(k) + lmn(6)*jincw(k) + &
+               (j-1)*iincu(k)
+      tcsf (j, 1,1)= tcsf (j, 1,1) + cex (IAND  (ISHFT(iarg, shift), MASK) )
+   ENDDO  loop_k
+ENDDO 
+!
+!------ Now we multiply with formfactor                                 
+!                                                                       
+call tcsf_form_generic(lnufft, ldiscamb, lform, is_anis, iscat, isym, ientry, fnum, tcsf)
+!                                                                       
+END SUBROUTINE four_strucf_serial_1D
 !
 !*******************************************************************************
 !
