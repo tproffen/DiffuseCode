@@ -216,6 +216,7 @@ stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking 
    pha_nreal(pha_curr)  = SUM(pha_niscat(1:pha_nscat(pha_curr),pha_curr)* &
                               pha_occ(1:pha_nscat(pha_curr),pha_curr)     &
                              )  ! number of real atoms in phase 
+!write(*,*) ' CALC NCREAL ', pha_nreal(1), chem_quick, (cr_icc(1)*cr_icc(2)*cr_icc(3)), cr_ncatoms 
    IF(chem_quick) THEN
       pha_ncreal(pha_curr) = pha_nreal(pha_curr)/(cr_icc(1)*cr_icc(2)*cr_icc(3))
    ELSE
@@ -224,6 +225,7 @@ stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking 
 ENDIF stack
 !
 ! Place powder pattern into appropriate phase entry
+!write(*,*) ' PHASES_SET ', maxval(pow_conv), pha_nreal(1), pha_ncreal(1), cr_v
 !
 !write(*,*) ' FOUR_MODE ', pow_four_type, pow_four_type.eq.POW_COMPL
 IF (pow_four_type.eq.POW_COMPL .or. pow_four_type==POW_NUFFT .or. pow_four_type==POW_GRID) THEN                 ! Complete powder patterm, normalizer is 1
@@ -269,6 +271,7 @@ ENDIF
 !  CALL phases_corr(npkt)
 !ENDIF
 !
+!write(*,*) ' PHASES_SET ', maxval(pha_powder(:,1)), maxval(pow_conv), pha_nreal(1)
 !
 END SUBROUTINE phases_place
 !
@@ -313,6 +316,8 @@ real(kind=PREC_DP) :: sq_scale
 real(kind=PREC_DP) :: arg
 real(kind=PREC_DP) :: sq_aver
 !
+!write(*,*) ' PHASES_AVERAGE ', maxval(pha_powder(:,1)), maxval(pow_conv)
+!read(*,*) i
 pow_f2aver(:)    = 0.0D0
 pow_faver2(:)    = 0.0D0
 pow_fu    (:)    = 0.0D0
