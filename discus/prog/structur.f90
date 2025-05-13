@@ -689,6 +689,7 @@ if(ier_num.eq.0) then
    chem_period(:) = .TRUE.
    chem_quick     = .TRUE.
    cr_is_asym     = .false.  ! Crystal is not an asymmetric unit
+   cr_is_stack    = .false.  ! Crystal is not build as stacking faults
 !ELSE
 !   IF(ier_msg(3) == ' ') THEN
 !      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
@@ -1119,7 +1120,8 @@ CALL do_stack_rese
 !  Flag that no Fourier has been calculated yet
 four_last = FOUR_NN
 !
-chem_purge = .FALSE.    ! No purge was done, period boundary is OK
+chem_purge  = .FALSE.  ! No purge was done, period boundary is OK
+cr_is_stack = .false.  ! Crystal is not build as stacking faults
 !
 END SUBROUTINE do_readfree
 !
