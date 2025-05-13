@@ -72,6 +72,11 @@ LOGICAL                                    :: st_rot_status    = .false.
 LOGICAL                                    :: st_rot_no_lspace = .true.
 LOGICAL                                    :: st_rot_m1_lspace = .true.
 LOGICAL                                    :: st_rot_m2_lspace = .true.
+LOGICAL                                    :: st_cr_magnetic  = .FALSE.   ! Crystal is magnetic YES / NO
+logical                                    :: st_is_anis      = .FALSE.   ! Crystal has anisotropic ADPs 
+logical                                    :: st_is_asym      = .TRUE.    ! Crystal is an asymmetric unit
+logical                                    :: st_is_homo      = .TRUE.    ! Crystal is homogeneous
+logical                                    :: st_is_stack     = .false.   ! Crystal is build by stacking faults
 REAL(kind=PREC_DP)                         :: st_aver          = 0.0D0
 REAL(kind=PREC_DP)                         :: st_prob          = 0.0D0
 REAL(kind=PREC_DP)   , DIMENSION(3,3)      :: st_mod           = 0.0D0
