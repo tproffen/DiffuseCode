@@ -51,4 +51,12 @@ REAL(kind=PREC_DP)  ::  mk_sym_add(4,4,0:mk_SYM_ADD_MAX) = &
 LOGICAL             :: mk_infile_internal = .FALSE.  ! File with domain atoms in stored internally
 INTEGER             :: mk_iatom           = 1        ! Current atom number in internal file
 !
+LOGICAL                               :: mk_cr_cartesian = .false.
+LOGICAL                               :: mk_cr_magnetic  = .FALSE.   ! Crystal is magnetic YES / NO
+logical                               :: mk_cr_is_anis   = .FALSE.   ! Crystal has anisotropic ADPs 
+logical                               :: mk_cr_is_asym   = .TRUE.    ! Crystal is an asymmetric unit
+logical                               :: mk_cr_is_homo   = .TRUE.    ! Crystal is homogeneous
+logical                               :: mk_cr_is_stack  = .false.   ! Crystal is build by stacking faults
+
+!
 END MODULE micro_mod
