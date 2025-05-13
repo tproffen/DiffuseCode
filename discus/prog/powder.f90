@@ -1167,7 +1167,7 @@ elseif(str_comp(cpara(1), 'calc', 1, lpara(1), 4) ) then
        elseif(str_comp(cpara(2), 'nufft', 1, lpara(2), 5)) then                                                   
           pow_four_type = POW_NUFFT 
        elseif(str_comp(cpara(2), 'grid', 1, lpara(2), 5)) then                                                   
-          pow_four_type = POW_grid 
+          pow_four_type = POW_GRID
        endif 
     else 
        ier_num = - 6 
@@ -1805,6 +1805,7 @@ USE powder_scat_mod
 USE powder_tables_mod 
 USE stack_menu
 USE stack_mod
+use trans_to_short_mod
 USE wink_mod
 !                                                                       
 USE param_mod 
@@ -1823,6 +1824,7 @@ INTEGER :: h_start, h_end
 INTEGER :: k_start, k_end 
 INTEGER :: l_start=0, l_end=1
 INTEGER :: ih, ik 
+INTEGER :: it, jt    ! Dummy indices for translation vectors
 INTEGER                    :: n_qxy   = 1
 INTEGER                    :: n_nscat = 1
 INTEGER                    :: n_natom = 1
@@ -1836,6 +1838,7 @@ LOGICAL :: l_hh_real
 LOGICAL :: l_kk_real 
 LOGICAL :: l_ll_real 
 LOGICAL                   :: calc_f2aver, rept_f2aver
+logical :: l_sharp         ! hkl rod is free of diffuse scattering
 REAL(kind=PREC_DP) :: llstart, llend 
 REAL(kind=PREC_DP) :: llstart2=0.0, llend2=1.0
 REAL(kind=PREC_DP):: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
@@ -1849,8 +1852,40 @@ REAL(kind=PREC_DP) :: u2, vv, ww
 REAL(kind=PREC_DP) :: aaa, bbb, ccc 
 REAL(kind=PREC_DP) :: llstartmini 
 REAL(kind=PREC_DP) :: llendmini 
+integer                            :: scale_mode                    ! 0/1 Choice for scale factor
+real(kind=PREC_DP), dimension(0:1) :: scale_diffuse = 1.0_PREC_DP   ! scale factor for diffuse rods in case of stacking faults  
 !REAL(kind=PREC_DP) :: ss 
-!                                                                       
+character(len=256) :: ofile
+!
+!write(*,*) ' MODE ', pow_hkl_del
+!write(*,*) ' MODE ', pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack
+!read(*,*) i
+
+call trans_to_short(pow_hkl_del, pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack)   ! Transform if pow_hkl_del(3) is not the smallest step
+!
+scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
+!
+if(pow_hkl_del(3)<1.0_PREC_DP) then
+if(pow_four_mode==POW_STACK) then  ! Crystal was build using stacking faults
+          !                        ! Diffuse rods should be sampled at pow_hkl_del(3) = 1/ unit_cells_along_c
+                                   ! the scale factor corrects for undersampling
+   scale_diffuse(1) = (pow_hkl_del(3) * &
+                      real(nint(st_origin(3, st_nlayer)-st_origin(3,1)+0.05), kind=PREC_DP) )
+elseif(cr_is_stack) then           ! Crystal was build using stacking faults
+          !                        ! Diffuse rods should be sampled at pow_hkl_del(3) = 1/ unit_cells_along_c
+                                   ! the scale factor corrects for undersampling
+   scale_diffuse(1) = (pow_hkl_del(3) * &
+                      real(nint(cr_dim(3, 2)-cr_dim(3,1)+0.05), kind=PREC_DP) )
+endif
+endif
+!scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
+!write(*,'(a,3f10.6)') ' SCALE_POW_DEL ', pow_hkl_del
+!write(*,'(a,3f10.2)') ' SCALE_ORIGINS ', st_origin(3,1), st_origin(3, st_nlayer)
+!write(*,'(a,3f10.2)') ' SCALE_SIZE    ', cr_dim (3,:)
+!write(*,'(a,2f10.6)') ' SCALE_DIFFUSE ', scale_diffuse(0:1)
+!write(*,'(a,3f10.2)') ' SCALE_TRANS11 ', st_trans(1,1,:)
+!write(*,'(a,3f10.2)') ' SCALE_TRANS12 ', st_trans(1,2,:)
+!read(*,*) i
 !
 st_new_form = .TRUE.    ! We need new form factors from stack to be placed into phases
 n_qxy   = 1
@@ -1861,22 +1896,24 @@ l_twoparts = .false.
 calc_f2aver = .true.    ! Assume that we need form factors
 rept_f2aver = .true.    ! Assume that we need to repeat them
 !
-pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
-pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
-pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
+pow_hkl_max(1) = cr_a0(1) * pow_ds_max 
+pow_hkl_max(2) = cr_a0(2) * pow_ds_max 
+pow_hkl_max(3) = cr_a0(3) * pow_ds_max 
 !                                                                       
 !
 !ss = seknds (0.0D0) 
 !                                                                       
 !     Set Fourier definitions                                           
 !                                                                       
-inc(2) = 1 
-inc(3) = 1 
-DO i = 1, 3 
-   vi (i, 1) = 0.0 
-   vi (i, 2) = 0.0 
-ENDDO 
-vi (3, 1) = pow_hkl_del (3) 
+num(2:3) = 1
+inc(2:3) = 1 
+vi       = 0.0_PREC_DP
+!DO i = 1, 3 
+!   vi (i, 1) = 0.0 
+!   vi (i, 2) = 0.0 
+!   vi (i, 3) = 0.0 
+!ENDDO 
+vi(3, 1) = pow_hkl_del(3) 
 four_log = .false. 
 !
 !
@@ -1892,9 +1929,7 @@ pow_f2aver(:) = 0.0D0   ! 0:POW_MAXPKT
 pow_faver2(:) = 0.0D0   ! 0:POW_MAXPKT
 pow_nreal     = 0
 pow_u2aver    = 0.0
-!     DO i = 1, POW_MAXPKT 
-!     pow_qsp (i) = 0.0 
-!     ENDDO 
+!
 if(any(inc/=ubound(csf))) then
 !  n_qxy = inc
    call alloc_diffuse_four (inc )
@@ -1909,19 +1944,6 @@ if(cr_natoms/=ubound(xat,1)) then
    if(ier_num/=0) return
 endif
 !
-!n_qxy   = MAX(n_qxy,inc(1) * inc(2),n_pkt,PRODUCT(MAXQXY))
-!n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-!n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
-!IF (inc (1) * inc (2) .gt. product(MAXQXY)  .OR.          &
-!    n_pkt             .gt. product(MAXQXY)  .OR.          &
-!    cr_nscat>DIF_MAXSCAT              ) THEN
-!  CALL alloc_diffuse_four ((/n_qxy,1,1/))
-!  CALL alloc_diffuse_scat (n_nscat)
-!  CALL alloc_diffuse_atom (n_natom )
-!  IF (ier_num /= 0) THEN
-!    RETURN
-!  ENDIF
-!ENDIF
 !
 IF(n_pkt > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN
    n_pha   = PHA_MAXPHA
@@ -1998,7 +2020,7 @@ loop_h: DO ih = h_start, h_end
 !DBG      write(*,*) ' Vector u ',u                                     
 !DBG      write(*,*) ' Vector v ',v                                     
 !DBG      write(*,*) ' x*       ',rr                                    
-   IF (rr.ge.0) THEN 
+   cond_rr_one: IF (rr.ge.0.0_PREC_DP) THEN 
       w_min (1) = u (1) - sqrt ( (rr) ) * v (1) 
       w_min (2) = u (2) - sqrt ( (rr) ) * v (2) 
       w_min (3) = u (3) - sqrt ( (rr) ) * v (3) 
@@ -2022,18 +2044,19 @@ loop_h: DO ih = h_start, h_end
 !DBG        open(17,file=line,status='unknown')                         
 !DBG        line(1:3) = 'EEE'                                           
 !DBG        open(18,file=line,status='unknown')                         
-   ENDIF 
+   ENDIF cond_rr_one
 !
-   IF (rr.gt.0) THEN 
-         eck (1, 1) = hh 
-         eck (1, 2) = hh 
-         eck (1, 3) = hh 
-         IF (.not.l_ano.and.ih.eq.0) THEN 
-            k_start = 0 
-         ELSE 
-            k_start = int( w_min (2) / pow_hkl_del (2) )
-         ENDIF 
-         k_end = int( w_max (2) / pow_hkl_del (2) )
+   IF(rr.gt.0.0_PREC_DP) THEN 
+      eck(1, 1) = hh 
+      eck(1, 2) = hh 
+      eck(1, 3) = hh 
+      eck(1, 4) = hh 
+      IF (.not.l_ano.and.ih.eq.0) THEN 
+         k_start = 0 
+      ELSE 
+         k_start = int( w_min (2) / pow_hkl_del (2) )
+      ENDIF 
+      k_end = int( w_max (2) / pow_hkl_del (2) )
 !DBG_RBN                                                                
 !DBG      k_start = -6.00000/pow_hkl_del(2)                             
 !DBG      k_end   =  6.00000/pow_hkl_del(2)                             
@@ -2046,31 +2069,50 @@ loop_h: DO ih = h_start, h_end
 !                                                                       
 !     ----Start loop over k                                             
 !                                                                       
-         DO ik = k_start, k_end 
+      loop_k: DO ik = k_start, k_end 
 !DBGXXX      if(hkl(1).eq.0.0) THEN                                     
 !DBGXXX        write(*,*) ' ik*pow_hkl_del(2) ',ik*pow_hkl_del(2)       
 !DBGXXX        write(*,*) ' pow_hkl_shift(2)  ',pow_hkl_shift(2)        
 !DBGXXX      endif                                                      
          kk = ik * pow_hkl_del (2) + pow_hkl_shift (2) 
          hkl (2) = kk 
-         l_kk_real = abs ( (nint (kk) - kk) / pow_hkl_del (2) )         &
-         .gt.0.51                                                       
+         l_kk_real = abs((nint(kk) - kk) / pow_hkl_del(2)) .gt.0.51
+         scale_mode = 0
+         cond_stack_mode: if(pow_four_mode==POW_STACK .or. cr_is_stack) then ! Stacking fault mode
+            if((.not.l_hh_real) .and. (.not.l_kk_real)) then   ! Integer HK
+               l_sharp = .true.
+               do it=1, st_ntypes
+                  do jt=1, st_ntypes
+                     l_sharp = l_sharp  .and. &
+                         abs(    (hkl(1)*st_trans(it,jt,1)+hkl(2)*st_trans(it,jt,2)) -  &
+                             nint(hkl(1)*st_trans(it,jt,1)+hkl(2)*st_trans(it,jt,2))  )<1.0D-6
+                  enddo
+               enddo
+               if(l_sharp) then
+                  scale_mode = 0
+               else
+                  scale_mode = 1
+               endif
+!write(*,'(a, 2f6.2, f8.4, l2, f6.2, i2)') ' SHARP ? ', hkl(1:2), (hkl(1)*st_trans(1 , 2,1)+hkl(2)*st_trans( 1, 2,2)), l_sharp, &
+!scale_diffuse(scale_mode), scale_mode
+            endif
+         endif cond_stack_mode
 !                                                                       
 !     --Produce output to keep the user informed                        
 !                                                                       
-!       write (output_io,5010) kk,pow_hkl_del(2),pow_hkl_max(2)         
+!DBG        write (output_io,5010) kk,pow_hkl_del(2),pow_hkl_max(2)         
 !                                                                       
          aaa = cr_rten (3, 3) 
-         bbb = 2 * (cr_rten(1, 3) * hkl(1) + cr_rten(2, 3) * hkl(2))
-         ccc =      cr_rten(1, 1) * hkl(1)**2 +       &
-               2. * cr_rten(1, 2) * hkl(1)*hkl(2) +   &
-                    cr_rten(2, 2) * hkl(2)**2     -   &
+         bbb = 2.0_PREC_DP * (cr_rten(1, 3) * hkl(1) + cr_rten(2, 3) * hkl(2))
+         ccc =                cr_rten(1, 1) * hkl(1)**2 +       &
+               2.0_PREC_DP *  cr_rten(1, 2) * hkl(1)*hkl(2) +   &
+                              cr_rten(2, 2) * hkl(2)**2     -   &
                pow_ds_max**2                                                  
-         rrr = bbb**2 - 4. * aaa * ccc 
+         rrr = bbb**2 - 4.0_PREC_DP * aaa * ccc 
 !DBG          if(.not.l_ano .and. ih.eq.0 .and. ik.eq.0) THEN           
 !DBG            write(*,*) ' rrr ',rrr                                  
 !DBG          endif                                                     
-         IF (rrr.ge.0) THEN 
+         cond_rrr: IF(rrr.ge.0.0_PREC_DP) THEN 
 !DBGXXX        write(*,*) ' hkl ',hkl                                   
 !DBGXXX        write(*,'(a,3f10.4)') ' aaa,bbb,ccc ',aaa,bbb,ccc        
             llstart = ( - bbb - sqrt (rrr) ) / 2. / aaa 
@@ -2092,7 +2134,7 @@ loop_h: DO ih = h_start, h_end
 !DBGXXX            write(*,*) ' llend   ',llend                         
 !DBGXXX            write(*,*) ' rtm ',rtm                               
 !DBGXXX          endif                                                  
-            IF (rtm.gt.0) THEN 
+            cond_rtm: IF (rtm.gt.0 .and. 1==30) THEN 
 !                                                                       
 !     --------- Intersection with 2Theta minimum sphere                 
 !                                                                       
@@ -2119,8 +2161,8 @@ loop_h: DO ih = h_start, h_end
 !DBGXXX                write( *,'(2f12.4)') hkl(2),llstartmini          
 !DBGXXX                write( *,'(2f12.4)') hkl(2),llend                
                   llstart = llstartmini 
-                  l_start = int( llstart / pow_hkl_del (3) )
-                  l_end = int( llend / pow_hkl_del (3) )
+                  l_start = int(llstart / pow_hkl_del(3) )
+                  l_end   = int(llend / pow_hkl_del(3) )
                   l_twoparts = .false. 
 !DBG                  write(15,'(2f12.4)') hkl(2),llstart               
 !DBG                  write(15,'(2f12.4)') hkl(2),llend                 
@@ -2129,11 +2171,11 @@ loop_h: DO ih = h_start, h_end
 !     ----------- Calculate all, two lines calculated                   
 !                                                                       
                   llstart2 = llstartmini 
-                  llend2 = llend 
-                  llstart = llstart 
-                  llend = llendmini 
-                  l_start = int( llstart / pow_hkl_del (3) )
-                  l_end = int( llend / pow_hkl_del (3) )
+                  llend2   = llend 
+                  llstart  = llstart 
+                  llend    = llendmini 
+                  l_start  = int(llstart / pow_hkl_del(3) )
+                  l_end    = int(llend / pow_hkl_del(3) )
                   l_twoparts = .true. 
 !DBG                  write(15,'(2f12.4)') hkl(2),llstart               
 !DBG                  write(15,'(2f12.4)') hkl(2),llend                 
@@ -2144,7 +2186,7 @@ loop_h: DO ih = h_start, h_end
 !DBGXXX                write( *,'(2f12.4)') hkl(2),llendmini            
 !DBGXXX      endif                                                      
                ENDIF 
-            ELSE 
+            ELSE  cond_rtm
 !                                                                       
 !     --------- No intersection with 2-Theta minimum                    
 !                                                                       
@@ -2154,20 +2196,21 @@ loop_h: DO ih = h_start, h_end
 !DBG                  write(15,'(2f12.4)') hkl(2),0.00                  
 !DBG                  write(15,'(2f12.4)') hkl(2),llend                 
                ELSE 
-                  l_start = int( llstart / pow_hkl_del (3) )
-                  l_end = int( llend / pow_hkl_del (3) )
+                  l_start = int( llstart / pow_hkl_del(3) )
+                  l_end = int( llend / pow_hkl_del(3) )
 !DBG                  write(15,'(2f12.4)') hkl(2),llstart               
 !DBG                  write(15,'(2f12.4)') hkl(2),llend                 
                ENDIF 
                l_twoparts = .false. 
-            ENDIF 
-         ENDIF 
+            ENDIF  cond_rtm
+         ENDIF  cond_rrr
 !DBG_RBN      END OF NEW L LIMIT                                        
 !                                                                       
-         IF (rrr.gt.0) THEN 
-            eck (2, 1) = kk 
-            eck (2, 2) = kk 
-            eck (2, 3) = kk 
+         cond_rrr2: IF (rrr.gt.0) THEN 
+            eck(2, 1) = kk 
+            eck(2, 2) = kk 
+            eck(2, 3) = kk 
+            eck(2, 4) = kk 
 !                                                                       
 !     --------Distinguish between intersection with tthmin and no       
 !     --------New code, first segment is always run                     
@@ -2187,11 +2230,11 @@ loop_h: DO ih = h_start, h_end
 !DBG      l_end   =  6.0/pow_hkl_del(3)                                 
 !DBG      l_start =  llstart/pow_hkl_del(3)                             
 !DBG      l_end   =  llend  /pow_hkl_del(3)                             
-            eck (3, 1) = l_start * pow_hkl_del (3) + pow_hkl_shift (3) 
-            eck (3, 2) = l_end * pow_hkl_del (3) + pow_hkl_shift (3) 
-            eck (3, 3) = l_start * pow_hkl_del (3) + pow_hkl_shift (3) 
-            inc (1) = nint ( (eck (3, 2) - eck (3, 1) ) / pow_hkl_del ( &
-            3) ) + 1                                                    
+            eck(3, 1) = l_start * pow_hkl_del(3) + pow_hkl_shift(3) 
+            eck(3, 2) = l_end   * pow_hkl_del(3) + pow_hkl_shift(3) 
+            eck(3, 3) = l_start * pow_hkl_del(3) + pow_hkl_shift(3) 
+            eck(3, 4) = l_start * pow_hkl_del(3) + pow_hkl_shift(3) 
+            inc(1) = nint((eck(3, 2) - eck(3, 1) ) / pow_hkl_del(3) ) + 1
 !DBG_RBN                                                                
 !DBGXXX          if(.not.l_ano .and. ih.eq.0 .and. ik.eq.0) THEN        
 !DBGXXX      write(*,*) 'l_start , l_end ',l_start , l_end              
@@ -2201,15 +2244,15 @@ loop_h: DO ih = h_start, h_end
             if(any(inc/=ubound(csf))) then
 !              n_qxy = inc
                call alloc_diffuse_four (inc )
-               if(ier_num/=0) return
+               if(ier_num/=0) exit loop_h
             endif
             if(cr_nscat/=ubound(cfact,2)) then
                call alloc_diffuse_scat(cr_nscat)
-               if(ier_num/=0) return
+               if(ier_num/=0) exit loop_h
             endif
             if(cr_natoms/=ubound(xat,1)) then
                call alloc_diffuse_atom(cr_natoms)
-               if(ier_num/=0) return
+               if(ier_num/=0) exit loop_h
             endif
 !           IF (inc (1) * inc (2) .gt. product(MAXQXY)  .OR.          &
 !               cr_nscat>DIF_MAXSCAT              ) THEN
@@ -2229,8 +2272,12 @@ loop_h: DO ih = h_start, h_end
                WRITE (ier_msg (1), 8888) inc (1) 
                WRITE (ier_msg (2), 8889) product(MAXQXY) 
                ier_msg (3) = 'Increase dl or reduce TTHMAX' 
-               RETURN 
+               exit loop_h
             ENDIF 
+!if(hh==0.0 .and.kk==2.0) then 
+!if(.not.l_hh_real .and. .not.l_kk_real) then
+!write(*,'(a,2(2x,3f8.4), i5)') ' CENTRAL ROD1', eck(:,1), eck(:,2), inc(1)
+!endif
             IF (pow_four_mode.eq.POW_FOURIER) THEN 
 !              IF (pow_four_type.eq.POW_COMPL) THEN 
 !DBG_RBN                                                                
@@ -2245,17 +2292,20 @@ loop_h: DO ih = h_start, h_end
             IF(ier_ctrlc) THEN
                ier_num = -14
                ier_typ = ER_COMM
-               RETURN
+               exit loop_h
             ENDIF
-            IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
-            DO i = 1, inc (1) 
-            hkl (3) = eck (3, 1) + (i - 1) * vi (3, 1) 
-            ll = hkl (3) 
-            l_ll_real = abs ( (nint (ll) - ll) / pow_hkl_del (3) )      &
-            .gt.0.51                                                    
-            IF (pow_l_all.or..not.pow_l_all.and. (                      &
-            l_hh_real.or.l_kk_real.or.l_ll_real) ) THEN                 
-               dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
+            IF(ier_num/=0) exit loop_h ! An error occured or CTRL-C
+!write(ofile, '(a,2i4.3,a)') 'ROD/HK_', nint(hkl(1:2)), '.rod'
+!if(ofile(8:8)==' ') ofile(8:8)='0'
+!if(ofile(12:12)==' ') ofile(12:12)='0'
+!open(91,file=ofile, status='unknown')
+            loop_l_a: DO i = 1, inc(1) 
+               hkl(3) = eck(3, 1) + (i - 1) * vi(3, 1) 
+               ll = hkl(3) 
+               l_ll_real = abs((nint(ll) - ll) / pow_hkl_del(3)) .gt.0.51
+               cond_full_a: IF (pow_l_all.or..not.pow_l_all.and. (                      &
+                  l_hh_real.or.l_kk_real.or.l_ll_real) ) THEN                 
+                  dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
 !DBG_RBN                                                                
 !                 IF(pow_axis==POW_AXIS_TTH) THEN
 !              IF (rlambda * 0.5 * dstar.le.1.0) THEN 
@@ -2282,19 +2332,24 @@ loop_h: DO ih = h_start, h_end
 
 !****************************************************************************************************************************************************************************************
 !****************************************************************************************************************************************************************************************
-                     q = (zpi) * dstar
-                     IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
-                        itth = nint( (q - pow_qmin) / pow_deltaq )
-                        inten = DBLE (csf (i,1,1) * conjg (csf (i,1,1) ) )                                    ! Complicated subrutine. The whole thing runs over i. Discuss with Neder.
-                        IF (pow_pref) THEN 
-                           inten = inten * DBLE(calc_preferred (hkl,         &
-                           pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
-                           pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
-                        ENDIF 
-                        pow_qsp (itth) = pow_qsp (itth) + inten 
+                  q = (zpi) * dstar
+                  IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
+                     itth = nint( (q - pow_qmin) / pow_deltaq )
+                     inten = DBLE (csf (i,1,1) * conjg (csf (i,1,1) ) )
+                     IF (pow_pref) THEN 
+                        inten = inten * DBLE(calc_preferred (hkl,         &
+                        pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
+                        pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
                      ENDIF 
+!if(hh==0.0 .and.kk==2.0) then 
+!if(.not.l_hh_real .and. .not.l_kk_real .and. .not. l_ll_real) then
+!write(*,'(a,1(2x,3f8.4), i5, g18.6e3, f8.4, 4l2)') ' CENTRAL rod1', hkl(:), i, inten, q, pow_l_all, l_hh_real, l_kk_real, l_ll_real
+!endif
+!write(91,'(1f8.4, g18.6e3)') hkl(3), inten
+                     pow_qsp (itth) = pow_qsp (itth) + inten * scale_diffuse(scale_mode)
+                  ENDIF 
 !                 ENDIF 
-            ENDIF 
+               ENDIF cond_full_a
 !****************************************************************************************************************************************************************************************
 !****************************************************************************************************************************************************************************************
 !DBG_RBN      write(13,4444) hkl,dstar,ttheta,csf(i),                   
@@ -2303,14 +2358,16 @@ loop_h: DO ih = h_start, h_end
 !DBG_RBN     &               pow_l_all .or. .not.pow_l_all .and.        
 !DBG_RBN     &               (l_hh_real .or. l_kk_real .or. l_ll_real)  
 ! 4444 FORMAT    (3(2x,f5.1),f8.5,f8.3,2x,f12.6,f12.6,2x,f12.6,5(2x,l1)) 
-            ENDDO 
-            IF (l_twoparts) THEN 
+            ENDDO  loop_l_a
+!close(91)
+!
+            cond_two: IF (l_twoparts) THEN 
 !                                                                       
 !     ----------Intersection with 2Theta min sphere, calculate          
 !               second section along line                               
 !                                                                       
-               l_start = int( llstart2 / pow_hkl_del (3) )
-               l_end = int( llend2 / pow_hkl_del (3) )
+               l_start = int(llstart2 / pow_hkl_del(3) )
+               l_end   = int(llend2 / pow_hkl_del(3) )
 !DBG                write(17,'(2f12.4)') hkl(2),llstart2                
 !DBG                write(17,'(2f12.4)') hkl(2),llend2                  
 !DBG_RBN                                                                
@@ -2318,23 +2375,23 @@ loop_h: DO ih = h_start, h_end
 !DBG      l_end   =  6.0/pow_hkl_del(3)                                 
 !DBG      l_start =  llstart2 /pow_hkl_del(3)                           
 !DBG      l_end   =  llend2   /pow_hkl_del(3)                           
-               eck (3, 1) = l_start * pow_hkl_del (3) 
-               eck (3, 2) = l_end * pow_hkl_del (3) 
-               eck (3, 3) = l_start * pow_hkl_del (3) 
-               inc (1) = nint ( (eck (3, 2) - eck (3, 1) ) /            &
-               pow_hkl_del (3) ) + 1                                    
+               eck(3, 1) = l_start * pow_hkl_del (3) 
+               eck(3, 2) = l_end * pow_hkl_del (3) 
+               eck(3, 3) = l_start * pow_hkl_del (3) 
+               eck(3, 4) = l_start * pow_hkl_del (3) 
+               inc(1)    = nint((eck(3, 2) - eck(3, 1))/pow_hkl_del(3)) + 1
                if(any(inc/=ubound(csf))) then
 !                 n_qxy = inc
                   call alloc_diffuse_four (inc )
-                  if(ier_num/=0) return
+                  if(ier_num/=0) exit loop_h
                endif
                if(cr_nscat/=ubound(cfact,2)) then
                   call alloc_diffuse_scat(cr_nscat)
-                  if(ier_num/=0) return
+                  if(ier_num/=0) exit loop_h
                endif
                if(cr_natoms/=ubound(xat,1)) then
                   call alloc_diffuse_atom(cr_natoms)
-                  if(ier_num/=0) return
+                  if(ier_num/=0) exit loop_h
                endif
 !              IF (inc (1) * inc (2) .gt. product(MAXQXY)  .OR.          &
 !                  cr_nscat>DIF_MAXSCAT              ) THEN
@@ -2354,8 +2411,11 @@ loop_h: DO ih = h_start, h_end
                   WRITE (ier_msg (1), 8888) inc (1) 
                   WRITE (ier_msg (2), 8889) product(MAXQXY) 
                   ier_msg (3) = 'Increase dl or adjust TTHMIN / TTHMAX' 
-                  RETURN 
+                  exit loop_h
                ENDIF 
+!if(hh==0.0 .and.kk==2.0) then 
+!write(*,'(a,2(2x,3f8.4), i5)') ' CENTRAL ROD ', eck(:,1), eck(:,2), inc(1)
+!endif
                IF (pow_four_mode.eq.POW_FOURIER) THEN 
 !                 IF (pow_four_type.eq.POW_COMPL) THEN 
 !DBG_RBN                                                                
@@ -2370,17 +2430,20 @@ loop_h: DO ih = h_start, h_end
                IF(ier_ctrlc) THEN
                   ier_num = -14
                   ier_typ = ER_COMM
-                  RETURN
+                  exit loop_h
                ENDIF
-               IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
-               DO i = 1, inc (1) 
-               hkl (3) = eck (3, 1) + (i - 1) * vi (3, 1) 
-               ll = hkl (3) 
-               l_ll_real = abs ( (nint (ll) - ll) / pow_hkl_del (3) )   &
-               .lt.0.51                                                 
-               IF (pow_l_all.or..not.pow_l_all.and. (                   &
-               l_hh_real.or.l_kk_real.or.l_ll_real) ) THEN              
-                  dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
+               IF(ier_num/=0) exit loop_h ! An error occured or CTRL-C
+!write(ofile, '(a,2i4.3,a)') 'ROD/HK_', nint(hkl(1:2)), '.rod2'
+!if(ofile(8:8)==' ') ofile(8:8)='0'
+!if(ofile(12:12)==' ') ofile(12:12)='0'
+!open(91,file=ofile, status='unknown')
+               loop_l: DO i = 1, inc (1) 
+                  hkl(3) = eck(3, 1) + (i - 1) * vi(3, 1) 
+                  ll = hkl (3) 
+                  l_ll_real = abs((nint(ll) - ll) / pow_hkl_del(3)).lt.0.51
+                  cond_full_b: IF (pow_l_all.or..not.pow_l_all.and. (                   &
+                     l_hh_real.or.l_kk_real.or.l_ll_real) ) THEN              
+                        dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
 !                 IF(pow_axis==POW_AXIS_TTH) THEN
 !                 IF (rlambda * 0.5 * dstar.le.1.0) THEN 
 !                    ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
@@ -2394,26 +2457,29 @@ loop_h: DO ih = h_start, h_end
 !                          pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
 !                       ENDIF 
 !                       pow_qsp (itth) = pow_qsp (itth) + inten 
-!DBG      write(18,'(2f12.4)') hkl(2),hkl(3)                            
+!          write(18,'(3f12.4)') hkl(1),hkl(2),hkl(3)                            
 !                    ENDIF 
 !                 ENDIF 
 !                 ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
 
 !****************************************************************************************************************************************************************************************
 !****************************************************************************************************************************************************************************************
-                     q = (zpi) * dstar
+                        q = (zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = nint( (q - pow_qmin) / pow_deltaq )
-                        inten = DBLE (csf (i,1,1) * conjg (csf (i,1,1) ) )                                               ! Complicated subrutine. The whole thing runs over i. Discuss with Neder.
                         IF (pow_pref) THEN 
                            inten = inten * DBLE(calc_preferred (hkl,         &
                            pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
                            pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
                         ENDIF 
-                        pow_qsp (itth) = pow_qsp (itth) + inten 
+!if(hh==0.0 .and.kk==2.0) then 
+!write(*,'(a,2(2x,3f8.4), i5, g18.6e3, f8.4)') ' CENTRAL RODB', eck(:,1), eck(:,2), i, inten, q
+!endif
+!write(91,'(1f8.4, g18.6e3)') hkl(3), inten
+                        pow_qsp (itth) = pow_qsp (itth) + inten * scale_diffuse(scale_mode)
                      ENDIF 
 !                 ENDIF 
-               ENDIF 
+                  ENDIF  cond_full_b
 !****************************************************************************************************************************************************************************************
 !****************************************************************************************************************************************************************************************
 
@@ -2422,15 +2488,16 @@ loop_h: DO ih = h_start, h_end
 !DBG_RBN     &        pow_l_all,l_hh_real,l_kk_real,l_ll_real,          
 !DBG_RBN     &        pow_l_all .or. .not.pow_l_all .and.               
 !DBG_RBN     &        (l_hh_real .or. l_kk_real .or. l_ll_real)         
-               ENDDO 
-            ENDIF 
-         ENDIF 
-         ENDDO 
-      ENDIF 
+               ENDDO loop_l
+!close(91)
+            ENDIF cond_two
+         ENDIF cond_rrr2
+      ENDDO  loop_k
+   ENDIF !cond_two
 !
 ENDDO  loop_h
-if(.not. l_ano) pow_qsp = pow_qsp*2.0_PREC_DP   !  Correct for half volume calculation
-!write(*,*) ' POWDER COMPLETE ', maxval(pow_qsp)
+if(ier_num==0) then                             ! No error
+   if(.not. l_ano) pow_qsp = pow_qsp*2.0_PREC_DP   !  Correct for half volume calculation
 !i = ubound(pow_qsp,1)
 !call tofile(i, 'POWDER/pow_qsp.dat', pow_qsp, 0.0D0, 0.001D0)
 !
@@ -2443,9 +2510,14 @@ if(.not. l_ano) pow_qsp = pow_qsp*2.0_PREC_DP   !  Correct for half volume calcu
          ENDDO
          pow_faver2(:) = pow_faver2(:)**2
          pow_u2aver = pow_u2aver / pow_nreal /8./(pi**2)
-      ENDIF
+     ENDIF
 !                                                                       
-CALL dealloc_powder_nmax ! was allocated in powder_getatoms
+   CALL dealloc_powder_nmax ! was allocated in powder_getatoms
+endif
+!
+!ss = seknds (ss) 
+!write(*,*) ' POWDER is done  restt '
+call trans_to_short_reset(pow_hkl_del, pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack) ! Restore transformed structure
 !
 !     Prepare and calculate average form factors
 !
@@ -2457,13 +2529,14 @@ CALL dealloc_powder_nmax ! was allocated in powder_getatoms
 !      CALL powder_f2aver ( cr_nscat , natom , cr_dw)
 !
 !
-!ss = seknds (ss) 
 !WRITE (output_io, 4000) ss 
 !
 !                                                                       
-! 4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
+!4000 FORMAT     (/,' Elapsed time PPP: ',G13.6,' sec') 
  5000 FORMAT     (' Currently at H = ',f9.4,'   (dH = ',f9.4,           &
      &                   ', maxH = ',f9.4,')')                          
+!5010 FORMAT     (' Currently at K = ',f9.4,'   (dK = ',f9.4,           &
+!    &                   ', maxK = ',f9.4,')')                          
  8888 FORMAT    ('Current number = ',i10) 
  8889 FORMAT    ('Maximum number = ',i10) 
 !
@@ -2485,6 +2558,9 @@ use phases_mod
 use phases_set_mod
 use powder_mod
 use powder_tables_mod
+use stack_menu
+use stack_mod
+use trans_to_short_mod
 !
 use lib_metric_mod
 use precision_mod
@@ -2506,12 +2582,42 @@ real(PREC_DP)               :: q       ! 2PI*2.*sin(theta)/lambda
 real(PREC_DP)               :: inten   ! Calculated intensity
 real(PREC_DP)               :: xstart  ! q-scale start 
 real(PREC_DP)               :: xdelta  ! q-scale steps
+integer                            :: scale_mode                    ! 0/1 Choice for scale factor
+real(kind=PREC_DP), dimension(0:1) :: scale_diffuse = 1.0_PREC_DP   ! scale factor for diffuse rods in case of stacking faults  
+integer                     :: it, jt  ! Dummy indices for stacking fault layer types
+logical                     :: l_sharp
+!
+call trans_to_short(pow_hkl_del, pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack)   ! Transform if pow_hkl_del(3) is not the smallest step
+!
+scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
+!
+if(pow_hkl_del(3)<1.0_PREC_DP) then
+if(pow_four_mode==POW_STACK) then  ! Crystal was build using stacking faults
+          !                        ! Diffuse rods should be sampled at pow_hkl_del(3) = 1/ unit_cells_along_c
+                                   ! the scale factor corrects for undersampling
+   scale_diffuse(1) = (pow_hkl_del(3) * &
+                      real(nint(st_origin(3, st_nlayer)-st_origin(3,1)+0.05), kind=PREC_DP) )
+elseif(cr_is_stack) then           ! Crystal was build using stacking faults
+          !                        ! Diffuse rods should be sampled at pow_hkl_del(3) = 1/ unit_cells_along_c
+                                   ! the scale factor corrects for undersampling
+   scale_diffuse(1) = (pow_hkl_del(3) * &
+                      real(nint(cr_dim(3, 2)-cr_dim(3,1)+0.05), kind=PREC_DP) )
+endif
+endif
+!scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
+!write(*,'(a,3f10.6)') ' SCALE_POW_DEL ', pow_hkl_del
+!write(*,'(a,3f10.2)') ' SCALE_ORIGINS ', st_origin(3,1), st_origin(3, st_nlayer)
+!write(*,'(a,3f10.2)') ' SCALE_SIZE    ', cr_dim (3,:)
+!write(*,'(a,2f10.6)') ' SCALE_DIFFUSE ', scale_diffuse(0:1)
+!write(*,'(a,3f10.2)') ' SCALE_TRANS11 ', st_trans(1,1,:)
+!write(*,'(a,3f10.2)') ' SCALE_TRANS12 ', st_trans(1,2,:)
+!read(*,*) i
 !
 !  Set maximum HKL
 !
 pow_hkl_max(1) = real((int(cr_a0(1) * pow_ds_max/pow_hkl_del(1))+1)*pow_hkl_del(1), PREC_DP)
-pow_hkl_max(2) = real((int(cr_a0(2) * pow_ds_max/pow_hkl_del(1))+1)*pow_hkl_del(2), PREC_DP)
-pow_hkl_max(3) = real((int(cr_a0(3) * pow_ds_max/pow_hkl_del(1))+1)*pow_hkl_del(3), PREC_DP)
+pow_hkl_max(2) = real((int(cr_a0(2) * pow_ds_max/pow_hkl_del(2))+1)*pow_hkl_del(2), PREC_DP)
+pow_hkl_max(3) = real((int(cr_a0(3) * pow_ds_max/pow_hkl_del(3))+1)*pow_hkl_del(3), PREC_DP)
 !
 !  Set all single crystal Fourier settings  at +-H; +-K; +-L
 !
@@ -2548,6 +2654,7 @@ call dlink(ano, lambda, rlambda, renergy, l_energy,                             
            diff_radiation, diff_table, diff_power)
 !
 !call four_show(.true.)
+!read(*,*) n_pkt
 !
 ! If needed allocate arrays Fourier and Powder and Phases
 !
@@ -2607,6 +2714,30 @@ do il=1, inc(3)
          hkl(1) = eck(1,1) + vi(1,1)*(ih-1) + vi(1,2)*(ik-1) + vi(1,3)*(il-1)
          hkl(2) = eck(2,1) + vi(2,1)*(ih-1) + vi(2,2)*(ik-1) + vi(2,3)*(il-1)
          hkl(3) = eck(3,1) + vi(3,1)*(ih-1) + vi(3,2)*(ik-1) + vi(3,3)*(il-1)
+!
+         scale_mode = 0
+         cond_stack_mode: if(pow_four_mode==POW_STACK .or. cr_is_stack) then ! Stacking fault mode
+            if( abs(hkl(1)-nint(hkl(1)))<1.0D-6 .and.        &
+                abs(hkl(1)-nint(hkl(1)))<1.0D-6       ) then   ! Integer HK
+!           if((.not.l_hh_real) .and. (.not.l_kk_real)) then   ! Integer HK
+               l_sharp = .true.
+               do it=1, st_ntypes
+                  do jt=1, st_ntypes
+                     l_sharp = l_sharp  .and. &
+                         abs(    (hkl(1)*st_trans(it,jt,1)+hkl(2)*st_trans(it,jt,2)) -  &
+                             nint(hkl(1)*st_trans(it,jt,1)+hkl(2)*st_trans(it,jt,2))  )<1.0D-6
+                  enddo
+               enddo
+               if(l_sharp) then
+                  scale_mode = 0
+               else
+                  scale_mode = 1
+               endif
+!write(*,'(a, 2f6.2, f8.4, l2, f6.2, i2)') ' SHARP ? ', hkl(1:2), (hkl(1)*st_trans(1 , 2,1)+hkl(2)*st_trans( 1, 2,2)), l_sharp, &
+!scale_diffuse(scale_mode), scale_mode
+            endif
+         endif cond_stack_mode
+!
          dstar = lib_blen(cr_rten, hkl) 
          q = zpi * dstar
          if( pow_qmin <= q .and. q <= (pow_qmax+pow_deltaq) ) then
@@ -2617,7 +2748,7 @@ do il=1, inc(3)
                pow_pref_type, pow_pref_hkl, pow_pref_g1,         &
                pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))
             endif
-            pow_qsp(itth) = pow_qsp(itth) + inten
+            pow_qsp(itth) = pow_qsp(itth) + inten * scale_diffuse(scale_mode)
          endif
       enddo
    enddo
@@ -2628,6 +2759,7 @@ xdelta = pow_deltaq/zpi
 ! messes up cfact
 CALL powder_stltab(n_pkt, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
 !
+call trans_to_short_reset(pow_hkl_del, pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack) ! Restore transformed structure
 !
 end subroutine powder_nufft
 !
@@ -2773,6 +2905,8 @@ USE crystal_mod
 USE diffuse_mod 
 USE four_strucf_mod
 USE fourier_sup
+use fourier_menu
+use fourier_lmn_mod
 !                                                                       
 USE prompt_mod 
 IMPLICIT none 
@@ -2780,6 +2914,7 @@ IMPLICIT none
 !                                                                       
 INTEGER :: lbeg (3), csize (3) 
 INTEGER :: iscat, i 
+integer :: ncell
 logical :: four_is_new  ! The reciprocal space dimensions have changed
 !                                                                       
 ier_num = 0 
@@ -2790,6 +2925,11 @@ csize (3) = cr_icc (3)
 !------ preset some values                                              
 !                                                                       
 CALL four_layer(four_is_new)
+call fourier_lmn(eck,vi,inc,lmn,off_shift)
+!if(eck(1,1)==0 .and. eck(1,2)==0) then
+!call four_show(.true.)
+!read(*,*) i
+!endif
 !
 !------ zero some arrays                                                
 !                                                                       
@@ -2806,9 +2946,9 @@ lbeg (3) = 1
 !------ - loop over all different atom types                            
 !                                                                       
 DO iscat = 1, cr_nscat 
-!DBG        call four_getatm (iscat,ilots,lbeg,csize,ncell)             
-!DBG        call four_strucf (iscat,.true.)                             
-   CALL powder_strucfactor (iscat, .true.) 
+ call four_getatm (iscat,1    ,lbeg,ncell)             
+ call four_strucf (iscat,.true., .false., .false., 1, 1, num)                             
+!  CALL powder_strucfactor (iscat, .true.) 
 !                                                                       
 !------ --- Add this part of the structur factor to the total           
 !
@@ -2925,7 +3065,7 @@ DO k = 1, pow_nscat (iscat)                                                     
       ii = ii + 1 
 !     tcsf (ii,1,1) = tcsf (ii,1,1) + cex(iadd) 
       tcsf (ii,1,1) = tcsf (ii,1,1) + cex(IAND(ISHFT(iarg, -6), MASK))
-      iarg = iarg + iincv                                                                ! Wierd, this line is commented in the above ocurance of this same subrutine !!!!!!!
+!     iarg = iarg + iincv                                                                ! Wierd, this line is commented in the above ocurance of this same subrutine !!!!!!!
 !DBGXXX          ENDDO                                                  
       iarg = iarg0 + iincu * j 
    ENDDO                                                                              ! End loop over j
