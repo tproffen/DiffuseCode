@@ -886,6 +886,7 @@ DO i=1, clu_number
          mk_nanis, mk_anis_full, mk_prin, &
          mk_a0, mk_win,       &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+         mk_cr_magnetic, mk_cr_is_anis, mk_cr_is_asym, mk_cr_is_homo, mk_cr_is_stack,&
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          IF(ier_num /= 0) then
@@ -1016,6 +1017,7 @@ IF ( clu_infile_internal ) THEN
          mk_nanis, mk_anis_full, mk_prin, &
          mk_a0, mk_win,       &
    sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+         mk_cr_magnetic, mk_cr_is_anis, mk_cr_is_asym, mk_cr_is_homo, mk_cr_is_stack,&
    mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
    mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
    IF(ier_num /= 0) then
@@ -1147,6 +1149,7 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
          mk_nanis, mk_anis_full, mk_prin, &
          mk_a0, mk_win,     &
             sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+         mk_cr_magnetic, mk_cr_is_anis, mk_cr_is_asym, mk_cr_is_homo, mk_cr_is_stack,&
             mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
             mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          ENDIF 
@@ -1215,6 +1218,7 @@ ELSE
          mk_nanis, mk_anis_full, mk_prin, &
          mk_a0, mk_win,     &
             sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+         mk_cr_magnetic, mk_cr_is_anis, mk_cr_is_asym, mk_cr_is_homo, mk_cr_is_stack,&
             mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
             mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
    allocate(clu_at_lis  (  0:MK_MAX_SCAT      ))
@@ -2047,6 +2051,7 @@ IF(infile(1:8)=='internal') THEN
          mk_nanis, mk_anis_full, mk_prin, &
          mk_a0, mk_win,   &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+         mk_cr_magnetic, mk_cr_is_anis, mk_cr_is_asym, mk_cr_is_homo, mk_cr_is_stack,&
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
    mk_iatom = 0
