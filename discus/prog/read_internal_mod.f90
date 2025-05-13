@@ -608,6 +608,7 @@ END SUBROUTINE readcell_internal
             rd_nanis, rd_cr_anis_full, rd_cr_prin, &
             rd_cr_a0, rd_cr_win, &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para,   &
+            rd_cr_magnetic, rd_cr_is_anis, rd_cr_is_asym, rd_cr_is_homo, rd_cr_is_stack,&
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
 !
@@ -644,6 +645,12 @@ use precision_mod
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_ianz 
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_para 
 !
+   logical                                      , intent(out) :: rd_cr_magnetic
+   logical                                      , intent(out) :: rd_cr_is_anis
+   logical                                      , intent(out) :: rd_cr_is_asym
+   logical                                      , intent(out) :: rd_cr_is_homo
+   logical                                      , intent(out) :: rd_cr_is_stack
+!
    INTEGER             ::  rd_GEN_ADD_MAX
    INTEGER             ::  rd_gen_add_n
    INTEGER             ::  rd_gen_add_power(rd_GEN_ADD_MAX)
@@ -668,6 +675,7 @@ CALL read_temp%crystal%get_header_to_local (DIM_MAXSCAT, DIM_NCATOMS, DIM_NANIS,
             rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_anis, rd_cr_occ, &
             rd_cr_is_sym, rd_nanis, rd_cr_anis_full, rd_cr_prin, rd_cr_a0, rd_cr_win, &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
+            rd_cr_magnetic, rd_cr_is_anis, rd_cr_is_asym, rd_cr_is_homo, rd_cr_is_stack,&
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
 !
