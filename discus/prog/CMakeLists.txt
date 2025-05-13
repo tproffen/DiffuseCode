@@ -43,7 +43,8 @@ set( SOURCES_ALL  discus_allocate_appl_mod.f90 atom_env_mod.f90
         domain.f90 domain_mod.f90 domaindis_mod.f90  domain_irreg_mod.f90
 	discus_err_appl.f90 discus_exit.f90 external.f90 external_mod.f90 extrmc.f90 fourier.f90 fourier_sup.f90
         discus_fft.f90 discus_fit.f90 discus_pointgrp.f90 discus_prep_anis.f90 discus_reset_all.f90
-        discus_powder_fft.f90 discus_save_temp.f90 discus_symmetrize.f90 discus_3dpdf.f90 discus_xplor.f90
+        discus_powder_fft.f90 discus_save_temp.f90 discus_symmetrize.f90 
+        discus_trans_to_short.f90 discus_3dpdf.f90 discus_xplor.f90
         do_find_mod.f90 find_top.f90
         four_angles_mod.f90 fourier_conv.f90 fourier_finufft.f90 fourier_form.f90 fourier_lmn_mod.f90
         fourier_reset.f90
