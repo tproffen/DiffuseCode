@@ -230,7 +230,6 @@ REAL(kind=PREC_DP) :: werte
 !------ Loop over all helpfile levels until entry is found              
 !                                                                       
 main: DO lev = 1, ibef 
-    5 CONTINUE 
   inner: do
       found = .false. 
       READ (ihl, 1000, end = 10) zeile 
@@ -250,7 +249,7 @@ main: DO lev = 1, ibef
             laenge = len_str (bef (lev) ) 
             found = str_comp (line (4:4 + laenge-1), bef (lev), laenge, &
             laenge, laenge)                                             
-            IF (.not.found) goto 5 
+            if(found) exit inner
          ELSEIF (nl.gt.lev.or.nl.eq.0) then 
             cycle inner
          ELSEIF (nl.lt.lev) then 
@@ -340,6 +339,9 @@ INTEGER :: ib, i, ianf, iend
 LOGICAL :: lchar 
 !                                                                       
 ib = 1 
+bef = ' '
+ibef = 0
+!
 main_loop: DO i = 1, 10 
    lchar = .true. 
    CALL locate(lchar, ein, ib, ianf, length) 
