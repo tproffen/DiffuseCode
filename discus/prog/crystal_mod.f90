@@ -102,6 +102,7 @@ LOGICAL                               :: cr_magnetic  = .FALSE.   ! Crystal is m
 logical                               :: cr_is_anis   = .FALSE.   ! Crystal has anisotropic ADPs 
 logical                               :: cr_is_asym   = .TRUE.    ! Crystal is an asymmetric unit
 logical                               :: cr_is_homo   = .TRUE.    ! Crystal is homogeneous
+logical                               :: cr_is_stack  = .false.   ! Crystal is build by stacking faults
 !
 REAL(kind=PREC_DP)   , DIMENSION(3)                 ::  cr_a0  = 1.0D0
 REAL(kind=PREC_DP)   , DIMENSION(3)                 ::  cr_win = 90.0D0
