@@ -82,6 +82,12 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    LOGICAL           , DIMENSION(  :), ALLOCATABLE  ::  cr_scat_equ  ! (  0:MAXSCAT)
    LOGICAL           , DIMENSION(  :), ALLOCATABLE  ::  cr_delf_int  ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_equ    ! (  0:MAXSCAT)
+!
+   logical                                          ::  cr_is_magnetic  ! Crystal has magnetic moments
+   logical                                          ::  cr_is_anis      ! Crystal has anisotropic ADPs
+   logical                                          ::  cr_is_asym      ! Crystal is just an asymmetric unit
+   logical                                          ::  cr_is_homo      ! Crystal is homogeneous
+   logical                                          ::  cr_is_stack     ! Crystal is result of stacking faults
    LOGICAL           , DIMENSION(  :), ALLOCATABLE  ::  cr_sav_atom  ! (  0:MAXSCAT)
    LOGICAL                                          ::  cr_newtype = .true.
    LOGICAL                                          ::  cr_cartesian = .false.
@@ -769,6 +775,12 @@ SUBROUTINE set_crystal_from_standard   ( this, strucfile)
    this%cr_tran_f       = cr_tran_f
    this%cr_tran_fi      = cr_tran_fi
 !
+this%cr_is_magnetic = cr_magnetic
+this%cr_is_anis     = cr_is_anis
+this%cr_is_asym     = cr_is_asym
+this%cr_is_homo     = cr_is_homo
+this%cr_is_stack    = cr_is_stack
+!
    IF(this%cr_sav_gene) THEN
       this%cr_gen_add_n    = gen_add_n
       this%cr_gen_add_power= gen_add_power
@@ -1012,6 +1024,7 @@ END SUBROUTINE set_crystal_from_standard
             rd_cr_nscat, rd_cr_dw, rd_cr_anis, rd_cr_anis_full, rd_cr_prin, rd_cr_is_sym, &
             rd_cr_occ, rd_cr_a0, rd_cr_win,                      &
             rd_cr_ar, rd_cr_wrez, rd_cr_v, rd_cr_vr, rd_cr_dim, rd_cr_dim0, rd_cr_icc,  &
+            rd_cr_magnetic, rd_cr_is_anis, rd_cr_is_asym, rd_cr_is_homo, rd_cr_is_stack,&
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_cr_tran_g, rd_cr_tran_gi, rd_cr_tran_f, rd_cr_tran_fi, rd_cr_gmat, rd_cr_fmat, &
             rd_cr_gten, rd_cr_rten, rd_cr_eps, rd_cr_reps,                              &
@@ -1067,6 +1080,11 @@ END SUBROUTINE set_crystal_from_standard
    REAL(kind=PREC_DP)  , DIMENSION(3,2)         , INTENT(IN) :: rd_cr_dim0
    INTEGER             , DIMENSION(3)           , INTENT(IN) :: rd_cr_icc
    INTEGER                                      , INTENT(IN) :: rd_cr_nscat 
+   logical                                      , intent(in) :: rd_cr_magnetic
+   logical                                      , intent(in) :: rd_cr_is_anis
+   logical                                      , intent(in) :: rd_cr_is_asym
+   logical                                      , intent(in) :: rd_cr_is_homo
+   logical                                      , intent(in) :: rd_cr_is_stack
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_dw     ! (0:MAXSCAT) 
    REAL(kind=PREC_DP)  , DIMENSION(1:6,0:rd_MAXSCAT), INTENT(IN) :: rd_cr_anis   ! (0:MAXSCAT) 
    REAL(kind=PREC_DP)  , DIMENSION(1:6,1:rd_MAXANIS), INTENT(IN) :: rd_cr_anis_full   ! (0:MAXSCAT) 
@@ -1136,6 +1154,12 @@ END SUBROUTINE set_crystal_from_standard
    IF(this%cr_sav_ncell) THEN
       this%cr_icc          = rd_cr_icc
    ENDIF
+!
+this%cr_is_magnetic = rd_cr_magnetic
+this%cr_is_anis     = rd_cr_is_anis
+this%cr_is_asym     = rd_cr_is_asym
+this%cr_is_homo     = rd_cr_is_homo
+this%cr_is_stack    = rd_cr_is_stack
 !
    this%spcgr_ianz      = rd_spcgr_ianz
    this%spcgr_para      = rd_spcgr_para
@@ -1465,6 +1489,12 @@ END SUBROUTINE set_crystal_from_standard
    cr_tran_f       = this%cr_tran_f
    cr_tran_fi      = this%cr_tran_fi
 !
+cr_magnetic    = this%cr_is_magnetic
+cr_is_anis     = this%cr_is_anis
+cr_is_asym     = this%cr_is_asym
+cr_is_homo     = this%cr_is_homo
+cr_is_stack    = this%cr_is_stack
+!
    cr_natoms       = this%cr_natoms
 !
    cr_ncatoms   = this%cr_ncatoms
@@ -1577,6 +1607,7 @@ end subroutine get_anis
             rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_anis, rd_cr_occ, &
             rd_cr_is_sym, rd_nanis, rd_cr_anis_full, rd_cr_prin, rd_cr_a0, rd_cr_win,      &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
+            rd_cr_magnetic, rd_cr_is_anis, rd_cr_is_asym, rd_cr_is_homo, rd_cr_is_stack,&
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
 !
@@ -1610,6 +1641,12 @@ end subroutine get_anis
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_ianz 
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_para 
 !
+   logical                                      , intent(out) :: rd_cr_magnetic
+   logical                                      , intent(out) :: rd_cr_is_anis
+   logical                                      , intent(out) :: rd_cr_is_asym
+   logical                                      , intent(out) :: rd_cr_is_homo
+   logical                                      , intent(out) :: rd_cr_is_stack
+!
    INTEGER             ::  rd_GEN_ADD_MAX
    INTEGER             ::  rd_gen_add_n
    INTEGER             ::  rd_gen_add_power(rd_GEN_ADD_MAX)
@@ -1641,6 +1678,12 @@ end subroutine get_anis
    rd_sav_ncell       = this%cr_icc
    rd_sav_ncatoms     = this%cr_ncatoms
    rd_sav_r_ncell     = .true.
+!
+rd_cr_magnetic    = this%cr_is_magnetic
+rd_cr_is_anis     = this%cr_is_anis
+rd_cr_is_asym     = this%cr_is_asym
+rd_cr_is_homo     = this%cr_is_homo
+rd_cr_is_stack    = this%cr_is_stack
 !
 !
    FORALL (i=0:this%cr_nscat)
