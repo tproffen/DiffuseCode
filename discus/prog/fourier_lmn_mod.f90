@@ -30,9 +30,11 @@ REAL(kind=PREC_QP), DIMENSION(1:3, 1:3)              ::  vi    ! increment vecto
 REAL(kind=PREC_QP), DIMENSION(1:3,1:3)               :: off    ! Additional phase shift vector
 !INTEGER, DIMENSION(1:3)     ::  opq
 INTEGER                     :: i,j, j1, j2
+integer                     :: one_type  ! 1D type a*, b*, c*
 INTEGER                     :: dimen   ! dimension spanned by vi vectors (1, 2, 3)
 INTEGER, DIMENSION(1:3)     :: direc   ! index of directions with inc > 1
 LOGICAL, DIMENSION(1:3)     :: nooff   ! offset vectors
+logical                     :: need_work  ! Needs further work
 REAL(kind=PREC_QP)          :: dummy
 REAL(kind=PREC_QP)   , DIMENSION(1:3,1:3) :: mat_a
 REAL(kind=PREC_QP)   , DIMENSION(1:3)     :: vec_r
@@ -67,6 +69,8 @@ dimen      = 0
 nooff(:)   = .false.
 off  (:,:) = 0.0D0
 direc(:)   = 0
+lmn        = 0
+need_work = .true.
 DO i=1,3
    IF(inc(i) > 1) THEN    ! reciprocal space has non_zero size along this increment
       dummy = SQRT(ABS(vi(1,i)**2 + vi(2,i)**2 +vi(3,i)**2))
@@ -87,15 +91,83 @@ DO i=1,3
       ENDIF
    ENDIF
 ENDDO
-IF(dimen==0) THEN       ! Single spot in reciprocal space
+cond_dimen: IF(dimen==0) THEN       ! Single spot in reciprocal space
    off(1,1) = 1.0D0
    off(2,2) = 1.0D0
    off(3,3) = 1.0D0
    mat_a = off
-ELSEIF(dimen==1) THEN   ! 1D line in reciprocal space
+ELSEIF(dimen==1) THEN  cond_dimen  ! 1D line in reciprocal space
    j  = direc(1)
    j1 = MOD(j  ,3) + 1 ! Cyclically increment j by one
    j2 = MOD(j+1,3) + 1 ! Cyclically increment j by two
+   if(    vi(2,j)==0.0_PREC_DP .and. vi(3,j)==0.0_PREC_DP) then  ! parallel a*
+!write(*,*) ' 1D parallel a*'
+!     mat_a(:,1) = vi(:,1)
+!     mat_a(2,2) = 1.0_PREC_DP
+!     mat_a(3,3) = 1.0_PREC_DP
+!     if(eck(2,1)/=0.0_PREC_DP) mat_a(2,2) =  eck(2,1) ! 1.0_PREC_DP
+!     if(eck(3,1)/=0.0_PREC_DP) mat_a(3,3) =  eck(3,1) ! 1.0_PREC_DP
+!     off(2, 2) =  eck(2,1) ! 1.0_PREC_DP
+!     off(3, 3) =  eck(3,1) ! 1.0_PREC_DP
+!     exit cond_dimen
+      one_type = 1
+      vec_r(1) = eck(1,1) / vi(1,1)
+      lmn(1)   = nint(vec_r(1))
+      if(abs(vec_r(1)-nint(vec_r(1)))>1.0D-9) then    ! additional offset
+         lmn(4) = 1
+         off(1,1) = vec_r(1)-nint(vec_r(1))
+      endif
+      lmn(5:6) = 1
+      off(2, 2) = eck(2, 1)
+      off(3, 3) = eck(3, 1)
+      off_in = real(off, kind=PREC_DP)
+!write(*,'(a, 3(2x,f9.4),l3)') ' Vecr', vec_r(1), abs(vec_r(1)-int(vec_r(1))), vec_r(1)-int(vec_r(1)), abs(vec_r(1)-int(vec_r(1)))>1.0D-9
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,1), nooff(1)
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,2), nooff(2)
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,3), nooff(3)
+      need_work = .false.           ! All parameters are set
+!write(*,'(a, 3f8.4, i4)') 'VI 1 ', vi(:,j), one_type
+      exit cond_dimen
+   elseif(vi(1,j)==0.0_PREC_DP .and. vi(3,j)==0.0_PREC_DP) then  ! parallel b*
+!write(*,*) ' 1D parallel b*'
+      one_type = 2
+      vec_r(2) = eck(2,1) / vi(2,1)
+      lmn(1)   = nint(vec_r(2))
+      if(abs(vec_r(2)-nint(vec_r(2)))>1.0D-9) then    ! additional offset
+         lmn(4) = 1
+         off(2,1) = vec_r(2)-nint(vec_r(2))
+      endif
+      lmn(5)   = 1
+      lmn(6)   = 1
+      off(1, 2) = eck(1, 1)
+      off(3, 3) = eck(3, 1)
+      off_in = real(off, kind=PREC_DP)
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,1), nooff(1)
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,2), nooff(2)
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,3), nooff(3)
+      need_work = .false.           ! All parameters are set
+      exit cond_dimen
+   elseif(vi(1,j)==0.0_PREC_DP .and. vi(2,j)==0.0_PREC_DP) then  ! parallel c*
+!write(*,*) ' 1D parallel c*'
+      one_type = 3
+      vec_r(3) = eck(3,1) / vi(3,1)
+      lmn(1)   = nint(vec_r(3))
+      if(abs(vec_r(3)-nint(vec_r(3)))>1.0D-9) then    ! additional offset
+         lmn(4) = 1
+         off(3,1) = vec_r(3)-nint(vec_r(3))
+      endif
+      lmn(5)   = 1
+      lmn(6)   = 1
+      off(1, 2) = eck(1, 1)
+      off(2, 3) = eck(2, 1)
+      off_in = real(off, kind=PREC_DP)
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,1), nooff(1)
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,2), nooff(2)
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,3), nooff(3)
+      need_work = .false.           ! All parameters are set
+      exit cond_dimen
+   endif
+!write(*,'(a, 3f8.4, i4)') 'VI 1 ', vi(:,j), one_type
    off(1, j2) = eck(2,1) *vi(3,j) - eck(3,1) *vi(2,j)  ! Vector product of indices
    off(2, j2) = eck(3,1) *vi(1,j) - eck(1,1) *vi(3,j)  ! Vector product of indices
    off(3, j2) = eck(1,1) *vi(2,j) - eck(2,1) *vi(1,j)  ! Vector product of indices
@@ -124,7 +196,7 @@ ELSEIF(dimen==1) THEN   ! 1D line in reciprocal space
    ENDIF
    mat_a(:,j1) = off(:,j1)
    mat_a(:,j2) = off(:,j2)
-ELSEIF(dimen==2) THEN  ! 2D layer in reciprocal space
+ELSEIF(dimen==2) THEN cond_dimen  ! 2D layer in reciprocal space
    j  = direc(1)
    j1 = direc(2)
    j2 = 3 - MOD(j+j1,3)  ! last index 1,2=>3 1,3=>2 2,3=>1
@@ -134,7 +206,7 @@ ELSEIF(dimen==2) THEN  ! 2D layer in reciprocal space
    dummy = SQRT(off(1,j2)**2+off(2,j2)**2+off(3,j2)**2)
    off(:,j2) = off(:,j2)*0.001D0/dummy
    mat_a(:,j2) = off(:,j2)
-ENDIF
+ENDIF cond_dimen
 !write(*,*) ' NUM , dimension ', inc, dimen
 !write(*,*) ' DIREC, offsets  ', direc(:), nooff(:), j, j1, j2
 !do j=1,3
@@ -142,56 +214,55 @@ ENDIF
 !   (off(j,i),i=1,3)
 !enddo
 !
-call matinv_q(mat_a, mat_i)
-!write(*,*) ' vi     ',vi   (:,1) 
-!write(*,*) ' vi     ',vi   (:,2) 
-!write(*,*) ' vi     ',vi   (:,3) 
-!write(*,*) ' mat  1 ',mat_a(1,:) 
-!write(*,*) ' mat  2 ',mat_a(2,:) 
-!write(*,*) ' mat  3 ',mat_a(3,:) 
-!write(*,*) ' mat_i1 ',mat_i(1,:) 
-!write(*,*) ' mat_i2 ',mat_i(2,:) 
-!write(*,*) ' mat_i3 ',mat_i(3,:) 
+cond_work: if(need_work) then    ! The lmn and offsets still need to be worked out 
+   call matinv_q(mat_a, mat_i)
+!   write(*,*) ' vi     ',vi   (:,1) 
+!   write(*,*) ' vi     ',vi   (:,2) 
+!   write(*,*) ' vi     ',vi   (:,3) 
+!   write(*,*) ' mat  1 ',mat_a(1,:) 
+!   write(*,*) ' mat  2 ',mat_a(2,:) 
+!   write(*,*) ' mat  3 ',mat_a(3,:) 
+!   write(*,*) ' mat_i1 ',mat_i(1,:) 
+!   write(*,*) ' mat_i2 ',mat_i(2,:) 
+!   write(*,*) ' mat_i3 ',mat_i(3,:) 
 !do j=1,3
 !   write(*,1000) (mat_a(j,i),i=1,3),'   ',(mat_i(j,i),i=1,3), vi(j,1), vi(j,2),vi(j,3), &
 !   (off(j,i),i=1,3)
 !enddo
 !1000 FORMAT(3(f9.5,1x),a,3(f9.5,1x),2(2x, 3(f9.5,1x)))
 !
-lmn(:) = 0
-!vec_r = 0.0D0
-!vec_r(1) = mat_i(1,1)*eck(1,1) + mat_i(1,2)*eck(2,1) + mat_i(1,3)*eck(3,1)
-!vec_r(2) = mat_i(2,1)*eck(1,1) + mat_i(3,2)*eck(2,1) + mat_i(2,3)*eck(3,1)
-!vec_r(3) = mat_i(3,1)*eck(1,1) + mat_i(2,2)*eck(2,1) + mat_i(3,3)*eck(3,1)
-vec_r = matmul(mat_i, eck(:,1))
+   lmn(:) = 0
+   vec_r = matmul(mat_i, eck(:,1))
+!   write(*,*) ' vec_r ', vec_r
+   if(abs(vec_r(1)-real(nint(vec_r(1)),kind=PREC_QP))<1.0D-9) vec_r(1) = real(nint(vec_r(1)),kind=PREC_QP)
+   if(abs(vec_r(2)-real(nint(vec_r(2)),kind=PREC_QP))<1.0D-9) vec_r(2) = real(nint(vec_r(2)),kind=PREC_QP)
+   if(abs(vec_r(3)-real(nint(vec_r(3)),kind=PREC_QP))<1.0D-9) vec_r(3) = real(nint(vec_r(3)),kind=PREC_QP)
 !write(*,*) ' vec_r ', vec_r
-if(abs(vec_r(1)-real(nint(vec_r(1)),kind=PREC_QP))<1.0D-9) vec_r(1) = real(nint(vec_r(1)),kind=PREC_QP)
-if(abs(vec_r(2)-real(nint(vec_r(2)),kind=PREC_QP))<1.0D-9) vec_r(2) = real(nint(vec_r(2)),kind=PREC_QP)
-if(abs(vec_r(3)-real(nint(vec_r(3)),kind=PREC_QP))<1.0D-9) vec_r(3) = real(nint(vec_r(3)),kind=PREC_QP)
-!write(*,*) ' vec_r ', vec_r
-!lmn(1:3) = NINT(vec_r(1:3))
 !
-lmn(1:3) =  int(vec_r(1:3))        ! lmn(1:3) is integer part only, frac goes into off
-vec_t = matmul(mat_a, vec_r - int(vec_r))   ! Fractional part of vi's
+   lmn(1:3) =  nint(vec_r(1:3))        ! lmn(1:3) is integer part only, frac goes into off
+   vec_t = matmul(mat_a, vec_r - nint(vec_r))   ! Fractional part of vi's
 !write(*,*) ' vec_t ', vec_t
 !
-DO j=1,3
-   IF(.NOT.nooff(j)) THEN     ! We need an offset vector
-      lmn(j+3) = lmn(j)
-      lmn(j  ) = 0
-   else                       ! No offset, just regular phase shift;
-!                             !  eck(:,1) is at non-integer multiple of vi's
-      off(j,j) = off(j,j) + vec_t(j)
-      lmn(3+j) = 1
-      if(abs(off(j,j))<1.0D-9) then
-         off(j,j) = 0.0D0
-         lmn(3+j) = 0
-      endif
-   ENDIF
-ENDDO
-!write(*,*) ' OFF ', off(1,1), nooff(1)
-!write(*,*) ' OFF ', off(2,2), nooff(2)
-!write(*,*) ' OFF ', off(3,3), nooff(3)
+   DO j=1,3
+      IF(.NOT.nooff(j)) THEN     ! We need an offset vector
+         lmn(j+3) = lmn(j)
+         lmn(j  ) = 0
+      else                       ! No offset, just regular phase shift;
+!                                !  eck(:,1) is at non-integer multiple of vi's
+         off(j,j) = off(j,j) + vec_t(j)
+         lmn(3+j) = 1
+         if(abs(off(j,j))<1.0D-9) then
+            off(j,j) = 0.0D0
+            lmn(3+j) = 0
+         endif
+      ENDIF
+   ENDDO
+endif  cond_work
+!
+!write(*,*) ' WORK ?', need_work
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,1), nooff(1)
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,2), nooff(2)
+!write(*,'(a, 3(2x,f7.4),l3)') ' OFF ', off(:,3), nooff(3)
 !write(*,*)
 !write(*,*) ' eck(j,1) =   vi(j,1) *  lambda +   vi(j,2) *      my +   vi(j,3) *      ny'
 !do j=1,3
