@@ -39,6 +39,7 @@ USE lib_echo
 USE lib_length
 USE lib_macro_func
       USE class_macro_internal 
+!
 USE precision_mod
       USE prompt_mod 
 USE str_comp_mod
@@ -1426,6 +1427,41 @@ ENDIF
 !     NULLIFY(store_temp)
 !
 end subroutine save_internal_node
+!
+!*******************************************************************************
+!
+subroutine save_internal_backup(infile)
+!-
+!  Save the current structure as a backup with full settings
+!
+use crystal_mod
+use discus_save_mod
+use prop_para_func
+use prop_para_mod
+!
+implicit none
+!
+character(len=*), intent(in) :: infile
+!
+character(len=PREC_STRING) :: line   ! Dummy line
+integer                    :: length ! dummy length
+!
+call save_store_setting             ! Backup user "save" setting
+call save_default_setting           ! Default to full saving
+line       = 'ignore, all'          ! Ignore all properties
+length     = 11
+call property_select(line, length, sav_sel_prop)
+line       = 'ignore, all'          ! Ignore all properties for global as well
+length     = 11
+call property_select(line, length,  cr_sel_prop)
+!
+!line = 'internal.' // infile(1:len_trim(infile))
+line =                infile(1:len_trim(infile))
+call save_internal(line)            !     thus this file name is unique
+!
+call save_restore_setting           ! Restore user save settings
+!
+end subroutine save_internal_backup
 !
 !*******************************************************************************
 !
