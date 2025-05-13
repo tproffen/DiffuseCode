@@ -1045,16 +1045,16 @@ place_ywrt: IF(value==val_pdf) THEN  ! Transform F(Q) into PDF
             xwrt(ii) = xfour(ii-j)
             ywrt(ii) = yfour(ii-j)
          ENDDO
-         npkt_wrt = npkt_pdff-1   ! Finally set corrept points for write
+         npkt_wrt = npkt_pdff-1   ! Finally set correct points for write
       ELSE                     ! rminuser == rmin
-         ALLOCATE(xwrt(0:npkt_pdf))
-         ALLOCATE(ywrt(0:npkt_pdf))
+         ALLOCATE(xwrt(0:npkt_pdf+1))
+         ALLOCATE(ywrt(0:npkt_pdf+1))
          j = 0
          DO ii=0,npkt_pdf - 1
-            xwrt(ii) =xfour(ii)
-            ywrt(ii) =yfour(ii)
+            xwrt(ii) =xfour(ii+1)
+            ywrt(ii) =yfour(ii+1)
          ENDDO
-         npkt_wrt = npkt_pdf -1   ! Finally set corrept points for write
+         npkt_wrt = npkt_pdf -1   ! Finally set correct points for write
       ENDIF
       DEALLOCATE(xfour)
       DEALLOCATE(yfour)
@@ -1093,6 +1093,7 @@ place_ywrt: IF(value==val_pdf) THEN  ! Transform F(Q) into PDF
 !enddo
 !close(77)
 !read(*,*) ii
+!     npkt_pdf = npkt_pdf + 1
       CALL fft_fq(npkt_wrt, xwrt, ywrt, qmin, qmax, deltaq, rmin, rmax, rstep, &
                   npkt_fft, npkt_pdf, xfour, yfour)
       yfour = yfour * PI*0.50_PREC_DP
@@ -1104,11 +1105,11 @@ place_ywrt: IF(value==val_pdf) THEN  ! Transform F(Q) into PDF
 !close(77)
       DEALLOCATE(xwrt)
       DEALLOCATE(ywrt)
-      ALLOCATE(xwrt(0:npkt_pdf-1))
-      ALLOCATE(ywrt(0:npkt_pdf-1))
-      DO ii=0,npkt_pdf-1
-         xwrt(ii) =xfour(ii)
-         ywrt(ii) =yfour(ii)
+      ALLOCATE(xwrt(0:npkt_pdf  ))
+      ALLOCATE(ywrt(0:npkt_pdf  ))
+      DO ii=0,npkt_pdf  
+         xwrt(ii) =xfour(ii+1)
+         ywrt(ii) =yfour(ii+1)
       ENDDO
       DEALLOCATE(xfour)
       DEALLOCATE(yfour)
@@ -1137,6 +1138,7 @@ ENDIF place_ywrt
 !write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
 !enddo
 !close(77)
+!write(*,*) ' FINAL 1    ', npkt_wrt, xwrt(0), xwrt(npkt_wrt-1), xwrt(npkt_wrt)
 !read(*,*) ii
 !     Finally write the pattern
 !
