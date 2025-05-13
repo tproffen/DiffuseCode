@@ -1151,7 +1151,7 @@ IF (ier_num == 0) THEN
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                mo_kt = werte (1) 
 !                                                                       
-!------ --- 'set valid' : setting number of cycleas after which
+!------ --- 'set valid' : setting number of cycles after which
 !           no valid move is found
 !                                                                       
             ELSEIF (cpara (1) (1:2)  == 'VA') THEN 
