@@ -247,7 +247,7 @@ logical                         , intent(in)    :: crystal_is_stack
 integer, parameter :: MAXMASK=4
 !
 character(len=PREC_STRING) :: backup_file
-integer                       :: i !, j
+integer                       :: i, j
 logical, dimension(0:MAXMASK) :: uni_mask
 !
 cond_changed:if(trn_changed) then        ! Structure was changed, restore backup
@@ -266,11 +266,12 @@ cond_changed:if(trn_changed) then        ! Structure was changed, restore backup
       uni_mask(4)   = .false.
 !
       do i=1, st_nchem                 ! Restore all layers 
-        backup_file = trn_stacklayer(i)(1:len_trim(trn_stacklayer(i))) // '.backup'
+         backup_file = trn_stacklayer(i)(1:len_trim(trn_stacklayer(i))) // '.backup'
 !write(*,*) ' BACKUP SOURCE ' , backup_file(1:len_trim(backup_file))
 !write(*,*) ' BACKUP TARGET ' , trn_stacklayer(i)(1:len_trim(trn_stacklayer(i)))
-        call readstru_internal(MAXMASK, backup_file, uni_mask)   ! Read  backup file
-        call save_internal_backup(trn_stacklayer(i)) ! Save as full backup
+         call readstru_internal(MAXMASK, backup_file, uni_mask)   ! Read  backup file
+         call save_internal_backup(trn_stacklayer(i)) ! Save as full backup
+!        call store_remove_single(trn_stacklayer(i), ier_num)
 !do j=1, min(cr_natoms,10)
 !  write(*,'(a,i3, 3f11.6)') cr_at_lis(cr_iscat(1,j)), cr_iscat(1,j), cr_pos(:,j)
 !enddo
@@ -296,6 +297,7 @@ cond_changed:if(trn_changed) then        ! Structure was changed, restore backup
    backup_file = trn_structure(1:len_trim(trn_structure)) ! 
    call readstru_internal(MAXMASK, backup_file, uni_mask)   ! Read  backup file
    pow_hkl_del = trn_pow_hkl_del
+!  call store_remove_single(trn_structure, ier_num)
 !write(*,*) ' RESTORING IS DONE'
 endif cond_changed
 !
