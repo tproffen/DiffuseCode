@@ -2003,7 +2003,7 @@ IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN   
       i2 = min(   i+max_ps, imax)
       first: do j = i1, i2
          ii = abs(j-i)*nint(pseudo)
-         dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)
+         if(ii<=GLP_MAX) dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)
       enddo first
    ENDDO main_pts
 ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
