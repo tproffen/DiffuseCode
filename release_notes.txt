@@ -1,8 +1,10 @@
-6.18.04  DRAFT
+6.19.00  DRAFT
 
 DISCUS
   chem         Improved aver command if exact mode is set
   perioditize  Improved algorithm
+  powder/stack Major BUG fix. Stacks along axed other than [001] did not work well.
+               Corrected relative weight of sharp/diffuse rods
 
 6.18.03  RELEASE 2025_04_03
 
