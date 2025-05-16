@@ -1855,12 +1855,8 @@ REAL(kind=PREC_DP) :: llendmini
 integer                            :: scale_mode                    ! 0/1 Choice for scale factor
 real(kind=PREC_DP), dimension(0:1) :: scale_diffuse = 1.0_PREC_DP   ! scale factor for diffuse rods in case of stacking faults  
 !REAL(kind=PREC_DP) :: ss 
-character(len=256) :: ofile
+!character(len=256) :: ofile
 !
-!write(*,*) ' MODE ', pow_hkl_del
-!write(*,*) ' MODE ', pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack
-!read(*,*) i
-
 call trans_to_short(pow_hkl_del, pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack)   ! Transform if pow_hkl_del(3) is not the smallest step
 !
 scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
@@ -1870,22 +1866,24 @@ if(pow_four_mode==POW_STACK) then  ! Crystal was build using stacking faults
           !                        ! Diffuse rods should be sampled at pow_hkl_del(3) = 1/ unit_cells_along_c
                                    ! the scale factor corrects for undersampling
    scale_diffuse(1) = (pow_hkl_del(3) * &
-                      real(nint(st_origin(3, st_nlayer)-st_origin(3,1)+0.05), kind=PREC_DP) )
+                      real( int(st_origin(3, st_nlayer)-st_origin(3,1)) + 1 , kind=PREC_DP) )
+!                     real(nint(st_origin(3, st_nlayer)-st_origin(3,1)+0.05), kind=PREC_DP) )
 elseif(cr_is_stack) then           ! Crystal was build using stacking faults
           !                        ! Diffuse rods should be sampled at pow_hkl_del(3) = 1/ unit_cells_along_c
                                    ! the scale factor corrects for undersampling
    scale_diffuse(1) = (pow_hkl_del(3) * &
-                      real(nint(cr_dim(3, 2)-cr_dim(3,1)+0.05), kind=PREC_DP) )
+                      real( int(cr_dim(3, 2)-cr_dim(3,1)) + 1 , kind=PREC_DP) )
+!                     real(nint(cr_dim(3, 2)-cr_dim(3,1)+0.05), kind=PREC_DP) )
 endif
 endif
+!write(*,'(a,3f12.6)') ' SCALE_POW_DEL ', pow_hkl_del
+!write(*,'(a,3f12.2)') ' SCALE_ORIGINS ', st_origin(3,1), st_origin(3, st_nlayer)
+!write(*,'(a,3f12.2)') ' SCALE_SIZE    ', cr_dim (3,:)
+!write(*,'(a,2f12.6)') ' SCALE_DIFFUSE ', scale_diffuse(0:1)
+!write(*,'(a,3f12.2)') ' SCALE_TRANS11 ', st_trans(1,1,:)
+!write(*,'(a,3f12.2)') ' SCALE_TRANS12 ', st_trans(1,2,:)
+! read(*,*) i
 !scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
-!write(*,'(a,3f10.6)') ' SCALE_POW_DEL ', pow_hkl_del
-!write(*,'(a,3f10.2)') ' SCALE_ORIGINS ', st_origin(3,1), st_origin(3, st_nlayer)
-!write(*,'(a,3f10.2)') ' SCALE_SIZE    ', cr_dim (3,:)
-!write(*,'(a,2f10.6)') ' SCALE_DIFFUSE ', scale_diffuse(0:1)
-!write(*,'(a,3f10.2)') ' SCALE_TRANS11 ', st_trans(1,1,:)
-!write(*,'(a,3f10.2)') ' SCALE_TRANS12 ', st_trans(1,2,:)
-!read(*,*) i
 !
 st_new_form = .TRUE.    ! We need new form factors from stack to be placed into phases
 n_qxy   = 1
@@ -2299,6 +2297,10 @@ loop_h: DO ih = h_start, h_end
 !if(ofile(8:8)==' ') ofile(8:8)='0'
 !if(ofile(12:12)==' ') ofile(12:12)='0'
 !open(91,file=ofile, status='unknown')
+            scale_mode = set_scale_mode(pow_four_mode==POW_STACK, cr_is_stack, &
+                         l_hh_real, l_kk_real, inc(1), csf,eck(3,1),vi(3,1),   &
+                         pow_hkl_del(3), hkl, scale_diffuse)
+!
             loop_l_a: DO i = 1, inc(1) 
                hkl(3) = eck(3, 1) + (i - 1) * vi(3, 1) 
                ll = hkl(3) 
@@ -2437,6 +2439,10 @@ loop_h: DO ih = h_start, h_end
 !if(ofile(8:8)==' ') ofile(8:8)='0'
 !if(ofile(12:12)==' ') ofile(12:12)='0'
 !open(91,file=ofile, status='unknown')
+               scale_mode = set_scale_mode(pow_four_mode==POW_STACK, cr_is_stack, &
+                            l_hh_real, l_kk_real, inc(1), csf,eck(3,1),vi(3,1),   &
+                            pow_hkl_del(3), hkl, scale_diffuse)
+!
                loop_l: DO i = 1, inc (1) 
                   hkl(3) = eck(3, 1) + (i - 1) * vi(3, 1) 
                   ll = hkl (3) 
@@ -2544,6 +2550,99 @@ END SUBROUTINE powder_complete
 !
 !*****7*****************************************************************
 !
+integer function set_scale_mode(pow_four_mode_is_POW_STACK, cr_is_stack, &
+                         l_hh_real, l_kk_real, inc_1 , csf, eck_3_1, vi_3_1, &
+                         pow_hkl_del_3, hkl, scale_diffuse)
+!-
+! Determine if a rod is diffuse for stacking fault 
+! Bragg peaks are much higher than surrounding pixels, 
+! Diffuse values are similar in height as surrounding pixels at a reasonable fraction 
+!+
+!
+use precision_mod
+!
+implicit none
+!
+logical , intent(in) :: pow_four_mode_is_POW_STACK        ! Powder mode is stack
+logical , intent(in) :: cr_is_stack                       ! Full crystal build from stack
+logical , intent(in) :: l_hh_real                         ! H is not integer
+logical , intent(in) :: l_kk_real                         ! K is not integer
+integer,  intent(in) :: inc_1                             ! Number of data points from inc(1)
+complex(kind=PREC_DP), dimension(1:inc_1), intent(in) :: csf   ! !D section of csf
+real(kind=PREC_DP)                       , intent(in) :: eck_3_1   ! L index of coner lower left bottom
+real(kind=PREC_DP)                       , intent(in) :: vi_3_1    ! L index of step vector
+real(kind=PREC_DP)                       , intent(in) :: pow_hkl_del_3  ! L steps in reciprocal space
+real(kind=PREC_DP), dimension(3)         , intent(in) :: hkl       ! indices (real valued)
+real(kind=PREC_DP), dimension(0:1)       , intent(in) :: scale_diffuse
+!
+real(kind=PREC_DP), dimension(:), allocatable :: inten_array        ! temporary array for intensity
+real(kind=PREC_DP)                            :: inten_bragg        ! temporary average bragg
+real(kind=PREC_DP)                            :: inten_diff         ! temporary average bragg
+real(kind=PREC_DP)                            :: inten_zero         ! temporary average bragg
+integer :: n_bragg
+integer :: n_diff 
+integer :: n_zero 
+integer :: i 
+logical :: l_ll_real
+!
+logical :: l_sharp
+real(kind=PREC_DP) :: ll
+!
+set_scale_mode = 0
+!
+cond_stack_mode_l: if(pow_four_mode_is_POW_STACK .or. cr_is_stack) then ! Stacking fault mode
+   if(abs(pow_hkl_del_3)>0.19) then                   ! Coarse grid assume Bragg only
+      set_scale_mode = 0   
+      return
+   endif
+   if((.not.l_hh_real) .and. (.not.l_kk_real)) then   ! Integer HK
+!                 l_sharp = .true.
+      allocate(inten_array(1:inc_1))
+      inten_array = 0.0_PREC_DP
+      inten_bragg = 0.0_PREC_DP
+      inten_diff  = 0.0_PREC_DP
+      inten_zero  = 0.0_PREC_DP
+      inten_array = DBLE (csf) * conjg(csf)
+      n_bragg = 0
+      n_diff  = 0
+      n_zero  = 0
+      loop_bragg: do i=2, inc_1-1
+         if(inten_array(i)>inten_array(i-1)*1d3 .and. &
+            inten_array(i)>inten_array(i+1)*1d3 .and. &
+            inten_array(i)>maxval(inten_array)*1.0D-5) then    ! Sharp, intense peak
+            inten_bragg = inten_bragg + inten_array(i)
+            n_bragg     = n_bragg + 1
+         elseif(inten_array(i)<maxval(inten_array)*1.0D-8) then ! Very weak intensity 
+            inten_zero  = inten_zero + inten_array(i)
+            n_zero      = n_zero  + 1
+         elseif(abs(inten_array(i)-inten_array(i-1))/max(inten_array(i-1), 1d-35)<10.0 .and. &
+                abs(inten_array(i)-inten_array(i+1))/max(inten_array(i-1), 1d-35)<10.0 .and. &
+                inten_array(i)>maxval(inten_array)*1.0D-8) then   ! broad , moderate intensity
+            inten_diff  = inten_diff  + inten_array(i)
+            n_diff      = n_diff  + 1
+         endif
+      enddo loop_bragg
+      if(n_bragg>1) inten_bragg = inten_bragg/n_bragg
+      if(n_diff >1) inten_diff  = inten_diff /n_diff 
+      if(n_zero >1) inten_zero  = inten_zero /n_zero 
+!
+      if(n_bragg> n_diff .and. n_diff<n_zero) then
+         set_scale_mode = 0
+      elseif(n_bragg<n_diff .and. n_diff> n_zero) then
+         set_scale_mode = 1
+      endif
+
+!write(*,'(a, 2i4,4x, 4i6, 3g20.6e3, i3)') ' ROD ', int(hkl(1:2)), inc_1, n_bragg, n_diff, n_zero, &
+!      inten_bragg, inten_diff, inten_zero, set_scale_mode
+!
+      deallocate(inten_array)
+   endif
+endif cond_stack_mode_l
+!
+end function set_scale_mode
+!
+!*****7*****************************************************************
+!
 subroutine powder_nufft(calc_mode)
 !-
 ! Calculates a powder pattern via NUFFT on a 3D grid
@@ -2582,36 +2681,48 @@ real(PREC_DP)               :: q       ! 2PI*2.*sin(theta)/lambda
 real(PREC_DP)               :: inten   ! Calculated intensity
 real(PREC_DP)               :: xstart  ! q-scale start 
 real(PREC_DP)               :: xdelta  ! q-scale steps
-integer                            :: scale_mode                    ! 0/1 Choice for scale factor
 real(kind=PREC_DP), dimension(0:1) :: scale_diffuse = 1.0_PREC_DP   ! scale factor for diffuse rods in case of stacking faults  
-integer                     :: it, jt  ! Dummy indices for stacking fault layer types
-logical                     :: l_sharp
+!integer :: i
+real(kind=PREC_DP), dimension(  :,:,:), allocatable :: scale_grid
+real(kind=PREC_DP), dimension(:,:,:,:), allocatable ::   hkl_grid
+real(kind=PREC_DP)                            :: inten_bragg        ! temporary average bragg
+real(kind=PREC_DP)                            :: inten_diff         ! temporary average bragg
+real(kind=PREC_DP)                            :: inten_zero         ! temporary average bragg
+integer :: n_bragg
+integer :: n_diff 
+integer :: n_zero 
 !
 call trans_to_short(pow_hkl_del, pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack)   ! Transform if pow_hkl_del(3) is not the smallest step
 !
 scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
 !
 if(pow_hkl_del(3)<1.0_PREC_DP) then
-if(pow_four_mode==POW_STACK) then  ! Crystal was build using stacking faults
-          !                        ! Diffuse rods should be sampled at pow_hkl_del(3) = 1/ unit_cells_along_c
-                                   ! the scale factor corrects for undersampling
-   scale_diffuse(1) = (pow_hkl_del(3) * &
-                      real(nint(st_origin(3, st_nlayer)-st_origin(3,1)+0.05), kind=PREC_DP) )
-elseif(cr_is_stack) then           ! Crystal was build using stacking faults
-          !                        ! Diffuse rods should be sampled at pow_hkl_del(3) = 1/ unit_cells_along_c
-                                   ! the scale factor corrects for undersampling
-   scale_diffuse(1) = (pow_hkl_del(3) * &
-                      real(nint(cr_dim(3, 2)-cr_dim(3,1)+0.05), kind=PREC_DP) )
+   if(pow_four_mode==POW_STACK) then  ! Crystal was build using stacking faults
+             !                        ! Diffuse rods should be sampled at pow_hkl_del(3) = 1/ unit_cells_along_c
+                                      ! the scale factor corrects for undersampling
+!write(*,*) st_origin(3, st_nlayer)-st_origin(3,1)
+!write(*,*) real( int(st_origin(3, st_nlayer)-st_origin(3,1)) +1  , kind=PREC_DP), &
+!   (pow_hkl_del(3) * &
+!                         real( int(st_origin(3, st_nlayer)-st_origin(3,1)) +1  , kind=PREC_DP) )
+      scale_diffuse(1) = (pow_hkl_del(3) * &
+                         real( int(st_origin(3, st_nlayer)-st_origin(3,1)) +1  , kind=PREC_DP) )
+!                     real(nint(st_origin(3, st_nlayer)-st_origin(3,1)+0.05), kind=PREC_DP) )
+   elseif(cr_is_stack) then           ! Crystal was build using stacking faults
+             !                        ! Diffuse rods should be sampled at pow_hkl_del(3) = 1/ unit_cells_along_c
+                                      ! the scale factor corrects for undersampling
+      scale_diffuse(1) = (pow_hkl_del(3) * &
+                         real( int(cr_dim(3, 2)-cr_dim(3,1)) + 1 , kind=PREC_DP) )
+!                     real(nint(cr_dim(3, 2)-cr_dim(3,1)+0.05), kind=PREC_DP) )
+   endif
 endif
-endif
-!scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
-!write(*,'(a,3f10.6)') ' SCALE_POW_DEL ', pow_hkl_del
-!write(*,'(a,3f10.2)') ' SCALE_ORIGINS ', st_origin(3,1), st_origin(3, st_nlayer)
-!write(*,'(a,3f10.2)') ' SCALE_SIZE    ', cr_dim (3,:)
-!write(*,'(a,2f10.6)') ' SCALE_DIFFUSE ', scale_diffuse(0:1)
-!write(*,'(a,3f10.2)') ' SCALE_TRANS11 ', st_trans(1,1,:)
-!write(*,'(a,3f10.2)') ' SCALE_TRANS12 ', st_trans(1,2,:)
+!write(*,'(a,3f12.6)') ' SCALE_POW_DEL ', pow_hkl_del
+!write(*,'(a,3f12.2)') ' SCALE_ORIGINS ', st_origin(3,1), st_origin(3, st_nlayer)
+!write(*,'(a,3f12.2)') ' SCALE_SIZE    ', cr_dim (3,:)
+!write(*,'(a,2f12.6)') ' SCALE_DIFFUSE ', scale_diffuse(0:1)
+!write(*,'(a,3f12.2)') ' SCALE_TRANS11 ', st_trans(1,1,:)
+!write(*,'(a,3f12.2)') ' SCALE_TRANS12 ', st_trans(1,2,:)
 !read(*,*) i
+!scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
 !
 !  Set maximum HKL
 !
@@ -2706,39 +2817,72 @@ elseif(calc_mode==FOUR_TURBO) then
    call four_run
 endif
 if(ier_num /=0 ) return
-
+!
+allocate(hkl_grid(3, inc(1), inc(2), inc(3)))    ! Indices at each point in reciprocal space
+do il=1, inc(3)
+   do ik=1, inc(2)
+      do ih=1, inc(1)
+         hkl_grid(1, ih, ik, il) = eck(1,1) + vi(1,1)*(ih-1) + vi(1,2)*(ik-1) + vi(1,3)*(il-1)
+         hkl_grid(2, ih, ik, il) = eck(2,1) + vi(2,1)*(ih-1) + vi(2,2)*(ik-1) + vi(2,3)*(il-1)
+         hkl_grid(3, ih, ik, il) = eck(3,1) + vi(3,1)*(ih-1) + vi(3,2)*(ik-1) + vi(3,3)*(il-1)
+      enddo
+   enddo
+enddo
+allocate(scale_grid(inc(1), inc(2), inc(3)))
+scale_grid = 1.0_PREC_DP
+!
+cond_stack_mode_prep: if(pow_four_mode==POW_STACK .or. cr_is_stack) then ! Stacking fault mode
+   do ih=1, inc(1)
+      if( abs(hkl_grid(1, ih, 1, 1)-nint(hkl_grid(1, ih, 1, 1)))<1.0D-6) then           ! Integer H
+         do ik=1, inc(2)
+            if( abs(hkl_grid(2, ih, ik, 1)-nint(hkl_grid(2, ih, ik, 1)))<1.0D-6) then   ! Integer K
+               inten_bragg = 0.0_PREC_DP
+               inten_diff  = 0.0_PREC_DP
+               n_bragg = 0
+               n_diff  = 0
+      n_bragg = 0
+      n_diff  = 0
+      n_zero  = 0
+      loop_bragg: do il=2, inc(3)-1
+         if(dsi(ih,ik,il)>dsi(ih,ik,il)*1d3 .and. &
+            dsi(ih,ik,il)>dsi(ih,ik,il)*1d3 .and. &
+            dsi(ih,ik,il)>maxval(dsi)*1.0D-5) then    ! Sharp, intense peak
+            inten_bragg = inten_bragg + dsi(ih,ik,il)
+            n_bragg     = n_bragg + 1
+         elseif(dsi(ih,ik,il)<maxval(dsi)*1.0D-8) then ! Very weak intensity 
+            inten_zero  = inten_zero + dsi(ih,ik,il)
+            n_zero      = n_zero  + 1
+         elseif(abs(dsi(ih,ik,il)-dsi(ih,ik,il))/max(dsi(ih,ik,il), 1d-35)<10.0 .and. &
+                abs(dsi(ih,ik,il)-dsi(ih,ik,il))/max(dsi(ih,ik,il), 1d-35)<10.0 .and. &
+                dsi(ih,ik,il)>maxval(dsi)*1.0D-8) then   ! broad , moderate intensity
+            inten_diff  = inten_diff  + dsi(ih,ik,il)
+            n_diff      = n_diff  + 1
+         endif
+      enddo loop_bragg
+      if(n_bragg>1) inten_bragg = inten_bragg/n_bragg
+      if(n_diff >1) inten_diff  = inten_diff /n_diff 
+      if(n_zero >1) inten_zero  = inten_zero /n_zero 
+!
+      if(n_bragg> n_diff .and. n_diff<n_zero) then
+!        set_scale_mode = 0
+                  scale_grid(ih,ik,:) = scale_diffuse(0)              ! Update scale factor
+      elseif(n_bragg<n_diff .and. n_diff> n_zero) then
+!        set_scale_mode = 1
+                  scale_grid(ih,ik,:) = scale_diffuse(1)              ! Update scale factor
+      endif
+!write(*,'(a, 2i4,4x, 4i6, 4g20.6e3)') ' ROD ', int(hkl_grid(1:2, ih, ik, 1)), inc(3), n_bragg, n_diff, n_zero, &
+!      inten_bragg, inten_diff, inten_zero, scale_grid(ih,ik,1)
+            endif
+         enddo
+      endif
+   enddo
+endif cond_stack_mode_prep
 !
 do il=1, inc(3)
    do ik=1, inc(2)
       do ih=1, inc(1)
-         hkl(1) = eck(1,1) + vi(1,1)*(ih-1) + vi(1,2)*(ik-1) + vi(1,3)*(il-1)
-         hkl(2) = eck(2,1) + vi(2,1)*(ih-1) + vi(2,2)*(ik-1) + vi(2,3)*(il-1)
-         hkl(3) = eck(3,1) + vi(3,1)*(ih-1) + vi(3,2)*(ik-1) + vi(3,3)*(il-1)
 !
-         scale_mode = 0
-         cond_stack_mode: if(pow_four_mode==POW_STACK .or. cr_is_stack) then ! Stacking fault mode
-            if( abs(hkl(1)-nint(hkl(1)))<1.0D-6 .and.        &
-                abs(hkl(1)-nint(hkl(1)))<1.0D-6       ) then   ! Integer HK
-!           if((.not.l_hh_real) .and. (.not.l_kk_real)) then   ! Integer HK
-               l_sharp = .true.
-               do it=1, st_ntypes
-                  do jt=1, st_ntypes
-                     l_sharp = l_sharp  .and. &
-                         abs(    (hkl(1)*st_trans(it,jt,1)+hkl(2)*st_trans(it,jt,2)) -  &
-                             nint(hkl(1)*st_trans(it,jt,1)+hkl(2)*st_trans(it,jt,2))  )<1.0D-6
-                  enddo
-               enddo
-               if(l_sharp) then
-                  scale_mode = 0
-               else
-                  scale_mode = 1
-               endif
-!write(*,'(a, 2f6.2, f8.4, l2, f6.2, i2)') ' SHARP ? ', hkl(1:2), (hkl(1)*st_trans(1 , 2,1)+hkl(2)*st_trans( 1, 2,2)), l_sharp, &
-!scale_diffuse(scale_mode), scale_mode
-            endif
-         endif cond_stack_mode
-!
-         dstar = lib_blen(cr_rten, hkl) 
+         dstar = lib_blen(cr_rten, hkl_grid(:, ih,ik,il)) 
          q = zpi * dstar
          if( pow_qmin <= q .and. q <= (pow_qmax+pow_deltaq) ) then
             itth = nint( (q - pow_qmin) / pow_deltaq )
@@ -2748,11 +2892,14 @@ do il=1, inc(3)
                pow_pref_type, pow_pref_hkl, pow_pref_g1,         &
                pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))
             endif
-            pow_qsp(itth) = pow_qsp(itth) + inten * scale_diffuse(scale_mode)
+            pow_qsp(itth) = pow_qsp(itth) + inten * scale_grid(ih,ik,il)
          endif
       enddo
    enddo
 enddo
+!
+deallocate(scale_grid)
+deallocate(  hkl_grid)
 !
 xstart = pow_qmin  /zpi
 xdelta = pow_deltaq/zpi
