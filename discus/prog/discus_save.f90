@@ -1168,12 +1168,12 @@ status_flags(6)   = cr_is_homo                  ! Copy homogeneity status
 !
 ! Build anisotropic atom structure
 !
-anis_adp%anis_n_type = cr_nanis
-anis_adp%anis_n_atom = cr_natoms
-allocate(anis_adp%anis_adp(7, cr_nanis))
-anis_adp%anis_adp(1:6,1:cr_nanis) = cr_anis_full(1:6,1:cr_nanis)
+anis_adp%anisotropic_n_type = cr_nanis
+anis_adp%anisotropic_n_atom = cr_natoms
+allocate(anis_adp%anisotropic_adp(7, cr_nanis))
+anis_adp%anisotropic_adp(1:6,1:cr_nanis) = cr_anis_full(1:6,1:cr_nanis)
 do i=1, cr_nanis
-   anis_adp%anis_adp(7,i) = (cr_prin(4,   1,i) + cr_prin(4,   2,i) + cr_prin(4,   3,i))/3.0_PREC_DP
+   anis_adp%anisotropic_adp(7,i) = (cr_prin(4,   1,i) + cr_prin(4,   2,i) + cr_prin(4,   3,i))/3.0_PREC_DP
 enddo
 allocate(anis_adp%atom_index(1:cr_natoms))
 do i=1, cr_natoms
@@ -1253,13 +1253,13 @@ else
 endif
 !
 call nx_write_structure(python_script_dir, outfile, program_version, author,          &
-           cr_a0, cr_win, cr_gten, cr_spcgr, spcgr_para, cr_set,                &
+           cr_a0, cr_win, cr_spcgr, spcgr_para, cr_set,                &
            spc_n, symmetry_mat, unit_cells,                                     &
            cr_nscat, types_names, types_ordinal, types_charge, types_isotope,   &
            cr_natoms, atom_id, atom_type, atom_pos, atom_unit_cell, atom_site,  &
            status_flags, cr_nanis, ier_num,                                     &
            property_flags = cr_prop,                                            &
-           anis_adp       = anis_adp,                                           &
+           anisotropic_adp = anis_adp,                                          &
            molecules      = molecules,                                          &
            types_occupancy= types_occupancy,                                    &
            average_struc  = average_struc                                       &
@@ -1277,7 +1277,7 @@ deallocate(atom_pos )
 deallocate(atom_unit_cell)
 deallocate(atom_site)
 deallocate(anis_adp%atom_index)
-deallocate(anis_adp%anis_adp)
+deallocate(anis_adp%anisotropic_adp)
 if(allocated(average_struc%atom_type)) deallocate(average_struc%atom_type)
 if(allocated(average_struc%position)) deallocate(average_struc%position)
 if(allocated(average_struc%occupancy)) deallocate(average_struc%occupancy)

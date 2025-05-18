@@ -361,14 +361,14 @@ end subroutine nx_read_scattering
 !
 !*******************************************************************************
 !
-subroutine nx_read_structure(python_script_dir, infile, unit_cell_lengths, unit_cell_angles,    &
-                             metric_tensor,  &
-                             symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
-                             symmetry_mat, unit_cells, number_of_types, types_names,      &
-                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
-                             atom_ID, atom_type, atom_pos, atom_unit_cell, atom_site,     &
-                             atom_property, crystal_flags, crystal_meta,                  &
-                             anisotropic_adp, molecules, average_struc, types_occupancy,  &
+subroutine nx_read_structure(python_script_dir, infile, unit_cell_lengths, unit_cell_angles,&
+                             symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat,   &
+                             symmetry_mat, unit_cells, number_of_types, types_names,        &
+                             types_ordinal, types_charge, types_isotope, number_of_atoms,   &
+                             atom_type, atom_pos, atom_unit_cell, atom_site,                &
+                             atom_property, crystal_flags, crystal_meta,                    &
+                             anisotropic_adp, molecules, average_struc, magnetic_spins,     &
+                             types_occupancy,                                               &
                              ier_num)
 !-
 ! Read a NEXUS HDF5 structure file in the Diffuse Developers common file format via FORPY
@@ -389,13 +389,12 @@ character(len=*)                                         , intent(in)  :: python
 character(len=*)                                         , intent(in)  :: infile
 real(kind=PREC_DP)        , dimension(3)                 , intent(out) :: unit_cell_lengths  ! Unit cell parameters a, b, c
 real(kind=PREC_DP)        , dimension(3)                 , intent(out) :: unit_cell_angles   ! Unit cell angles alpha, beta, gammy
-real(kind=PREC_DP)        , dimension(3,3)               , intent(out) :: metric_tensor      ! Direct space metric tensor
 character(len=32)                                        , intent(out) :: symmetry_H_M       ! Hermann-Mauguin Symbol
 integer                                                  , intent(out) :: symmetry_origin    ! Space group origin 1 / 2
 character(len=3)                                         , intent(out) :: symmetry_abc       ! Permutation for orthorhombic space groups
 integer                                                  , intent(out) :: symmetry_n_mat     ! Number of symmetry elements
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable, intent(out) :: symmetry_mat       ! Actual Symmetry matrices
-integer                   , dimension(3,3  )             , intent(out) :: unit_cells         ! Number of unit cells
+integer                   , dimension(3    )             , intent(out) :: unit_cells         ! Number of unit cells
 !
 integer                                                  , intent(out) :: number_of_types    ! Crystal has this many atom types
 character(len=4)          , dimension(:),     allocatable, intent(out) :: types_names        ! Name as "O", "O2-" etc
@@ -403,7 +402,6 @@ integer                   , dimension(:),     allocatable, intent(out) :: types_
 integer                   , dimension(:),     allocatable, intent(out) :: types_charge       ! Atom types have this charge
 integer                   , dimension(:),     allocatable, intent(out) :: types_isotope      ! Atom type is this isotope or zero
 integer                                                  , intent(out) :: number_of_atoms    ! Crystal contains this many actual atoms
-integer                   , dimension(:    ), allocatable, intent(out) :: atom_ID            ! Atom ID 
 integer                   , dimension(:    ), allocatable, intent(out) :: atom_type          ! Atom is of this type
 real(kind=PREC_DP)        , dimension(:,:  ), allocatable, intent(out) :: atom_pos           ! Atom is at these fractional coordinates
 integer                   , dimension(:,:  ), allocatable, intent(out) :: atom_unit_cell     ! Atom is in this unit cell
@@ -414,6 +412,7 @@ character(len=PREC_STRING), dimension(  5)               , intent(out) :: crysta
 type(anis_adp_type)                                      , intent(out) :: anisotropic_adp    ! Info on anisotropic ADP ==> lib_nx_transfer.f90
 type(molecule_data)                                      , intent(out) :: molecules          ! Info on molecules       ==> lib_nx_transfer.f90
 type(average_structure)                                  , intent(out) :: average_struc      ! Info on average struct  ==> lib_nx_transfer.f90
+real(kind=PREC_DP)        , dimension(:,:  ), allocatable, intent(out) :: magnetic_spins     ! Atom has these magnetic spins
 real(kind=PREC_DP)        , dimension(:),     allocatable, intent(out) :: types_occupancy    ! This atoms type has an occupancy of value
 integer                                                  , intent(out) :: ier_num            ! an error =0 if all is OK
 !
@@ -431,10 +430,10 @@ integer               , dimension(:  )  , pointer :: matrix_1d_i  ! Pointer to i
 integer               , dimension(:,:)  , pointer :: matrix_2d_i  ! Pointer to integer result of get_data
 integer               , dimension(:,:)  , pointer :: matrix_2d_it ! Pointer to integer result of get_data
 !integer               , dimension(:,:,:), pointer :: matrix_3d_i  ! Pointer to integer result of get_data
-real(kind=real64     ), dimension(:,:,:), pointer :: matrix_3d  ! Pointer to result of get_data
-real(kind=real64     ), dimension(:,:)  , pointer :: matrix_2d  ! Pointer to result of get_data
-real(kind=real64     ), dimension(:,:)  , pointer :: matrix_2d_t! Pointer to result of get_data
-real(kind=real64     ), dimension(:)    , pointer :: matrix_1d  ! Pointer to result of get_data
+real(kind=real64     ), dimension(:,:,:), pointer :: matrix_3d    ! Pointer to result of get_data
+real(kind=real64     ), dimension(:,:)  , pointer :: matrix_2d    ! Pointer to result of get_data
+real(kind=real64     ), dimension(:,:)  , pointer :: matrix_2d_t  ! Pointer to result of get_data
+real(kind=real64     ), dimension(:)    , pointer :: matrix_1d    ! Pointer to result of get_data
 !
 type(object )   :: p_infile           ! Output filename in python interface
 type(tuple)     :: p_args             ! Tuple of arguments for  read_diffuse_scattering
@@ -463,6 +462,7 @@ data c_meta  /'audit_author_name         ', &
               'audit_creation_method     '  &
              /
 !
+write(*,*) ' TEST_READ '
 !
 call forpy_start(ier_num)                   ! If needed, start forpy
 !
@@ -492,6 +492,7 @@ ier_num = cast(returned_tuple, return_value)   ! Get multiple returned objects
 call err_print()
 !read(*,*) iarg
 !ier_num= -1
+write(*,*) ' START READING CELL LENGTH '
 !
 ! Get unit_cell_lengths
 !
@@ -507,7 +508,7 @@ call temp_arr%destroy
 !
 ! Get unit_cell_angles
 !
-iarg =  1
+iarg =  iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
 ier_num = temp_arr%get_data(matrix_1d,'C')
@@ -517,51 +518,39 @@ nullify(matrix_1d)
 call temp%destroy
 call temp_arr%destroy
 !
-! Get metric tensor
-!
-iarg = 2
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-ier_num = temp_arr%get_data(matrix_2d,'C')        ! Copy into Fortran 3x3 matrix
-metric_tensor = matrix_2d
-deallocate(matrix_2d)
-nullify(matrix_2d)
-call temp%destroy
-call temp_arr%destroy
-!
 ! Get Hermann Mauguin Symbol
 !
-iarg =  3
+iarg =  iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(return_string, temp)
-symmetry_H_M = return_string(1:len_trim(return_string))
+ier_num = cast(return_string, temp)               ! Copy temp into python string
+symmetry_H_M = return_string(1:len_trim(return_string))  ! Convert python string into Fortran
 call temp%destroy
 !
 ! Get Space group origin
 !
-iarg =  4
+iarg =  iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 ier_num = cast(symmetry_origin, temp)
 call temp%destroy
 !
 ! Get Space group permutation 'abc'
 !
-iarg =  5
+iarg =  iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(return_string, temp)
-symmetry_abc = return_string(1:len_trim(return_string))
+ier_num = cast(return_string, temp)               ! Copy temp into python string
+symmetry_abc = return_string(1:len_trim(return_string))  ! Convert python string into Fortran
 call temp%destroy
 !
 ! Get number of symmetry matrices
 !
-iarg =  6
+iarg =  iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      !
 ier_num = cast(symmetry_n_mat, temp)
 call temp%destroy
 !
 ! Get symmetry matrices
 !
-iarg =  7
+iarg =  iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
 ier_num = temp_arr%get_data(matrix_3d,'C')
@@ -582,28 +571,22 @@ call temp_arr%destroy
 !
 ! Get Number of unit cells
 !
-iarg =  8
+iarg =  iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-ier_num = temp_arr%get_data(matrix_2d_i,'C')
-unit_cells = matrix_2d_i
+ier_num = temp_arr%get_data(matrix_1d_i,'C')
+unit_cells = matrix_1d_i
 call temp%destroy
 call temp_arr%destroy
-deallocate(matrix_2d_i)
-nullify(matrix_2d_i)
+deallocate(matrix_1d_i)
+nullify(matrix_1d_i)
 !
 ! Get number of atom types
 !
-iarg =  9
+iarg =  iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 ier_num = cast(number_of_types, temp)
 call temp%destroy
-!
-! Get and interpret atom_type structure
-!
-iarg = 10
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_list, temp)                   ! Recast the temporary object into a list
 !
 allocate(types_names(number_of_types))
 allocate(types_ordinal(number_of_types))
@@ -611,105 +594,125 @@ allocate(types_charge (number_of_types))
 allocate(types_isotope(number_of_types))
 types_names   = ' '
 types_ordinal = 0
-do i=0,number_of_types-1
-   ier_num = temp_list%getitem(temp2, i)          ! Get item for current atom type
-   ier_num = cast(temp_tuple, temp2)              ! Recast the temporary object into a list
 !
-   ier_num = temp_tuple%getitem(temp3, 0)         ! Get atom name
-   ier_num = cast(str_value, temp3)               ! Cast atom naem into fortran string
+! Get and interpret atom_type structure
+!
+iarg = iarg + 1
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_list, temp)                   ! Recast the temporary object into a tuple
+do i=0,number_of_types-1
+   ier_num = temp_list%getitem(temp3, i)          ! Get atom name
+   ier_num = cast(str_value, temp3)               ! Cast type name into fortran string
    types_names(i+1) = str_value(1:len_trim(str_value))  ! Copy atom_name into Fortran array
    deallocate(str_value)
    call temp3%destroy
-!
-   ier_num = temp_tuple%getitem(temp3, 1)         ! Get atom ordinal number
-   ier_num = cast(j, temp3)                       ! Cast into a number
-   types_ordinal(i+1) = j                         !Copy ordinal number into Fortran array
-   call temp3%destroy
-!
-   ier_num = temp_tuple%getitem(temp3, 2)         ! Get atom ordinal number
-   ier_num = cast(j, temp3)                       ! Cast into a number
-   types_charge (i+1) = j                         ! Copy charge 
-   call temp3%destroy
-!
-   ier_num = temp_tuple%getitem(temp3, 3)         ! Get atom ordinal number
-   ier_num = cast(j, temp3)                       ! Cast into a number
-   types_isotope(i+1) = j                         !Copy ordinal number into Fortran array
-   call temp3%destroy
-!
-   call temp2%destroy
-   call temp_tuple%destroy
 enddo
 call temp_list%destroy
+!
+! Get ordinal numbers
+!
+iarg = iarg + 1
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_1d_i,'C')
+types_ordinal = matrix_1d_i
 call temp%destroy
+call temp_arr%destroy
+deallocate(matrix_1d_i)
+nullify(matrix_1d_i)
+!
+!
+! Get types charge
+!
+iarg = iarg + 1
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_1d_i,'C')
+types_charge = matrix_1d_i
+call temp%destroy
+call temp_arr%destroy
+deallocate(matrix_1d_i)
+nullify(matrix_1d_i)
+!
+!
+! Get types isotope
+!
+iarg = iarg + 1
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_1d_i,'C')
+types_isotope = matrix_1d_i
+call temp%destroy
+call temp_arr%destroy
+deallocate(matrix_1d_i)
+nullify(matrix_1d_i)
 !
 ! Get number of atoms
 !
-iarg = 11
+iarg = iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 ier_num = cast(number_of_atoms, temp)
 call temp%destroy
-!
-! Get and interpret atom_data structure; integer part
-!
-iarg = 12
-ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-if(number_of_atoms==1) then                       ! Single atom, need to perform get_data without 'C'
-   ier_num = temp_arr%get_data(matrix_2d_it   )
-   allocate(matrix_2d_i(number_of_atoms,6))
-   !write(*,*) ' GOT ATOM DATA F ', ier_num, shape(matrix_2d_it), shape(matrix_2d_i)
-   matrix_2d_i = transpose(matrix_2d_it)
-   deallocate(matrix_2d_it)
-   nullify(matrix_2d_it)
-else
-   ier_num = temp_arr%get_data(matrix_2d_i,'C')
-   !write(*,*) ' GOT ATOM DATA C ', ier_num, shape(matrix_2d_i)
-endif
-allocate(atom_ID       (  number_of_atoms))
 allocate(atom_type     (  number_of_atoms))
+allocate(atom_pos      (3,number_of_atoms))
 allocate(atom_unit_cell(3,number_of_atoms))
 allocate(atom_site     (  number_of_atoms))
-! 
-do i=1,number_of_atoms
-   atom_ID       (  i) = matrix_2d_i(i,1)
-   atom_type     (  i) = matrix_2d_i(i,2)
-   atom_unit_cell(:,i) = matrix_2d_i(i,3:5)
-   atom_site     (  i) = matrix_2d_i(i,6)
-enddo
+!
+!
+! Get atom type
+!
+iarg = iarg + 1
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_1d_i,'C')
+atom_type = matrix_1d_i
+call temp%destroy
+call temp_arr%destroy
+deallocate(matrix_1d_i)
+nullify(matrix_1d_i)
+!
+!
+! Get atom position
+!
+iarg = iarg + 1
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_2d  ,'C')
+atom_pos = transpose(matrix_2d   )
+call temp%destroy
+call temp_arr%destroy
+deallocate(matrix_2d  )
+nullify(matrix_2d  )
+!
+!
+! Get atom unit cell 
+!
+iarg = iarg + 1
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+ier_num = temp_arr%get_data(matrix_2d_i,'C')
+atom_unit_cell = transpose(matrix_2d_i )
 call temp%destroy
 call temp_arr%destroy
 deallocate(matrix_2d_i)
 nullify(matrix_2d_i)
 !
-! Get and interpret atom_data structure; float part == positions
+! Get atom site number
 !
-iarg = 13
+iarg = iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
-if(number_of_atoms==1) then                       ! Single atom, need to perform get_data without 'C'
-   ier_num = temp_arr%get_data(matrix_2d_t  )
-   allocate(matrix_2d(number_of_atoms,3))
-   !write(*,*) ' GOT ATOM POS  F ', ier_num, shape(matrix_2d_t), shape(matrix_2d)
-   matrix_2d = transpose(matrix_2d_t)
-   deallocate(matrix_2d_t)
-   nullify(matrix_2d_t)
-else
-   ier_num = temp_arr%get_data(matrix_2d,'C')
-   !write(*,*) ' GOT ATOM POS  C ', ier_num, shape(matrix_2d)
-endif
-allocate(atom_pos      (3,number_of_atoms))
-!  unit_cells = matrix_2d_i
-do i=1,number_of_atoms
-   atom_pos      (:,i) = matrix_2d(i,:)
-enddo
+ier_num = temp_arr%get_data(matrix_1d_i,'C')
+atom_site      = matrix_1d_i
 call temp%destroy
 call temp_arr%destroy
-deallocate(matrix_2d)
-nullify(matrix_2d)
+deallocate(matrix_1d_i)
+nullify(matrix_1d_i)
+!
 !
 ! Get Flags
 !
-iarg = 14
+iarg = iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 crystal_flags = .false.
 if(.not.is_none(temp)) then
@@ -732,7 +735,7 @@ call temp%destroy
 !
 ! Get Metadata
 !
-iarg = 15
+iarg = iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 crystal_meta  = ' '
 if(.not.is_none(temp)) then
@@ -752,7 +755,7 @@ call temp%destroy
 !
 ! Get and interpret average structure
 !
-iarg = 16
+iarg = iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 if(is_none(temp)) then
    !write(*,'(a)') ' Average Structure is NONE'
@@ -839,23 +842,35 @@ else
 endif
 call temp%destroy
 !
+! Get and interpret Magnetic spins
+!
+iarg = iarg + 1
+ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
+if(is_none(temp)) then
+   continue
+!   write(*,*) ' No magnetic spins are present'
+else
+   allocate(magnetic_spins(3, number_of_atoms))
+   ier_num = cast(temp_arr, temp)                    ! Now copy temp into numpy array
+   ier_num = temp_arr%get_data(matrix_2d  ,'C')
+   magnetic_spins = transpose(matrix_2d   )
+   call temp%destroy
+   call temp_arr%destroy
+   deallocate(matrix_2d  )
+   nullify(matrix_2d  )
+endif
+!
 ! Get and interpret property flags
 !
-iarg = 18
+iarg = iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-!write(*,*) ' NUMBER OF ATOMS ', number_of_atoms
 allocate(atom_property (  number_of_atoms))
-!write(*,*) ' NUMBER OF ATOMS ', number_of_atoms
 atom_property = 1                                 ! Default to simplest property
 if(is_none(temp)) then
    !write(*,'(a)') ' Property flags are not provided'
-!   write(*,*)     ' PROPERTY ', ubound(atom_property)   
 else
    ier_num = cast(temp_arr, temp)                 ! Now copy temp into numpy array
-!   write(*,*) ' CAST PROPERTY to TEMP ', ier_num
    ier_num = temp_arr%get_data(matrix_1d_i) !,'C')
-!   write(*,*) ' GOT DATA   FROM  TEMP ', ier_num
-!   write(*,*) ' PROPERTY ', ubound(matrix_1d_i), ubound(atom_property), number_of_atoms
    atom_property = matrix_1d_i
    deallocate(matrix_1d_i)
    nullify(matrix_1d_i)
@@ -865,12 +880,11 @@ call temp%destroy
 !
 ! Get and interpret ADP parameters
 !
-iarg = 19
+iarg = iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-!write(*,*) ' GOT INTO TEMP ', ier_num
 if(is_none(temp)) then
 !   write(*,'(a)') ' ADP parameters are not provided '
-   anisotropic_adp%anis_n_type = 0
+   anisotropic_adp%anisotropic_n_type = 0
 else
    ier_num = cast(temp_tuple, temp)               ! Now copy temp into temporary tuple
 !
@@ -879,21 +893,28 @@ else
    call temp2%destroy
 !
    ier_num = temp_tuple%getitem(temp2, 1)         ! Get item into temporary objec
-   ier_num = cast(anisotropic_adp%anis_n_type, temp2)
+   ier_num = cast(anisotropic_adp%anisotropic_n_type, temp2)
    call temp2%destroy
-!write(*,*) ' Number of UIJ ', i, anisotropic_adp%anis_n_type
 !
    ier_num = temp_tuple%getitem(temp2, 2)         ! Get item into temporary objec
-   ier_num = cast(anisotropic_adp%anis_n_atom, temp2)
+   ier_num = cast(anisotropic_adp%anisotropic_n_atom, temp2)
    call temp2%destroy
-!write(*,*) ' Number of ADPs', anisotropic_adp%anis_n_atom
 !
    ier_num = temp_tuple%getitem(temp2, 3)         ! Get item into temporary object
    ier_num = cast(temp_arr, temp2)                ! Now copy temp into numpy array
-   if(anisotropic_adp%anis_n_type==1) then        ! Just one type, need to do get_item without 'C'
+   ier_num = temp_arr%get_data(matrix_1d_i)
+   allocate(anisotropic_adp%anisotropic_is_iso(anisotropic_adp%anisotropic_n_type))
+   anisotropic_adp%anisotropic_is_iso = matrix_1d_i
+   deallocate(matrix_1d_i)
+   nullify(matrix_1d_i)
+   call temp2%destroy
+
+
+   ier_num = temp_tuple%getitem(temp2, 4)         ! Get item into temporary object
+   ier_num = cast(temp_arr, temp2)                ! Now copy temp into numpy array
+   if(anisotropic_adp%anisotropic_n_type==1) then        ! Just one type, need to do get_item without 'C'
       ier_num = temp_arr%get_data(matrix_2d_t)
-      allocate(matrix_2d(anisotropic_adp%anis_n_type,7))
-   !write(*,*) ' GOT ADPs      F ', ier_num, shape(matrix_2d_t), shape(matrix_2d)
+      allocate(matrix_2d(anisotropic_adp%anisotropic_n_type,7))
       matrix_2d = transpose(matrix_2d_t)
       deallocate(matrix_2d_t)
       nullify(matrix_2d_t)
@@ -901,15 +922,15 @@ else
       ier_num = temp_arr%get_data(matrix_2d, 'C')
    !write(*,*) ' GOT ADPs      C ', ier_num, shape(matrix_2d)
    endif
-   anisotropic_adp%anis_n_type = ubound(matrix_2d,1)
-   allocate(anisotropic_adp%anis_adp(7, anisotropic_adp%anis_n_type ))
-   anisotropic_adp%anis_adp = transpose(matrix_2d)
+   anisotropic_adp%anisotropic_n_type = ubound(matrix_2d,1)
+   allocate(anisotropic_adp%anisotropic_adp(7, anisotropic_adp%anisotropic_n_type ))
+   anisotropic_adp%anisotropic_adp = transpose(matrix_2d)
    deallocate(matrix_2d)
    nullify(matrix_2d)
    call temp2%destroy
    call temp_arr%destroy
 !
-   ier_num = temp_tuple%getitem(temp2, 4)         ! Get item into temporary object
+   ier_num = temp_tuple%getitem(temp2, 5)         ! Get item into temporary object
    ier_num = cast(temp_arr, temp2)                ! Now copy temp into numpy array
    ier_num = temp_arr%get_data(matrix_1d_i)
 !  call      err_print()
@@ -923,25 +944,10 @@ else
 endif
 call temp%destroy
 !
-! Get and interpret ADP index list
-!
-!iarg = 20
-!ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
-!if(is_none(temp)) then
-!   write(*,'(a)') ' ADP index list is not provided'
-!else
-!   ier_num = cast(temp_arr, temp)                 ! Now copy temp into numpy array
-!   ier_num = temp_arr%get_data(matrix_1d_i)
-!   allocate(atom_adp_index(number_of_atoms))
-!   write(*,*) ' ADP_INDEX dimension ', ubound(matrix_1d_i,1), number_of_atoms
-!   atom_adp_index = matrix_1d_i
-!   deallocate(matrix_1d_i)
-!   nullify(matrix_1d_i)
-!endif
 !
 ! Get and interpret Molecular info
 !
-iarg = 20
+iarg = iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 if(is_none(temp)) then
    molecules%number_moles = 0
@@ -955,7 +961,6 @@ else
    ier_num = cast(i, temp2)
    molecules%number_moles = i
    call temp2%destroy
-!write(*,*) ' READ MOLE_NUMBER ', molecules%number_moles
 !
 !  Determine molecule type number
 !
@@ -963,23 +968,22 @@ else
    ier_num = cast(i, temp2)
    molecules%number_types = i
    call temp2%destroy
-!write(*,*) ' READ MOLE_TYPES  ', molecules%number_types
 !
 !  Get integer info for each molecule
 !
    ier_num = temp_tuple%getitem(temp2, 2)         ! Get item into temporary object
-call err_print()
+!call err_print()
    ier_num = cast(temp_arr, temp2)                ! Now copy temp into numpy array
-call err_print()
+!call err_print()
    if(molecules%number_moles==1) then             ! Just one molecule
       ier_num = temp_arr%get_data(matrix_2d_i)    ! A (3,1) Matrix needs to be read as default
-call err_print()
+!call err_print()
 !write(*,*) ' MATRIX f  2 ', ier_num, ' SHAPE ', shape(matrix_2d_i)
       allocate(molecules%mole_int(3, molecules%number_moles))
       molecules%mole_int =          (matrix_2d_i)
    elseif(molecules%number_moles>1) then          ! More than one molecule
       ier_num = temp_arr%get_data(matrix_2d_i ,'C') ! A (3, N) matrix can be read as C-style
-call err_print()
+!call err_print()
 !write(*,*) ' MATRIX c  2 ', ier_num, ' SHAPE ', shape(matrix_2d_i)
       allocate(molecules%mole_int(3, molecules%number_moles))
       molecules%mole_int = transpose(matrix_2d_i)
@@ -1041,7 +1045,7 @@ call temp%destroy
 !
 ! Get and interpret Occupancy info
 !
-iarg = 21
+iarg = iarg + 1
 ier_num = returned_tuple%getitem(temp, iarg)      ! Get item into temporary object
 if(is_none(temp)) then
    allocate(types_occupancy(number_of_types))
@@ -1061,9 +1065,6 @@ endif
 !
 !write(*,'(a,3f12.6)') ' UNIT_CELL_LENGTHS   ', unit_cell_lengths
 !write(*,'(a,3f12.6)') ' UNIT_CELL_ANGLES    ', unit_cell_angles
-!write(*,'(a,3f12.6)') ' Metric Tensor (1,:) ', metric_tensor(1,:)
-!write(*,'(a,3f12.6)') ' Metric Tensor (1,:) ', metric_tensor(2,:)
-!write(*,'(a,3f12.6)') ' Metric Tensor (1,:) ', metric_tensor(3,:)
 !write(*,'(a,a     )') ' Symmetry H_M        ', symmetry_H_M(1:len_trim(symmetry_H_M))
 !write(*,'(a,i8)'    ) ' Space group origin  ', symmetry_origin
 !write(*,'(a,a     )') ' Symmetry abc        ', symmetry_abc(1:len_trim(symmetry_abc))

@@ -7,9 +7,10 @@ use precision_mod
 private 
 !
 type :: anis_adp_type
-   integer :: anis_n_type                                        ! Number of ADP type
-   integer :: anis_n_atom                                        ! Number of atoms in crystal
-   real(kind=PREC_DP), dimension(:,:), allocatable :: anis_adp   ! (:,i) = (U11, U22, U33, U23, U13, U12, Ueqv) for type j
+   integer :: anisotropic_n_type                                        ! Number of ADP type
+   integer :: anisotropic_n_atom                                        ! Number of atoms in crystal
+   integer           , dimension(:)  , allocatable :: anisotropic_is_iso! ADP type is isotropic(==0) or anisotropic(==1)
+   real(kind=PREC_DP), dimension(:,:), allocatable :: anisotropic_adp   ! (:,i) = (U11, U22, U33, U23, U13, U12, Ueqv) for type j
    integer           , dimension(:)  , allocatable :: atom_index ! Atom i has this ADP type
 end type anis_adp_type
 !

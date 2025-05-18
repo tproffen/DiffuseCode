@@ -236,18 +236,20 @@ end subroutine nx_write_scattering
 !*******************************************************************************
 !
 subroutine nx_write_structure(python_script_dir, outfile, program_version, author,    &
-           unit_cell_lengths, unit_cell_angles, metric_tensor,                  &
+           unit_cell_lengths, unit_cell_angles,                                 &
            symmetry_H_M, symmetry_origin, symmetry_abc,                         &
            symmetry_n_mat, symmetry_mat, unit_cells,                            &
            MAX_TYPES, types_names, types_ordinal, types_charge, types_isotope,  &
-           MAX_ATOMS, atom_id, atom_type, atom_pos, atom_unit_cell, atom_site,  &
-           status_flags, anis_n,                                                &
+           MAX_ATOMS, atom_id, atom_type, atom_position, atom_unit_cell,        &
+           atom_site_number,                                                    &
+           status_flags, anisotropic_n,                                         &
            ier_num,                                                             &
            property_flags,                                                      & ! Optional
-           magnetic_spin,                                                       & ! Optional
-           anis_adp,                                                            & ! Optional
+           magnetic_spins,                                                      & ! Optional
+           anisotropic_adp,                                                     & ! Optional
            molecules,                                                           & ! Optional
            types_occupancy,                                                     & ! Optional
+           atom_occupancy,                                                      & ! Optional
            average_struc                                                        & ! Optional
            )
 !-
@@ -269,7 +271,6 @@ character(len=*)                  , intent(in)  :: program_version   ! ==  'DISC
 character(len=*)                  , intent(in)  :: author            ! ==  'R.B. Neder    ' or similar
 real(kind=PREC_DP), dimension(3)  , intent(in)  :: unit_cell_lengths ! Lattice params (a, b, c)
 real(kind=PREC_DP), dimension(3)  , intent(in)  :: unit_cell_angles  ! Lattice params (alpha, beta, gamma)
-real(kind=PREC_DP), dimension(3,3), intent(in)  :: metric_tensor     ! Direct space metric tensor
 character(len=*)                  , intent(in)  :: symmetry_H_M      ! Hermann-Mauguin Symbol 
 integer                           , intent(in)  :: symmetry_origin   ! Space group origin 1 or 2
 character(len=*)                  , intent(in)  :: symmetry_abc      ! Permutation 'abc', 'cba' ...
@@ -282,7 +283,7 @@ real(kind=PREC_DP), dimension(3,4,symmetry_n_mat), intent(in) :: symmetry_mat ! 
 !                                                                                         (11, 12, 13)
 !                                                                (h, k, l)' = (h, k, l) * (21, 22, 23)
 !                                                                                         (31, 32, 33)
-integer           , dimension(3,3)        , intent(in)  :: unit_cells     ! Crystal consists of this many unit cells
+integer           , dimension(3)          , intent(in)  :: unit_cells     ! Crystal consists of this many unit cells
 integer                                   , intent(in)  :: MAX_TYPES      ! Number of atom types
 character(len=*)  , dimension(MAX_TYPES)  , intent(in)  :: types_names    ! Atom types have these names
 integer           , dimension(MAX_TYPES)  , intent(in)  :: types_ordinal  ! Atom types have these ordinal numberes
@@ -291,9 +292,9 @@ integer           , dimension(MAX_TYPES)  , intent(in)  :: types_isotope  ! Atom
 integer                                   , intent(in)  :: MAX_ATOMS      ! Number of atoms
 integer           , dimension(MAX_ATOMS)  , intent(in)  :: atom_id        ! Atoms are references by this ID
 integer           , dimension(MAX_ATOMS)  , intent(in)  :: atom_type      ! Atoms have this atom_type 
-real(kind=PREC_DP), dimension(3,MAX_ATOMS), intent(in)  :: atom_pos       ! Atoms are on these fractional coordinates
+real(kind=PREC_DP), dimension(3,MAX_ATOMS), intent(in)  :: atom_position  ! Atoms are on these fractional coordinates
 integer           , dimension(3,MAX_ATOMS), intent(in)  :: atom_unit_cell ! Atoms are in these unit cells
-integer           , dimension(MAX_ATOMS)  , intent(in)  :: atom_site      ! Atoms are on this site in a unit cell
+integer           , dimension(MAX_ATOMS)  , intent(in)  :: atom_site_number ! Atoms are on this site in a unit cell
 logical           , dimension(6)          , intent(in)  :: status_flags   ! Flags for:
 !              'is_super_structure   : Crystal consists of many unit cells
 !              'is_asymmetric_unit   : No symmetry operations have been applied, this is an asymmetric unit
@@ -301,14 +302,15 @@ logical           , dimension(6)          , intent(in)  :: status_flags   ! Flag
 !              'is_periodic_y        :
 !              'is_periodic_z        :
 !              'is_homogeneous       : The crystal should be homogeneous, an average structure can be calculated
-integer                                   , intent(in)           :: ANIS_N
+integer                                   , intent(in)           :: ANISotropic_N
 !
 integer           , dimension(  MAX_ATOMS), intent(in), optional :: property_flags ! Property flags for each atom
-real(kind=PREC_DP), dimension(3,MAX_ATOMS), intent(in), optional :: magnetic_spin  ! Magnetic spin vector for  atom
-type(anis_adp_type)                       , intent(in), optional :: anis_adp       ! Anisotropic ADPs for for type
+real(kind=PREC_DP), dimension(3,MAX_ATOMS), intent(in), optional :: magnetic_spins ! Magnetic spin vector for  atom
+type(anis_adp_type)                       , intent(in), optional :: anisotropic_adp       ! Anisotropic ADPs for for type
 type(molecule_data)                       , intent(in), optional :: molecules      ! Molecule info
 type(average_structure)                   , intent(in), optional :: average_struc  ! Average structure 
 real(kind=PREC_DP), dimension(MAX_TYPES)  , intent(in), optional :: types_occupancy! Atom types have these occupancies
+real(kind=PREC_DP), dimension(MAX_TYPES)  , intent(in), optional :: atom_occupancy ! Individual atom have these occupancies
              
 !
 integer                                   , intent(out) :: ier_num     ! Error number
@@ -320,7 +322,6 @@ type(object )   :: p_program           ! Output program  in python interface
 type(object )   :: p_author            ! Output author   in python interface
 type(ndarray)   :: p_unit_cell_lengths ! Unit cell length in python interface
 type(ndarray)   :: p_unit_cell_angles  ! Unit cell angles in python interface
-type(ndarray)   :: p_metric_tensor     ! Metric tensor    in python interface
 type(object )   :: p_symmetry_H_M      ! Space group name in python interface
 type(object )   :: p_symmetry_origin   ! Space group symmetry has been applied to data 
 type(object )   :: p_symmetry_abc      ! Space group symmetry has been applied to data 
@@ -333,17 +334,18 @@ type(ndarray)   :: p_types_ordinal     ! Crystal has these atom type ordinal num
 type(ndarray)   :: p_types_charge      ! Crystal has these atom type ID      numbers in python interface
 type(ndarray)   :: p_types_isotope     ! Crystal has these atom type isotope numbers in python interface
 type(object )   :: p_number_of_atoms   ! Crystal has these Number atoms       in python interface
-type(ndarray)   :: p_atom_type         ! Atom is referenced by this ID number in python interface
-type(ndarray)   :: p_atom_ID           ! Atom is of this type                 in python interface
-type(ndarray)   :: p_atom_pos          ! Atom is at this fractional coordin.  in python interface
+!type(ndarray)   :: p_atom_ID           ! Atom is referenced by this ID number in python interface
+type(ndarray)   :: p_atom_type         ! Atom is of this type                 in python interface
+type(ndarray)   :: p_atom_position     ! Atom is at this fractional coordin.  in python interface
 type(ndarray)   :: p_atom_unit_cell    ! Atom is in this unit_cell            in python interface
-type(ndarray)   :: p_atom_site         ! Atom is on this site                 in python interface
+type(ndarray)   :: p_atom_site_number  ! Atom is on this site                 in python interface
 type(dict   )   :: p_flags             ! Dictionary of Mandatory flags        in python interface
 type(ndarray)   :: p_property_flags    ! Atom has this property_flag          in python interface
-type(ndarray)   :: p_magnetic_spin     ! Atom has this magnetic spin vector   in python interface
-type(ndarray)   :: p_anis_adp          ! Type has this anisotropic ADP        in python interface
-type(ndarray)   :: p_anis_index        ! Type has this anisotropic ADP        in python interface
-type(tuple)     :: p_anisotropic_adp   ! Anisotropic    combined
+type(ndarray)   :: p_magnetic_spins    ! Atom has this magnetic spin vector   in python interface
+type(ndarray)   :: p_anisotropic_is_iso  ! Type is isotropic or anisotropic     in python interface
+type(ndarray)   :: p_anisotropic_adp     ! Type has this anisotropic ADP        in python interface
+type(ndarray)   :: p_anisotropic_index   ! Type has this anisotropic ADP        in python interface
+type(tuple)     :: p_anisotropic_tuple   ! Anisotropic    combined
 type(ndarray)   :: p_molecules_int     ! Molecular structure
 type(ndarray)   :: p_molecules_real    ! Molecular structure
 type(ndarray)   :: p_molecules_index   ! Molecular structure
@@ -354,7 +356,8 @@ type(ndarray)   :: p_average_occ       ! Molecular structure
 type(ndarray)   :: p_average_adp       ! Molecular structure
 type(ndarray)   :: p_average_site      ! Molecular structure
 type(tuple)     :: p_average           ! Molecular info combined
-type(ndarray)   :: p_occupancy         ! Occupancies per atom type
+type(ndarray)   :: p_types_occupancy   ! Occupancies per atom type
+type(ndarray)   :: p_atom_occupancy    ! Occupancies per atom type
 !
 type(dict)      :: kwargs              ! Keyword specified optional arguments
 !
@@ -364,7 +367,7 @@ type(object)    :: return_value        ! forpy return value
 !
 integer :: n_arg   ! Number of arguments to python script "write_diffuse_structure"
 integer :: i
-!real(kind=PREC_DP), dimension(:,:), allocatable :: anis_adp       ! Anisotropic ADPs for for type
+!real(kind=PREC_DP), dimension(:,:), allocatable :: anisotropic_adp       ! Anisotropic ADPs for for type
 !
 !write(*,*) 'WRITE_NEXUS_STRUCTURE '
 !write(*,'(3a, i3)') ' OUTFILE >', outfile(1:len_trim(outfile)),'<', len_trim(outfile)
@@ -393,7 +396,6 @@ ier_num = cast(          p_program,     program_version(1:len_trim(program_versi
 ier_num = cast(          p_author,      author(1:len_trim(author)) )
 ier_num = ndarray_create(p_unit_cell_lengths,  unit_cell_lengths)
 ier_num = ndarray_create(p_unit_cell_angles,   unit_cell_angles )
-ier_num = ndarray_create(p_metric_tensor,      metric_tensor)
 ier_num = cast(          p_symmetry_H_M    , symmetry_H_M   )
 ier_num = cast(          p_symmetry_origin , symmetry_origin)
 ier_num = cast(          p_symmetry_abc    , symmetry_abc   )
@@ -411,11 +413,10 @@ ier_num = ndarray_create(p_types_ordinal   , types_ordinal  )
 ier_num = ndarray_create(p_types_charge    , types_charge   )
 ier_num = ndarray_create(p_types_isotope   , types_isotope  )
 ier_num = cast(          p_number_of_atoms , MAX_ATOMS      )
-ier_num = ndarray_create(p_atom_ID         , atom_id        )
 ier_num = ndarray_create(p_atom_type       , atom_type      )
-ier_num = ndarray_create(p_atom_pos        , atom_pos       )
+ier_num = ndarray_create(p_atom_position   , atom_position  )
 ier_num = ndarray_create(p_atom_unit_cell  , atom_unit_cell )
-ier_num = ndarray_create(p_atom_site       , atom_site      )
+ier_num = ndarray_create(p_atom_site_number, atom_site_number)
 !
 ier_num = dict_create(p_flags)
 ier_num = p_flags%setitem('is_super_structure', status_flags(1))
@@ -425,7 +426,7 @@ ier_num = p_flags%setitem('is_periodic_y'     , status_flags(4))
 ier_num = p_flags%setitem('is_periodic_z'     , status_flags(5))
 ier_num = p_flags%setitem('is_homogeneous'    , status_flags(6))
 !
-n_arg = 23   ! We have 23 mandatory arguments
+n_arg = 21   ! We have 21 mandatory arguments
 !
 !  Collect the arguments into a tuple: p_args
 !
@@ -435,24 +436,23 @@ ier_num = p_args%setitem( 1, p_program)
 ier_num = p_args%setitem( 2, p_author)
 ier_num = p_args%setitem( 3, p_unit_cell_lengths)
 ier_num = p_args%setitem( 4, p_unit_cell_angles)
-ier_num = p_args%setitem( 5, p_metric_tensor)
-ier_num = p_args%setitem( 6, p_symmetry_H_M)
-ier_num = p_args%setitem( 7, p_symmetry_origin)
-ier_num = p_args%setitem( 8, p_symmetry_abc)
-ier_num = p_args%setitem( 9, p_symmetry_n_mat)
-ier_num = p_args%setitem(10, p_symmetry_mat)
-ier_num = p_args%setitem(11, p_unit_cells)
-ier_num = p_args%setitem(12, p_types_number    )
-ier_num = p_args%setitem(13, p_types_names     )
-ier_num = p_args%setitem(14, p_types_ordinal   )
-ier_num = p_args%setitem(15, p_types_charge    )
-ier_num = p_args%setitem(16, p_types_isotope   )
-ier_num = p_args%setitem(17, p_number_of_atoms )
-ier_num = p_args%setitem(18, p_atom_id         )
-ier_num = p_args%setitem(19, p_atom_type       )
-ier_num = p_args%setitem(20, p_atom_pos        )
-ier_num = p_args%setitem(21, p_atom_unit_cell  )
-ier_num = p_args%setitem(22, p_atom_site       )
+ier_num = p_args%setitem( 5, p_symmetry_H_M)
+ier_num = p_args%setitem( 6, p_symmetry_origin)
+ier_num = p_args%setitem( 7, p_symmetry_abc)
+ier_num = p_args%setitem( 8, p_symmetry_n_mat)
+ier_num = p_args%setitem( 9, p_symmetry_mat)
+ier_num = p_args%setitem(10, p_unit_cells)
+ier_num = p_args%setitem(11, p_types_number    )
+ier_num = p_args%setitem(12, p_types_names     )
+ier_num = p_args%setitem(13, p_types_ordinal   )
+ier_num = p_args%setitem(14, p_types_charge    )
+ier_num = p_args%setitem(15, p_types_isotope   )
+ier_num = p_args%setitem(16, p_number_of_atoms )
+!ier_num = p_args%setitem(18, p_atom_id         )
+ier_num = p_args%setitem(17, p_atom_type       )
+ier_num = p_args%setitem(18, p_atom_position   )
+ier_num = p_args%setitem(19, p_atom_unit_cell  )
+ier_num = p_args%setitem(20, p_atom_site_number)
 !
 ! Optional keyword specified arguments
 !
@@ -469,29 +469,29 @@ endif
 !
 ! Magnetic spin vectors
 !
-if(present(magnetic_spin)) then               ! Magnetic spins are present
-   ier_num = ndarray_create(p_magnetic_spin   , magnetic_spin  )
-   ier_num = kwargs%setitem("magnetic_spin", p_magnetic_spin   )
+if(present(magnetic_spins)) then               ! Magnetic spins are present
+   ier_num = ndarray_create(p_magnetic_spins   , magnetic_spins  )
+   ier_num = kwargs%setitem("magnetic_spins", p_magnetic_spins   )
 endif
 !
 ! Anisotropic ADP
 !
-if(present(anis_adp     )) then               ! anis_adp     s are present
-!write(*,*) ' ANIS_ADP       present', ubound(anis_adp%anis_adp), anis_adp%anis_n_type
-!write(*,*) ' ANIS_ADP ', anis_adp%anis_adp(:,1)
-!write(*,*) ' ANIS_INDX', anis_adp%atom_index(:)
-   ier_num = ndarray_create(p_anis_adp  , (anis_adp%anis_adp))
-!write(*,*) ' NDARRAY anis_adp ', ier_num
-   ier_num = ndarray_create(p_anis_index, anis_adp%atom_index      )
-!write(*,*) ' NDARRAY anis_ind ', ier_num
-   !ier_num = print_py(p_anis_adp)
-   n_arg = 2
-   ier_num = tuple_create(p_anisotropic_adp, n_arg)
-   ier_num = p_anisotropic_adp%setitem( 0, p_anis_adp  )
-   ier_num = p_anisotropic_adp%setitem( 1, p_anis_index)
-   ier_num = kwargs%setitem("anisotropic_adp"     , p_anisotropic_adp)
-   !ier_num = kwargs%setitem("anisotropic_adp"     , p_anis_adp        )
-   !ier_num = kwargs%setitem("anisotropic_index"   , p_anis_index      )
+if(present(anisotropic_adp     )) then               ! anisotropic_adp     s are present
+!write(*,*) ' ANIS_ADP       present', ubound(anisotropic_adp%anisotropic_adp), anisotropic_adp%anisotropic_n_type
+!write(*,*) ' ANIS_ADP ', anisotropic_adp%anisotropic_adp(:,1)
+!write(*,*) ' ANIS_INDX', anisotropic_adp%atom_index(:)
+   ier_num = ndarray_create(p_anisotropic_is_iso  , (anisotropic_adp%anisotropic_is_iso))
+   ier_num = ndarray_create(p_anisotropic_adp  , (anisotropic_adp%anisotropic_adp))
+!write(*,*) ' NDARRAY anisotropic_adp ', ier_num
+   ier_num = ndarray_create(p_anisotropic_index, anisotropic_adp%atom_index      )
+!write(*,*) ' NDARRAY anisotropic_ind ', ier_num
+   !ier_num = print_py(p_anisotropic_adp)
+   n_arg = 3
+   ier_num = tuple_create(p_anisotropic_tuple, n_arg)
+   ier_num = p_anisotropic_tuple%setitem( 0, p_anisotropic_is_iso)
+   ier_num = p_anisotropic_tuple%setitem( 1, p_anisotropic_adp  )
+   ier_num = p_anisotropic_tuple%setitem( 2, p_anisotropic_index)
+   ier_num = kwargs%setitem("anisotropic_tuple", p_anisotropic_tuple)
 endif
 !
 ! Molecule Information
@@ -515,8 +515,15 @@ endif
 ! Occupancies
 !
 if(present(types_occupancy)) then  ! Crystal contains occupancy information
-   ier_num = ndarray_create(p_occupancy, types_occupancy)
-   ier_num = kwargs%setitem("occupancy"   , p_occupancy      )
+   ier_num = ndarray_create(p_types_occupancy, types_occupancy)
+   ier_num = kwargs%setitem("occupancy"   , p_types_occupancy      )
+endif
+!
+! Atom_Occupancies
+!
+if(present(atom_occupancy)) then  ! Crystal contains atom_occupancy information
+   ier_num = ndarray_create(p_atom_occupancy,  atom_occupancy)
+   ier_num = kwargs%setitem("atom_occupancy"   , p_atom_occupancy      )
 endif
 !
 ! Average structure
@@ -562,7 +569,6 @@ call p_program%destroy
 call p_author%destroy
 call p_unit_cell_lengths%destroy
 call p_unit_cell_angles%destroy
-call p_metric_tensor%destroy
 call p_symmetry_H_M%destroy
 call p_symmetry_origin%destroy
 call p_symmetry_abc%destroy
@@ -575,11 +581,15 @@ call p_types_ordinal%destroy
 call p_types_charge%destroy
 call p_types_isotope%destroy
 call p_number_of_atoms%destroy
-call p_atom_id%destroy
+!call p_atom_id%destroy
 call p_atom_type%destroy
-call p_atom_pos%destroy
+call p_atom_position%destroy
 call p_atom_unit_cell%destroy
-call p_atom_site%destroy
+call p_atom_site_number%destroy
+!
+if(present(types_occupancy)) then  ! Crystal contains occupancy information
+   call p_types_occupancy%destroy
+endif
 !
 end subroutine nx_write_structure
 !

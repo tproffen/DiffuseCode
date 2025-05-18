@@ -6492,7 +6492,6 @@ real(kind=PREC_DP)   , dimension(3) :: werte
 !
 real(kind=PREC_DP)        , dimension(3)                  :: unit_cell_lengths
 real(kind=PREC_DP)        , dimension(3)                  :: unit_cell_angles
-real(kind=PREC_DP)        , dimension(3,3)                :: metric_tensor
 character(len=32)                                         :: symmetry_H_M
 integer                                                   :: symmetry_origin
 character(len=3)                                          :: symmetry_abc
@@ -6513,6 +6512,7 @@ real(kind=PREC_DP)        , dimension(:,:  ), allocatable :: atom_pos     ! Atom
 integer                   , dimension(:,:  ), allocatable :: atom_unit_cell   ! Atom is in this unit cell
 integer                   , dimension(:    ), allocatable :: atom_site    ! Atom is on this site in its unit cell
 integer                   , dimension(:    ), allocatable :: atom_property  ! Atom has this property flag
+real(kind=PREC_DP)        , dimension(:,:  ), allocatable :: magnetic_spins ! Atom has these magnetic moments
 logical                   , dimension(2,6)                :: crystal_flags  ! Flags 
 character(len=PREC_STRING), dimension(  5)                :: crystal_meta  ! Metadata
 type(anis_adp_type) :: anisotropic_adp
@@ -6540,19 +6540,27 @@ if(MAXW>1) then
 endif
 !
 call nx_read_structure(python_script_dir, cpara(1), unit_cell_lengths, unit_cell_angles,  &
-                       metric_tensor,      &
                        symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                        symmetry_mat, unit_cells, number_of_types, types_names,      &
                        types_ordinal, types_charge, types_isotope, number_of_atoms, &
-                       atom_ID, atom_type, atom_pos, atom_unit_cell, atom_site,     &
+                       atom_type, atom_pos, atom_unit_cell, atom_site,     &
                        atom_property, crystal_flags, crystal_meta,                  &
-                       anisotropic_adp, molecules, average_struc, types_occupancy,  &
+                       anisotropic_adp, molecules, average_struc, magnetic_spins,   &
+                       types_occupancy,  &
                        ier_num)
 if(ier_num/=0) return
 !
 cr_a0  = unit_cell_lengths
 cr_win = unit_cell_angles
-cr_gten = metric_tensor
+cr_gten(1,1) = unit_cell_lengths(1)**2
+cr_gten(2,3) = unit_cell_lengths(2)**2
+cr_gten(3,3) = unit_cell_lengths(3)**2
+cr_gten(1,2) = unit_cell_lengths(1)*unit_cell_lengths(2)*cosd(unit_cell_angles(3))
+cr_gten(2,1) = unit_cell_lengths(1)*unit_cell_lengths(2)*cosd(unit_cell_angles(3))
+cr_gten(1,3) = unit_cell_lengths(1)*unit_cell_lengths(3)*cosd(unit_cell_angles(2))
+cr_gten(3,1) = unit_cell_lengths(1)*unit_cell_lengths(3)*cosd(unit_cell_angles(2))
+cr_gten(2,3) = unit_cell_lengths(2)*unit_cell_lengths(3)*cosd(unit_cell_angles(1))
+cr_gten(3,2) = unit_cell_lengths(2)*unit_cell_lengths(3)*cosd(unit_cell_angles(1))
 call matinv(cr_gten, cr_rten)
 !
 lout = .false.
@@ -6593,12 +6601,12 @@ call guess_atom_all
 ! Copy ADPs
 !
 cr_anis_full = 0.0_PREC_DP
-if(anisotropic_adp%anis_n_type>0) then     ! File contained ADPs
-   call alloc_anis(anisotropic_adp%anis_n_type)
-   cr_nanis = anisotropic_adp%anis_n_type
-   do i=1,anisotropic_adp%anis_n_type
-!write(*,'(a,7f9.6)') ' ANIS ', anisotropic_adp%anis_adp(1:7,i)
-      cr_anis_full(1:6,i) = anisotropic_adp%anis_adp(1:6,i)
+if(anisotropic_adp%anisotropic_n_type>0) then     ! File contained ADPs
+   call alloc_anis(anisotropic_adp%anisotropic_n_type)
+   cr_nanis = anisotropic_adp%anisotropic_n_type
+   do i=1,anisotropic_adp%anisotropic_n_type
+!write(*,'(a,7f9.6)') ' ANIS ', anisotropic_adp%anisotropic_adp(1:7,i)
+      cr_anis_full(1:6,i) = anisotropic_adp%anisotropic_adp(1:6,i)
       uij(1,1) = cr_anis_full(1,i)
       uij(2,2) = cr_anis_full(2,i)
       uij(3,3) = cr_anis_full(3,i)
@@ -6619,15 +6627,16 @@ endif
 do i=1,number_of_atoms
    cr_iscat(1,i) = atom_type(  atom_ID(i))
    cr_iscat(2,i) = 1   ! WORK  SYMMETRY OPERATION that created atom
-   if(anisotropic_adp%anis_n_type>0) then
+   if(anisotropic_adp%anisotropic_n_type>0) then
       cr_iscat(3,i) = anisotropic_adp%atom_index(i)
    else
       cr_iscat(3,i) = 1
    endif
    cr_dw(cr_iscat(3,i)) = real(cr_iscat(3,i),kind=PREC_DP)
-   cr_dw(cr_iscat(3,i)) = anisotropic_adp%anis_adp(7,cr_iscat(3,i))*8.0_PREC_DP*PI**2
+   cr_dw(cr_iscat(3,i)) = anisotropic_adp%anisotropic_adp(7,cr_iscat(3,i))*8.0_PREC_DP*PI**2
    cr_pos(:,i)   = atom_pos (:,atom_ID(i))
    cr_prop(i)    = atom_property(atom_ID(i))
+   cr_magn(:,i)  = magnetic_spins(:,i)
 enddo
 !
 if(molecules%number_moles>0) then     ! Structure contains molecules
@@ -6700,7 +6709,7 @@ deallocate(atom_pos     )
 deallocate(atom_unit_cell)
 deallocate(atom_site    )
 deallocate(atom_property)
-if(allocated(anisotropic_adp%anis_adp)) deallocate(anisotropic_adp%anis_adp)
+if(allocated(anisotropic_adp%anisotropic_adp)) deallocate(anisotropic_adp%anisotropic_adp)
 !
 end subroutine nexus2discus
 !
