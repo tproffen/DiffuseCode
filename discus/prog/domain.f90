@@ -837,6 +837,9 @@ call alloc_anis(temp_nanis)
 cr_anis_full(:,1:temp_nanis) = temp_anis_full(:,1:temp_nanis)
 cr_prin  (:,:, 1:temp_nanis) = temp_prin   (:,:,1:temp_nanis)
 cr_nanis = temp_nanis
+!write(*,*) ' ANISOTROPIC ', temp_nanis
+!write(*,'(a,6f8.4)') ' ADP 1 ', cr_anis_full(:,1)
+!write(*,'(a,6f8.4)') ' ADP 2 ', cr_anis_full(:,2)
 !return
 !-------------------------------------------------------------------------------
 !
@@ -849,6 +852,8 @@ allocate(clu_moles(2,0:clu_number))
 clu_moles  = 0
 clu_moles(1,0) = mole_num_mole
 clu_moles(2,0) = mole_num_type
+!write(*,*) 'CLU_NUMBER ', clu_number, clu_moles(1:2,0)
+!read(*,*) i
 DO i=1, clu_number
    infile = clu_content(i)
    IF(clu_content(i)(1:8)=='internal')THEN
