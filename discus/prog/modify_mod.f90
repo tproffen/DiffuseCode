@@ -1121,51 +1121,51 @@ END SUBROUTINE do_purge
 !
 !*****7**************************************************************** 
 !
-      SUBROUTINE do_purge_atoms 
+SUBROUTINE do_purge_atoms 
 !-                                                                      
 !     Purges the list of atoms from all deleted atoms                   
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod
-      USE chem_aver_mod
-      USE molecule_mod 
-      USE errlist_mod 
-      USE param_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod
+USE chem_aver_mod
+USE molecule_mod 
+USE errlist_mod 
+USE param_mod 
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER i, ii, idel, ndel 
-      LOGICAL lout 
+INTEGER ::  i, ii, idel, ndel 
+logical, parameter :: lout = .FALSE. 
 !                                                                       
-      DATA lout / .false. / 
+!DATA lout / .false. / 
 !                                                                       
-      CALL chem_elem (lout) 
-      ndel = nint (res_para (1) * cr_natoms) 
+CALL chem_elem (lout) 
+ndel = nint (res_para (1) * cr_natoms) 
 !                                                                       
-      IF (ndel.ne.0) then 
-         idel = 0 
-         DO i = 1, cr_natoms - ndel 
-         DO while (i + idel.le.cr_natoms.and.cr_iscat (1,i + idel) .eq.0) 
+IF (ndel.ne.0) then 
+   idel = 0 
+   DO i = 1, cr_natoms - ndel 
+      DO while (i + idel.le.cr_natoms.and.cr_iscat (1,i + idel) .eq.0) 
          idel = idel + 1 
-         ENDDO 
-         ii = i + idel 
-         cr_pos (1, i) = cr_pos (1, ii) 
-         cr_pos (2, i) = cr_pos (2, ii) 
-         cr_pos (3, i) = cr_pos (3, ii) 
-         cr_iscat (1,i) = cr_iscat (1,ii) 
-         cr_mole (i) = cr_mole (ii) 
-         cr_surf(:,i)= cr_surf(:,ii) 
-         cr_magn(:,i)= cr_magn(:,ii) 
-         cr_prop (i) = cr_prop (ii) 
-         ENDDO 
-         cr_natoms = cr_natoms - ndel 
-         ndel = 0 
+      ENDDO 
+      ii = i + idel 
+      cr_pos (1, i) = cr_pos (1, ii) 
+      cr_pos (2, i) = cr_pos (2, ii) 
+      cr_pos (3, i) = cr_pos (3, ii) 
+      cr_iscat (:,i) = cr_iscat (:,ii) 
+      cr_mole (i) = cr_mole (ii) 
+      cr_surf(:,i)= cr_surf(:,ii) 
+      cr_magn(:,i)= cr_magn(:,ii) 
+      cr_prop (i) = cr_prop (ii) 
+   ENDDO 
+   cr_natoms = cr_natoms - ndel 
+   ndel = 0 
 !                                                                       
-         CALL do_check_purge (.true.) 
-         cr_ncatoms = 1       !Atom number disturbed, 1 atom per unit cell
-      ENDIF 
+   CALL do_check_purge (.true.) 
+   cr_ncatoms = 1       !Atom number disturbed, 1 atom per unit cell
+ENDIF 
 !                                                                       
-      END SUBROUTINE do_purge_atoms                 
+END SUBROUTINE do_purge_atoms                 
 !*****7**************************************************************** 
       SUBROUTINE do_check_purge (lpurge) 
 !-                                                                      
