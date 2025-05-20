@@ -1097,6 +1097,7 @@ place_ywrt: IF(value==val_pdf) THEN  ! Transform F(Q) into PDF
       CALL fft_fq(npkt_wrt, xwrt, ywrt, qmin, qmax, deltaq, rmin, rmax, rstep, &
                   npkt_fft, npkt_pdf, xfour, yfour)
       yfour = yfour * PI*0.50_PREC_DP
+!     npkt_pdf = npkt_pdf - 1
 !write(*,*) ' RLIMITS ', rmin, rmax, rstep, npkt_pdf
 !open(77,file='POWDER/ende_corrlin.PDF',status='unknown')
 !DO ii=1,npkt_pdf
@@ -1107,7 +1108,7 @@ place_ywrt: IF(value==val_pdf) THEN  ! Transform F(Q) into PDF
       DEALLOCATE(ywrt)
       ALLOCATE(xwrt(0:npkt_pdf  ))
       ALLOCATE(ywrt(0:npkt_pdf  ))
-      DO ii=0,npkt_pdf  
+      DO ii=0,npkt_pdf   - 1
          xwrt(ii) =xfour(ii+1)
          ywrt(ii) =yfour(ii+1)
       ENDDO
