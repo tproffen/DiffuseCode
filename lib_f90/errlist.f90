@@ -249,12 +249,13 @@ USE lib_length
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -58
+       INTEGER, PARAMETER :: iu = -59
        INTEGER, PARAMETER :: io =   2
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
        DATA ERROR ( iu:-41) /                       &
+     &  'Input data are not 3-D',                   & !-59  ! fortran
      &  'mask:edge needs radius as well',           & !-58  ! fortran
      &  'No sigma defined for data set',            & !-57  ! fortran
      &  'Array dimensions differ ',                 & !-56  ! fortran

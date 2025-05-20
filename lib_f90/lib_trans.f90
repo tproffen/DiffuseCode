@@ -83,6 +83,12 @@ real(kind=PREC_DP), dimension(3,3)   :: lib_tr_mat   ! Transformation matrix old
 real(kind=PREC_DP), dimension(3,3)   :: lib_in_mat   ! Transformation matrix new => old
 !logical :: success
 !
+if(any(old_inc==1)) then   ! Check if data are 2-D or 1-D 
+   ier_num = -59
+   ier_num = ER_FORT
+   return
+endif
+!
 call no_error
 !
 ! Use default values 
