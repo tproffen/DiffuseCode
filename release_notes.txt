@@ -1,4 +1,6 @@
-6.19.00  DRAFT
+6.19.01  DRAFT
+
+6.19.00  RELEASE 2025_05_22
 
 DISCUS
   chem         Improved aver command if exact mode is set
