@@ -2583,10 +2583,10 @@ integer :: n_bragg
 integer :: n_diff 
 integer :: n_zero 
 integer :: i 
-logical :: l_ll_real
+!logical :: l_ll_real
 !
-logical :: l_sharp
-real(kind=PREC_DP) :: ll
+!logical :: l_sharp
+!real(kind=PREC_DP) :: ll
 !
 set_scale_mode = 0
 !
@@ -2602,7 +2602,7 @@ cond_stack_mode_l: if(pow_four_mode_is_POW_STACK .or. cr_is_stack) then ! Stacki
       inten_bragg = 0.0_PREC_DP
       inten_diff  = 0.0_PREC_DP
       inten_zero  = 0.0_PREC_DP
-      inten_array = DBLE (csf) * conjg(csf)
+      inten_array = real(csf * conjg(csf), kind=PREC_DP)
       n_bragg = 0
       n_diff  = 0
       n_zero  = 0
