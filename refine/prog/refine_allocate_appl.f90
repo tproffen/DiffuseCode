@@ -126,13 +126,13 @@ IMPLICIT NONE
    write(output_io,3500) 
 !END IF
 !
-1100 format(' Maximum number of members     ',i8)
-1200 format(' Maximum number of parameters  ',i8)
-1300 format(' Current number of members     ',i8)
-1400 format(' Current number of parameters  ',i8)
-1500 format(' POPULATION is  not allocated yet! REFINE will not run! ')
-3100 format(' Maximum number of constraints ',i8)
-3110 format(' Current number of constraints ',i8)
+!1100 format(' Maximum number of members     ',i8)
+!1200 format(' Maximum number of parameters  ',i8)
+!1300 format(' Current number of members     ',i8)
+!1400 format(' Current number of parameters  ',i8)
+!1500 format(' POPULATION is  not allocated yet! REFINE will not run! ')
+!3100 format(' Maximum number of constraints ',i8)
+!3110 format(' Current number of constraints ',i8)
 3500 format(' CONSTRAINTS are not allocated yet! REFINE will not run! ')
 !
 END SUBROUTINE refine_show_config
