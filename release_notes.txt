@@ -1,11 +1,14 @@
 6.19.01  DRAFT
+DISCUS
+  GENERAL      REPLACE command with several new atom types
+  surface      Extended options to replace a shell by other atom types
 
 6.19.00  RELEASE 2025_05_22
 
 DISCUS
   chem         Improved aver command if exact mode is set
   perioditize  Improved algorithm
-  powder/stack Major BUG fix. Stacks along axed other than [001] did not work well.
+  powder/stack Major BUG fix. Stacks along axes other than [001] did not work well.
                Corrected relative weight of sharp/diffuse rods
 
 6.18.03  RELEASE 2025_04_03
