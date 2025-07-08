@@ -2264,6 +2264,7 @@ IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN
    ENDDO main_compl
 ELSEIF(pow_type==POW_DEBYE) THEN
    main_debye: DO i = 0, imax 
+      if(i>ubound(dat,1)) exit main_debye
 !
       tth = tthmin + i * dtth        ! This is tth(axis=2) or Q(axis=1)
       fwhm = powder_calc_fwhm_symm(i, tth, axis, u,v,w, rlambda, pow_pr_fwhm)
@@ -2280,6 +2281,8 @@ ELSEIF(pow_type==POW_DEBYE) THEN
       i1 = max(0, i-max_ps)
       i2 = min(   i+max_ps, imax)
       first_deb: do j = i1, i2
+         if(j>ubound(dummy,1)) exit first_deb
+         if(j<lbound(dummy,1)) exit first_deb
          ii = abs(j-i)*nint(pseudo)
          tth1 = (j-i-1)*dtth
          pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2) !, p3, p4) 
@@ -2288,9 +2291,10 @@ ELSEIF(pow_type==POW_DEBYE) THEN
    ENDDO main_debye
 ENDIF
 !                                                                       
-DO i = 0, imax 
+loop_scale: DO i = 0, imax 
+   if(i>ubound(dat,1)) exit loop_scale
    dat (i) = dummy (i) * dtth   ! scale with stepwidth
-ENDDO 
+ENDDO  loop_scale
 !                                                                       
 END SUBROUTINE powder_conv_psvgt_uvw_asym
 !
