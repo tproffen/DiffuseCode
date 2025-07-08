@@ -10074,9 +10074,12 @@
 
 !p set distance, {"external" | "internal" | "all"} , <atom_list>, <distance>
 !p set distance, {"external" | "internal" | "all"} , {"default" | "off"}
+!p set original:[<atom_list>]
+!p set  replace:[<atom_list>]
 
-   Defines the distances between those atoms in <atom_list> and the
-   specified surface. All atoms of the selected type that are closer
+   The first two commands define the distances between those atoms in
+   <atom_list> and the specified surface. 
+   All atoms of the selected type that are closer
    than <distance> to the specified surface are marked as "close". The
    respective property can be used everywhere an atom type is selected.
    ==> 'property' menu and the 'sel' / 'des' commands in various menus.
@@ -10107,6 +10110,20 @@
 
    "off"
    A value of zero Angstrom. No surface property flag will be set.
+
+   set original:[<atom_list>]
+   set  replace:[<atom_list>]
+
+   The combination of these two optional parameters defines what 
+   DISCUS does at the surface. 
+   As default, we have original:[all], replace:[void]
+   This implies the normal behaviour that atoms outside the boundary
+   are replaced by VOID atoms, i.e. effectively removed. 
+   If the original<atom_list> is restricted and the replace:[<atom_list>]
+   contains atoms other than "VOID" DISCUS will act very differently.
+   In this case atoms outside the boundary and in the original:[] list
+   will be replaced by atoms from the replace:[<atom_list>].
+   This can be used to create an epitaxial core-shell structure.
 3  show
 !p show
 
