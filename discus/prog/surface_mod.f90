@@ -27,7 +27,12 @@ REAL(kind=PREC_DP)  ::  SURF_DIST_DEF =  2.55
 REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE  ::  surf_ex_dist   !(0:MAXSCAT)
 REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE  ::  surf_in_dist   !(0:MAXSCAT)
 !
+logical           , DIMENSION(:), ALLOCATABLE  ::  surf_original  !(0:MAXSCAT)  Old atoms
+logical           , DIMENSION(:), ALLOCATABLE  ::  surf_replace   !(0:MAXSCAT)  to be replaced by these
+integer                                        ::  surf_n_repl    ! number of replacement options
+!
 LOGICAL             ::  surf_local_new = .TRUE.
+logical             ::  surf_boundary 
 !
 !
 END MODULE surface_mod

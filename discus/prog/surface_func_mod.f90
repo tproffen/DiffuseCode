@@ -143,6 +143,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
                   CALL surf_show 
+!                                                                       
+!     ----define various surface related settings 'set'                 
+!                                                                       
+               ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
+                  CALL surf_reset
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
@@ -193,10 +198,16 @@ SUBROUTINE surf_do_set (zeile, length)
 !     This subroutine sets various parameters                           
 !-                                                                      
 USE discus_config_mod 
+use discus_allocate_appl_mod
+use crystal_mod
+use modify_mod
+use surface_mod
+!
 USE errlist_mod 
 USE get_params_mod
 USE precision_mod
 USE str_comp_mod
+USE take_param_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -207,14 +218,41 @@ INTEGER         , intent(inout) :: length
 !                                                                       
 CHARACTER(LEN=PREC_STRING), dimension(MAXW) :: cpara ! (maxw) 
 INTEGER, dimension(MAXW) :: lpara ! (maxw) 
-INTEGER :: ianz 
+INTEGER :: ianz
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+!
+integer                 :: i
+integer                 :: nscat    ! dummy for number of element types
+logical, dimension(0:1) :: dummy
+logical                 :: ldummy
 !                                                                       
+integer, parameter :: NOPTIONAL = 2
+character(LEN=   8), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=MAX(PREC_STRING,LEN(ZEILE))), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent ! Optional parameter is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
+integer, parameter :: O_ORIGINAL   = 1
+integer, parameter :: O_REPLACE    = 2
 !                                                                       
+data oname  / 'original', 'replace ' /
+data loname /  8,       7/
+!
+opara  =  (/ 'all    ', 'VOID   '/)   ! Always provide fresh default values
+lopara =  (/  3,         4       /)
+owerte =  (/ -1.00,      0.0     /)
+!
 CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-IF (ier_num.ne.0) return 
-IF (ianz.le.0) return 
+IF (ier_num /= 0) return 
+IF (ianz <= 0) return 
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF (ier_num /= 0) return 
 !                                                                       
+if(ianz>0) then      ! distance and /or surface remains
 IF (str_comp (cpara (1) , 'distance', 2, lpara (1) , 8) ) then 
    CALL del_params (1, ianz, cpara, lpara, maxw) 
    CALL surf_set_fuzzy (ianz, cpara, lpara, werte, maxw, 0) 
@@ -224,7 +262,56 @@ ELSEIF(str_comp(cpara(1), 'surface', 2, lpara (1) , 7) ) then
 ELSE 
    ier_num = - 6 
    ier_typ = ER_COMM 
-ENDIF 
+ENDIF
+   if (ianz <= 0) return 
+endif
+!
+if(lpresent(O_ORIGINAL)) then
+   if(opara(O_ORIGINAL)(1:1)=='[' .and. opara(O_ORIGINAL)(lopara(O_ORIGINAL):lopara(O_ORIGINAL))==']') then
+      zeile    = opara(O_ORIGINAL)(2:lopara(O_ORIGINAL)-1)
+      length   = lopara(O_ORIGINAL)-2
+   else
+      zeile    = opara(O_ORIGINAL)(1:lopara(O_ORIGINAL))
+      length   = lopara(O_ORIGINAL)
+   endif
+!write(*,*) ' surf_orig ', ubound(surf_original,1)
+   nscat = cr_nscat
+   if(ubound(surf_original,1)<cr_nscat) then
+      nscat = cr_nscat
+      call alloc_surf(nscat)
+   endif
+   surf_original = .FALSE.
+   call atom_select(zeile, length, 0, cr_nscat, surf_original,              &
+                    dummy, 0, 1, ldummy, .FALSE., .TRUE.)
+endif
+!
+if(lpresent(O_REPLACE)) then
+   if(opara(O_REPLACE)(1:1)=='[' .and. opara(O_REPLACE)(lopara(O_REPLACE):lopara(O_REPLACE))==']') then
+      zeile    = opara(O_REPLACE)(2:lopara(O_REPLACE)-1)
+      length   = lopara(O_REPLACE)-2
+   else
+      zeile    = opara(O_REPLACE)(1:lopara(O_REPLACE))
+      length   = lopara(O_REPLACE)
+   endif
+   nscat = cr_nscat
+   if(ubound(surf_replace,1)<=cr_nscat) then
+      nscat = cr_nscat+10
+      call alloc_surf(nscat)
+   endif
+   nscat = ubound(surf_replace,1)
+   surf_replace = .FALSE.
+!write(*,*) ' surf_repl ', ubound(surf_replace,1)
+   call atom_select(zeile, length, 0, nscat, surf_replace,              &
+                    dummy, 0, 1, ldummy, .TRUE., .TRUE.)
+!  write(*,*) ' ATOM_SELECT ', ier_num, ier_typ
+   surf_n_repl = 0
+   do i=0, nscat
+      if(surf_replace(i)) surf_n_repl = surf_n_repl + 1
+   enddo
+endif
+!write(*,'(a, 20L1)') ' ORIGINAL ', surf_original(0:cr_nscat)
+!write(*,'(a, 20L1)') ' REPLACE  ', surf_replace (0:cr_nscat)
+!write(*,'(a, i5  )') ' REPLACE N', surf_n_repl
 !                                                                       
 END SUBROUTINE surf_do_set                    
 !
@@ -1367,6 +1454,7 @@ REAL(kind=PREC_DP), DIMENSION(3), PARAMETER :: VNULL = (/ 0.0D0, 0.0D0, 0.0D0 /)
 REAL(kind=PREC_DP)              , PARAMETER :: TOLERANCE = 5.0   ! Accept a 5 degree tilt for same surface
 LOGICAL           , PARAMETER :: LSPACE = .FALSE.
 !
+integer               :: i,j,k,irepl ! Dummy loop indices
 INTEGER               :: idiv      ! Largest common divisor for the normal
 INTEGER, DIMENSION(3) :: hkl
 REAL(kind=PREC_DP)  , DIMENSION(3) :: rhkl, u, l_normal
@@ -1384,49 +1472,77 @@ l_normal(1) = NINT(10.*normal(1)/r)
 l_normal(2) = NINT(10.*normal(2)/r)
 l_normal(3) = NINT(10.*normal(3)/r)
 !
-IF((     linside.AND.distance <  0) .OR.  &
-   (.not.linside.AND.distance >  0)      ) THEN                            
-   cr_iscat (1,iatom) = 0 
-   cr_prop (iatom) = ibclr (cr_prop (iatom), PROP_NORMAL) 
-   cr_prop (iatom) = ibset (cr_prop (iatom), PROP_OUTSIDE) 
-   IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (1,iatom) )) .OR. &
-       (thick>0 .AND. ABS(distance) <     thick                          )) then 
-      cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
-   ENDIF 
-   cr_surf (:,iatom) = 0
-ELSE 
-   IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (1,iatom) )) .OR. &
-       (thick>0 .AND. ABS(distance) < thick                              )) THEN 
-      cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
-      IF(cr_surf(0, iatom) == SURF_NONE) THEN  ! Atom was not yet at a surface
-         cr_surf(0,   iatom) = surface_type 
+if(all(surf_original) .and. .not.any(surf_replace(1:cr_nscat))) then    ! Normal boundary mode
+   IF((     linside.AND.distance <  0) .OR.  &
+      (.not.linside.AND.distance >  0)      ) THEN                            
+      cr_iscat (1,iatom) = 0 
+      cr_prop (iatom) = ibclr (cr_prop (iatom), PROP_NORMAL) 
+      cr_prop (iatom) = ibset (cr_prop (iatom), PROP_OUTSIDE) 
+      IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (1,iatom) )) .OR. &
+          (thick>0 .AND. ABS(distance) <     thick                          )) then 
+         cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
+      ENDIF 
+      cr_surf (:,iatom) = 0
+   ELSE 
+      IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (1,iatom) )) .OR. &
+          (thick>0 .AND. ABS(distance) < thick                              )) THEN 
+         cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
+         IF(cr_surf(0, iatom) == SURF_NONE) THEN  ! Atom was not yet at a surface
+            cr_surf(0,   iatom) = surface_type 
                
-         cr_surf(1:3, iatom) = nint(l_normal(:))
-      ELSEIF(cr_surf(0, iatom) < SURF_EDGE) THEN    ! Atom was already at a plane, sphere, cylinder wall
-         IF(surface_type > SURF_CYLINDER) THEN      ! New location is at least an edge
+            cr_surf(1:3, iatom) = nint(l_normal(:))
+         ELSEIF(cr_surf(0, iatom) < SURF_EDGE) THEN    ! Atom was already at a plane, sphere, cylinder wall
+            IF(surface_type > SURF_CYLINDER) THEN      ! New location is at least an edge
+               u(:) = cr_pos(:,iatom) - center(:)
+               CALL pos2hkl(u, cr_gten, hkl)
+               cr_surf(0,   iatom) = SURF_CORNER
+               cr_surf(1:3, iatom)  = hkl(1:3)
+            ELSEIF(surface_type > SURF_NONE) THEN      ! Should be all other cases
+               rhkl(:) = cr_surf(1:3, iatom)           ! get old normal
+               angle = do_bang(LSPACE, rhkl, VNULL, normal)
+               IF(angle>TOLERANCE) THEN
+                   u(:) = cr_pos(:,iatom) - center(:)
+                   CALL pos2hkl(u, cr_gten, hkl)
+                   cr_surf(0,   iatom) = SURF_EDGE
+                   cr_surf(1:3, iatom)  = hkl(1:3)
+               ENDIF
+            ENDIF
+         ELSE                                          ! Atom was at edge or corner
             u(:) = cr_pos(:,iatom) - center(:)
             CALL pos2hkl(u, cr_gten, hkl)
             cr_surf(0,   iatom) = SURF_CORNER
             cr_surf(1:3, iatom)  = hkl(1:3)
-         ELSEIF(surface_type > SURF_NONE) THEN      ! Should be all other cases
-            rhkl(:) = cr_surf(1:3, iatom)           ! get old normal
-            angle = do_bang(LSPACE, rhkl, VNULL, normal)
-            IF(angle>TOLERANCE) THEN
-                u(:) = cr_pos(:,iatom) - center(:)
-                CALL pos2hkl(u, cr_gten, hkl)
-                cr_surf(0,   iatom) = SURF_EDGE
-                cr_surf(1:3, iatom)  = hkl(1:3)
-            ENDIF
          ENDIF
-      ELSE                                          ! Atom was at edge or corner
-         u(:) = cr_pos(:,iatom) - center(:)
-         CALL pos2hkl(u, cr_gten, hkl)
-         cr_surf(0,   iatom) = SURF_CORNER
-         cr_surf(1:3, iatom)  = hkl(1:3)
-      ENDIF
-      IF(.NOT.linside) cr_surf(:, iatom) = -cr_surf(:, iatom)  !invert for inside pointing surface
+         IF(.NOT.linside) cr_surf(:, iatom) = -cr_surf(:, iatom)  !invert for inside pointing surface
+      ENDIF 
    ENDIF 
-ENDIF 
+else           ! Replace atoms along the "surface"
+   cond_original: if(surf_original(cr_iscat (1,iatom))) then      ! Atom type is allowed
+      if((     linside.AND.distance <  0) .OR.  &
+         (.not.linside.AND.distance >  0)      ) then                            
+         if(surf_n_repl>1) then
+            call random_number(r)
+            j = int(r*real(surf_n_repl)) + 1
+         else
+            j = 1
+         endif
+         k = 0
+         irepl = 0
+         loop_replace: do i=0, ubound(surf_replace,1)
+            if(surf_replace(i)) k = k + 1
+            if(k==j) then
+               irepl = i
+               exit loop_replace
+            endif
+         enddo loop_replace
+         cr_iscat (1,iatom) = i 
+         IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (1,iatom) )) .OR. &
+             (thick>0 .AND. ABS(distance) <     thick                          )) then 
+            cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_INT) 
+         ENDIF 
+      endif
+   endif cond_original
+endif
 IF(cr_surf(0, iatom) /= 0) THEN
    u(1:3) = cr_surf(1:3,iatom)
    CALL surface_normalize(u)
@@ -2242,6 +2358,33 @@ cr_sel_prop(:) = temp_sel_prop(:)   ! restore user settings for property select
 END SUBROUTINE surface_character
 !
 !*****7*****************************************************************
+!
+subroutine surf_reset
+!-
+!  Reset surface menu
+!+
+!
+use crystal_mod
+use surface_mod
+use discus_allocate_appl_mod
+!
+implicit none
+!
+if(allocated(surf_ex_dist)) deallocate(surf_ex_dist)
+if(allocated(surf_in_dist)) deallocate(surf_in_dist)
+surf_n_repl = 1
+!
+call alloc_surf(cr_nscat)
+surf_original = .TRUE.
+surf_replace  = .FALSE.
+surf_replace(0) = .TRUE.
+!
+surf_boundary = .true.
+!write(*,'(a, 20L1)') ' ORIGINAL ', surf_original(0:cr_nscat)
+!write(*,'(a, 20L1)') ' REPLACE  ', surf_replace (0:cr_nscat)
+!write(*,'(a, i5  )') ' REPLACE N', surf_n_repl
+!
+end subroutine surf_reset
 !
 !*****7*****************************************************************
 !

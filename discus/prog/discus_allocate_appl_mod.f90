@@ -3431,47 +3431,56 @@ end subroutine alloc_super
 !
 !*******************************************************************************
 !
-    SUBROUTINE alloc_surf ( n_scat )
+SUBROUTINE alloc_surf ( n_scat )
 !-
 !     Allocate the arrays needed by Shear
 !+
-      USE surface_mod
+USE surface_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_scat
+INTEGER, INTENT(IN)  :: n_scat
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat     = .TRUE.
+lstat     = .TRUE.
 !
-       CALL alloc_arr ( surf_ex_dist    ,0,n_scat  , &
+CALL alloc_arr ( surf_ex_dist    ,0,n_scat  , &
                                       all_status, SURF_DIST_DEF )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-       CALL alloc_arr ( surf_in_dist    ,0,n_scat  ,  &
+CALL alloc_arr ( surf_in_dist    ,0,n_scat  ,  &
                                      all_status, SURF_DIST_DEF )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      IF( lstat ) THEN                        ! Success
-         SURF_MAXSCAT  = n_scat
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'Shear'
-         ENDIF
-      ELSE                                    ! Failure
-         SURF_MAXSCAT  = n_scat
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'Shear'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_surf
+CALL alloc_arr ( surf_original   ,0,n_scat  ,  &
+                                     all_status, .true.        )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( surf_replace    ,0,n_scat  ,  &
+                                     all_status,  .false.      )
+surf_replace(0) = .TRUE.
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+IF( lstat ) THEN                        ! Success
+   SURF_MAXSCAT  = n_scat
+   ier_typ       = 0
+   ier_num       = 0
+   IF ( all_status == 1 ) THEN
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Shear'
+   ENDIF
+ELSE                                    ! Failure
+   SURF_MAXSCAT  = n_scat
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Shear'
+   RETURN
+END IF
+END SUBROUTINE alloc_surf
 !
     SUBROUTINE alloc_symmetry ( n_scat, n_site )
 !-
