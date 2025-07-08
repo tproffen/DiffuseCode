@@ -1066,7 +1066,7 @@ ELSEIF (lcomm.eq.8) THEN  cond_lcomm
                   ENDIF 
                   ENDDO 
                   ENDDO 
- 8000             CONTINUE 
+!8000             CONTINUE 
                   CALL ersetz2 (string, ikl, iklz, ww, 8, laenge) 
                ELSE 
                   ier_num = - 6 

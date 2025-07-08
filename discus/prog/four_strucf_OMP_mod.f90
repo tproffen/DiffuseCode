@@ -229,12 +229,12 @@ REAL(KIND=PREC_DP)           , DIMENSION(nxat) ::        xincu, xincv , xincw
 REAL(KIND=PREC_DP)           , DIMENSION(nxat) ::        oincu, oincv , oincw
 INTEGER (KIND=PREC_INT_LARGE), DIMENSION(nxat) ::               iincu, iincv, iincw
 INTEGER (KIND=PREC_INT_LARGE), DIMENSION(nxat) ::               jincu, jincv, jincw
-INTEGER (KIND=PREC_INT_LARGE)   :: h, i, ii, j, k, iarg, iarg0
+INTEGER (KIND=PREC_INT_LARGE)   :: h, i, j, k, iarg, iarg0
 INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
 INTEGER (KIND=PREC_INT_LARGE)   :: num23,num123, num123_1
 !
 !  
-COMPLEX(KIND=PREC_DP), DIMENSION(  :,:), ALLOCATABLE, SAVE :: tcsfp     ! Partial structure factor from parallel OMP
+!COMPLEX(KIND=PREC_DP), DIMENSION(  :,:), ALLOCATABLE, SAVE :: tcsfp     ! Partial structure factor from parallel OMP
 !
 !------ zero fourier array                                              
 !
@@ -442,7 +442,7 @@ INTEGER (KIND=PREC_INT_LARGE)   ::           j, k, iarg!, iarg0
 INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
 !
 !  
-COMPLEX(KIND=PREC_DP), DIMENSION(  :,:), ALLOCATABLE, SAVE :: tcsfp     ! Partial structure factor from parallel OMP
+!COMPLEX(KIND=PREC_DP), DIMENSION(  :,:), ALLOCATABLE, SAVE :: tcsfp     ! Partial structure factor from parallel OMP
 !
 !------ zero fourier array                                              
 !

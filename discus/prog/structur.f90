@@ -1572,7 +1572,7 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
                WRITE (ier_msg (1), 3000) n_read
                RETURN
             ENDIF 
-   22       CONTINUE 
+!  22       CONTINUE 
          ENDIF  if_blk
       ENDIF  typus
 !  ENDIF empty
@@ -1619,7 +1619,7 @@ call guess_atom_all
 !                                                                       
 !     ENDIF 
 !                                                                       
-  999 CONTINUE 
+! 999 CONTINUE 
 CLOSE (ist) 
 IF (ier_num.eq. - 49) THEN 
    WRITE (ier_msg (1), 3000) as_natoms + 1 
@@ -4183,7 +4183,7 @@ endif
 !===============================================================================
 !
 !===============================================================================
-900 continue                       ! Target for serious errors
+!900 continue                       ! Target for serious errors
 deallocate(content)
 deallocate(structure)
 deallocate(posit)
@@ -6506,7 +6506,6 @@ integer                   , dimension(:),     allocatable :: types_charge
 integer                   , dimension(:),     allocatable :: types_isotope
 real(kind=PREC_DP)        , dimension(:),     allocatable :: types_occupancy
 integer                                                   :: number_of_atoms
-integer                   , dimension(:    ), allocatable :: atom_ID      ! Atom ID 
 integer                   , dimension(:    ), allocatable :: atom_type    ! Atom is of this type
 real(kind=PREC_DP)        , dimension(:,:  ), allocatable :: atom_pos     ! Atom is at these fractional coordinates
 integer                   , dimension(:,:  ), allocatable :: atom_unit_cell   ! Atom is in this unit cell
@@ -6625,7 +6624,7 @@ endif
 ! Copy atoms
 !
 do i=1,number_of_atoms
-   cr_iscat(1,i) = atom_type(  atom_ID(i))
+   cr_iscat(1,i) = atom_type(i)
    cr_iscat(2,i) = 1   ! WORK  SYMMETRY OPERATION that created atom
    if(anisotropic_adp%anisotropic_n_type>0) then
       cr_iscat(3,i) = anisotropic_adp%atom_index(i)
@@ -6634,8 +6633,8 @@ do i=1,number_of_atoms
    endif
    cr_dw(cr_iscat(3,i)) = real(cr_iscat(3,i),kind=PREC_DP)
    cr_dw(cr_iscat(3,i)) = anisotropic_adp%anisotropic_adp(7,cr_iscat(3,i))*8.0_PREC_DP*PI**2
-   cr_pos(:,i)   = atom_pos (:,atom_ID(i))
-   cr_prop(i)    = atom_property(atom_ID(i))
+   cr_pos(:,i)   = atom_pos (:,i)
+   cr_prop(i)    = atom_property(i)
    cr_magn(:,i)  = magnetic_spins(:,i)
 enddo
 !
@@ -6703,7 +6702,6 @@ deallocate(types_ordinal)
 deallocate(types_charge)
 deallocate(types_isotope)
 deallocate(types_occupancy)
-deallocate(atom_ID      )
 deallocate(atom_type    )
 deallocate(atom_pos     )
 deallocate(atom_unit_cell)

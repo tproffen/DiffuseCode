@@ -247,7 +247,7 @@ logical                         , intent(in)    :: crystal_is_stack
 integer, parameter :: MAXMASK=4
 !
 character(len=PREC_STRING) :: backup_file
-integer                       :: i, j
+integer                       :: i!, j
 logical, dimension(0:MAXMASK) :: uni_mask
 !
 cond_changed:if(trn_changed) then        ! Structure was changed, restore backup
