@@ -462,7 +462,7 @@ data c_meta  /'audit_author_name         ', &
               'audit_creation_method     '  &
              /
 !
-write(*,*) ' TEST_READ '
+!write(*,*) ' TEST_READ '
 !
 call forpy_start(ier_num)                   ! If needed, start forpy
 !
@@ -492,7 +492,7 @@ ier_num = cast(returned_tuple, return_value)   ! Get multiple returned objects
 call err_print()
 !read(*,*) iarg
 !ier_num= -1
-write(*,*) ' START READING CELL LENGTH '
+!write(*,*) ' START READING CELL LENGTH '
 !
 ! Get unit_cell_lengths
 !
