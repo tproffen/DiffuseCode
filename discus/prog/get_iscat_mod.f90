@@ -129,6 +129,7 @@ DO WHILE(j <= ianz.AND.ier_num == 0)
                werte(jj) = cr_nscat 
                ier_num = 0 
                ier_typ = ER_NONE 
+               jj = jj + 1
             ELSE 
                ier_num = - 26 
                ier_typ = ER_APPL 
