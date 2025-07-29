@@ -927,6 +927,7 @@ use update_cr_dim_mod
 !
 USE get_params_mod
 use errlist_mod
+use prompt_mod
 use take_param_mod
 !
 implicit none
@@ -1016,7 +1017,7 @@ owerte =   (/  0.00      ,  0.00      ,  0.        ,  0.        ,  0.0       ,  
                                  IF(opara(OPLOT)=='inter') THEN
                                     IF(pl_prog=='jmol') THEN
                                        i = 4
-                                       CALL plot_inter(i,opara(10:13))
+                                       if(l_plot_status) CALL plot_inter(i,opara(10:13))
                                     ELSE
                                        ier_num = -152
                                        ier_typ = ER_APPL 
