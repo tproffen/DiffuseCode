@@ -259,7 +259,7 @@ IF(lrefine) THEN
    ENDDO old
 !
    IF(is_new) THEN                              ! New parameter, add to list
-      IF(refine_par_n==REF_MAXPARAM) THEN
+      IF(refine_par_n>=REF_MAXPARAM) THEN
          n_params = REF_MAXPARAM + 10
          CALL alloc_params(n_params)
       ENDIF
@@ -312,11 +312,11 @@ ELSE
    ENDDO old_f
    IF(opara(OVALUE)/='current') THEN                      ! User did not specify "current"
 !     READ(opara(OVALUE)(1:lopara(OVALUE)), *) refine_p(ipar)
-      refine_p(ipar) = temp_val
+      refine_f(ipar) = temp_val
    ENDIF
 !
    IF(is_new) THEN                              ! New parameter, add to list
-      IF(refine_fix_n==REF_MAXPARAM_FIX) THEN
+      IF(refine_fix_n>=REF_MAXPARAM_FIX) THEN
          n_params = REF_MAXPARAM_FIX + 10
          CALL alloc_params_fix(n_params)
       ENDIF
