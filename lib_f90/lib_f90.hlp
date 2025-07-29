@@ -1210,6 +1210,21 @@
      Since the MPI parallel processing currently uses all cores of 
      a given node, the local OpenMP parallel algorithm cannot use 
      more processors. 
+4  plot
+!p set plot:on
+!p set plot:off
+!p set plot,on
+!p set plot,off
+
+   Sets the behaviour of the KUPLOT 'plot', 'mouse' and the 
+   DISCUS interactive plot with jmol.
+   With the plot status 'on' images are drawn to the screen, 
+   otherwise the plots are not drawn. 
+   This commands allows to change the overall behaviour of lengthy
+   macros that have one or several plots that you would like to turn
+   off for an long calculation, especially on a remote computer.
+4  prompt
+!p set prompt, {"on"|"off"|"redirect"},[{"on"|"off"|"file"}, ["save"]]
 4  prompt
 !p set prompt, {"on"|"off"|"redirect"},[{"on"|"off"|"file"}, ["save"]]
 !p set prompt, "old"
