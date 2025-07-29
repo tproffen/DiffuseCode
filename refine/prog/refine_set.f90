@@ -8,39 +8,45 @@ CONTAINS
 !
 !*******************************************************************************
 !
-SUBROUTINE refine_set(line, length)
+SUBROUTINE refine_set(string, str_length)
 !
 USE refine_control_mod
 use refine_log_mod
 !
 USE errlist_mod
 USE ber_params_mod
+use do_set_mod
 USE get_params_mod
 USE precision_mod
 USE str_comp_mod
+use prompt_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=*), INTENT(INOUT) :: line
-INTEGER         , INTENT(INOUT) :: length
+CHARACTER(LEN=*), INTENT(IN) :: string
+INTEGER         , INTENT(IN) :: str_length
 !
 INTEGER, PARAMETER :: MAXW = 20
 !
+character(len=PREC_STRING) :: line
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 !
 INTEGER                              :: ianz
+integer                              :: length
 !
+line = string
+length = str_length
 !
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
-IF(IANZ>1) THEN
-ELSE
-   ier_num = -6
-   ier_typ = ER_FORT
-   RETURN
-ENDIF
+!IF(IANZ>1) THEN
+!ELSE
+!   ier_num = -6
+!   ier_typ = ER_FORT
+!   RETURN
+!ENDIF
 !
 IF(str_comp (cpara(1), 'cycles', 3, lpara(1), 6) ) THEN
    cpara(1) = '0'
@@ -66,8 +72,11 @@ ELSEIF(str_comp (cpara(1), 'relax', 3, lpara(1), 5) ) THEN
 elseif(str_comp(cpara(1), 'log', 3, lpara(1), 3)) then
    refine_log = str_comp(cpara(2), 'on', 2, lpara(1), 2)
 ELSE
-   ier_num = -8
-   ier_typ = ER_COMM
+   line = string
+   length = str_length
+   call do_set(line, length)
+!  ier_num = -8
+!  ier_typ = ER_COMM
 ENDIF
 !
 END SUBROUTINE refine_set
