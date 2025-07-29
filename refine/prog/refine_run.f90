@@ -58,6 +58,7 @@ LOGICAL                              :: lexist   ! File exists yes/no
 LOGICAL                              :: ref_do_plot ! Do plot yes/no
 LOGICAL                              :: linit       ! Initialize mrq
 integer                              :: diffev_l_get_random_state  ! Copy of current random state
+logical                              :: l_old_plot_status
 !
 character(len=PREC_STRING) :: string
 integer :: ier_cmd
@@ -163,6 +164,9 @@ if(mpi_active) then
    call refine_init_pop
 endif
 !
+l_old_plot_status = l_plot_status   ! save plot status
+l_plot_status = .FALSE.             ! Turn plotting off during refinements
+!
 ! Call main refinement routine
 !
 !write(*,*) 'INIT    ', linit
@@ -198,6 +202,9 @@ CALL refine_mrq(linit, REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,     
                 refine_lamda_d, refine_lamda_u, refine_rval,                    &
                 refine_rexp, refine_p, refine_range, refine_shift, refine_nderiv,&
                 refine_dp, refine_cl, refine_alpha, refine_beta, ref_do_plot, refine_plot_mac)
+!
+l_plot_status = l_old_plot_status  ! Return plot status to old value
+!
 main:IF(ier_num==0) THEN
    refine_init = .FALSE.
 !
@@ -1689,7 +1696,9 @@ cycles:DO
 !
    IF(lsuccess) THEN
       IF(ref_do_plot) THEN
+         l_plot_status = .TRUE.
          CALL refine_do_plot(plmac)
+         l_plot_status = .FALSE.
          IF(ier_num/=0) then
             ier_msg(1)=' Error in interactive plot'
             EXIT cycles
