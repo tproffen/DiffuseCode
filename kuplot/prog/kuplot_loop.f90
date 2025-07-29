@@ -43,8 +43,10 @@ main: DO WHILE (.NOT.lend)
 !------ --- Execute command                                             
 !                                                                       
          if((linteractive.OR.lblock.OR.lmakro) .AND.befehl(1:3) == 'mou') then
-            length = len_trim(zeile)
-            call do_mouse(zeile, length)
+            if(l_plot_status) then
+              length = len_trim(zeile)
+              call do_mouse(zeile, length)
+            endif
          ELSEIF(befehl (1:3) .eq.'do '.or.befehl (1:2) .eq.'if') THEN 
             CALL do_loop (line, lend, ll) !, kuplot_mache_kdo) 
          ELSE 

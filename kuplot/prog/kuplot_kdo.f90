@@ -476,7 +476,7 @@ owerte = (/ 1.0D0 /)
 !-------  Plot graphic                                                  
 !                                                                       
          ELSEIF (str_comp (bef, 'plot', 2, lbef, 4) ) then 
-            CALL do_plot (.false.) 
+            if(l_plot_status) CALL do_plot (.false.) 
 !                                                                       
 !-------  Save or print graphic                                         
 !                                                                       
