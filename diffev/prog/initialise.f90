@@ -296,7 +296,7 @@ DO j = 1, pop_c
 ENDDO 
 !
 DO i = lb,ub 
-   pop_refine(i) = .true.
+!  pop_refine(i) = .true.
    IF(pop_sig_ad(i) == 0.0) THEN
       pop_sigma (i) = (pop_smax(i)-pop_smin(i))*0.2
       pop_sig_ad(i) = 0.2
