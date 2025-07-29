@@ -765,7 +765,7 @@ ELSE
 !         ELSE
 !            run_mpi_senddata%use_socket = .false.
 !         ENDIF
-         IF ( ianz >= 2 .and. ianz <= 4 ) THEN
+         cond_ianz: IF ( ianz >= 2 .and. ianz <= 4 ) THEN
             run_mpi_senddata%generation = pop_gen    ! Current GENERATION no
             run_mpi_senddata%member     = pop_n      ! Number of members
             run_mpi_senddata%children   = pop_c      ! Number of children
@@ -868,10 +868,10 @@ ELSE
                   CALL refine_no_mpi(.false.)
                ENDIF   ! gen_mpi_active
             ENDIF 
-         ELSE
+         ELSE cond_ianz
             ier_num =  -6
             ier_typ =  -ER_COMM
-         ENDIF 
+         ENDIF  cond_ianz
          ENDIF 
       ENDIF 
       ENDIF 
