@@ -2256,7 +2256,10 @@ IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN
       i1 = max(0, i-max_ps)
       i2 = min(   i+max_ps, imax)
       first: do j = i1, i2
+         if(j>ubound(dummy,1)) exit first
+         if(j<lbound(dummy,1)) exit first
          ii = abs(j-i)*nint(pseudo)
+         if(ii>40000          ) exit first
          tth1 = (j-i-1)*dtth
          pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2) !, p3, p4) 
          dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)*pra1
