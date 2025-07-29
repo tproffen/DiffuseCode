@@ -46,5 +46,6 @@ USE precision_mod
    LOGICAL              :: linteractive      = .true.
    LOGICAL              :: lturn_off         = .true.
    LOGICAL              :: l_to_top          = .FALSE.
+logical               :: l_plot_status = .TRUE.
 !
 END MODULE prompt_mod

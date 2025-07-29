@@ -85,6 +85,11 @@ if (zeile.ne.' ') then
       elseif(str_comp(cpara(1), 'parallel', 3, lpara(1), 8)) then
          call do_set_parallel(ianz, cpara, lpara, MAXW)
 !                                                                       
+!----- ---- set plot                                                
+!                                                                       
+      elseif(str_comp(cpara(1), 'plot', 3, lpara(1), 4)) then
+         call do_set_plot(ianz, cpara, lpara, MAXW)
+!                                                                       
 !----- ---- set prompt                                                  
 !                                                                       
       elseif(str_comp(cpara(1), 'prompt', 3, lpara(1), 6)) then
@@ -302,6 +307,65 @@ else
 endif
 !
 end subroutine do_set_author
+!
+!*****7*****************************************************************
+!
+subroutine do_set_plot(ianz, cpara, lpara, MAXW)
+!
+use errlist_mod
+use prompt_mod
+use precision_mod
+use str_comp_mod
+use take_param_mod
+!
+implicit none
+!
+integer, intent(inout) :: ianz
+integer, intent(IN)    :: MAXW
+character(len=*)  , dimension(MAXW), intent(inout) :: cpara
+integer           , dimension(MAXW), intent(inout) :: lpara
+!
+integer, parameter :: NOPTIONAL = 1
+integer, parameter :: O_PLOT    = 1                  ! Maximum difference
+character(len=   7), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(len=MAX(PREC_STRING,len(cpara))), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte    ! Calculated values
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate
+!integer :: nthreads    ! local variable number of threads
+!
+data oname  / 'plot' /   ! 
+data loname /  6       /
+!
+opara  = (/'on'     /)
+lopara = (/ 2       /)
+owerte = (/ 0.0     /)
+!
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                              oname, loname, opara, lopara, lpresent, owerte)
+if(lpresent(O_PLOT)) then
+   if(opara(O_PLOT)(1:1) == '[' .and.                                           &
+      opara(O_PLOT)(len_trim(opara(O_PLOT)):len_trim(opara(O_PLOT)))==']' ) then
+      l_plot_status = opara(O_PLOT)(2:len_trim(opara(O_PLOT))-1) == 'on'
+   else
+      l_plot_status = opara(O_PLOT)(1:len_trim(opara(O_PLOT))) == 'on'
+   endif
+else
+   if(ianz==2) then
+      if(str_comp(cpara(1), 'off', 3, lpara(1), 3)) then
+         l_plot_status = .FALSE.
+      elseif(str_comp(cpara(1), 'on', 2, lpara(1), 2)) then
+         l_plot_status = .TRUE.
+      else
+         ier_num = -6
+         ier_typ = ER_COMM
+      endif
+   endif
+endif
+!
+end subroutine do_set_plot
 !
 !*****7*****************************************************************
 !
