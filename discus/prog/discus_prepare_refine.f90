@@ -455,7 +455,7 @@ elseif(spcgr_syst==7) then         ! trigonal
 elseif(spcgr_syst==8) then         ! hexagonal  
    write(IRE,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
    write(IRE,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
-elseif(spcgr_syst==8) then         ! cubic      
+elseif(spcgr_syst==9) then         ! cubic      
    write(IRE,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
 endif
 !
