@@ -467,8 +467,8 @@
 !p echo ">%2**2+1.1f<",44.1   produces :  > 44.1<
 !p echo ">%c<",'bla'          produces :  >bla<
 !p echo ">%5c<",'bla'         produces :  >bla  <
-3  eval
-!p eval <expr> [, <expr> ...]
+3  evaluate
+!p evaluate <expr> [, <expr> ...]
 
    Evaluates the expression(s) and displays the result(s). The result is not
    stored, this command is for interactive display only.
@@ -1546,7 +1546,7 @@
    dim:[3,3] for a 2-D array of length 3x3
    Array indices start at 1.
    Presently character variables are single value variables.
-   Several commands exist for matrix algrbra. See the help entry
+   Several commands exist for matrix algebra. See the help entry
    ==> 'matrix' for a summary of these commands.
 
    Several system variable exist that are read only. Several of 
