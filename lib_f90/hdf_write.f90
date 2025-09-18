@@ -362,7 +362,7 @@ integer(kind=HID_T)                    :: attr_id         ! Attribute Indicator 
 character(len=PREC_STRING)             :: grp_name
 character(len=PREC_STRING)             :: attr_name
 !
-write(*,*) ' in gen_hdf5_nexus_scattering ', outfile(1:LEN_TRIM(outfile))
+!write(*,*) ' in gen_hdf5_nexus_scattering ', outfile(1:LEN_TRIM(outfile))
 !
 call H5open_f(hdferr)                                     ! Open access to HDF5 stream
 if(hdferr/=0) then
