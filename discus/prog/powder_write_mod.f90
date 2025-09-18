@@ -1273,6 +1273,7 @@ USE powder_mod
 USE precision_mod
 USE prompt_mod
 USE support_mod
+use wink_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -1284,6 +1285,7 @@ REAL(KIND=PREC_DP) :: xmin, xmax, xdel, xxmax
 REAL(KIND=PREC_DP) :: scalef
 REAL(KIND=PREC_DP) :: pow_tmp_sum
 REAL(KIND=PREC_DP) :: pow_uuu_sum
+real(kind=PREC_DP) :: asym_maxq   ! Use this Qmax for asymmetry
 !
 REAL(KIND=PREC_DP)           :: ss       ! time
 !
@@ -1375,7 +1377,8 @@ elseif (pow_profile == POW_PROFILE_PEARS) then
       xxmax = xmax + xdel
          CALL powder_conv_pears_uvw_asym(pow_conv, xmin,xxmax, xdel,   &
          pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_asym,  &
-         pow_width, POW_MAXPKT, pow_four_type, pow_axis, rlambda, pow_pr_fwhm)
+         pow_width, POW_MAXPKT, pow_four_type, pow_axis, rlambda, pow_pr_fwhm) !,  &
+!        pow_asym_maxq)
 ELSEIF (pow_profile == POW_PROFILE_PSVGT) THEN 
 !   IF(pow_u/=0.0 .OR. pow_v/=0.0 .OR. pow_eta_l/=0.0 .OR. pow_eta_q/=0.0) THEN
       xxmax = xmax + xdel
@@ -1383,9 +1386,15 @@ ELSEIF (pow_profile == POW_PROFILE_PSVGT) THEN
 !        pow_asym(3,1)/=0.0 .OR. pow_asym(3,1)/=0.0            ) THEN       
    if(pow_u/=0.0 .or. pow_v/=0.0 .or. pow_w/=0.0) then
       if(maxval(pow_asym)>0.0 .or. minval(pow_asym)<0.0) then
+         if(pow_asym_max_is_tth) then
+            asym_maxq = 4*PI*sind(pow_asym_maxtth*0.5)/rlambda
+         else
+            asym_maxq = pow_asym_maxq
+         endif
          CALL powder_conv_psvgt_uvw_asym(pow_conv, xmin,xxmax, xdel,   &
          pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_asym,  &
-         pow_width, POW_MAXPKT, pow_four_type, pow_axis, rlambda, pow_pr_fwhm)
+         pow_width, POW_MAXPKT, pow_four_type, pow_axis, rlambda, pow_pr_fwhm, &
+         asym_maxq)
       ELSE          ! Symmetric case
          CALL powder_conv_psvgt_uvw(pow_conv, xmin,xxmax, xdel,   &
          pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_width,  &
@@ -2170,7 +2179,7 @@ end function powder_calc_eta
 !
 SUBROUTINE powder_conv_psvgt_uvw_asym (dat, tthmin, tthmax, dtth, eta0,&
       eta_l, eta_q, u, v, w, asym          , pow_width, POW_MAXPKT,    &
-      pow_type, axis, rlambda, pow_pr_fwhm)
+      pow_type, axis, rlambda, pow_pr_fwhm, asym_max_tth)
 !-
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
 !     FWHM according to caglioti equation, Constant eta                 
@@ -2203,6 +2212,7 @@ INTEGER                         , INTENT(IN)    :: pow_type  ! == 0 for COMPLETE
 INTEGER                         , INTENT(IN)    :: axis   ! == 2 for 2theta, == 1 for Q
 REAL(KIND=PREC_DP)              , INTENT(IN)    :: rlambda ! Wavelength
 INTEGER                         , INTENT(IN)    :: pow_pr_fwhm   ! == 1 for Cagliotti, 2 for area 
+real(kind=PREC_DP)              , intent(in)    :: asym_max_tth  ! Apply asymmetry below this limit only
 !
 INTEGER, PARAMETER  :: POW_COMPL = 0
 INTEGER, PARAMETER  :: POW_DEBYE = 1
@@ -2233,6 +2243,7 @@ INTEGER :: max_ps
 !                                                                       
 imax = INT( (tthmax - tthmin) / dtth )
 !write(*,*) ' IMAX ', imax, tthmin, tthmax, dtth
+!read(*,*) i
 dummy = 0.0D0
 !
 IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN
@@ -2248,10 +2259,15 @@ IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN
       max_ps = min(INT((pow_width * fwhm) / dtth ), int(GLP_MAX/pseudo))
       tth1 = 0 * dtth 
       tth2 = 2 * i * dtth 
+      if(tth>asym_max_tth) then
+         p1 = 0.0_PREC_DP
+         p2 = 0.0_PREC_DP
+      else
       p1 = asym(1,0) + asym(1,1)*tth +     asym(1,2)*tth**2 + asym(1,-1)/tth
       p2 = asym(2,0) + asym(2,1)*tth +     asym(2,2)*tth**2 + asym(2,-1)/tth
 !     p3 = asym(3,0) + asym(3,1)*tth +     asym(3,2)*tth**2 + asym(3,-1)/tth
 !     p4 = asym(4,0) + asym(4,1)*tth +     asym(4,2)*tth**2 + asym(4,-1)/tth
+      endif
       pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2) !, p3, p4) 
       i1 = max(0, i-max_ps)
       i2 = min(   i+max_ps, imax)

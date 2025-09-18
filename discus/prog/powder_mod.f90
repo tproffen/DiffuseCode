@@ -117,6 +117,9 @@ REAL(kind=PREC_DP)       :: pow_u          =  0.0
 REAL(kind=PREC_DP)       :: pow_v          =  0.0
 REAL(kind=PREC_DP)       :: pow_w          =  0.05
 REAL(kind=PREC_DP)   , DIMENSION(2,-1:2)  :: pow_asym       =  0.0D0
+real(kind=PREC_DP)       :: pow_asym_maxq  =  50.0_PREC_DP
+real(kind=PREC_DP)       :: pow_asym_maxtth= 180.0_PREC_DP
+logical                  :: pow_asym_max_is_tth = .true.
 REAL(kind=PREC_DP)       :: pow_width      = 20.0D0
 !
 REAL(kind=PREC_DP)       :: pow_ka21       =  0.0d0

@@ -1569,7 +1569,9 @@ ELSEIF(str_comp(cpara(2), 'pearson', 2, lpara(2) , 7)) THEN
 ELSEIF(str_comp(cpara(2), 'pseudo', 2, lpara(2) , 6)) THEN
    pow_profile = POW_PROFILE_PSVGT 
    pow_constlam = .true.
-ELSEIF(str_comp(cpara(2), 'eta', 2, lpara(2), 3)) THEN
+ELSEIF(str_comp(cpara(2), 'eta', 2, lpara(2), 3)     .or.       &  ! Pseudo Voigt eta or
+       str_comp(cpara(2), 'pm' , 2, lpara(2), 2)                &  ! Pearson VII m
+      ) THEN
    cpara (1) = '0' 
    lpara (1) = 1 
    cpara (2) = '0' 
@@ -1688,6 +1690,26 @@ ELSEIF (str_comp (cpara (2) , 'width', 2, lpara (2) , 5) ) THEN
    IF (ier_num.eq.0) THEN 
       pow_width = werte (3) 
    ENDIF 
+elseif(str_comp(cpara(2), 'qmax', 4, lpara(2), 4)) then    ! Maximum q for asymmetry
+   cpara (1) = '0' 
+   lpara (1) = 1 
+   cpara (2) = '0' 
+   lpara (2) = 1 
+   call ber_params(ianz, cpara, lpara, werte, maxw) 
+   if(ier_num == 0) then 
+      pow_asym_maxq = werte(3) 
+      pow_asym_max_is_tth = .false.
+   endif 
+elseif(str_comp(cpara(2), 'tthmax', 4, lpara(2), 6)) then    ! Maximum 2Theta for asymmetry
+   cpara (1) = '0' 
+   lpara (1) = 1 
+   cpara (2) = '0' 
+   lpara (2) = 1 
+   call ber_params(ianz, cpara, lpara, werte, maxw) 
+   if(ier_num == 0) then 
+      pow_asym_maxtth = werte(3) 
+      pow_asym_max_is_tth = .true.
+   endif 
 ELSEIF(str_comp(cpara(2), 'tof', 2, lpara(2) , 3)) THEN
    pow_profile = POW_PROFILE_TOF
    pow_constlam = .false.
@@ -3520,6 +3542,9 @@ pow_u          =  0.0
 pow_v          =  0.0
 pow_w          =  0.05
 pow_asym       =  0.0
+pow_asym_max_is_tth = .true.
+pow_asym_maxq  =  50.0_PREC_DP
+pow_asym_maxtth= 180.0_PREC_DP
 pow_width      = 20.0
 !
 pow_ka21       =  0.0
