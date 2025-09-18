@@ -19,6 +19,7 @@ real(kind=PREC_DP), intent(in) :: arg1
 real(kind=PREC_DP), intent(in) :: arg2
 !
 sup_fun_sine = amp*sin(zpi*arg1) + average
+!write(*,'(f10.6)') sup_fun_sine
 !
 end function sup_fun_sine
 !
@@ -47,11 +48,12 @@ if(arg<-TOL       ) then
    arg = frac(arg + 1.0_PREC_DP)
 endif
 !
-if(arg  < arg2 .or. arg > 1.0_PREC_DP-TOL-arg2) then
+if(arg  < arg2) then ! .or. arg > 1.0_PREC_DP-TOL-arg2) then
    sup_fun_cren = average + amp
 else
    sup_fun_cren = average - amp
 endif
+!write(*,'(5f10.6, 2l3)') sup_fun_cren, amp, average, arg, arg2, arg  < arg2, arg > 1.0_PREC_DP-TOL-arg2
 !
 end function sup_fun_cren
 !
