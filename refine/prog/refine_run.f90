@@ -1821,6 +1821,11 @@ logical           , dimension(npara)       :: lderiv_ok
 logical                                    :: l_none
 LOGICAL, PARAMETER              :: LDERIV = .TRUE.
 LOGICAL, PARAMETER              :: NDERIV = .FALSE.
+!
+!real(kind=PREC_DP) :: e_del           ! Change of Chi^2
+!real(kind=PREC_DP) :: e_ran           ! Value for Boltzmann probability
+!real(kind=PREC_DP) :: mo_kt           ! Pseudo Temperature
+!real(kind=PREC_DP) :: r1              ! Random number
 !integer, save :: icyy = 0
 !
 lderiv_ok = .true.                    ! Assume all derivatives went fine
@@ -1942,9 +1947,32 @@ IF(chisq < ochisq) THEN            ! Success, accept solution
    ENDDO
    lsuccess = .TRUE.
 ELSE                               ! Failure, reject, keep old params and 
+!  mo_kt = 30.0D0
+!  r1 = (data_dim(1)*data_dim(2)*data_dim(3)-npara)
+!  e_del  = (chisq - ochisq)/r1    ! Calculate change in Chi^2
+!  e_ran = exp ( - e_del / mo_kt)
+!  e_ran = e_ran / (1 + e_ran)
+!  write(*,'(a, 5f10.2)') ' Failure ', chisq/r1, ochisq/r1, e_del, mo_kt, e_ran
+!  CALL RANDOM_NUMBER(r1)
+!  if(e_ran > r1) then
+!     ochisq = chisq
+!     DO j=1,NPARA
+!        DO k=1,NPARA
+!           alpha(j,k) = covar(j,k)
+!        ENDDO
+!        beta(j) = da(j)
+!        a(     (j)) = atry(     (j)) ! Adjust parameter values to trial ones
+!     ENDDO
+!     lsuccess = .TRUE.
+!     write(*,'(a)') ' ACCEPTED '
+!     lsuccess = .TRUE.
+!     alamda =  lamda_u*alamda        ! increment alamda by factor lamda_u (up)
+!  else
+!
    alamda =  lamda_u*alamda        ! increment alamda by factor lamda_u (up)
    chisq = ochisq                  ! Keep old chis squared
    lsuccess = .FALSE.
+!  endif
 ENDIF
 !
 !
