@@ -231,7 +231,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )       &
 !                                                                       
 !-------Determine displacement of an atom 'displacement'                
 !                                                                       
-         ELSEIF (str_comp (befehl, 'displacent', 3, lbef, 10) ) THEN 
+         ELSEIF (str_comp (befehl, 'displacement', 3, lbef, 12) ) THEN 
             CALL get_displacement (zeile, lcomm) 
 !                                                                       
 !     Transform vector from direct to reciprocal space                  
@@ -260,12 +260,12 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )       &
 !                                                                       
          ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
             LEND = .TRUE. 
-         ELSEIF (str_comp (befehl, 'finished', 2, lbef, 8) ) THEN 
+         ELSEIF (str_comp (befehl, 'finished', 4, lbef, 8) ) THEN 
             LEND = .TRUE. 
 !                                                                       
 !-------Find properties   'find'                                        
 !                                                                       
-         ELSEIF (str_comp (befehl, 'find', 3, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'find', 4, lbef, 4) ) THEN 
             CALL do_find (zeile, lcomm) 
 !                                                                       
 !-------Fit something     'fit'                                        
@@ -442,7 +442,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )       &
 !                                                                       
 !     Go to surface menu 'surface'                                      
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'surface', 2, lbef, 8) ) THEN 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'surface', 2, lbef, 7) ) THEN 
             CALL surface_menu 
 !
 !     Go to superspace menu
