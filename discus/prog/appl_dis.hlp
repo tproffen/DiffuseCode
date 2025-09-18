@@ -2674,8 +2674,9 @@
    qcrystal / qobs , where qobs will be the actual peak position
    found near qobs.
 2  export
-!p export "cif",<file{".cif"]> [, {["spcgr:original"] | ["spcgr:"<spacegroup>]}
-!p export "shelx",<file{".ins"]> [, "cycle:"<number>] [, "force:"{"yes"|"no"}}
+!p export "cif",<file{".cif"}> [, {["spcgr:original"] | ["spcgr:"<spacegroup>]}
+!p export "shelx",<file{".ins"}> [, "cycle:"<number>] [, "force:"{"yes"|"no"}]
+!p                [, "origin:"{"no"|"yes"|"shift"}]
 !p export "rmcprofile",<file{".rmc6f"]>  ["version:"{"6"|"7"}]
 !p export "vasp",<file]>
 !p export "poscar",<file]>
@@ -2699,6 +2700,12 @@
    over more than one unit cell. Usually this triggers an error message.
    To avoid the error message, use the optional parameter
    "force:yes"
+   For centrosymmetric structures SHELX expects origin choice 2 with the
+   center of symmetry at 0,0,0. If the current structure uses orign choice 1
+   the default is to triger an error message. With the optional parameter
+   "origin:yes" or "origin:shift" DISCUS will shift the center of 
+   symmetry to 0,0,0. This will change the current structure and a 
+   warning is displayed.
 
    rmcprofile
    Exports the atoms of the current structure as a RMCprofile 
@@ -5193,6 +5200,7 @@
 !p                               <coordination_number>, <energy> 
 !p set "target",<ic>,"cd",       {<number> | <name> | "all"},
 !p                               {<number> | <name> | "all"},
+!p                               {"dir:["<u>,<v>,<w>"]" | "dir:["<u>,<v>,<w>,<u2>,<v2>,<w2>"]"},
 !p                               <correlation>, <energy>, {"CORR" | "ENER"}
 !p
 !p set "target",<ic>,"angle",    {<number> | <name> | "all"},    ! Central atom
@@ -5291,6 +5299,7 @@
 
    set "target",<ic>,"cd",   {<number> | <name> | "all"},
                              {<number> | <name> | "all"},
+                             {"dir:["<u>,<v>,<w>"]" | "dir:["<u>,<v>,<w>,<u2>,<v2>,<w2>"]"},
                              <correlation>, <energy>, {"CORR" | "ENER"}
 
    The intended correlation is a correlation between the displacements
@@ -5299,8 +5308,10 @@
    same direction, while a negative correlation means a preference
    for opposing displacements. 
    Equal displacements are characterized by a positive value of the 
-   scalar product of the two displacement vectors. Naturally this 
-   energy works best in a local environment that is not centrosymmetric.
+   scalar product of the two displacement vectors that are given by
+   "dir:...". 
+   Naturally this energy works best in a local environment that is 
+   not centrosymmetric.
   
 
    set "target",<ic>,"lennard",  {<number> | <name> | "all"},
