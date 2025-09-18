@@ -3202,8 +3202,11 @@ REAL(kind=PREC_DP) :: r1
 !
       ENDIF
 !                                                                       
+!write(*,*) ' RMC SELECTED ', isel, ' MODE ', ubound(iz1), ubound(iz2)
       CALL indextocell (isel (1), iz1, is1) 
       CALL indextocell (isel (2), iz2, is2) 
+!write(*,*) ' ia=1 ', is1  , ' CELL ', iz1
+!write(*,*) ' ia=2 ', is2  , ' CELL ', iz2
 !                                                                       
 !------ Force to be same site                                           
 !                                                                       
@@ -3251,6 +3254,9 @@ REAL(kind=PREC_DP) :: r1
          CALL celltoindex (iz1, is1, isel (1) ) 
          CALL celltoindex (iz2, is2, isel (2) ) 
       ENDIF 
+!write(*,*) ' IA=1 ', is1  , ' CELL ', iz1
+!write(*,*) ' IA=2 ', is2  , ' CELL ', iz2
+!write(*,*) ' END  RMC ', isel
 !                                                                       
       END SUBROUTINE rmc_select                     
 !*****7*****************************************************************
