@@ -589,14 +589,14 @@ loop_scat:do iscat=1,cr_nscat                 ! Loop over all atom types
       elseif(is_dim==1) then cond_dim                   ! 1-D crystal 11111111111111111111111
 !
          if(jlong==1) then                               ! x   crystal
-            call four_strucf_1d(cr_natoms, nat, idims(jflat), NQXYZ, xpos(:),     &
-                                cr_occ(iscat),iscales(jflat), lscales(jflat), fcsf)
+            call four_strucf_1d(cr_natoms, nat, idims(jlong), NQXYZ, xpos(:),     &
+                                cr_occ(iscat),iscales(jlong), lscales(jlong), fcsf)
          elseif(jlong==2) then                               ! y   crystal
-            call four_strucf_1d(cr_natoms, nat, idims(jflat), NQXYZ, ypos(:),     &
-                                cr_occ(iscat),iscales(jflat), lscales(jflat), fcsf)
+            call four_strucf_1d(cr_natoms, nat, idims(jlong), NQXYZ, ypos(:),     &
+                                cr_occ(iscat),iscales(jlong), lscales(jlong), fcsf)
          elseif(jlong==3) then                               ! z   crystal
-            call four_strucf_1d(cr_natoms, nat, idims(jflat), NQXYZ, zpos(:),     &
-                                cr_occ(iscat),iscales(jflat), lscales(jflat), fcsf)
+            call four_strucf_1d(cr_natoms, nat, idims(jlong), NQXYZ, zpos(:),     &
+                                cr_occ(iscat),iscales(jlong), lscales(jlong), fcsf)
          endif
 !
       endif cond_dim
