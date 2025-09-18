@@ -20,6 +20,7 @@ real(kind=PREC_DP)  ::   spc_mat(4,4,1:SPC_MAX)   ! The matrices
 real(kind=PREC_DP)  ::   spc_det (1:SPC_MAX)      ! Determinants of symmetry elements
 real(kind=PREC_DP)  ::   spc_spur(1:SPC_MAX)      ! Trace of symmetry elements
 real(kind=PREC_DP)  ::   spc_axis(3,1:SPC_MAX)    ! Rotation axis or normal to mirror plane
+real(kind=PREC_DP)  ::   spc_1bar(3)              ! Position of -1 operation if centrosymmetric
 logical, dimension(1:SPC_MAX) :: spc_point        ! Rotation matrix is part of point grup symmetry
 logical, dimension(1:SPC_MAX) :: spc_center       ! Rotation matrix is Centering vector
 integer, dimension(1:SPC_MAX) :: spc_gen          ! Rotation matrix is  generator matrix

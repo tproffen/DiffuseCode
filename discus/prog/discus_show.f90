@@ -982,7 +982,7 @@ USE precision_mod
       USE crystal_mod 
       USE wyckoff_mod 
       USE unitcell_mod 
-use spcgr_mod, only: spcgr_point, spcgr_laue
+use spcgr_mod, only: spcgr_point, spcgr_laue, spcgr_origin
 !                                                                       
       USE prompt_mod 
       IMPLICIT none 
@@ -999,9 +999,10 @@ use spcgr_mod, only: spcgr_point, spcgr_laue
 !                                                                       
 IF(cr_syst==4) THEN
    WRITE (output_io, 2100) cr_spcgr, cr_spcgrno, cr_system (cr_syst)(1:13), & 
-                           cr_set, cr_spcgr_set
+                           cr_set, cr_spcgr_set, spcgr_origin(cr_spcgrno)
 ELSE
-   WRITE (output_io, 2200) cr_spcgr, cr_spcgrno, cr_system (cr_syst) 
+   WRITE (output_io, 2200) cr_spcgr, cr_spcgrno, cr_system (cr_syst), & 
+   spcgr_origin(cr_spcgrno)
 ENDIF
 write(output_io, 2300) spcgr_point(cr_spcgrno), spcgr_laue(cr_spcgrno)
 !                                                                       
@@ -1009,9 +1010,10 @@ write(output_io, 2300) spcgr_point(cr_spcgrno), spcgr_laue(cr_spcgrno)
          CALL do_show_symmetry_single(is, mode)
       ENDDO
 !
-2100 FORMAT(/,' Space group ',a16,' No.: ',i3,2x,a13,' Setting: ',a3, 1x, a16)
-2200 FORMAT(/,' Space group ',a16,' No.: ',i3,2x,a26) 
-2300 FORMAT(  ' Point group  ',a16,'Laue group ',a16) 
+2100 FORMAT(/,' Space group ',a16,' No.: ',i3,2x,a13,' Setting: ',a3, 1x, a16, &
+            ' Origin choice ', i2 )
+2200 FORMAT(/,' Space group ',a16,' No.: ',i3,2x,a26,17x, ' Origin choice ', i2) 
+2300 FORMAT(  ' Point group  ',a16,'Laue group ',a16)
 !
   END SUBROUTINE do_show_symmetry
 !

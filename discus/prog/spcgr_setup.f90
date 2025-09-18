@@ -875,16 +875,32 @@ do i=143, 167
    k = len_trim(spcgr_point_t(i))
    if(spcgr_point_t(i)(k:k) == '1') spcgr_point_t(i)(k:k) = ' '
 enddo
-do i=231, 275
+do_231: do i=231, 275
    k = len_trim(spcgr_point_t(i))
-   if(spcgr_point_t(i)(k-4:k) == '1 2 1') spcgr_point_t(i)(k-4:k) = '2    '
-   k = len_trim(spcgr_point_t(i))
-   if(spcgr_point_t(i)(k-4:k) == '1 m 1') spcgr_point_t(i)(k-4:k) = 'm    '
-   k = len_trim(spcgr_point_t(i))
-   if(spcgr_point_t(i)(k-6:k) == '1 2/m 1') spcgr_point_t(i)(k-6:k) = '2/m    '
-   k = len_trim(spcgr_point_t(i))
-   if(spcgr_point_t(i)(k-7:k) == '1  2/m 1') spcgr_point_t(i)(k-7:k) = '2/m     '
-enddo
+   if(k>4) then
+      if(spcgr_point_t(i)(k-4:k) == '1 2 1') then
+         spcgr_point_t(i)(k-4:k) = '2    '
+         cycle do_231
+      endif
+!   k = len_trim(spcgr_point_t(i))
+      if(spcgr_point_t(i)(k-4:k) == '1 m 1') then
+         spcgr_point_t(i)(k-4:k) = 'm    '
+         cycle do_231
+      endif
+!  k = len_trim(spcgr_point_t(i))
+   elseif(k>6) then
+      if(spcgr_point_t(i)(k-6:k) == '1 2/m 1') then
+         spcgr_point_t(i)(k-6:k) = '2/m    '
+         cycle do_231
+      endif
+!  k = len_trim(spcgr_point_t(i))
+   elseif(k>7) then
+      if(spcgr_point_t(i)(k-7:k) == '1  2/m 1') then
+         spcgr_point_t(i)(k-7:k) = '2/m     '
+         cycle do_231
+      endif
+   endif
+enddo do_231
 !   
 do i=1, SPCGR_MAX
    l = len_trim(spcgr_point_t(i))

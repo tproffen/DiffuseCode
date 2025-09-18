@@ -20,6 +20,7 @@ USE sym_add_mod
 USE unitcell_mod 
 USE wyckoff_mod 
 !
+use berechne_mod
 use lib_functions_mod
 use precision_mod
 !                                                                       
@@ -27,6 +28,7 @@ IMPLICIT none
 !                                                                       
 real(kind=PREC_DP), parameter :: TOL=1.0D-6   ! Tolerance for matrix equality
 !                                                                       
+character(len=PREC_STRING)  :: string
 INTEGER :: igs       ! Loop index generators
 INTEGER :: igg       ! Loop index generators
 INTEGER :: i, j, k   ! Loop indices
@@ -191,6 +193,25 @@ do i=1, spc_n               ! Loop over first operation
       enddo loop_inner
    enddo
 enddo
+! Determine if centrosymetric and location of 1bar operation
+spc_1bar = 0.0_PREC_DP
+loop_1bar: do i=1, spc_n
+   if(spc_char(i)(1:2) == '-1' .and. spc_gen(i) > 0) then
+      string = '(1.0*( ' // spc_char(i)(48:51) // '.))'
+      j = len_trim(string)
+      spc_1bar(2) = berechne(string, j)
+      string = '(1.0*( ' // spc_char(i)(53:56) // '.))'
+      j = len_trim(string)
+      spc_1bar(3) = berechne(string, j)
+      string = '(1.0*( ' // spc_char(i)(58:61) // '.))'
+      j = len_trim(string)
+      spc_1bar(1) = berechne(string, j)
+!write(*,'(3f6.3, 2i4)') spc_1bar, ier_num, ier_typ
+!      write(*, '(i4,2x,3a2,7a)') i, '>>',spc_char(i)(1:2), '<>', spc_char(i)(48:51),'<',spc_char(i)(53:56),'<',spc_char(i)(58:61),'<'
+      cr_acentric = .false.
+      exit loop_1bar
+   endif
+enddo loop_1bar
 !do i=1, spc_n
 !write(*,*) i, ' : ', spc_table(i,1:spc_n)
 !enddo
@@ -747,54 +768,54 @@ DATA eps / 0.0001 /
       Oyy (3, 1) = ' +y' 
       Oyy (3, 2) = '+2y' 
       ctrans ( - 24) = '-1/1, ' 
-      ctrans ( - 23)  = '    , ' 
-      ctrans ( - 22)  = '    , ' 
-      ctrans ( - 21)  = '    , ' 
+      ctrans ( - 23) = '    , ' 
+      ctrans ( - 22) = '    , ' 
+      ctrans ( - 21) = '    , ' 
       ctrans ( - 20) = '-5/6, ' 
-      ctrans ( - 19)  = '    , ' 
+      ctrans ( - 19) = '    , ' 
       ctrans ( - 18) = '-3/4, ' 
-      ctrans ( - 17)  = '    , ' 
+      ctrans ( - 17) = '    , ' 
       ctrans ( - 16) = '-2/3, ' 
-      ctrans ( - 15)  = '    , ' 
-      ctrans ( - 14)  = '    , ' 
-      ctrans ( - 13)  = '    , ' 
+      ctrans ( - 15) = '    , ' 
+      ctrans ( - 14) = '    , ' 
+      ctrans ( - 13) = '    , ' 
       ctrans ( - 12) = '-1/2, ' 
-      ctrans ( - 11)  = '    , ' 
-      ctrans ( - 10)  = '    , ' 
-      ctrans ( - 9)  = '    , ' 
-      ctrans ( - 8) = '-1/3, ' 
+      ctrans ( - 11) = '    , ' 
+      ctrans ( - 10) = '    , ' 
+      ctrans ( - 9)  = '-3/8, ' 
+      ctrans ( - 8)  = '-1/3, ' 
       ctrans ( - 7)  = '    , ' 
-      ctrans ( - 6) = '-1/4, ' 
+      ctrans ( - 6)  = '-1/4, ' 
       ctrans ( - 5)  = '    , ' 
-      ctrans ( - 4) = '-1/6, ' 
-      ctrans ( - 3) = '-1/8, ' 
+      ctrans ( - 4)  = '-1/6, ' 
+      ctrans ( - 3)  = '-1/8, ' 
       ctrans ( - 2)  = '    , ' 
       ctrans ( - 1)  = '    , ' 
-      ctrans (0)  = '   0, ' 
-      ctrans (1)  = '    , ' 
-      ctrans (2)  = '    , ' 
-      ctrans (3) = '+1/8, ' 
-      ctrans (4) = '+1/6, ' 
-      ctrans (5)  = '    , ' 
-      ctrans (6) = '+1/4, ' 
-      ctrans (7)  = '    , ' 
-      ctrans (8) = '+1/3, ' 
-      ctrans (9)  = '    , ' 
+      ctrans (0)   = '   0, ' 
+      ctrans (1)   = '    , ' 
+      ctrans (2)   = '    , ' 
+      ctrans (3)   = '+1/8, ' 
+      ctrans (4)   = '+1/6, ' 
+      ctrans (5)   = '    , ' 
+      ctrans (6)   = '+1/4, ' 
+      ctrans (7)   = '    , ' 
+      ctrans (8)   = '+1/3, ' 
+      ctrans (9)   = '+3/8, ' 
       ctrans (10)  = '    , ' 
       ctrans (11)  = '    , ' 
-      ctrans (12) = '+1/2, ' 
+      ctrans (12)  = '+1/2, ' 
       ctrans (13)  = '    , ' 
       ctrans (14)  = '    , ' 
       ctrans (15)  = '    , ' 
-      ctrans (16) = '+2/3, ' 
+      ctrans (16)  = '+2/3, ' 
       ctrans (17)  = '    , ' 
-      ctrans (18) = '+3/4, ' 
+      ctrans (18)  = '+3/4, ' 
       ctrans (19)  = '    , ' 
-      ctrans (20) = '+5/6, ' 
+      ctrans (20)  = '+5/6, ' 
       ctrans (21)  = '    , ' 
       ctrans (22)  = '    , ' 
       ctrans (23)  = '    , ' 
-      ctrans (24) = '+1/1, ' 
+      ctrans (24)  = '+1/1, ' 
 !                                                                       
       DO i = 1, 3 
       axis (i) = 0.0 
@@ -1739,7 +1760,7 @@ DATA eps / 0.00001 /
       iii = cr_natoms 
 !                                                                       
       CALL symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
-      cr_mole, cr_magn, ii, iii, iii, igg, NG, generators, generpower)                    
+      cr_mole, cr_magn, cr_valu, ii, iii, iii, igg, NG, generators, generpower)                    
 !                                                                       
       IF (ier_num.ne.0) then 
          RETURN 
@@ -1756,7 +1777,7 @@ DATA eps / 0.00001 /
       iii = cr_natoms 
 !                                                                       
       CALL symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
-      cr_mole, cr_magn, ii, iii, iii, igs, GEN_ADD_MAX, gen_add, gen_add_power)           
+      cr_mole, cr_magn, cr_valu, ii, iii, iii, igs, GEN_ADD_MAX, gen_add, gen_add_power)           
 !                                                                       
       IF (ier_num.ne.0) then 
          RETURN 
@@ -1780,7 +1801,7 @@ DATA eps / 0.00001 /
       iii = cr_natoms 
 !                                                                       
       CALL symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
-      cr_mole, cr_magn, ii, iii, iiii, igs, SYM_ADD_MAX, sym_add, sym_add_power)          
+      cr_mole, cr_magn, cr_valu, ii, iii, iiii, igs, SYM_ADD_MAX, sym_add, sym_add_power)          
 !                                                                       
       IF (ier_num.ne.0) then 
          RETURN 
@@ -1806,7 +1827,7 @@ END SUBROUTINE symmetry
 !********************************************************************** 
 !
 SUBROUTINE symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos,    &
-      cr_iscat, cr_prop, cr_mole, cr_magn, ii, iii, iiii, igg, NG,  &
+      cr_iscat, cr_prop, cr_mole, cr_magn, cr_valu, ii, iii, iiii, igg, NG,  &
       generators, generpower)          
 !-                                                                      
 !     Applies the generator to the current atom                         
@@ -1825,6 +1846,7 @@ INTEGER, DIMENSION(3,1:NMAX),    INTENT(INOUT)  :: cr_iscat
 INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
 INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
 REAL(kind=PREC_DP)   , DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_magn
+REAL(kind=PREC_DP)   , DIMENSION(    1:NMAX),INTENT(INOUT)  :: cr_valu
 INTEGER                   ,    INTENT(IN)     :: ii
 INTEGER                   ,    INTENT(IN)     :: iii
 INTEGER                   ,    INTENT(IN)     :: iiii 
@@ -1843,6 +1865,7 @@ REAL(KIND=PREC_DP), DIMENSION(4)   :: y    ! (4)
 REAL(KIND=PREC_DP), DIMENSION(4)   :: yy   ! (4)
 REAL(KIND=PREC_DP), DIMENSION(4)   :: mmi  ! (4)     ! magnetic moment vector
 REAL(KIND=PREC_DP), DIMENSION(4)   :: mm   ! (4)     ! magnetic moment vector
+real(kind=prec_dp)                 :: at_value       ! Arbitrary atomic value
 REAL(KIND=PREC_DP), DIMENSION(4,4) :: wmat ! (4, 4) 
 REAL(KIND=PREC_DP), DIMENSION(4,4) :: xmat ! (4, 4) 
 REAL(kind=PREC_DP)  :: eps 
@@ -1908,6 +1931,7 @@ lp_gener: DO ipg = 1, generpower (igg)
       ELSE
          mm = 0.0
       ENDIF
+      at_value = cr_valu(iaa)
       IF(.not.mole_l_on) THEN 
 !                                                                       
 !     ------Transform atom into first unit cell,                        
@@ -1958,6 +1982,7 @@ lp_gener: DO ipg = 1, generpower (igg)
             cr_prop (cr_natoms) = cr_prop (ii) 
             cr_magn(0, cr_natoms) = cr_magn(0, ii)
             cr_magn(1:3, cr_natoms) = mm(1:3)
+            cr_valu(   cr_natoms) = at_value
          ELSE 
             ier_num = -10 
             ier_typ = ER_APPL 
@@ -2619,8 +2644,8 @@ REAL(kind=PREC_DP), DIMENSION(1:3) :: v_min
 !                                                                       
       d = do_blen (lspace, u, v) 
 !DBG                                                                    
-      write (output_io,5555) u,v,d                                  
-5555      format(3f10.4,2x,3f10.4,2x,f12.4/)                        
+!      write (output_io,5555) u,v,d                                  
+!5555      format(3f10.4,2x,3f10.4,2x,f12.4/)                        
 !                                                                       
 !     Loop over all molecules from current to last                      
 !                                                                       
