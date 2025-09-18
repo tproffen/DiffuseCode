@@ -13,7 +13,7 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-203,IO=10)
+      PARAMETER    (IU=-203,IO=11)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
@@ -254,7 +254,8 @@ USE lib_errlist_func
      &  'Last cent and keep will be used',               & ! ! +7  ! discus
      &  'Occupancies in input file are ignored!',        & ! ! +8  ! discus
      &  'No chemical element name detected       ',      & ! ! +9
-     &  'Previous atom has identical name        '       & ! ! +10
+     &  'Previous atom has identical name        ',      & ! ! +10
+     &  'Origin shifted to -1, structure is changed!'    & ! ! +11
      &           /
 !
       if (ier_typ.eq.ER_RMC) then
