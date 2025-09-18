@@ -165,7 +165,24 @@ CALL no_error
 !                                                                       
       ELSEIF (lcomm.eq.8) THEN 
                                                                         
-         IF (string (ikl - 8:ikl - 1) .eq.'mol_cont') THEN 
+!                                                                       
+         IF (string (ikl - 8:ikl - 1) .eq.'at_value') THEN 
+            IF (ianz.eq.1) THEN 
+               IF(ikl.gt.lcomm + 1) zeile(1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)                                      
+               IF (0 <  kpara.and.kpara <= cr_natoms    ) THEN 
+                  WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) cr_valu(kpara)
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
+               ELSE 
+                  ier_num = - 64 
+                  ier_typ = ER_APPL 
+                  RETURN 
+               ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_cont') THEN 
             IF (ianz.eq.2) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
@@ -605,11 +622,12 @@ CALL no_error
  8000 FORMAT    (a) 
       END SUBROUTINE discus_ersetz_para                    
 !
-!*****7*****************************************************************
+!*****7*************************************************************************
 !
-SUBROUTINE discus_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr) 
+SUBROUTINE discus_upd_para (ctype, lower_limit, upper_limit, maxw, lrange, wert, ianz, &
+           cstring, substr, lexpr, line_expression) 
 !-                                                                      
-!       updates the parameter specified by ctype, index ww  to the      
+!       updates the parameter specified by ctype, index lower_limit  to the      
 !       new value of wert                                               
 !+                                                                      
 USE discus_config_mod 
@@ -623,6 +641,7 @@ USE spcgr_apply, ONLY: setup_lattice
 USE surface_mod
 !
 USE errlist_mod 
+use berechne_mod
 USE param_mod 
 USE lib_errlist_func
 USE lib_upd_mod
@@ -633,157 +652,191 @@ IMPLICIT none
 CHARACTER (LEN=*),          INTENT(IN) :: ctype 
 INTEGER,                    INTENT(IN) :: maxw
 INTEGER,                    INTENT(IN) :: ianz 
-INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
+INTEGER, DIMENSION(1:MAXW), INTENT(INout) :: lower_limit
+INTEGER, DIMENSION(1:MAXW), INTENT(INout) :: upper_limit
+logical                   , intent(in) :: lrange
 REAL(KIND=PREC_DP)        , INTENT(IN) :: wert 
 CHARACTER (LEN=*),          INTENT(IN) :: cstring
 INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
+logical                   , intent(in   ) :: lexpr
+character(len=*)          , intent(inout) :: line_expression
 !
-INTEGER :: l
+!character(len=PREC_STRING) :: line
+!integer :: length
+integer, dimension(3) :: LOW(3)    ! Lower Dimensions for current variable
+integer, dimension(3) :: HIGH(3)   ! Upper Dimensions for current variable
+INTEGER :: i,l
 INTEGER :: iwert, owert
+logical :: llimited                ! Parameter value "wert" needs to be limited
+!real(kind=PREC_DP) :: wwert
+real(kind=PREC_DP), dimension(2) :: r_wert_limit     ! Low and high value limit
+integer           , dimension(2) :: i_wert_limit     ! Low and high value limit
 !
-CALL lib_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
-IF(ier_num==0 .OR. (ier_num==-40 .AND. ier_typ==ER_FORT)) RETURN
-CALL no_error
+call lib_upd_para (ctype, lower_limit, upper_limit, maxw, lrange, wert, ianz, &
+     cstring, substr, lexpr, line_expression)
+if(ier_num==0 .OR. (ier_num==-40 .AND. ier_typ==ER_FORT)) RETURN
+call no_error
+!
+llimited = .false.
+r_wert_limit(1) = -huge(1.0_PREC_DP)   ! Default to no limits
+r_wert_limit(2) =  huge(1.0_PREC_DP)
+i_wert_limit(1) = -huge(1          )
+i_wert_limit(2) =  huge(1          )
 !                                                                       
-      IF (ctype.eq.'x') THEN 
-         IF (ianz.eq.1) THEN 
-            IF (0.lt.ww (1) .and.ww (1) .le.NMAX.and.ww (1)             &
-            .le.cr_natoms) THEN                                         
-               cr_pos (1, ww (1) ) = wert 
-               l = 1 
-               cr_dim (l, 1) = min (cr_dim (l, 1), cr_pos (l, ww (1) ))
-               cr_dim (l, 2) = max (cr_dim (l, 2), cr_pos (l, ww (1) ))
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-      ELSEIF (ctype.eq.'y') THEN 
-         IF (ianz.eq.1) THEN 
-            IF (0.lt.ww (1) .and.ww (1) .le.NMAX.and.ww (1)             &
-            .le.cr_natoms) THEN                                         
-               cr_pos (2, ww (1) ) = wert 
-               l = 2 
-               cr_dim (l, 1) = min (cr_dim (l, 1), cr_pos (l, ww (1) ))
-               cr_dim (l, 2) = max (cr_dim (l, 2), cr_pos (l, ww (1) ))
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-      ELSEIF (ctype.eq.'z') THEN 
-         IF (ianz.eq.1) THEN 
-            IF (0.lt.ww (1) .and.ww (1) .le.NMAX.and.ww (1)             &
-            .le.cr_natoms) THEN                                         
-               cr_pos (3, ww (1) ) = wert 
-               l = 3 
-               cr_dim (l, 1) = min (cr_dim (l, 1), cr_pos (l, ww (1)))
-               cr_dim (l, 2) = max (cr_dim (l, 2), cr_pos (l, ww (1)))
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-      ELSEIF (ctype.eq.'m') THEN 
-         IF (ianz.eq.1) THEN 
-            IF(0 < ww(1) .AND. ww(1) <= NMAX .AND. ww(1) <= cr_natoms) THEN                                         
-               IF(0 <= INT(wert) .AND. INT(wert) <= MAXSCAT .AND. &
-                  INT(wert) <= cr_nscat                             ) THEN                                 
-                  cr_iscat(1,ww (1) ) = INT(wert) 
-                  IF(cr_iscat(1,ww(1))>0) THEN
-                     cr_prop(ww(1)) = IBSET(cr_prop(ww(1)), PROP_NORMAL)
-                  ENDIF 
-               ELSE 
-                  ier_num = - 97 
-                  ier_typ = ER_APPL 
-               ENDIF 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
+if(ctype == 'x') then 
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 1, cr_natoms)) then
+      LOW     = 1
+      HIGH(1) = 3
+      HIGH(2) = ubound(cr_pos,2)
+      HIGH(3) = 1
+      l       = 1 
+      call lib_set_para(LOW(1:2), HIGH(1:2), cr_pos, 2, l, MAXW, lower_limit, upper_limit, &
+           lrange, lexpr, wert, line_expression, llimited, r_wert_limit)
+      if(ier_num/=0) return
+      do i=lower_limit(1), upper_limit(1)
+         cr_dim(l, 1) = min(cr_dim(l, 1), cr_pos(l, i))
+         cr_dim(l, 2) = max(cr_dim(l, 2), cr_pos(l, i))
+      enddo
+   else 
+      return
+   endif 
+elseif(ctype == 'y') then 
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 1, cr_natoms)) then
+      LOW     = 1
+      HIGH(1) = 3
+      HIGH(2) = ubound(cr_pos,2)
+      HIGH(3) = 1
+      l       = 2 
+      call lib_set_para(LOW(1:2), HIGH(1:2), cr_pos, 2, l, MAXW, lower_limit, upper_limit, &
+           lrange, lexpr, wert, line_expression, llimited, r_wert_limit)
+      if(ier_num/=0) return
+      do i=lower_limit(1), upper_limit(1)
+         cr_dim(l, 1) = min(cr_dim(l, 1), cr_pos(l, i))
+         cr_dim(l, 2) = max(cr_dim(l, 2), cr_pos(l, i))
+      enddo
+   else 
+      return
+   endif 
+elseif(ctype == 'z') then 
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 1, cr_natoms)) then
+      LOW     = 1
+      HIGH(1) = 3
+      HIGH(2) = ubound(cr_pos,2)
+      HIGH(3) = 1
+      l       = 3 
+      call lib_set_para(LOW(1:2), HIGH(1:2), cr_pos, 2, l, MAXW, lower_limit, upper_limit, &
+           lrange, lexpr, wert, line_expression, llimited, r_wert_limit)
+      if(ier_num/=0) return
+      do i=lower_limit(1), upper_limit(1)
+         cr_dim(l, 1) = min(cr_dim(l, 1), cr_pos(l, i))
+         cr_dim(l, 2) = max(cr_dim(l, 2), cr_pos(l, i))
+      enddo
+   else 
+      return
+   endif 
+ELSEIF (ctype.eq.'m') THEN 
+!
+   LOW     = 1
+   HIGH(1) = 3
+   HIGH(2) = ubound(cr_iscat,2)
+   HIGH(3) = 1
+   llimited = .true.
+   i_wert_limit(1) = 0         ! Positive
+   i_wert_limit(2) = cr_nscat  ! Positive
+   l = 1
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 1, cr_natoms)) then
+      call lib_set_para(LOW(1:2), HIGH(1:2), cr_iscat, 2, l, MAXW, lower_limit, upper_limit, &
+           lrange, lexpr, wert, line_expression, llimited, i_wert_limit)
+   else
+      return
+   endif
+   if(ier_num/=0) return
+   do i=lower_limit(1), upper_limit(1)
+      IF(cr_iscat(1,i    )>0) THEN
+         cr_prop(i)     = IBSET(cr_prop(i)    , PROP_NORMAL)
+      else
+         cr_prop(i)     = IBCLR(cr_prop(i)    , PROP_NORMAL)
+      ENDIF
+   enddo
+!
 ELSEIF(ctype == 'b') THEN 
-   IF(ianz == 1) THEN 
-      IF(0 < ww(1) .and. ww(1) <= cr_nscat) THEN 
-         cr_dw(ww(1)) = wert 
-         call update_biso(ww(1), wert)
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_FORT 
-      ENDIF 
-   ELSE 
-      ier_num = - 13 
-      ier_typ = ER_FORT 
-      RETURN 
-   ENDIF 
+!
+   llimited = .true.
+   r_wert_limit(1) = 0.0       ! Positive
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 0, cr_nscat)) then
+      call lib_set_para(0,cr_nscat, cr_dw, MAXW, lower_limit, upper_limit, lrange, lexpr, &
+           wert, line_expression, llimited, r_wert_limit)
+   else
+      return
+   endif
+   if(ier_num/=0) return
+   do i=lower_limit(1), upper_limit(1)
+      call update_biso(i, cr_dw(i))
+   enddo
+!
+! Atomic value
+!
+ELSEIF(ctype == 'at_value') THEN 
+!
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 1, cr_natoms)) then
+      call lib_set_para(1,cr_natoms, cr_valu, MAXW, lower_limit, upper_limit, lrange, &
+           lexpr, wert, line_expression, llimited, r_wert_limit)
+   else
+      return
+   endif
+!
 !                                                                       
 !------ Setting lat[n]                                                  
 !                                                                       
-      ELSEIF (ctype.eq.'lat') THEN 
-         IF (ianz.eq.1) THEN 
-            IF (ww (1) .ge.1.and.ww (1) .le.3) THEN 
-               cr_a0 (ww (1) ) = wert 
-               CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten,       &
+ELSEIF (ctype.eq.'lat') THEN 
+!
+   llimited = .true.
+   r_wert_limit(1) = 0.01       ! Positive
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 1, 3)) then
+      call lib_set_para(1,3, cr_a0, MAXW, lower_limit, upper_limit, lrange, lexpr, &
+           wert, line_expression, llimited, r_wert_limit)
+   elseif(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 4, 6)) then
+      llimited = .true.
+      r_wert_limit(1) = 0.01D0     ! Positive 0.01 to 179.99 Degrees
+      r_wert_limit(2) = 179.99D0   ! Positive
+      lower_limit = lower_limit - 3
+      upper_limit = upper_limit - 3
+      call lib_set_para(1,3, cr_win, MAXW, lower_limit, upper_limit, lrange, lexpr, &
+           wert, line_expression, llimited, r_wert_limit)
+   else
+      return
+   endif
+   if(ier_num/=0) return
+   CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten,       &
                cr_reps, cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., &
                cr_gmat, cr_fmat, cr_cartesian,                         &
                cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
-            ELSEIF (ww (1) .ge.4.and.ww (1) .le.6) THEN 
-               cr_win (ww (1) - 3) = wert 
-               CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten,       &
-               cr_reps, cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., &
-               cr_gmat, cr_fmat, cr_cartesian,                          &
-               cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-      ELSEIF (ctype.eq.'occ') THEN 
-         IF (ianz.eq.1) THEN 
-            IF (0.lt.ww (1) .and.ww (1) .le.cr_nscat) THEN 
-               cr_occ (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
+   return
+ELSEIF (ctype.eq.'occ') THEN 
+!
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 0, cr_nscat)) then
+      llimited = .true.
+      r_wert_limit(1) = 0.00D0     ! Positive 0.01 to 179.99 Degrees
+      r_wert_limit(2) = 1.00D0     ! Positive
+      call lib_set_para(0,cr_nscat, cr_occ, MAXW, lower_limit, upper_limit, lrange, &
+           lexpr, wert, line_expression, llimited, r_wert_limit)
+   else
+      return
+   endif
+!
       ELSEIF(ctype == 'surf') THEN 
          IF(ianz == 2) THEN 
-            IF (1 <= ww(1) .AND. ww(1) <= cr_natoms .AND.       &
-                1 <= ww(2) .AND. ww(2) <=3              ) THEN 
+            IF (1 <= lower_limit(1) .AND. lower_limit(1) <= cr_natoms .AND.       &
+                1 <= lower_limit(2) .AND. lower_limit(2) <=3              ) THEN 
                IF(ABS(NINT(wert))<100) THEN
-               cr_surf(ww(2), ww(1)) = NINT(wert)
-               IF(cr_surf(1,ww(1))==0 .AND. cr_surf(2,ww(1))==0 .AND. &
-                  cr_surf(3,ww(1))==0                                ) THEN
-                  cr_surf(0,ww(1)) = 0
-                  cr_prop(ww(1)) = IBCLR(cr_prop(ww(1)), PROP_SURFACE_EXT)
+               cr_surf(lower_limit(2), lower_limit(1)) = NINT(wert)
+               IF(cr_surf(1,lower_limit(1))==0 .AND. cr_surf(2,lower_limit(1))==0 .AND. &
+                  cr_surf(3,lower_limit(1))==0                                ) THEN
+                  cr_surf(0,lower_limit(1)) = 0
+                  cr_prop(lower_limit(1)) = IBCLR(cr_prop(lower_limit(1)), PROP_SURFACE_EXT)
                ELSE
-                  IF(cr_surf(0,ww(1)) == 0 ) cr_surf(0,ww(1)) = SURF_LOCAL
-                  cr_prop(ww(1)) = IBSET(cr_prop(ww(1)), PROP_SURFACE_EXT)
+                  IF(cr_surf(0,lower_limit(1)) == 0 ) cr_surf(0,lower_limit(1)) = SURF_LOCAL
+                  cr_prop(lower_limit(1)) = IBSET(cr_prop(lower_limit(1)), PROP_SURFACE_EXT)
                ENDIF
                ELSE 
                   ier_num = -50
@@ -800,16 +853,16 @@ ELSEIF(ctype == 'b') THEN
          ENDIF 
       ELSEIF(ctype == 'magn') THEN     ! MAGNETIC_WORK
          IF(ianz == 2) THEN 
-            IF (1 <= ww(1) .AND. ww(1) <= cr_natoms .AND.       &
-                1 <= ww(2) .AND. ww(2) <=3              ) THEN 
-               cr_magn(ww(2), ww(1)) = wert
-               IF(cr_magn(1,ww(1))==0.0 .AND. cr_magn(2,ww(1))==0.0 .AND. &
-                  cr_magn(3,ww(1))==0.0                                ) THEN
-                  cr_magn(0,ww(1)) = 0.00
-!                 cr_prop(ww(1)) = IBCLR(cr_prop(ww(1)), PROP_SURFACE_EXT)
+            IF (1 <= lower_limit(1) .AND. lower_limit(1) <= cr_natoms .AND.       &
+                1 <= lower_limit(2) .AND. lower_limit(2) <=3              ) THEN 
+               cr_magn(lower_limit(2), lower_limit(1)) = wert
+               IF(cr_magn(1,lower_limit(1))==0.0 .AND. cr_magn(2,lower_limit(1))==0.0 .AND. &
+                  cr_magn(3,lower_limit(1))==0.0                                ) THEN
+                  cr_magn(0,lower_limit(1)) = 0.00
+!                 cr_prop(lower_limit(1)) = IBCLR(cr_prop(lower_limit(1)), PROP_SURFACE_EXT)
 !              ELSE
-!                 IF(cr_magn(0,ww(1)) == 0.0 ) cr_magn(0,ww(1)) = SURF_LOCAL
-!                 cr_prop(ww(1)) = IBSET(cr_prop(ww(1)), PROP_SURFACE_EXT)
+!                 IF(cr_magn(0,lower_limit(1)) == 0.0 ) cr_magn(0,lower_limit(1)) = SURF_LOCAL
+!                 cr_prop(lower_limit(1)) = IBSET(cr_prop(lower_limit(1)), PROP_SURFACE_EXT)
                ENDIF
             ELSE 
                ier_num = -8 
@@ -820,10 +873,20 @@ ELSEIF(ctype == 'b') THEN
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'mol_dens') THEN 
+ELSEIF (ctype.eq.'mol_dens') THEN 
+!
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 1, mole_num_type)) then
+      llimited = .true.
+      r_wert_limit(1) = 0.00D0     ! Positive 
+      call lib_set_para(0,mole_num_type, mole_dens, MAXW, lower_limit, upper_limit, lrange, &
+           lexpr, wert, line_expression, llimited, r_wert_limit)
+   else
+      return
+   endif
+!
          IF (ianz.eq.1) THEN 
-            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) THEN 
-               mole_dens (ww (1) ) = wert 
+            IF (0.le.lower_limit (1) .and.lower_limit (1) .le.mole_num_type) THEN 
+               mole_dens (lower_limit (1) ) = wert 
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -833,55 +896,86 @@ ELSEIF(ctype == 'b') THEN
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'mol_biso') THEN 
+ELSEIF (ctype.eq.'mol_biso') THEN 
+!
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 1, mole_num_type)) then
+      llimited = .true.
+      r_wert_limit(1) = 0.00D0     ! Positive 
+      call lib_set_para(0,mole_num_type, mole_biso, MAXW, lower_limit, upper_limit, lrange, &
+           lexpr, wert, line_expression, llimited, r_wert_limit)
+   else
+      return
+   endif
+!
+!        IF (ianz.eq.1) THEN 
+!           IF (0.le.lower_limit (1) .and.lower_limit (1) .le.mole_num_type) THEN 
+!              mole_biso (lower_limit (1) ) = wert 
+!           ELSE 
+!              ier_num = - 8 
+!              ier_typ = ER_FORT 
+!           ENDIF 
+!        ELSE 
+!           ier_num = - 13 
+!           ier_typ = ER_FORT 
+!           RETURN 
+!        ENDIF 
+ELSEIF (ctype.eq.'mol_clin') THEN 
+!
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 1, mole_num_type)) then
+      llimited = .true.
+      r_wert_limit(1) = 0.00D0     ! Positive 
+      call lib_set_para(0,mole_num_type, mole_clin, MAXW, lower_limit, upper_limit, lrange, &
+           lexpr, wert, line_expression, llimited, r_wert_limit)
+   else
+      return
+   endif
+!
+!        IF (ianz.eq.1) THEN 
+!           IF (0.le.lower_limit (1) .and.lower_limit (1) .le.mole_num_type) THEN 
+!              mole_clin (lower_limit (1) ) = wert 
+!           ELSE 
+!              ier_num = - 8 
+!              ier_typ = ER_FORT 
+!           ENDIF 
+!        ELSE 
+!           ier_num = - 13 
+!           ier_typ = ER_FORT 
+!           RETURN 
+!        ENDIF 
+ELSEIF (ctype.eq.'mol_cqua') THEN 
+!
+   if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 1, mole_num_type)) then
+      llimited = .true.
+      r_wert_limit(1) = 0.00D0     ! Positive 
+      call lib_set_para(0,mole_num_type, mole_cqua, MAXW, lower_limit, upper_limit, lrange, &
+           lexpr, wert, line_expression, llimited, r_wert_limit)
+   else
+      return
+   endif
+!
+!        IF (ianz.eq.1) THEN 
+!           IF (0.le.lower_limit (1) .and.lower_limit (1) .le.mole_num_type) THEN 
+!              mole_cqua (lower_limit (1) ) = wert 
+!           ELSE 
+!              ier_num = - 8 
+!              ier_typ = ER_FORT 
+!           ENDIF 
+!        ELSE 
+!           ier_num = - 13 
+!           ier_typ = ER_FORT 
+!           RETURN 
+!        ENDIF 
+ELSEIF (ctype.eq.'mol_type') THEN 
          IF (ianz.eq.1) THEN 
-            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) THEN 
-               mole_biso (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-      ELSEIF (ctype.eq.'mol_clin') THEN 
-         IF (ianz.eq.1) THEN 
-            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) THEN 
-               mole_clin (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-      ELSEIF (ctype.eq.'mol_cqua') THEN 
-         IF (ianz.eq.1) THEN 
-            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) THEN 
-               mole_cqua (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-      ELSEIF (ctype.eq.'mol_type') THEN 
-         IF (ianz.eq.1) THEN 
-            IF (0 <= ww(1) .AND. ww(1) <=  mole_num_mole) THEN 
+            IF (0 <= lower_limit(1) .AND. lower_limit(1) <=  mole_num_mole) THEN 
                iwert = NINT(wert)
-               owert = mole_type(ww(1))
+               owert = mole_type(lower_limit(1))
                IF(iwert>mole_num_type) THEN      ! This creates a new type
-                  CALL molecule_set_array_size(mole_gene_n, mole_symm_n, mole_num_mole, iwert, mole_num_atom)
+                  CALL molecule_set_array_size(mole_gene_n, mole_symm_n, mole_num_mole, &
+                       iwert, mole_num_atom)
                   CALL molecule_copy_prop(owert, iwert)
                ENDIF
-               mole_type(ww(1)) = iwert
+               mole_type(lower_limit(1)) = iwert
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -892,10 +986,10 @@ ELSEIF(ctype == 'b') THEN
             RETURN 
          ENDIF 
 !
-      ELSEIF (ctype.eq.'env') THEN 
+ELSEIF (ctype.eq.'env') THEN 
          IF (ianz.eq.1) THEN 
-            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_RES) THEN 
-               atom_env (ww (1) ) = int (wert) 
+            IF (0.le.lower_limit (1) .and.lower_limit (1) .le.MAXPAR_RES) THEN 
+               atom_env (lower_limit (1) ) = int (wert) 
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -906,13 +1000,14 @@ ELSEIF(ctype == 'b') THEN
             RETURN 
          ENDIF 
 !
-      ELSE 
-         ier_num = - 2 
-         ier_typ = ER_FORT 
-         WRITE (ier_msg (1), 8000) ctype 
-      ENDIF 
+ELSE 
+   ier_num = - 2 
+   ier_typ = ER_FORT 
+   WRITE (ier_msg (1), 8000) ctype 
+ENDIF 
  8000 FORMAT    (a) 
-      END SUBROUTINE discus_upd_para                       
+!
+END SUBROUTINE discus_upd_para                       
 !
 !*****7***************************************************************  
 !
@@ -1774,7 +1869,7 @@ CHARACTER(LEN=*)     , INTENT(IN)  :: line
 INTEGER              , INTENT(IN)  :: length
 INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
 !
-INTEGER, PARAMETER :: MAXPAR = 28
+INTEGER, PARAMETER :: MAXPAR = 29
 CHARACTER(LEN=16), DIMENSION(MAXPAR) :: discus_names
 INTEGER          , DIMENSION(MAXPAR) :: discus_type
 INTEGER          , DIMENSION(MAXPAR) :: discus_dim
@@ -1784,7 +1879,7 @@ INTEGER :: i
 DATA discus_names  &
     /'pdf_scal', 'pdf_dens', 'mol_type', 'mol_dens', 'mol_cont', &
      'mol_cqua', 'mol_clin',                                     &
-     'mol_biso', 'mol_len ', 'in_mole ', 'at_type ', 'at_name ', &
+     'mol_biso', 'mol_len ', 'in_mole ', 'at_type ', 'at_name ', 'at_value', &
      'sym_n   ', 'rvol    ', 'menv    ', 'magn'    , 'cdim    ', 'surf    ', 'vol     ', &
      'occ     ', 'lat     ', 'env     ', 'z       ', 'y       ', &
      'x       ', 'n       ', 'm       ', 'b       '              &
@@ -1792,7 +1887,7 @@ DATA discus_names  &
 DATA discus_type &
     /  IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_INTE , &
        IS_REAL ,   IS_REAL ,                                     &
-       IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_CHAR ,   IS_CHAR , &
+       IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_CHAR ,   IS_CHAR ,   IS_REAL , &
        IS_INTE ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL ,   IS_INTE , IS_REAL , &
        IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL , &
        IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_REAL               &
@@ -1800,7 +1895,7 @@ DATA discus_type &
 DATA discus_dim  &
     /  IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  , &
        IS_VEC  ,   IS_VEC  ,                                     &
-       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  ,   IS_ARR  ,   IS_ARR  , IS_VEC  , &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC                &
@@ -1808,7 +1903,7 @@ DATA discus_dim  &
 DATA discus_ro  &
     /  .FALSE. ,   .FALSE. ,   .FALSE. ,   .FALSE. ,   .TRUE.  , &
        .FALSE. ,   .FALSE. ,                                     &
-       .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
+       .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .FALSE. , &
        .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .FALSE. ,   .TRUE.  ,   .FALSE. , .TRUE.  , &
        .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE. , &
        .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE.               &

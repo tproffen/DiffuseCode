@@ -140,7 +140,7 @@ ll  = LEN_TRIM(string)
 !
 END SUBROUTINE refine_ersetz_para                    
 !*****7*****************************************************************
-SUBROUTINE refine_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr) 
+SUBROUTINE refine_upd_para (ctype, ww, upper_limit, maxw, lrange, wert, ianz, cstring, substr, lexpr, line_expression) 
 !-                                                                      
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -156,12 +156,16 @@ IMPLICIT none
 CHARACTER (LEN=* ), INTENT(IN   )    :: ctype 
 INTEGER           , INTENT(IN   )    :: maxw
 INTEGER           , INTENT(IN   )    :: ianz 
-INTEGER           , INTENT(IN   )    :: ww (maxw)
+INTEGER           , INTENT(inout)    :: ww (maxw)
+INTEGER           , INTENT(inout)    :: upper_limit(maxw)
+logical           , intent(in   )    :: lrange
 REAL(KIND=PREC_DP), INTENT(IN   )    :: wert 
 CHARACTER (LEN=* ), INTENT(IN   )    :: cstring
 INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
+logical                   , intent(in   ) :: lexpr
+character(len=*)          , intent(inout) :: line_expression
 !
-CALL lib_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
+CALL lib_upd_para (ctype, ww, upper_limit, maxw, lrange, wert, ianz, cstring, substr, lexpr, line_expression)
 !
 END SUBROUTINE refine_upd_para                       
 !*****7***************************************************************  
