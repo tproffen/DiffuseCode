@@ -26,12 +26,14 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER  :: ianz
 integer  :: ncycle
 logical  :: lforce
-INTEGER, PARAMETER :: NOPTIONAL = 5
+logical  :: lshift                    ! Shift origin in SHELX export
+INTEGER, PARAMETER :: NOPTIONAL = 6
 INTEGER, PARAMETER :: O_RMCVS   = 1
 INTEGER, PARAMETER :: O_CYCLE   = 2
 INTEGER, PARAMETER :: O_SPCGR   = 3
 INTEGER, PARAMETER :: O_SITE    = 4
 INTEGER, PARAMETER :: O_FORCE   = 5
+INTEGER, PARAMETER :: O_ORIGIN  = 6   ! Shift origin in SHELX export
 CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=    PREC_STRING           ), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -44,12 +46,12 @@ INTEGER  :: rmcversion
 integer  :: scatty_site
 !
 !
-DATA oname  / 'version', 'cycle  ', 'spcgr  ', 'site   ', 'force  ' /
-DATA loname /  7       ,  5       ,  5       ,  4       ,  5        /
+DATA oname  / 'version', 'cycle  ', 'spcgr  ', 'site   ', 'force  ', 'origin ' /
+DATA loname /  7       ,  5       ,  5       ,  4       ,  5       ,  5        /
 !
-opara  =  (/ '6.00000', '20     ','P1     ', 'average', 'no     ' /)   ! Always provide fresh default values
-lopara =  (/  7       ,  2       ,  7      ,  7       ,  2        /)
-owerte =  (/  6.0D0   ,  20.0D0  ,  0.0D0  ,  0.0D0   , 0.0D0     /)
+opara  =  (/ '6.00000', '20     ','P1     ', 'average', 'no     ', 'no     ' /)   ! Always provide fresh default values
+lopara =  (/  7       ,  2       ,  7      ,  7       ,  2       ,  2        /)
+owerte =  (/  6.0D0   ,  20.0D0  ,  0.0D0  ,  0.0D0   , 0.0D0    ,  0.0D0    /)
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, lp)
 IF (ier_num.ne.0) THEN
@@ -90,8 +92,9 @@ IF (ianz.ge.1) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) RETURN
          ncycle = NINT(owerte(O_CYCLE))
-         lforce = opara(O_FORCE)=='yes'
-         CALL discus2ins (ianz, cpara, lpara, MAXW, ncycle, lforce)
+         lforce = opara(O_FORCE) =='yes'
+         lshift = opara(O_ORIGIN)=='yes' .or. opara(O_ORIGIN)=='shift'
+         CALL discus2ins (ianz, cpara, lpara, MAXW, ncycle, lforce, lshift)
       ELSE
          ier_num = - 6
          ier_typ = ER_COMM
@@ -237,7 +240,7 @@ END SUBROUTINE discus2cif
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-SUBROUTINE discus2ins (ianz, cpara, lpara, MAXW, ncycle, lforce)
+SUBROUTINE discus2ins (ianz, cpara, lpara, MAXW, ncycle, lforce, lshift)
 !
 USE chem_aver_mod
 USE class_internal
@@ -272,6 +275,7 @@ CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 integer            ,                  intent(in)    :: ncycle
 logical            ,                  intent(in)    :: lforce
+logical            ,                  intent(in)    :: lshift   ! Shift origin to 1bar position
 !
 INTEGER, PARAMETER :: IWR = 35
 integer, parameter :: MAXMASK = 4
@@ -340,13 +344,28 @@ IF(.NOT.cr_acentric) THEN                      ! Is centrosymmetric
       ENDIF
    ENDDO is_null
    IF(.NOT. orig_OK) THEN
-      ier_num = -148
-      ier_typ = ER_APPL
-      ier_msg(1) = 'Spacegroup is centrosymmetric but the center'
-      ier_msg(2) = 'of symmetry is not at the origin. '
-      ier_msg(3) = 'Transform to setting with 1bar at origin'
-      CLOSE(IWR)
-      RETURN
+      if(lshift) then
+         call shift_origin
+         if(ier_num/=0) then     ! internal error
+            close(IWR)
+            return
+         endif
+         ier_num = +11
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Spacegroup is centrosymmetric but the center'
+         ier_msg(2) = 'of symmetry is not at the origin. '
+         ier_msg(3) = '1bar has been shifted to 0,0,0!'
+         call errlist
+         call no_error
+      else
+         ier_num = -148
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Spacegroup is centrosymmetric but the center'
+         ier_msg(2) = 'of symmetry is not at the origin. '
+         ier_msg(3) = 'Transform to setting with 1bar at origin'
+         CLOSE(IWR)
+         RETURN
+      endif
    ENDIF
 ELSE
    orig_OK = .TRUE.   ! Acentric space group origin is always OK
@@ -716,6 +735,60 @@ endif
 2511 format(5x,4f11.5)
 !
 END SUBROUTINE shelx_write_atom
+!
+!*******************************************************************************
+!
+subroutine shift_origin
+!
+!  For a centrosymmetric structure shifts the origin to the 1bar position
+!
+use class_internal, only:store_remove_single
+use crystal_mod
+use discus_save_mod
+use read_internal_mod
+use save_menu, ONLY:save_internal, save_store_setting, save_restore_setting, save_default_setting
+use spcgr_mod
+use wyckoff_mod
+!
+use errlist_mod
+use precision_mod
+!
+implicit none
+!
+integer, parameter :: MAXMASK = 4
+real(kind=PREC_DP), parameter :: TOL = 0.01   ! Tolerance for 1bar at 0.0
+!
+character(len=PREC_STRING) :: tempfile        ! temporarily save current structure internally
+integer :: i    ! Dummy index
+logical,dimension(0:MAXMASK) :: uni_mask      ! Unique names/ADB etc
+!
+if(cr_acentric)             return   ! Acentric structure, no shift needed
+if(all(abs(spc_1bar)< TOL)) return   ! 1bar is at the orgin, no shift needed
+!
+do i=1, cr_natoms
+   cr_pos(:,i) = cr_pos(:,i) - spc_1bar
+enddo
+spcgr_para = 2                       ! This is now at origin choice 2
+spcgr_ianz = 1
+cr_spcgrno = spcgr_num(cr_spcgrno,2) ! This is now at origin choice 2
+!
+tempfile = 'internal.origin.shift.stru'
+call save_store_setting             ! Backup user "save" setting
+call save_default_setting           ! Default to full saving
+sav_w_gene = .false.                ! Do not save generators
+sav_w_symm = .false.                ! Do not save Symmetry operations
+call save_internal(tempfile)        ! temporarily save current structure
+!                                                                       
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
+!
+call readstru_internal(MAXMASK, tempfile, uni_mask)    ! Restore current structur
+!
+call store_remove_single(tempfile, ier_num)            ! Temporary file no longer needed
+call save_restore_setting                              ! Restore user save setting
+!
+end subroutine shift_origin
 !
 !*******************************************************************************
 !
