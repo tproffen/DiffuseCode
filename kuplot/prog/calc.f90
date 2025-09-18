@@ -1526,7 +1526,7 @@ INTEGER          , INTENT(INOUT) :: lp
 !
 CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
 REAL(KIND=PREC_DP) :: werte(maxw) 
-REAL(KIND=PREC_SP) :: cc(maxsm) 
+REAL(KIND=PREC_DP) :: cc(maxsm) 
 REAL(KIND=PREC_DP) :: deltax, fnorm 
 INTEGER :: lpara (maxw)
 INTEGER :: ianz, i, ik, id, ip, im, inew, iold, maxpp 

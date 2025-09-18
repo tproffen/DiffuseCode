@@ -212,7 +212,7 @@ real(kind=PREC_DP) :: pra(maxpara,2)                        ! Fit range
 real(kind=PREC_DP) ::  p_merk(maxpara),pinc_merk(maxpara)
 real(kind=PREC_DP) :: cl(maxpara,maxpara)
 real(kind=PREC_DP) :: urf
-      REAL zalt,zwert,zdif
+REAL(kind=PREC_DP) :: zalt,zwert,zdif
       REAL r4,re,fend
 REAL(kind=PREC_DP) ::            wval
       REAL tmp(maxpara)

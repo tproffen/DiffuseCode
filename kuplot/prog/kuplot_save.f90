@@ -894,12 +894,12 @@ LOGICAL                            , intent(in) :: l_m999
 INTEGER isa, maxmax, maxf 
 PARAMETER (isa = 66, maxmax = 50, maxf = 3) 
 !                                                                       
-REAL :: xf (maxf), yf (maxf), zf (maxf, maxf) 
+REAL(kind=PREC_DP) :: xf (maxf), yf (maxf), zf (maxf, maxf) 
 REAL(KIND=PREC_DP) :: wmax (maxmax) 
-REAL :: rdx, rdy 
-REAL :: xsteig, xabsch, xanf, xend, xdel 
-REAL :: xxx, yyy, zzz, dzzz 
-REAL :: wx_min, wx_max, wy_min, wy_max 
+REAL(kind=PREC_DP) :: rdx, rdy 
+REAL(kind=PREC_DP) :: xsteig, xabsch, xanf, xend, xdel 
+REAL(kind=PREC_DP) :: xxx, yyy, zzz, dzzz 
+REAL(kind=PREC_DP) :: wx_min, wx_max, wy_min, wy_max 
 real(kind=PREC_DP) :: TOL    ! Tolerance at xmin,xmax... set to 0.1*x(2)-x(1)
 logical                              :: hh5_laver
 real(kind=PREC_DP)                   :: hh5_valmax
@@ -977,8 +977,8 @@ ELSEIF (form (1:2) .eq.'DY'.and..not.lni (ik) ) then
 !-------nipl-file fuer gnuplot abspeichern                              
 !                                                                       
 ELSEIF (form (1:2) .eq.'GN'.and.lni (ik) ) then 
-   rdx = real((xmax (ik) - xmin (ik)), kind=PREC_SP ) / REAL(nx (ik) - 1) 
-   rdy = real((ymax (ik) - ymin (ik)), kind=PREC_SP ) / REAL(ny (ik) - 1) 
+   rdx = real((xmax (ik) - xmin (ik)), kind=PREC_DP ) / REAL(nx (ik) - 1, kind=PREC_DP) 
+   rdy = real((ymax (ik) - ymin (ik)), kind=PREC_DP ) / REAL(ny (ik) - 1, kind=PREC_DP) 
    nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) ) + 1)
    nx_max = min (nx (ik), nint ( ( (werte (2) - xmin (ik) ) / rdx) ) + 1) 
    ny_min = max (1, nint ( ( (werte (3) - ymin (ik) ) / rdy) ) + 1)
@@ -994,11 +994,11 @@ ELSEIF (form (1:2) .eq.'GN'.and.lni (ik) ) then
 !-------nipl-file-schnitt abspeichern (beliebige richtung)              
 !                                                                       
 ELSEIF (form (1:2) .eq.'SL'.and.lni (ik) ) then 
-   xsteig = real((werte (4) - werte (2) ) / (werte (3) - werte (1) ), kind=PREC_SP) 
-   xabsch = real(werte (2) - xsteig * werte (1) , kind=PREC_SP)
+   xsteig = real((werte (4) - werte (2) ) / (werte (3) - werte (1) ), kind=PREC_DP) 
+   xabsch = real(werte (2) - xsteig * werte (1) , kind=PREC_DP)
    xanf = ex (iwin, iframe, 1) 
    xend = ex (iwin, iframe, 2) 
-   xdel = real((werte (3) - werte (1) ) / werte (5), kind=PREC_SP)
+   xdel = real((werte (3) - werte (1) ) / werte (5), kind=PREC_DP)
    ninterv = NINT((xend-xanf)/xdel)
    k = 1
    if(ninterv < 0 ) k = -1
@@ -1022,8 +1022,8 @@ ELSEIF (form (1:2) .eq.'SL'.and.lni (ik) ) then
 ELSEIF (form (1:2) .eq.'SK'.and.lni (ik) ) then 
    ispk = nint (werte (1) ) 
    DO ixxx = 1, lenc(ispk) 
-      xxx = real(x (offxy (ispk - 1) + ixxx), kind=PREC_SP) 
-      yyy = real(y (offxy (ispk - 1) + ixxx), kind=PREC_SP) 
+      xxx = real(x (offxy (ispk - 1) + ixxx), kind=PREC_DP) 
+      yyy = real(y (offxy (ispk - 1) + ixxx), kind=PREC_DP) 
       CALL extract_subarray (xf, yf, zf, xxx, yyy, maxf, ik, ie) 
       IF (ie.eq.0) then 
          CALL polin2 (xf, yf, zf, maxf, maxf, xxx, yyy, zzz, dzzz,ier_num) 
@@ -1038,7 +1038,7 @@ ELSEIF (form (1:2) .eq.'SK'.and.lni (ik) ) then
 !-------nipl-file-schnitt abspeichern                                   
 !                                                                       
 ELSEIF (form (1:2) .eq.'SX'.and.lni (ik) ) then 
-   rdy = real(ymax (ik) - ymin (ik), kind=PREC_SP ) / REAL(ny (ik) - 1) 
+   rdy = real(ymax (ik) - ymin (ik), kind=PREC_DP ) / REAL(ny (ik) - 1, kind=PREC_DP) 
    ny_s = nint ( ( (werte (1) - ymin (ik) ) / rdy) ) + 1 
    DO i = 1, nx (ik) 
       ikk = offz (ik - 1) + (i - 1) * ny (ik) + ny_s 
@@ -1058,7 +1058,7 @@ ELSEIF (form (1:2) .eq.'MX'.and.lni (ik) ) then
       ier_typ = ER_APPL 
       RETURN 
    ENDIF 
-   rdy = real(ymax (ik) - ymin (ik), kind=PREC_SP ) / REAL(ny (ik) - 1) 
+   rdy = real(ymax (ik) - ymin (ik), kind=PREC_DP ) / REAL(ny (ik) - 1, kind=PREC_DP) 
    ny_s = nint ( ( (y (iym (nma) ) - ymin (ik) ) / rdy) ) + 1 
    DO i = 1, nx (ik) 
       ikk = offz (ik - 1) + (i - 1) * ny (ik) + ny_s 
@@ -1070,7 +1070,7 @@ ELSEIF (form (1:2) .eq.'MX'.and.lni (ik) ) then
 !-------nipl-file-schnitt abspeichern                                   
 !                                                                       
 ELSEIF (form (1:2) .eq.'SY'.and.lni (ik) ) then 
-   rdx = real(xmax (ik) - xmin (ik), kind=PREC_SP ) / REAL(nx (ik) - 1) 
+   rdx = real(xmax (ik) - xmin (ik), kind=PREC_DP ) / REAL(nx (ik) - 1, kind=PREC_DP) 
    nx_s = nint ( ( (werte (1) - xmin (ik) ) / rdx) ) + 1 
    DO i = 1, ny (ik) 
       ikk = offz (ik - 1) + (nx_s - 1) * ny (ik) + i 
@@ -1090,7 +1090,7 @@ ELSEIF (form (1:2) .eq.'MY'.and.lni (ik) ) then
       ier_typ = ER_APPL 
       RETURN 
    ENDIF 
-   rdx = real(xmax (ik) - xmin (ik), kind=PREC_SP ) / REAL(nx (ik) - 1) 
+   rdx = real(xmax (ik) - xmin (ik), kind=PREC_DP ) / REAL(nx (ik) - 1, kind=PREC_DP) 
    nx_s = nint ( ( (x (ixm (nma) ) - xmin (ik) ) / rdx) ) + 1 
    DO i = 1, ny (ik) 
       ikk = offz (ik - 1) + (nx_s - 1) * ny (ik) + i 
@@ -1102,8 +1102,8 @@ ELSEIF (form (1:2) .eq.'MY'.and.lni (ik) ) then
 !-------pgm-file abspeichern (aktueller ausschnitt)                     
 !                                                                       
 ELSEIF (form (1:2) .eq.'PG'.and.lni (ik) ) then 
-   rdx = real(xmax (ik) - xmin (ik), kind=PREC_SP ) / REAL(nx (ik) - 1) 
-   rdy = real(ymax (ik) - ymin (ik), kind=PREC_SP ) / REAL(ny (ik) - 1) 
+   rdx = real(xmax (ik) - xmin (ik), kind=PREC_DP ) / REAL(nx (ik) - 1, kind=PREC_DP) 
+   rdy = real(ymax (ik) - ymin (ik), kind=PREC_DP ) / REAL(ny (ik) - 1, kind=PREC_DP) 
    nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) ) + 1)
    nx_max = min (nx (ik), nint ( ( (werte (2) - xmin (ik) )  / rdx) ) + 1)
    ny_min = max (1, nint ( ( (werte (3) - ymin (ik) ) / rdy) ) + 1)
@@ -1134,16 +1134,16 @@ ELSEIF (form (1:2) .eq.'PG'.and.lni (ik) ) then
 !-------nipl-file abspeichern (aktueller ausschnitt)                    
 !                                                                       
 ELSEIF (form (1:2) .eq.'NI'.and.lni (ik) ) then 
-   rdx = real(xmax (ik) - xmin (ik), kind=PREC_SP ) / REAL(nx (ik) - 1) 
-   rdy = real(ymax (ik) - ymin (ik), kind=PREC_SP ) / REAL(ny (ik) - 1) 
+   rdx = real(xmax (ik) - xmin (ik), kind=PREC_DP ) / REAL(nx (ik) - 1, kind=PREC_DP) 
+   rdy = real(ymax (ik) - ymin (ik), kind=PREC_DP ) / REAL(ny (ik) - 1, kind=PREC_DP )
    nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) ) + 1)
    nx_max = min (nx (ik), nint ( ( (werte (2) - xmin (ik) ) / rdx) ) + 1)
    ny_min = max (1, nint ( ( (werte (3) - ymin (ik) ) / rdy) ) + 1)
    ny_max = min (ny (ik), nint ( ( (werte (4) - ymin (ik) ) / rdy) ) + 1)
-   wx_min = real(xmin (ik), kind=PREC_SP) + (nx_min - 1) * rdx 
-   wx_max = real(xmin (ik), kind=PREC_SP) + (nx_max - 1) * rdx 
-   wy_min = real(ymin (ik), kind=PREC_SP) + (ny_min - 1) * rdy 
-   wy_max = real(ymin (ik), kind=PREC_SP) + (ny_max - 1) * rdy 
+   wx_min = real(xmin (ik), kind=PREC_DP) + real(nx_min - 1, kind=PREC_DP) * rdx 
+   wx_max = real(xmin (ik), kind=PREC_DP) + real(nx_max - 1, kind=PREC_DP) * rdx 
+   wy_min = real(ymin (ik), kind=PREC_DP) + real(ny_min - 1, kind=PREC_DP) * rdy 
+   wy_max = real(ymin (ik), kind=PREC_DP) + real(ny_max - 1, kind=PREC_DP) * rdy 
    WRITE (isa, * ) nx_max - nx_min + 1, ny_max - ny_min + 1 
    WRITE (isa, 4000) wx_min, wx_max, wy_min, wy_max 
    DO iy = ny_min, ny_max 
@@ -1161,16 +1161,16 @@ elseif(form(1:2)=='H5') then
    if(allocated(qvalues)) deallocate(qvalues)
    if(lni(ik)) then               ! 2D- Nipl file
 !
-      rdx = real(xmax (ik) - xmin (ik), kind=PREC_SP ) / REAL(nx (ik) - 1) 
-      rdy = real(ymax (ik) - ymin (ik), kind=PREC_SP ) / REAL(ny (ik) - 1) 
+      rdx = real(xmax (ik) - xmin (ik), kind=PREC_DP ) / REAL(nx (ik) - 1, kind=PREC_DP) 
+      rdy = real(ymax (ik) - ymin (ik), kind=PREC_DP ) / REAL(ny (ik) - 1, kind=PREC_DP) 
       nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) ) + 1)
       nx_max = min (nx (ik), nint ( ( (werte (2) - xmin (ik) ) / rdx) ) + 1)
       ny_min = max (1, nint ( ( (werte (3) - ymin (ik) ) / rdy) ) + 1)
       ny_max = min (ny (ik), nint ( ( (werte (4) - ymin (ik) ) / rdy) ) + 1)
-      wx_min = real(xmin (ik), kind=PREC_SP) + (nx_min - 1) * rdx 
-      wx_max = real(xmin (ik), kind=PREC_SP) + (nx_max - 1) * rdx 
-      wy_min = real(ymin (ik), kind=PREC_SP) + (ny_min - 1) * rdy 
-      wy_max = real(ymin (ik), kind=PREC_SP) + (ny_max - 1) * rdy 
+      wx_min = real(xmin (ik), kind=PREC_DP) + real(nx_min - 1, kind=PREC_DP) * rdx 
+      wx_max = real(xmin (ik), kind=PREC_DP) + real(nx_max - 1, kind=PREC_DP) * rdx 
+      wy_min = real(ymin (ik), kind=PREC_DP) + real(ny_min - 1, kind=PREC_DP) * rdy 
+      wy_max = real(ymin (ik), kind=PREC_DP) + real(ny_max - 1, kind=PREC_DP) * rdy 
 !
       hh5_out_inc(1) = nx_max - nx_min + 1
       hh5_out_inc(2) = ny_max - ny_min + 1
@@ -1199,11 +1199,11 @@ elseif(form(1:2)=='H5') then
       enddo
    else                               ! 1D-      file
 !
-      rdx = real(xmax (ik) - xmin (ik), kind=PREC_SP ) / REAL(lenc (ik) - 1) 
+      rdx = real(xmax (ik) - xmin (ik), kind=PREC_DP ) / REAL(lenc (ik) - 1, kind=PREC_DP) 
       nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) ) + 1)
       nx_max = min (lenc(ik), nint ( ( (werte (2) - xmin (ik) ) / rdx) ) + 1)
-      wx_min = real(xmin (ik), kind=PREC_SP) + (nx_min - 1) * rdx 
-      wx_max = real(xmin (ik), kind=PREC_SP) + (nx_max - 1) * rdx 
+      wx_min = real(xmin (ik), kind=PREC_DP) + (nx_min - 1) * rdx 
+      wx_max = real(xmin (ik), kind=PREC_DP) + (nx_max - 1) * rdx 
 !
       hh5_out_inc(1) = nx_max - nx_min + 1
       hh5_out_inc(2) = 1

@@ -39,11 +39,11 @@ integer         , intent(inout) :: lp
       INTEGER ianz, i, ii, jj, kk, iref 
       INTEGER :: length
       INTEGER maxpkt, maxzz 
-      REAL xstart, xend, xdelta 
-      REAL ystart, yend, ydelta 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL df (maxpara) 
-      REAL yy
+REAL(kind=PREC_DP) :: xstart, xend, xdelta 
+REAL(kind=PREC_DP) :: ystart, yend, ydelta 
+REAL(KIND=PREC_DP) :: werte (maxw) 
+REAL(kind=PREC_DP) :: df (maxpara) 
+REAL(kind=PREC_DP) :: yy
 real(kind=PREC_DP) :: f
 real(kind=PREC_DP), dimension(MAXPARA) :: ddf
 real(kind=PREC_DP) :: xx
@@ -115,7 +115,7 @@ nianz: IF (ianz.eq.1) then
          DO i = 1, nx (ikfit) * ny (ikfit)
             xx = REAL(i)
             CALL kupl_theory (xx, f, ddf, - i) 
-            df = real(ddf, kind=PREC_SP)
+            df = real(ddf, kind=PREC_DP)
             z (offz (iz - 1) + i) = f
          ENDDO
          DO ii = 1, nx (iz) 
@@ -138,7 +138,7 @@ nianz: IF (ianz.eq.1) then
          DO i = 1, ii 
             xx = x (offxy (iref - 1) + i) 
             CALL kupl_theory (xx, f, ddf, - i) 
-            df = real(ddf, kind=PREC_SP)
+            df = real(ddf, kind=PREC_DP)
             x (offxy (iz - 1) + i) = xx 
             y (offxy (iz - 1) + i) = f 
             dx (offxy (iz - 1) + i) = 0.0 
@@ -213,9 +213,9 @@ nianz: IF (ianz.eq.1) then
 !                                                                       
 ELSEIF (ianz.eq.3) THEN  nianz
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         xstart = real(werte (1) , kind=PREC_SP)
-         xend   = real(werte (2) , kind=PREC_SP)
-         xdelta = real(werte (3) , kind=PREC_SP)
+         xstart = real(werte (1) , kind=PREC_DP)
+         xend   = real(werte (2) , kind=PREC_DP)
+         xdelta = real(werte (3) , kind=PREC_DP)
          ii = nint ( (xend-xstart) / xdelta) + 1 
          IF (ii.gt.0.and.ii.le.maxpkt) then 
          ku_ndims(iz) = 1
@@ -226,7 +226,7 @@ ELSEIF (ianz.eq.3) THEN  nianz
                DO i = 1, ii 
                xx = xstart + (i - 1) * xdelta 
                CALL kupl_theory (xx, f, ddf, - i) 
-               df = real(ddf, kind=PREC_SP)
+               df = real(ddf, kind=PREC_DP)
                x (offxy (iz - 1) + i) = xx 
                y (offxy (iz - 1) + i) = f 
                dx (offxy (iz - 1) + i) = 0.0 
@@ -266,12 +266,12 @@ ELSEIF (ianz.eq.3) THEN  nianz
 ELSEIF (ianz.eq.6) THEN nianz
          ku_ndims(iz) = 2
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         xstart = real(werte (1), kind=PREC_SP) 
-         xend   = real(werte (2), kind=PREC_SP) 
-         xdelta = real(werte (3), kind=PREC_SP) 
-         ystart = real(werte (4), kind=PREC_SP) 
-         yend   = real(werte (5), kind=PREC_SP) 
-         ydelta = real(werte (6), kind=PREC_SP) 
+         xstart = real(werte (1), kind=PREC_DP) 
+         xend   = real(werte (2), kind=PREC_DP) 
+         xdelta = real(werte (3), kind=PREC_DP) 
+         ystart = real(werte (4), kind=PREC_DP) 
+         yend   = real(werte (5), kind=PREC_DP) 
+         ydelta = real(werte (6), kind=PREC_DP) 
          nx (iz) = nint ( (xend-xstart) / xdelta) + 1 
          ny (iz) = nint ( (yend-ystart) / ydelta) + 1 
          IF (nx (iz) .gt.0.and.ny (iz) .gt.0.and.nx (iz) * ny (iz)      &
@@ -284,10 +284,10 @@ ELSEIF (ianz.eq.6) THEN nianz
                xx = xstart + (ii - 1) * xdelta 
                DO jj = 1, ny (iz) 
                kk = (ii - 1) * ny (iz) + jj 
-               xkk = REAL(kk, kind=PREC_SP) 
+               xkk = REAL(kk, kind=PREC_DP) 
                yy = ystart + (jj - 1) * ydelta 
                CALL kupl_theory (xkk, f, ddf, - kk) 
-               df = real(ddf, kind=PREC_SP)
+               df = real(ddf, kind=PREC_DP)
                z (offz (iz - 1) + (ii - 1) * ny (iz) + jj) = f 
                x (offxy (iz - 1) + ii) = xx 
                y (offxy (iz - 1) + jj) = yy 
@@ -1261,9 +1261,9 @@ INTEGER, intent(in) :: ianz
 INTEGER, intent(in) :: maxw 
 REAL(KIND=PREC_DP), intent(in) :: werte (maxw) 
 !                                                                       
-      REAL val (maxz) 
-      REAL range (2, 3) 
-      REAL dxx, dyy 
+REAL(kind=PREC_DP) :: val (maxz) 
+REAL(kind=PREC_DP) :: range (2, 3) 
+REAL(kind=PREC_DP) :: dxx, dyy 
       INTEGER np (3), icut (3), iii (3) 
       INTEGER maxpkt, maxzz
       INTEGER :: ival 
@@ -1309,8 +1309,8 @@ REAL(KIND=PREC_DP), intent(in) :: werte (maxw)
       ymin (iz) = range (1, icut (2) ) 
       ymax (iz) = range (2, icut (2) ) 
 !                                                                       
-      dxx = real(xmax (iz) - xmin (iz) , kind=PREC_SP) / REAL(nx (iz) - 1, kind=PREC_SP) 
-      dyy = real(ymax (iz) - ymin (iz) , kind=PREC_SP) / REAL(ny (iz) - 1, kind=PREC_SP) 
+      dxx = real(xmax (iz) - xmin (iz) , kind=PREC_DP) / REAL(nx (iz) - 1, kind=PREC_DP) 
+      dyy = real(ymax (iz) - ymin (iz) , kind=PREC_DP) / REAL(ny (iz) - 1, kind=PREC_DP) 
 !                                                                       
 !-------check array size                                                
 !                                                                       
@@ -1463,7 +1463,7 @@ logical, intent(in) :: pgm
       CHARACTER(LEN=PREC_STRING) :: line 
       CHARACTER(5) cmagic, kom 
       REAL rect (mrect, 4) 
-      REAL dxx, dyy 
+REAL(kind=PREC_DP) :: dxx, dyy 
       INTEGER :: ir, i, j, zdummy 
       INTEGER maxpkt, maxzz 
       INTEGER nrect 
@@ -1569,8 +1569,8 @@ logical, intent(in) :: pgm
 !                                                                       
 !------ set values for X and Y                                          
 !                                                                       
-      dxx = real(xmax (iz) - xmin (iz) , kind=PREC_SP) / REAL(nx (iz) - 1, kind=PREC_SP) 
-      dyy = real(ymax (iz) - ymin (iz) , kind=PREC_SP) / REAL(ny (iz) - 1, kind=PREC_SP) 
+      dxx = real(xmax (iz) - xmin (iz) , kind=PREC_DP) / REAL(nx (iz) - 1, kind=PREC_DP) 
+      dyy = real(ymax (iz) - ymin (iz) , kind=PREC_DP) / REAL(ny (iz) - 1, kind=PREC_DP) 
       DO i = 1, nx (iz) 
       x (offxy (iz - 1) + i) = xmin (iz) + (i - 1) * dxx 
       ENDDO 
@@ -1670,9 +1670,9 @@ INTEGER, DIMENSION(MAXWW) :: llpara
       CHARACTER(40) field (0:colm), input (colm) 
       CHARACTER(LEN=40) :: scan_type    ! Scan type on #S instruction
       CHARACTER(LEN=40) :: scan_mot     ! Motor type on #S instruction
-      REAL col (0:colm), dummy 
-      REAL mca_par (3) 
-      REAL, DIMENSION(:,:), ALLOCATABLE :: scan_limits
+      REAL(kind=PREC_DP) :: col (0:colm), dummy 
+      REAL(kind=PREC_DP) ::mca_par (3) 
+      REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: scan_limits
       LOGICAL                           :: yes_limits
       INTEGER counts (8192) 
       INTEGER ::            icell (5) 
@@ -1683,9 +1683,9 @@ INTEGER, DIMENSION(MAXWW) :: llpara
       INTEGER nscans 
       INTEGER  :: janz      ! temporary number of parameters
       INTEGER  :: npoints   ! number of data point on the #S instruction
-      REAL     :: xstart    ! Start point          on the #S instruction
-      REAL     :: xend      ! End   point          on the #S instruction
-      REAL     :: ctime     ! Count time           on the #S instruction
+      REAL(kind=PREC_DP)     :: xstart    ! Start point          on the #S instruction
+      REAL(kind=PREC_DP)     :: xend      ! End   point          on the #S instruction
+      REAL(kind=PREC_DP)     :: ctime     ! Count time           on the #S instruction
       LOGICAL not_found, data_read, lsigma, lend, lall 
       LOGICAL lkev 
 !                                                                       
@@ -1952,9 +1952,9 @@ INTEGER, DIMENSION(MAXWW) :: llpara
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             icell (1) = nint (werte (1) ) 
             IF (lkev) then 
-               mca_par (1) = real(werte (2), kind=PREC_SP) 
-               mca_par (2) = real(werte (3), kind=PREC_SP) 
-               mca_par (3) = real(werte (4), kind=PREC_SP) 
+               mca_par (1) = real(werte (2), kind=PREC_DP) 
+               mca_par (2) = real(werte (3), kind=PREC_DP) 
+               mca_par (3) = real(werte (4), kind=PREC_DP) 
             ELSE 
                mca_par (1) = 0.0 
                mca_par (2) = 1.0 
@@ -2132,7 +2132,7 @@ INTEGER           , DIMENSION(MAXW), intent(inout) :: lpara
       CHARACTER(200) date, scan, energy 
       CHARACTER(40) field (0:maxc), field_t (0:maxr, maxc) 
       CHARACTER(40) out_t (5) 
-      REAL field_v (0:maxr, maxc), out_v (5) 
+      REAL(kind=PREC_DP) :: field_v (0:maxr, maxc), out_v (5) 
       INTEGER ic, ir, nf, i, ii 
       INTEGER ::        istart, iend, iscan, nscan 
       LOGICAL lall, lend 
@@ -3487,7 +3487,7 @@ INTEGER, INTENT(IN) :: MAXW
 REAL(KIND=PREC_DP), INTENT(IN) :: werte (maxw) 
 !                                                                       
 CHARACTER(LEN=PREC_STRING) :: line 
-REAL    :: values (mm) 
+REAL(kind=PREC_DP)    :: values (mm) 
 INTEGER :: nr, nval, iwex, iwey, iwdx, iwdy, iski 
 INTEGER :: i, maxpp 
 INTEGER :: ios      ! I/O status
@@ -4037,7 +4037,7 @@ use kuplot_show_mod
 !
 INTEGER, INTENT(in) :: ifil
 !                                                                       
-      REAL rmsiz, zdummy 
+REAL(kind=PREC_DP) :: rmsiz, zdummy 
       INTEGER :: imcol, imtyp, nr, iii, maxpp 
 !                                                                       
       nr = 1 
@@ -4313,14 +4313,18 @@ INTEGER, INTENT(in) :: ifil
 !
 !*****7**************************************************************** 
 !
-REAL function chan2kev (channel, mca_par) 
+REAL(kind=PREC_DP) function chan2kev (channel, mca_par) result(res)
 !                                                                       
+use precision_mod
+!
 IMPLICIT none 
 !                                                                       
 INTEGER, intent(in) :: channel 
-REAL, intent(in) :: mca_par (3) 
+REAL(kind=PREC_DP), intent(in) :: mca_par (3) 
+!real(kind=PREC_DP) :: res
 !                                                                       
-chan2kev = mca_par (1) * channel**2 + mca_par (2) * channel +     &
+!chan2kev = mca_par (1) * channel**2 + mca_par (2) * channel +     &
+res = mca_par (1) * channel**2 + mca_par (2) * channel +     &
 mca_par (3)                                                       
 !                                                                       
 END FUNCTION chan2kev                         

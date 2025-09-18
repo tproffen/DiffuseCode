@@ -969,7 +969,7 @@ CHARACTER(len=2)                             :: dir
 CHARACTER(LEN=PREC_STRING), dimension(MAXW)  :: cpara (maxw) 
 INTEGER                   , dimension(MAXW)  :: lpara (maxw) 
 REAL(KIND=PREC_DP)        , dimension(MAXW)  :: werte (maxw) 
-REAL(kind=PREC_SP)        , dimension(MAXSM) :: cc (maxsm) 
+REAL(kind=PREC_DP)        , dimension(MAXSM) :: cc (maxsm) 
 INTEGER :: ianz, ik, ip, im, il 
 LOGICAL :: gx, gy 
 !
@@ -995,11 +995,11 @@ owerte =  (/  0.0,      0.0,      0.0    ,  0.0     /)
 !                                                                       
 IF (lsmooth) then 
    DO ip = 1, maxsm 
-      cc (ip) = 0.0 
+      cc (ip) = 0.0_PREC_DP
    ENDDO 
 ELSE 
    DO ip = 1, maxsm 
-      cc (ip) = 1.0 
+      cc (ip) = 1.0_PREC_DP
    ENDDO 
 ENDIF 
 !                                                                       
@@ -1162,7 +1162,7 @@ IF (lni (ik) ) then
          IF (x (offxy (ik - 1) + ix) .ge.wx1.and.y (offxy (ik - 1)      &
          + iy) .ge.wy1.and.x (offxy (ik - 1) + ix) .le.wx2.and.y (offxy &
          (ik - 1) + iy) .le.wy2) then                                   
-            zwert = real(z (offz (ik - 1) + (ix - 1) * ny (ik) + iy), kind=PREC_SP) 
+            zwert = real(z (offz (ik - 1) + (ix - 1) * ny (ik) + iy), kind=PREC_DP) 
             IF (zwert.ne. - 9999.0) then 
                rint = rint + zwert 
                ipkt = ipkt + 1 
@@ -1552,7 +1552,7 @@ INTEGER, intent(in) :: nyy
 LOGICAL, intent(in) :: gx
 LOGICAL, intent(in) :: gy
 INTEGER, intent(in) :: MC
-REAL(kind=PREC_SP), intent(in) :: cc (mc) 
+REAL(kind=PREC_DP), intent(in) :: cc (mc) 
 LOGICAL, intent(in) :: lsm 
 !                                                                       
 !REAL(kind=PREC_DP), DIMENSION(MAXARRAY) :: a (maxarray)
@@ -1660,7 +1660,7 @@ INTEGER, intent(in) :: ik
 INTEGER, intent(in) :: ip
 INTEGER, intent(in) :: llen
 INTEGER, intent(in) :: MC
-REAL(kind=PREC_SP), dimension(MC), intent(in)  :: cc (mc) 
+REAL(kind=PREC_DP), dimension(MC), intent(in)  :: cc (mc) 
 LOGICAL, intent(in) :: lsm 
 !
 !REAL(kind=PREC_DP) :: ay (maxarray), ady (maxarray)! , cc (mc) 
@@ -1870,12 +1870,12 @@ use precision_mod
 IMPLICIT none 
 !                                                                       
 INTEGER                                    , intent(IN) :: nsize 
-real(kind=PREC_SP), dimension(NSIZE)       , intent(OUT) :: xf
-real(kind=PREC_SP), dimension(NSIZE)       , intent(OUT) :: yf
-real(kind=PREC_SP), dimension(NSIZE, NSIZE), intent(OUT) :: zf
+real(kind=PREC_DP), dimension(NSIZE)       , intent(OUT) :: xf
+real(kind=PREC_DP), dimension(NSIZE)       , intent(OUT) :: yf
+real(kind=PREC_DP), dimension(NSIZE, NSIZE), intent(OUT) :: zf
 !     REAL xf (nsize), yf (nsize), zf (nsize, nsize) 
-REAL(kind=PREC_SP)                         , intent(in) :: xmit
-REAL(kind=PREC_SP)                         , intent(in) :: ymit 
+REAL(kind=PREC_DP)                         , intent(in) :: xmit
+REAL(kind=PREC_DP)                         , intent(in) :: ymit 
 integer                                    , intent(in)  :: ik
 integer                                    , intent(out) :: ie
 !
@@ -1883,18 +1883,18 @@ INTEGER :: ip, ii, jj, ixx, iyy
 !                                                                       
 ie = 0 
 ip = nsize / 2 + 1 
-ixx = nint((xmit - xmin(ik)) / (xmax(ik) - xmin(ik)) * REAL(nx(ik) - 1)) + 1
-iyy = nint((ymit - ymin(ik)) / (ymax(ik) - ymin(ik)) * REAL(ny(ik) - 1)) + 1
+ixx = nint((xmit - xmin(ik)) / (xmax(ik) - xmin(ik)) * REAL(nx(ik) - 1, kind=PREC_DP)) + 1
+iyy = nint((ymit - ymin(ik)) / (ymax(ik) - ymin(ik)) * REAL(ny(ik) - 1, kind=PREC_DP)) + 1
 IF(ixx.lt.ip.or. (ixx + ip) .gt.nx (ik) .or.iyy.lt.ip.or. (iyy + ip) .gt.ny (ik) ) then
    ie = - 1 
    RETURN 
 ENDIF 
 DO ii = 1, nsize 
    DO jj = 1, nsize 
-      xf (ii) = real(x (offxy (ik - 1) + ii - ip + ixx), kind=PREC_SP) 
-      yf (jj) = real(y (offxy (ik - 1) + jj - ip + iyy), kind=PREC_SP) 
+      xf (ii) = real(x (offxy (ik - 1) + ii - ip + ixx), kind=PREC_DP) 
+      yf (jj) = real(y (offxy (ik - 1) + jj - ip + iyy), kind=PREC_DP) 
       zf (ii, jj) = real(z (offz (ik - 1) + (ii - ip + ixx) * ny (ik)        &
-      + jj - ip + iyy), kind=PREC_SP)                                                  
+      + jj - ip + iyy), kind=PREC_DP)                                                  
       IF (zf (ii, jj) .eq. - 9999.) then 
          ie = - 1 
          RETURN 
@@ -1908,24 +1908,26 @@ END SUBROUTINE extract_subarray
 !
 SUBROUTINE polin2 (x1a, x2a, ya, m, n, x1, x2, y, dy,ier) 
 !
+use precision_mod
+!
 IMPLICIT integer(i-n)
 IMPLICIT REAL (a-h, o-z)
 !
 integer                , intent(in) :: m
 integer                , intent(in) :: n
-REAL   , dimension(m)  , intent(in) :: x1a
-REAL   , dimension(n)  , intent(in) :: x2a
-REAL   , dimension(m,n), intent(in) :: ya
-REAL                   , intent(in) :: x1
-REAL                   , intent(in) :: x2
-REAL                   , intent(out) :: y
-REAL                   , intent(out) :: dy
+REAL(kind=PREC_DP)   , dimension(m)  , intent(in) :: x1a
+REAL(kind=PREC_DP)   , dimension(n)  , intent(in) :: x2a
+REAL(kind=PREC_DP)   , dimension(m,n), intent(in) :: ya
+REAL(kind=PREC_DP)                   , intent(in) :: x1
+REAL(kind=PREC_DP)                   , intent(in) :: x2
+REAL(kind=PREC_DP)                   , intent(out) :: y
+REAL(kind=PREC_DP)                   , intent(out) :: dy
 integer                , intent(out) :: ier
 !
 integer, PARAMETER :: nmax = 50
 integer, PARAMETER :: mmax = 50
 !      DIMENSION x1a (m), x2a (n), ya (m, n), 
-real :: yntmp (nmax), ymtmp (mmax) 
+real(kind=PREC_DP) :: yntmp (nmax), ymtmp (mmax) 
 !      INTEGER :: ier
       ier = 0
       DO 12 j = 1, m 
@@ -1951,11 +1953,11 @@ use precision_mod
 implicit none
 !
 integer                          , intent(in) :: N
-real(kind=PREC_SP) , dimension(N), intent(in) :: xa
-real(kind=PREC_SP) , dimension(N), intent(in) :: ya
-real(kind=PREC_SP)               , intent(in)  :: x
-real(kind=PREC_SP)               , intent(out) :: y
-real(kind=PREC_SP)               , intent(out) :: dy
+real(kind=PREC_DP) , dimension(N), intent(in) :: xa
+real(kind=PREC_DP) , dimension(N), intent(in) :: ya
+real(kind=PREC_DP)               , intent(in)  :: x
+real(kind=PREC_DP)               , intent(out) :: y
+real(kind=PREC_DP)               , intent(out) :: dy
 INTEGER                          , intent(out) :: ier
 
 integer, PARAMETER :: nmax = 50 
@@ -2005,9 +2007,9 @@ DO m = 1, n - 1
    END DO 
 !
    IF (2 * ns.lt.n - m) then 
-      dy = real(c (ns + 1), kind=PREC_SP)
+      dy = real(c (ns + 1), kind=PREC_DP)
    ELSE 
-      dy = real(d (ns), kind=PREC_SP)
+      dy = real(d (ns), kind=PREC_DP)
       ns = ns - 1 
    ENDIF 
    y = y + dy 
@@ -2101,7 +2103,7 @@ implicit none
 !
 !
 integer, intent(in) :: np
-real(kind=PREC_SP), dimension(np), intent(out) ::c
+real(kind=PREC_DP), dimension(np), intent(out) ::c
 integer, intent(in) :: nl
 integer, intent(in) :: nr
 integer, intent(in) :: ld
@@ -2154,7 +2156,7 @@ DO k = - nl, nr
       sum = sum + b (mm + 1) * fac 
    ENDDO 
    kk = mod (np - k, np) + 1 
-   c (kk) = real(sum, kind=PREC_SP)
+   c (kk) = real(sum, kind=PREC_DP)
 ENDDO 
 !      RETURN 
 !
