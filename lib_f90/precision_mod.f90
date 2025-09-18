@@ -16,5 +16,15 @@ INTEGER, PARAMETER:: PREC_HP=SELECTED_REAL_KIND(p=30,r=607)  ! quad   precision
 INTEGER, PARAMETER:: PREC_STRING  = 1024
 INTEGER, PARAMETER:: PREC_LSTRING = 2048
 !
+integer(kind=PREC_INT_BYTE), parameter :: PREC_IBYTE  = 1
+integer(kind=PREC_INT_BYTE), parameter :: PREC_ISHORT = 1
+integer(kind=PREC_INT_BYTE), parameter :: PREC_IWORD  = 1
+integer(kind=PREC_INT_BYTE), parameter :: PREC_ILONG  = 1
+integer(kind=PREC_INT_BYTE), parameter :: PREC_ILARGE = 1
+integer(kind=PREC_INT_BYTE), parameter :: PREC_HUGE_IBYTE  = huge(PREC_IBYTE )
+integer(kind=PREC_INT_BYTE), parameter :: PREC_HUGE_ISHORT = huge(PREC_ISHORT)
+integer(kind=PREC_INT_BYTE), parameter :: PREC_HUGE_IWORD  = huge(PREC_IWORD )
+integer(kind=PREC_INT_BYTE), parameter :: PREC_HUGE_ILONG  = huge(PREC_ILONG )
+integer(kind=PREC_INT_BYTE), parameter :: PREC_HUGE_ILARGE = huge(PREC_ILARGE)
 !
 END MODULE precision_mod
