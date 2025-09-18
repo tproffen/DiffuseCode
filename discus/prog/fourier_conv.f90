@@ -577,7 +577,7 @@ if(lpresent(O_SIGABS)) then     ! User provided abscissa
          return
       endif
    endif
-   if(lpresent(O_SIGTOP)) then  ! User provided top axis
+   if(isdim==3 .and. lpresent(O_SIGTOP)) then  ! User provided top axis
       v2 = diff_res(2:4,3)
       r  = skalpro(v1, v2, cr_rten)/sqrt(skalpro(v1, v1, cr_rten)*skalpro(v2, v2, cr_rten))
       if(1.0D0-r<EPS) then
@@ -590,7 +590,7 @@ if(lpresent(O_SIGABS)) then     ! User provided abscissa
 endif
 if(lpresent(O_SIGORD)) then  ! User provided ordinate
    v1 = diff_res(2:4,2)
-   if(lpresent(O_SIGTOP)) then  ! User provided top axis
+   if(isdim==3 .and. lpresent(O_SIGTOP)) then  ! User provided top axis
       v2 = diff_res(2:4,3)
       r  = skalpro(v1, v2, cr_rten)/sqrt(skalpro(v1, v1, cr_rten)*skalpro(v2, v2, cr_rten))
       if(1.0D0-r<EPS) then
