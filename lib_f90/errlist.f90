@@ -54,11 +54,19 @@ ELSE
 ENDIF
 !
 IF(lmakro .AND. lmakro_disp) THEN
+   if(ier_num<0) then    ! Error
    WRITE(output_io, 2000) TRIM(color_err), mac_tree_active%current,                 &
      mac_tree_active%level, TRIM(color_fg),                                         &
      TRIM(color_err),                                                               &
      mac_tree_active%active%macrofile(1:LEN_TRIM(mac_tree_active%active%macrofile)),&
      TRIM(color_fg)
+   else
+   WRITE(output_io, 3000) TRIM(color_info), mac_tree_active%current,                &
+     mac_tree_active%level, TRIM(color_fg),                                         &
+     TRIM(color_info),                                                              &
+     mac_tree_active%active%macrofile(1:LEN_TRIM(mac_tree_active%active%macrofile)),&
+     TRIM(color_fg)
+   endif
    lmakro_disp = .FALSE.   ! Turn macro display off to avoid multiple displays
 ENDIF
 !------       Terminate program if an error occured and the 
@@ -91,7 +99,10 @@ endif
 2000 FORMAT(a,' ***MAC *** Error in macro line: ',i5,' Level ',i3, '          ***',a,/, &
             a,' ***MAC *** ',a,a                                   &
      )
-
+3000 FORMAT(a,' ***MAC *** Warning in macro line: ',i5,' Level ',i3, '        ***',a,/, &
+            a,' ***MAC *** ',a,a                                   &
+     )
+!
 END
 !*****7****************************************************************
 !
@@ -129,6 +140,7 @@ USE lib_length
        CHARACTER(LEN=4) , INTENT(IN) :: typ
 !
        INTEGER            :: i
+character(len=11) :: color   ! Use this color
 !      CHARACTER(LEN=80)  :: estr
 !      INTEGER            :: le
 !
@@ -139,15 +151,20 @@ USE lib_length
        ENDIF
        IF(iu <= ier_num .AND. ier_num <= io) THEN
          IF(    error(ier_num).ne.' ') THEN
-            WRITE(error_io,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)!,CHAR(7)
+            if(ier_num<0) then
+               color = color_err
+            else
+               color = color_info
+            endif
+            WRITE(error_io,1000) TRIM(color),typ,error(ier_num),ier_num,TRIM(color_fg)!,CHAR(7)
             IF(error_io/=0) &
-               WRITE(*    ,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg),CHAR(7)
+               WRITE(*    ,1000) TRIM(color),typ,error(ier_num),ier_num,TRIM(color_fg),CHAR(7)
             IF(ier_mpi) &
             WRITE(output_io,1100)                 typ,error(ier_num),ier_num
 !           WRITE(ier_out,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)
             DO i=1,UBOUND(ier_msg,1)
               IF (ier_msg(i) /= ' ')  &
-     &                WRITE(*,1500) TRIM(color_err),typ,ier_msg(i),ier_num,TRIM(color_fg)
+     &                WRITE(*,1500) TRIM(color),typ,ier_msg(i),ier_num,TRIM(color_fg)
             ENDDO
          ELSE
            WRITE(error_io,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
