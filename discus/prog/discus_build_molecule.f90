@@ -54,10 +54,14 @@ loop_init: do i=1, cr_natoms              ! Determine current molecule lengths
    if(cr_mole(i)>0 .and. temp_inmole(i)>0) then   ! Atom belongs to a molecule  
       mole_len(cr_mole(i)) = max(mole_len(cr_mole(i)), temp_inmole(i))
    endif
+!write(*,'(i3, 3f6.3, 3i4, 3i3)') i, cr_pos(:,i), cr_iscat(:,i), cr_mole(i), temp_inmole(i)
 enddo loop_init
+!write(*,*) '#############################################################################'
 !write(*,*) ' MOLE LEN ', mole_len(1:mole_num_mole)
+!write(*,*) ' ATOMS    ', cr_natoms
 !
 loop_main: do i=1, cr_natoms 
+!write(*,*) '??? atom ', i, cr_iscat(1,i), cr_mole(i), temp_inmole(i), cr_mole(i)>0, temp_inmole(i) == 1, mole_num_mole
    cond_mole: if(cr_mole(i)>0) then       ! Atom is in molecule
       if(temp_inmole(i) == 1) then        ! This is the first atom, determine wyckoff symmetry
          tested(i) = .false.
@@ -69,13 +73,14 @@ loop_main: do i=1, cr_natoms
 !write(*,'(a,2i4, 16i4)') 'Atom ', i, cr_iscat(1,i), wyckoff_sym(1:wyckoff_sym(0))
          u = cr_pos(:,i)
 !
-         do j=i+1, cr_natoms              ! Search for remaining atoms in this molecule
+         loop_remain: do j=i+1, cr_natoms              ! Search for remaining atoms in this molecule
             if(tested(j) .and. cr_mole(j)==cr_mole(i) .and. temp_inmole(j)>1) then
                v = cr_pos(:,j)
                dist = do_blen (lspace, u, v)
-!write(*,*) ' FOUND FURTHER ATOM ', j, cr_iscat(1,j), cr_mole(i), dist
+!write(*,*) ' FOUND FURTHER ATOM   ', j, cr_iscat(:,j), cr_mole(i), dist
                tested(j) = .false.        ! No need for further testing
                loop_inner: do k=j+1, cr_natoms
+                  if(cr_iscat(2,k)==cr_iscat(2,i)) cycle loop_remain   ! This is a new Wyckoff group
                   if(tested(k) .and. cr_mole(k)==-cr_mole(i) .and. &
                      cr_iscat(1,j)==cr_iscat(1,k) .and. temp_inmole(k)<-1) then
                   do l=1,wyckoff_sym(0)
@@ -101,16 +106,18 @@ loop_main: do i=1, cr_natoms
                   endif
                enddo loop_inner
             endif
-         enddo
+         enddo loop_remain
       endif
 !  else cond_mole                         ! Atom is not inside a molecule
 !     cycle loop_main
    endif cond_mole
 enddo loop_main
+!write(*,*) ' SECOND LOOP '
 !
 !  Second loop, search remainig atoms inside a molecule
 !
 loop_secnd: do i=1, cr_natoms
+!write(*,*) '??? atom ', i, cr_iscat(1,i), cr_mole(i), temp_inmole(i), cr_mole(i)<0, temp_inmole(i) == 1, mole_num_mole
    cond_new: if(cr_mole(i)<0) then       ! Atom is in molecule, make new molecule
       mole_num_mole = mole_num_mole + 1
       mole_len(mole_num_mole) = 1
@@ -128,15 +135,19 @@ loop_secnd: do i=1, cr_natoms
          wyckoff_sym(0) = nint(res_para(2))
          wyckoff_sym(1:wyckoff_sym(0)) = nint(res_para(4:3+wyckoff_sym(0)))
          u = cr_pos(:,i)
-!write(*,'(a, 20i4)') 'New atom ', i, cr_iscat(1,i), cr_mole(i), temp_inmole(i), wyckoff_sym(1:wyckoff_sym(0))
-         do j=i+1, cr_natoms              ! Search for remaining atoms in this molecule
+!write(*,'(a, 20i4)') 'New atom ', i, cr_iscat(1,i), cr_mole(i), temp_inmole(i), wyckoff_sym(1:wyckoff_sym(0)), mole_num_mole
+         loop_remain2: do j=i+1, cr_natoms              ! Search for remaining atoms in this molecule
             if(tested(j) .and. cr_mole(j)==cr_mole(i) .and. temp_inmole(j)<-1) then
                v = cr_pos(:,j)
                dist = do_blen (lspace, u, v)
-!write(*,*) ' FOUND FURTHER ATOM ', j, cr_iscat(1,i), cr_mole(i)
+!write(*,*) ' FOUND FURTHER ATOM   ', j, cr_iscat(1,i), cr_mole(i)
                mole_len(mole_num_mole) = mole_len(mole_num_mole) + 1
                tested(j) = .false.        ! No need for further testing
+               cr_mole(j) = mole_num_mole
+               temp_inmole(j) = -temp_inmole(j)
+!write(*,*) ' found FURTHER ATOM   ', j, cr_iscat(1,i), cr_mole(i), temp_inmole(j), mole_num_mole, mole_len(mole_num_mole)
                loop_inner2: do k=j+1, cr_natoms
+                  if(cr_iscat(2,k)==cr_iscat(2,i)) cycle loop_remain2   ! This is a new Wyckoff group
 !                 if(tested(k) .and. cr_mole(k)== cr_mole(i) .and. temp_inmole(k)<-1) then
                   if(tested(k) .and. cr_mole(k)== cr_mole(i) .and. &
                      cr_iscat(1,j)==cr_iscat(1,k) .and. temp_inmole(k)<-1) then
@@ -162,15 +173,14 @@ loop_secnd: do i=1, cr_natoms
                   enddo
                   endif
                enddo loop_inner2
-               cr_mole(j) = mole_num_mole
-               temp_inmole(j) = -temp_inmole(j)
             endif
-         enddo
+         enddo loop_remain2
       endif
       cr_mole(i) = mole_num_mole
       temp_inmole(i) = -temp_inmole(i)
    endif cond_new
 enddo loop_secnd
+!write(*,*) 'FINISHED SECOND ', ier_num, ier_typ
 !
 allocate(temp_len(mole_num_mole))
 temp_len = 0
@@ -187,7 +197,7 @@ do i=1, cr_natoms
    endif
 enddo
 !do l= mole_num_mole,1, -1
-!j = 2
+!j = l
 !mole_num_curr = l
 !write(*,*) ' AT MOLE ', l
 !call first_mole(j)
@@ -260,6 +270,7 @@ enddo loop_1
 if(d_min<TOL) then
    neighbor = v_min
 else
+!write(*,'(a, 3f6.3, 2x, 3f6.3, 2x, 2f6.3)') ' ERROR ', central , neighbor, distance, d_min
    ier_num = -83
 endif
 !
