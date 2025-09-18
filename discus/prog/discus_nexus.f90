@@ -39,7 +39,7 @@ CONTAINS
    TYPE(NXhandle)  :: fileId
    INTEGER   :: nx_status
 !
-   write(*,*) ' THIS IS NEXUS WRITE'
+!  write(*,*) ' THIS IS NEXUS WRITE'
    CALL no_error
 !
    nx_status = NXopen(outfile, NXACC_CREATE5, fileId)
@@ -53,10 +53,10 @@ CONTAINS
       ENDIF
       nx_status = NXclose(fileId)
       IF(nx_status /= NX_OK) THEN
-         write(*,*) ' Could not close NeXus File', nx_status
+!        write(*,*) ' Could not close NeXus File', nx_status
       ENDIF
    ELSE
-      write(*,*) ' Could not open NeXus File', nx_status
+!     write(*,*) ' Could not open NeXus File', nx_status
    ENDIF
 !
    END SUBROUTINE nexus_write
@@ -102,7 +102,7 @@ use precision_mod
 !  Prepare Character strings for axes names
    WRITE(caxes, 2000) chkl(out_extr_abs), chkl(out_extr_ord)
    WRITE(cabs_h,2100) chkl(out_extr_abs)
-write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cvalue(value)
+!write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cvalue(value)
 !
    nx_status = NXUwritegroup ( fileId, "entry", "NXentry")
    nx_status = NXUwritegroup ( fileId, "data",  "NXdata")
@@ -173,7 +173,7 @@ use precision_mod
    WRITE(caxes, 2000) chkl(out_extr_abs), chkl(out_extr_ord)
    WRITE(cabs_h,2100) chkl(out_extr_abs)
    WRITE(cord_k,2100) chkl(out_extr_ord)
-write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', cvalue(value)
+!write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', cvalue(value)
 !
    nx_status = NXUwritegroup ( fileId, "entry", "NXentry")
    nx_status = NXUwritegroup ( fileId, "data",  "NXdata")
@@ -258,7 +258,7 @@ use precision_mod
    WRITE(cabs_h,2100) chkl(out_extr_abs)
    WRITE(cord_k,2100) chkl(out_extr_ord)
    WRITE(ctop_l,2100) chkl(out_extr_top)
-write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', ctop_l,' ',cvalue(value)
+!write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', ctop_l,' ',cvalue(value)
 !
    nx_status = NXUwritegroup ( fileId, "entry", "NXentry")
    nx_status = NXUwritegroup ( fileId, "data",  "NXdata")
