@@ -77,17 +77,21 @@ do i=1, cr_natoms
    cr_iscat(1,i) = is_type
 enddo
 !
+if(nscat>ubound(cr_at_lis,1)) then
+   call alloc_crystal_scat(nscat)
+endif
 cr_nscat = nscat
-cr_at_lis = at_lis
-cr_dw     = at_dw
-cr_occ    = at_occ
-as_at_lis = at_lis
-as_dw     = at_dw
-as_occ    = at_occ
+cr_at_lis(1:nscat) = at_lis(1:nscat)
+cr_dw    (1:nscat) = at_dw (1:nscat)
+cr_occ   (1:nscat) = at_occ(1:nscat)
+as_at_lis(1:nscat) = at_lis(1:nscat)
+as_dw    (1:nscat) = at_dw (1:nscat)
+as_occ   (1:nscat) = at_occ(1:nscat)
 !
 deallocate(at_lis)
 deallocate(at_dw )
 deallocate(at_occ)
+!
 !
 end subroutine reduce_atoms
 !
