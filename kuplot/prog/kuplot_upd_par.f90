@@ -549,7 +549,7 @@ CALL no_error
 !
 !*****7*****************************************************************
 !
-SUBROUTINE kuplot_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr) 
+SUBROUTINE kuplot_upd_para (ctype, ww, upper_limit, maxw, lrange, wert, ianz, cstring, substr, lexpr, line_expression) 
 !-                                                                      
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -568,13 +568,17 @@ USE precision_mod
       CHARACTER (LEN=*),          INTENT(IN) :: ctype 
       INTEGER,                    INTENT(IN) :: maxw
       INTEGER,                    INTENT(IN) :: ianz 
-      INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
+      INTEGER, DIMENSION(1:MAXW), INTENT(inout) :: ww
+      INTEGER, DIMENSION(1:MAXW), INTENT(inout) :: upper_limit
+      logical                   , intent(in) :: lrange
       REAL(KIND=PREC_DP)        , INTENT(IN) :: wert 
       CHARACTER (LEN=*),          INTENT(IN) :: cstring
 INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
+logical                   , intent(in   ) :: lexpr
+character(len=*)          , intent(inout) :: line_expression
 !
       INTEGER idummy 
-CALL lib_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
+CALL lib_upd_para (ctype, ww, upper_limit, maxw, lrange, wert, ianz, cstring, substr, lexpr, line_expression)
 IF(ier_num==0 .OR. (ier_num==-40 .AND. ier_typ==ER_FORT)) RETURN
 CALL no_error
 !                                                                       
