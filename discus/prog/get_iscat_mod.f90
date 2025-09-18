@@ -125,7 +125,12 @@ DO WHILE(j <= ianz.AND.ier_num == 0)
             IF(cr_nscat < ubound(cr_at_lis,1)) THEN 
                cr_nscat = cr_nscat + 1 
                cr_at_lis(cr_nscat) = cpara(j) 
-               cr_dw(cr_nscat) = cr_dw(1)
+               cr_dw  (cr_nscat) = cr_dw  (1)
+               cr_occ (cr_nscat) = cr_occ (1)
+               cr_magn(:,cr_nscat) = cr_magn(:,1)
+               cr_valu(cr_nscat) = cr_valu(1)
+               cr_scat_int(i)      = .true.
+               cr_scat_equ(i)      = .false.
                werte(jj) = cr_nscat 
                ier_num = 0 
                ier_typ = ER_NONE 

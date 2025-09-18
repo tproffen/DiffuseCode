@@ -73,6 +73,7 @@ INTEGER             , dimensioN(3)  :: clu_cr_iscat
 INTEGER                             :: clu_cr_prop
 INTEGER             , DIMENSION(0:3):: clu_cr_surf
 REAL(kind=PREC_DP)  , DIMENSION(0:3):: clu_cr_magn
+real(kind=PREC_DP)                  :: clu_cr_valu
 INTEGER                             :: clu_cr_mole
 INTEGER                             :: clu_cr_moleatom
 !

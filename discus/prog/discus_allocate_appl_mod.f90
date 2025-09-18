@@ -893,6 +893,9 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 CALL alloc_arr ( cr_magn,0,3   ,1,n_max ,  all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+CALL alloc_arr ( cr_valu       ,1,n_max ,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
 !
 IF( lstat ) THEN                        ! Success
 NMAX          = n_max
@@ -3351,6 +3354,9 @@ END SUBROUTINE alloc_powder_nmax
       CALL alloc_arr ( st_magn ,0, 3,  1,n_max ,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+      CALL alloc_arr ( st_valu      ,  1,n_max ,  all_status, 0.0D0)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       CALL alloc_arr ( sa_iscat,       1,n_scat,  all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
@@ -3410,6 +3416,7 @@ integer, intent(in) :: n_groups
 !
 integer             :: all_status
 !
+call alloc_arr(sup_file,                       1, n_waves, all_status, ' ')
 call alloc_arr(sup_group,                      1, n_waves, all_status, 1     )
 call alloc_arr(sup_atom, 1, 2,      1, n_site, 1, n_waves, 1, n_groups, all_status, ' '   )
 !call alloc_arr(sup_repl,            1, n_site, all_status, 'VOID')

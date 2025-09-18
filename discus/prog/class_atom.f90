@@ -21,6 +21,7 @@ TYPE :: cl_atom                        ! the basic type definition
    INTEGER                :: prop      ! a property flag
    INTEGER, DIMENSION(0:3):: surf      ! surface charcteristics
    REAL(kind=PREC_DP)   , DIMENSION(0:3):: magn      ! Magnetic moments
+   real(kind=PREC_DP)     :: at_value  ! (arbitrary) atomic value
    INTEGER, DIMENSION(1:2):: in_mole   ! In which molecule are we
 !
 CONTAINS
@@ -32,7 +33,7 @@ CONTAINS
 !
 !  Methods to work on atoms
 !
-   SUBROUTINE set_atom(this, itype, posit, iprop, isurface , magn_mom, iin_mole)
+   SUBROUTINE set_atom(this, itype, posit, iprop, isurface , magn_mom, at_value, iin_mole)
 !
 !  Set atom type, position and property
 !
@@ -50,6 +51,7 @@ CONTAINS
    INTEGER                           , INTENT(IN) :: iprop ! atom property
    INTEGER           , DIMENSION(0:3), INTENT(IN) :: isurface ! atom surface
    REAL(kind=PREC_DP), DIMENSION(0:3), INTENT(IN) :: magn_mom ! atom surface
+   real(kind=PREC_DP)                , INTENT(IN) :: at_value ! arbitrary atomic value
    INTEGER           , DIMENSION(1:2), INTENT(IN) :: iin_mole   ! In which molecule are we
 !
    this%iscat(:)   = itype(:)
@@ -57,11 +59,12 @@ CONTAINS
    this%prop    = iprop
    this%surf(:) = isurface(:)
    this%magn(:) = magn_mom(:)
+   this%at_value = at_value
    this%in_mole(:) = iin_mole(:)
 !
    END SUBROUTINE set_atom
 !
-   SUBROUTINE get_atom(this, itype, posit, iprop, isurface, magn_mom, iin_mole)
+   SUBROUTINE get_atom(this, itype, posit, iprop, isurface, magn_mom, at_value, iin_mole)
 !
 !  Get atom type, position and property
 !
@@ -73,6 +76,7 @@ CONTAINS
    INTEGER                           , INTENT(OUT) :: iprop
    INTEGER           , DIMENSION(0:3), INTENT(OUT) :: isurface ! atom surface
    REAL(kind=PREC_DP), DIMENSION(0:3), INTENT(OUT) :: magn_mom ! atom surface
+   real(kind=PREC_DP)                , INTENT(out) :: at_value ! arbitrary atomic value
    INTEGER           , DIMENSION(1:2), INTENT(OUT) :: iin_mole   ! In which molecule are we
 !
    itype       = this%iscat
@@ -80,6 +84,7 @@ CONTAINS
    iprop       = this%prop
    isurface(:) = this%surf(:)
    magn_mom(:) = this%magn(:)
+   at_value    = this%at_value
    iin_mole(:) = this%in_mole(:)
 !
    END SUBROUTINE get_atom

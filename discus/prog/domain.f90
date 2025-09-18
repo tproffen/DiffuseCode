@@ -1252,7 +1252,7 @@ ELSE
          k = clu_mole_cont(clu_mole_off(i)+j)
          call struc_read_one_atom_internal(clu_infile, k,  &
               clu_cr_pos, clu_cr_iscat, clu_cr_prop, clu_cr_surf, &
-              clu_cr_magn, clu_cr_mole, clu_cr_moleatom )
+              clu_cr_magn, clu_cr_valu, clu_cr_mole, clu_cr_moleatom )
          if(clu_at_lis(clu_cr_iscat(1))=='POSI') THEN
             mc_matrix(1:3,4) = clu_cr_pos(1:3)
          elseif(clu_at_lis(clu_cr_iscat(1))=='XAXI') THEN
@@ -2264,6 +2264,7 @@ integer                                    , intent(in) :: clu_type   !
       INTEGER             :: dummy_moleatom ! Atom is in this molecul at number
       INTEGER, DIMENSION(0:3)  :: dummy_surf
       REAL(kind=PREC_DP)   , DIMENSION(0:3)  :: dummy_magn
+      REAL(kind=PREC_DP)                     :: dummy_valu
       INTEGER             :: natoms ! Number of molecules
       INTEGER             :: ncatoms
       INTEGER             :: nscat  ! Number of molecule types
@@ -2388,7 +2389,7 @@ loop_atoms: do
       IF(mk_infile_internal) THEN
          mk_iatom =  mk_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(infile,  mk_iatom,  &
-              xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_magn, dummy_mole, dummy_moleatom )
+              xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_magn, dummy_valu, dummy_mole, dummy_moleatom )
          IF( ier_num == -105 ) THEN  ! read "end_of_file" 
             ier_num = 0
             ier_typ = ER_NONE
@@ -2862,6 +2863,7 @@ INTEGER  :: dummy_moleatom
 integer  :: ios                ! IO status variable
 INTEGER, DIMENSION(0:3)  :: dummy_surf
 REAL(kind=PREC_DP)   , DIMENSION(0:3)  :: dummy_magn
+REAL(kind=PREC_DP)                     :: dummy_valu
 !                                                                       
 !                                                                       
 ii = 0
@@ -2870,7 +2872,7 @@ l_ok = .false.                 ! Assume pseudoatom is incorrect
 IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
    clu_iatom = clu_iatom + 1   ! Increment internal atom number
    CALL struc_read_one_atom_internal(clu_infile, clu_iatom,  &
-        xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_magn, dummy_mole, dummy_moleatom )
+        xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_magn, dummy_valu, dummy_mole, dummy_moleatom )
    IF( ier_num == -105 ) THEN  ! read "end_of_file" 
       lend    = .true.
       ier_num = 0

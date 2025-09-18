@@ -492,7 +492,7 @@ end subroutine get_dimensions
 !
    END FUNCTION get_spc_n
 !******************************************************************************
-   SUBROUTINE set_cryst_atom ( this, inum, itype, posit, iprop, isurface, magn_mom, iin_mole)
+   SUBROUTINE set_cryst_atom ( this, inum, itype, posit, iprop, isurface, magn_mom, at_value, iin_mole)
 !
 !  Fully define atom No. <inum> for "this" crystal
 !
@@ -505,9 +505,10 @@ end subroutine get_dimensions
    INTEGER,                           INTENT(IN) :: iprop
    INTEGER           , DIMENSION(0:3),INTENT(IN) :: isurface
    REAL(kind=PREC_DP), DIMENSION(0:3),INTENT(IN) :: magn_mom
+real(kind=PREC_DP)                 , intent(in) :: at_value
    INTEGER           , DIMENSION(1:2),INTENT(IN) :: iin_mole
 !
-   CALL this%atoms(inum)%set_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
+   CALL this%atoms(inum)%set_atom ( itype, posit, iprop, isurface, magn_mom, at_value, iin_mole )
 !
    END SUBROUTINE set_cryst_atom 
 !******************************************************************************
@@ -633,16 +634,17 @@ use precision_mod
    INTEGER                            :: iprop
    INTEGER           , DIMENSION(0:3) :: isurface
    REAL(kind=PREC_DP), DIMENSION(0:3) :: magn_mom
+   real(kind=PREC_DP)                 :: at_value
    INTEGER           , DIMENSION(1:2) :: iin_mole
 !
-   CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
+   CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, at_value, iin_mole )
    at_name = this%cr_at_lis(itype(1))
    dw1     = this%cr_dw    (itype(1))
    occ1    = this%cr_occ   (itype(1))   !!WORK OCC
 !
    END SUBROUTINE get_cryst_scat 
 !******************************************************************************
-   SUBROUTINE get_cryst_atom ( this, inum, itype, posit, iprop, isurface, magn_mom, iin_mole)
+   SUBROUTINE get_cryst_atom ( this, inum, itype, posit, iprop, isurface, magn_mom, at_value, iin_mole)
 !
 !  Return everything about atom <inum> in "this" crystal
 !
@@ -655,9 +657,10 @@ use precision_mod
    INTEGER,                            INTENT(OUT) :: iprop
    INTEGER           , DIMENSION(0:3), INTENT(OUT) :: isurface
    REAL(kind=PREC_DP), DIMENSION(0:3), INTENT(OUT) :: magn_mom
+   real(kind=PREC_DP)                , INTENT(OUT) :: at_value
    INTEGER           , DIMENSION(1:2), INTENT(OUT) :: iin_mole
 !
-   CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
+   CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, at_value, iin_mole )
 !
    END SUBROUTINE get_cryst_atom 
 !******************************************************************************
@@ -732,6 +735,7 @@ SUBROUTINE set_crystal_from_standard   ( this, strucfile)
    INTEGER, DIMENSION(0:3) :: isurface
    INTEGER, DIMENSION(1:2) :: iin_mole
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom
+   real(kind=PREC_DP)                    :: at_value
    INTEGER               :: iprop
    INTEGER               :: i,j
    INTEGER               :: ia
@@ -968,6 +972,7 @@ DO inum=1,cr_natoms
       posit       = cr_pos(:,inum)
       isurface(:) = cr_surf(:, inum)
       magn_mom(:) = cr_magn(:, inum)
+      at_value    = cr_valu(   inum)
       IF(this%cr_sav_prop) THEN
          iprop = cr_prop (inum)
       ELSE
@@ -989,7 +994,7 @@ DO inum=1,cr_natoms
          ENDIF
       ENDIF
 !        if(.not.associated(this%atoms(ia))) allocate(this%atoms(ia))
-      CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
+      CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, magn_mom, at_value, iin_mole )
    ELSE
       IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
          IF(cr_mole(inum)/=0) THEN
@@ -1031,7 +1036,7 @@ END SUBROUTINE set_crystal_from_standard
             rd_cr_acentric, rd_cr_newtype, rd_cr_cartesian, rd_cr_sel_prop,             &
             rd_cr_scat, rd_cr_delfi , rd_cr_delfr, rd_cr_delf_int,                    &
             rd_cr_scat_int, rd_cr_scat_equ,                                             &
-            rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, rd_cr_magn, rd_cr_mole      &
+            rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, rd_cr_magn, rd_cr_valu, rd_cr_mole      &
             )
 !
 !
@@ -1125,6 +1130,7 @@ END SUBROUTINE set_crystal_from_standard
    INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_surf
    REAL(kind=PREC_DP)  , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_magn
+   REAL(kind=PREC_DP)  , DIMENSION(    rd_NMAX) , INTENT(IN) :: rd_cr_valu
    INTEGER             , DIMENSION(    rd_NMAX) , INTENT(IN) :: rd_cr_mole
 !
    INTEGER, DIMENSION(:), ALLOCATABLE :: iscat_table
@@ -1134,6 +1140,7 @@ END SUBROUTINE set_crystal_from_standard
    REAL(kind=PREC_DP)   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom
+   real(kind=PREC_DP)                    :: at_value
    INTEGER, DIMENSION(1:2) :: iin_mole
    INTEGER               :: iprop
    INTEGER               :: i,j
@@ -1323,6 +1330,7 @@ this%cr_is_stack    = rd_cr_is_stack
          posit = rd_cr_pos(:,inum)
          isurface(:) = rd_cr_surf(:,inum)
          magn_mom(:) = rd_cr_magn(:,inum)
+         at_value    = rd_cr_valu(  inum)
          IF(this%cr_sav_prop) THEN
             iprop = rd_cr_prop (inum)
          ELSE
@@ -1343,7 +1351,7 @@ this%cr_is_stack    = rd_cr_is_stack
                iin_mole(:) = 0
             ENDIF
          ENDIF
-         CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
+         CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, magn_mom, at_value, iin_mole )
       ENDIF
    ENDDO
    this%cr_natoms = MIN(rd_cr_natoms,ia)
@@ -1738,18 +1746,20 @@ rd_cr_is_stack    = this%cr_is_stack
    REAL(kind=PREC_DP)   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom
+real(kind=PREC_DP)         :: at_value
    INTEGER, DIMENSION(1:2) :: iin_mole
    INTEGER               :: iprop
    INTEGER               :: ia
 !
    ia = 0
    DO inum=1,this%cr_natoms
-      CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
+      CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, at_value, iin_mole )
       ia = ia + 1
       cr_iscat(:,ia) = itype
       cr_pos(:,ia) = posit
       cr_surf(:,ia) = isurface(:)
       cr_magn(:,ia) = magn_mom(:)
+      cr_valu(  ia) = at_value
       cr_prop (ia) = iprop
       cr_mole (ia) = iin_mole(1)
    ENDDO
@@ -1758,7 +1768,7 @@ rd_cr_is_stack    = this%cr_is_stack
    END SUBROUTINE get_atoms_from_crystal
 !******************************************************************************
    SUBROUTINE get_atoms_to_local( this, RD_NMAX, rd_cr_natoms,  &
-            rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, rd_cr_magn, rd_cr_mole )
+            rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, rd_cr_magn, rd_cr_valu, rd_cr_mole )
 !
 !  Get atom positions from internal crystal and copy them into
 !  local variables.
@@ -1772,6 +1782,7 @@ rd_cr_is_stack    = this%cr_is_stack
    REAL(kind=PREC_DP), DIMENSION(1:3,1:RD_NMAX), INTENT(INOUT)  :: rd_cr_pos
    INTEGER           , DIMENSION(0:3,1:RD_NMAX), INTENT(INOUT)  :: rd_cr_surf
    REAL(kind=PREC_DP), DIMENSION(0:3,1:RD_NMAX), INTENT(INOUT)  :: rd_cr_magn
+   real(kind=PREC_DP), dimension(    1:RD_NMAX), intent(inout)  :: rd_cr_valu
    INTEGER           , DIMENSION(    1:RD_NMAX), INTENT(INOUT)  :: rd_cr_mole
 !                                                                       
 
@@ -1782,20 +1793,21 @@ rd_cr_is_stack    = this%cr_is_stack
    REAL(kind=PREC_DP)   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom
+real(kind=PREC_DP) :: at_value
    INTEGER, DIMENSION(1:2) :: iin_mole
    INTEGER               :: iprop
    INTEGER               :: ia
 !
    ia = 0
    DO inum=1,this%cr_natoms
-      CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
+      CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, at_value, iin_mole )
       IF ( this%cr_sav_atom(itype(1))) THEN
          ia = ia + 1
          rd_cr_iscat(:,ia) = itype
          rd_cr_pos(:,ia) = posit
          rd_cr_prop (ia) = iprop
          rd_cr_surf(:,ia)= isurface(:)
-         rd_cr_magn(:,ia)= magn_mom(:)
+         rd_cr_valu(  ia)= at_value
          rd_cr_mole(  ia)= iin_mole(1)
       ENDIF
    ENDDO

@@ -16,7 +16,7 @@ integer, parameter :: SUP_USER = 4
 integer                                             :: sup_nwaves  = 1  ! Number of simultaneous waves
 integer                                             :: sup_ngroups = 1  ! Number of pseudo atom groups
 integer                                             :: sup_current = 1  ! Current wave number
-character(len=PREC_STRING)                          :: sup_file   ! Input file
+character(len=PREC_STRING), dimension(:), allocatable:: sup_file   ! Input file
 integer           , dimension(:)      , allocatable :: sup_group  ! Current group of pseudoatoms @ current wave
 character(len=4)  , dimension(:,:,:,:), allocatable :: sup_atom   ! "Atom" name
 !haracter(len=4)  , dimension(:,:)    , allocatable :: sup_repl   ! Replace site by this atom type

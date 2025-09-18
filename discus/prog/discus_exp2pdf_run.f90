@@ -336,11 +336,12 @@ if(.not. exp_comp_current) then     ! We cannot use current structure
       cr_prop(i)    = 1
       cr_mole(i)    = 0
       cr_surf(:,i)  = 0
-      cr_magn(:,i)  = 0.0
+      cr_magn(:,i)  = 0.0_PREC_DP
+      cr_valu(  i)  = 0.0_PREC_DP
       cr_iscat(1,i)   = i
       cr_at_lis(i)(1:2)  = exp_atname(i)(1:2)
       cr_scat_equ (i) = .false.
-      cr_dw(i)      = 0.0
+      cr_dw(i)      = 0.0_PREC_DP
       cr_occ(i)     = exp_atocc(i)/occ
 !
    enddo
@@ -349,11 +350,11 @@ if(.not. exp_comp_current) then     ! We cannot use current structure
    cr_dim = 0.0
    cr_dim(1,1) = cr_pos(1,1)
    cr_dim(1,2) = cr_pos(1, cr_natoms)
-   cr_dim(2,1) = 0.0
-   cr_dim(2,2) = 1.0
-   cr_dim(3,1) = 0.0
-   cr_dim(3,2) = 1.0
-   rlambda = 0.1
+   cr_dim(2,1) = 0.0_PREC_DP
+   cr_dim(2,2) = 1.0_PREC_DP
+   cr_dim(3,1) = 0.0_PREC_DP
+   cr_dim(3,2) = 1.0_PREC_DP
+   rlambda = 0.1_PREC_DP
    lambda = ' '
    l_energy = .false.
    chem_period(:) = .FALSE.    ! Turn off periodic boundary
@@ -364,21 +365,21 @@ if(exp_radiation=='xray') then
    lxray = .true.
    diff_radiation = RAD_XRAY
    diff_table = RAD_WAAS
-   rlambda = 0.1
+   rlambda = 0.1_PREC_DP
    lambda = ' '
    l_energy = .false.
 elseif(exp_radiation=='electron') then
    lxray = .true.
    diff_radiation = RAD_ELEC
    diff_table = RAD_INTER
-   renergy  = 200.000
+   renergy  = 200.000_PREC_DP
    lambda   = ' '
    l_energy = .true.
 elseif(exp_radiation=='neutron') then
    lxray = .false.
    diff_radiation = RAD_NEUT
    diff_table = RAD_INTER
-   rlambda = 0.1
+   rlambda = 0.1_PREC_DP
    lambda = ' '
    l_energy = .false.
 endif
@@ -403,8 +404,8 @@ pow_period   = 0.00D0
 pow_lperiod  = .FALSE.
 pow_pref     = .false.
 pow_profile  = 0
-pow_delta    = 0.0
-pow_eta      = 0.5
+pow_delta    = 0.0_PREC_DP
+pow_eta      = 0.5_PREC_DP
 pow_scale    = 1.0D0
 pow_four_type= POW_DEBYE
 pow_lp       = POW_LP_NONE

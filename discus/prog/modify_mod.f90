@@ -329,6 +329,7 @@ use precision_mod
       INTEGER  :: ip, jp    ! property values
       INTEGER, DIMENSION(0:3) :: iis, jjs ! Surface values
       REAL(kind=PREC_DP)   , DIMENSION(0:3) :: ris, rjs ! Magnetic moments
+real(kind=PREC_DP) :: at_value_i, at_value_j
       REAL(kind=PREC_DP) :: i0pos (3), j0pos (3), ipos (3) 
       LOGICAL lswap 
 !                                                                       
@@ -367,6 +368,8 @@ use precision_mod
       jjs(:) = cr_surf (:,jj)
       ris(:) = cr_magn (:,ii)
       rjs(:) = cr_magn (:,jj)
+      at_value_i = cr_valu(ii)
+      at_value_j = cr_valu(jj)
       ip = cr_prop (ii) 
       jp = cr_prop (jj) 
 !                                                                       
@@ -374,6 +377,8 @@ use precision_mod
 !     cr_mole (ii) = jm 
       cr_surf(:,ii)= jjs(:)
       cr_magn(:,ii)= rjs(:)
+      cr_valu(ii) = at_value_j
+      cr_valu(jj) = at_value_i
       cr_prop (ii) = jp 
       DO i = 1, 3 
       ipos (i) = cr_pos (i, ii) 
@@ -385,6 +390,7 @@ use precision_mod
 !        cr_mole (jj) = im 
          cr_surf(:,jj)= iis(:)
          cr_magn(:,jj)= ris(:)
+         cr_valu(  jj)= at_value_i
          cr_prop (jj) = ip 
          DO i = 1, 3 
          cr_pos (i, jj) = ipos (i) - i0pos (i) + j0pos (i) 
@@ -823,7 +829,8 @@ IF (cr_natoms.lt.NMAX) then
       cr_pos (3, cr_natoms) = werte (4) 
       cr_mole (cr_natoms) = 0 
       cr_surf (:,cr_natoms) = 0
-      cr_magn (:,cr_natoms) = 0.0
+      cr_magn (:,cr_natoms) = 0.0_PREC_DP
+      cr_valu (  cr_natoms) = 0.0_PREC_DP
       cr_prop (cr_natoms) = 0 
       cr_prop (cr_natoms)  = ibset (cr_prop (cr_natoms),  PROP_NORMAL) 
       DO l = 1, 3 
@@ -1156,6 +1163,7 @@ IF (ndel.ne.0) then
       cr_mole (i) = cr_mole (ii) 
       cr_surf(:,i)= cr_surf(:,ii) 
       cr_magn(:,i)= cr_magn(:,ii) 
+      cr_valu(  i)= cr_valu(  ii) 
       cr_prop (i) = cr_prop (ii) 
    ENDDO 
    cr_natoms = cr_natoms - ndel 
@@ -1409,6 +1417,7 @@ use precision_mod
             cr_mole (ii) = cr_mole (ii + 1) 
             cr_surf(:,ii)= cr_surf (:,ii + 1) 
             cr_magn(:,ii)= cr_magn (:,ii + 1) 
+            cr_valu(  ii)= cr_valu (  ii + 1) 
             cr_prop (ii) = cr_prop (ii + 1) 
             ENDDO 
             idel = idel + 1 
@@ -1650,6 +1659,7 @@ USE str_comp_mod
       INTEGER i, j, ianz, lp, is 
       INTEGER, DIMENSION(0:3) :: iis
       REAL(kind=PREC_DP)   , DIMENSION(0:3) :: ris
+real(kind=PREC_DP) :: at_value
 !                                                                       
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
@@ -1699,6 +1709,9 @@ USE str_comp_mod
             ris(:)         = cr_magn (:,i)
             cr_magn (:,i)  = cr_magn (:,j)
             cr_magn (:,j)  = ris(:)
+            at_value       = cr_valu (  i)
+            cr_valu (  i)  = cr_valu (  j)
+            cr_valu (  j)  = at_value
          ELSE 
             ier_num = - 19 
             ier_typ = ER_APPL 

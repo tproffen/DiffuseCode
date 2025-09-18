@@ -655,6 +655,7 @@ integer, dimension(  :), allocatable ::  tmp_prop   ! (  1:NMAX)  !Property flag
 integer, dimension(  :), allocatable ::  tmp_mole   ! (  1:NMAX)  !Atom is in this molecule
 integer, dimension(:,:), allocatable ::  tmp_surf   ! (  1:NMAX)  !Atom is on this surface 
 real(kind=PREC_DP)   , dimension(:,:), allocatable ::  tmp_magn   ! (  1:NMAX)  !Magnetic moment 
+real(kind=PREC_DP)   , dimension(  :), allocatable ::  tmp_valu   ! (  1:NMAX)  !Magnetic moment 
 real(kind=PREC_DP)   , dimension(:,:), allocatable ::  tmp_pos    ! (3,1:NMAX)  !Atom coordinates
 !           
 eps = 2.5
@@ -693,6 +694,7 @@ allocate(tmp_prop (     1:natoms))
 allocate(tmp_mole (     1:natoms))
 allocate(tmp_surf (0:3, 1:natoms))
 allocate(tmp_magn (0:3, 1:natoms))
+allocate(tmp_valu (     1:natoms))
 allocate(tmp_pos  (3  , 1:natoms))
 !
 tmp_iscat  = -1                        ! Initialize with an error flag
@@ -800,6 +802,7 @@ do m=1, nprior
          tmp_mole (   k) = cr_mole (   m)
          tmp_surf (:, k) = cr_surf (:, m)
          tmp_magn (:, k) = cr_magn (:, m)
+         tmp_valu (   k) = cr_valu (   m)
          tmp_pos  (:, k) = cr_pos  (:, m)
          cr_iscat(1,m) = -1                     ! Flag as done
            n = n + 1
@@ -891,12 +894,14 @@ cr_prop  = 0
 cr_mole  = 0
 cr_surf  = 0
 cr_magn  = 0.0
+cr_valu  = 0.0
 cr_pos   = 0.0
 cr_iscat(1,1:natoms) = tmp_iscat(  1:natoms)
 cr_prop (  1:natoms) = tmp_prop (  1:natoms)
 cr_mole (  1:natoms) = tmp_mole (  1:natoms)
 cr_surf (:,1:natoms) = tmp_surf (:,1:natoms)
 cr_magn (:,1:natoms) = tmp_magn (:,1:natoms)
+cr_valu (  1:natoms) = tmp_valu (  1:natoms)
 cr_pos  (:,1:natoms) = tmp_pos  (:,1:natoms)
 cr_natoms = natoms
 !
@@ -947,6 +952,7 @@ deallocate(tmp_prop )
 deallocate(tmp_mole )
 deallocate(tmp_surf )
 deallocate(tmp_magn )
+deallocate(tmp_valu )
 deallocate(tmp_pos  )
 !
 end subroutine map_to_aver

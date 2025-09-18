@@ -564,6 +564,7 @@ DO k = 1, cr_icc (3)
             cr_prop (cr_natoms) = cr_prop (n)
             cr_surf(:,cr_natoms) = cr_surf(:,n)
             cr_magn(:,cr_natoms) = cr_magn(:,n)
+            cr_valu(  cr_natoms) = cr_valu(  n)
          ENDDO 
       ENDDO 
    ENDDO 
@@ -853,7 +854,7 @@ ENDIF
 !
 CALL readstru(NMAX, MAXSCAT, MAXMASK, strucfile, cr_name,        &
               cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_anis,   &
-              cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_ianis, &
+              cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_valu, cr_iscat, cr_ianis, &
               cr_prop, cr_dim, cr_magnetic, as_natoms, &
               as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
               sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, uni_mask)        
@@ -1394,6 +1395,7 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
          werte (5) = 1.0 
          cr_surf(:,cr_natoms+1) = 0
          cr_magn(:,cr_natoms+1) = 0.0_PREC_DP
+         cr_valu(  cr_natoms+1) = 0.0_PREC_DP
          as_natoms = as_natoms + 1 
          call get_atom_werte(as_natoms, MAXW, werte)
 !                  CALL read_atom_line (line, ibl, lline, as_natoms, MAXW, werte, &
@@ -1429,6 +1431,7 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
          ENDDO 
          cr_surf(0:3,i) = NINT(werte(9:12))
          cr_magn(0:3,i) = 0.0_PREC_DP ! (werte(19:12)) MAGNETIC_WORK
+         cr_valu(    i) = 0.0_PREC_DP ! (werte(19:12))    VALUE_WORK
          dw1 = werte (4) 
          occ1 = werte(8)                       ! WORK OCC
          IF(mole_l_on) THEN
@@ -1439,6 +1442,7 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
          cr_prop (i) = NINT(werte(5) ) 
          cr_surf(:,i) = 0                      ! Currently no save nor read for surface
          cr_magn(:,i) = 0.0_PREC_DP !werte(19:22)           ! Read for MAGNETIC_WORK
+         cr_valu(  i) = 0.0_PREC_DP !werte(19:22)           ! Read for    VALUE_WORK
          IF(MAXVAL(ABS(werte(13:16)))> 0.0) cr_magnetic = .TRUE.  ! Crystal has magnetic atoms
 !                                                                       
       j = -1             ! Default to type not found
@@ -1977,7 +1981,7 @@ END SUBROUTINE struc_mole_header
       SUBROUTINE readstru (NMAX, MAXSCAT, MAXMASK, strucfile, cr_name, cr_spcgr, &
       cr_set,                                                           &
       cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_anis, cr_at_lis, cr_pos,     &
-      cr_mole, cr_surf, cr_magn,                                        &
+      cr_mole, cr_surf, cr_magn, cr_valu,                               &
       cr_iscat, cr_ianis, cr_prop, cr_dim, cr_magnetic,                           &
       as_natoms, as_at_lis, as_dw, as_pos,   &
       as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,           &
@@ -2012,6 +2016,7 @@ REAL(kind=PREC_DP), DIMENSION(1:3,1:NMAX), INTENT(out  ) :: cr_pos
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_mole
 INTEGER           , DIMENSION(0:3,1:NMAX), INTENT(out  ) :: cr_surf
 REAL(kind=PREC_DP), DIMENSION(0:3,1:NMAX), INTENT(out  ) :: cr_magn
+REAL(kind=PREC_DP), DIMENSION(    1:NMAX), INTENT(out  ) :: cr_valu
 INTEGER           , DIMENSION(3,1:NMAX),     INTENT(out  ) :: cr_iscat
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_ianis
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_prop
@@ -2063,7 +2068,7 @@ REAL(kind=PREC_DP), dimension(0:MAXSCAT) :: as_occ(0:MAXSCAT)
 !                                                                       
             CALL struc_read_atoms (NMAX, MAXSCAT, MAXMASK, cr_natoms, cr_nscat,  &
             cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_ianis, cr_mole, cr_surf, &
-            cr_magn, cr_prop, cr_dim, cr_magnetic, &
+            cr_magn, cr_valu, cr_prop, cr_dim, cr_magnetic, &
             as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop, &
             AT_MAXP, at_ianz, at_param, uni_mask)     
          else
@@ -2650,7 +2655,7 @@ sym_add_n = 0
 !
 subroutine struc_read_atoms (NMAX, MAXSCAT, MAXMASK, cr_natoms, cr_nscat,        &
       cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_ianis, cr_mole, cr_surf,     &
-      cr_magn, cr_prop, cr_dim, cr_magnetic,                            &
+      cr_magn, cr_valu, cr_prop, cr_dim, cr_magnetic,                            &
       as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop,   &
       AT_MAXP, at_ianz, at_param, uni_mask)                      
 !-                                                                      
@@ -2687,6 +2692,7 @@ INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_ianis
 INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_mole 
 INTEGER           , DIMENSION(0:3,1:NMAX) , INTENT(INOUT) :: cr_surf
 REAL(kind=PREC_DP), DIMENSION(0:3,1:NMAX) , INTENT(INOUT) :: cr_magn
+REAL(kind=PREC_DP), DIMENSION(    1:NMAX) , INTENT(INOUT) :: cr_valu
 INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_prop
 REAL(kind=PREC_DP), DIMENSION(3, 2)       , INTENT(INOUT) :: cr_dim      ! (3, 2) 
 LOGICAL                                   , INTENT(INOUT) :: cr_magnetic
@@ -2792,6 +2798,7 @@ loop_main: do          ! Loop to read all atom lines
       cr_natoms = cr_natoms + 1 
       cr_surf(:,cr_natoms) = 0
       cr_magn(:,cr_natoms) = 0.0_PREC_DP
+      cr_valu(  cr_natoms) = 0.0_PREC_DP
       call get_atom_werte(cr_natoms, MAXW, werte)
       IF (ier_num.ne.0.and.ier_num.ne. - 49) THEN 
          exit loop_main
@@ -2815,6 +2822,7 @@ loop_main: do          ! Loop to read all atom lines
       cr_surf(0:3,i) = NINT(werte(9:12))          ! copy surface
 !     cr_anis_full(:,i) = werte(13:18)            ! Copy Uij
       cr_magn(0:3,i) = 0.0_PREC_DP! werte(19:22)               ! MAGNETIC_WORK
+      cr_valu(    i) = 0.0_PREC_DP! werte(19:22)               !    VALUE_WORK
       IF(MAXVAL(ABS(werte(13:16)))>0.0) cr_magnetic = .TRUE.
       cr_prop (i) = nint (werte (5) ) 
 !
@@ -3167,6 +3175,7 @@ cr_nreal  = 0.0
       cr_mole(:)   = 0
       cr_surf(:,:) = 0
       cr_magn(:,:) = 0.0
+      cr_valu(  :) = 0.0
 !                                                                       
 !     DO i = 0, MOLE_MAX_MOLE 
       mole_len (:) = 0 
@@ -6512,6 +6521,7 @@ integer                   , dimension(:,:  ), allocatable :: atom_unit_cell   ! 
 integer                   , dimension(:    ), allocatable :: atom_site    ! Atom is on this site in its unit cell
 integer                   , dimension(:    ), allocatable :: atom_property  ! Atom has this property flag
 real(kind=PREC_DP)        , dimension(:,:  ), allocatable :: magnetic_spins ! Atom has these magnetic moments
+real(kind=PREC_DP)        , dimension(  :  ), allocatable :: at_value       ! Arbitrary atomic value
 logical                   , dimension(2,6)                :: crystal_flags  ! Flags 
 character(len=PREC_STRING), dimension(  5)                :: crystal_meta  ! Metadata
 type(anis_adp_type) :: anisotropic_adp
@@ -6636,6 +6646,8 @@ do i=1,number_of_atoms
    cr_pos(:,i)   = atom_pos (:,i)
    cr_prop(i)    = atom_property(i)
    cr_magn(:,i)  = magnetic_spins(:,i)
+!  cr_valu(  i)  = at_value      (  i)
+   cr_valu(  i)  = 0.0_PREC_DP   ! at_values(i)  VALUES_WORK !
 enddo
 !
 if(molecules%number_moles>0) then     ! Structure contains molecules
@@ -7857,7 +7869,7 @@ call prep_anis(cr_natoms, l_not_full)
 !enddo
 !write(*,*) ' 8431 '
 !read(*,*) im
-
+!write(*,*) ' in readcell_mole', mole_num_mole, mole_num_type, mole_num_atom
 !
 ! Shift molecules such that the first atom has coordinates [0:1[
 !
@@ -7896,6 +7908,7 @@ CALL save_internal(tempfile)
 CALL no_error
 cr_icc(:) = n_unit_cells(:)         ! Restore intended number of unit cells
 CALL readcell_internal(MAXMASK, tempfile, uni_mask)
+!write(*,*) ' in readcell_mole', mole_num_mole, mole_num_type, mole_num_atom
 CALL save_restore_setting
 CALL store_remove_single(tempfile, ier_num)
 !

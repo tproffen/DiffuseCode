@@ -956,7 +956,7 @@ loop_atoms: DO i = i_start, i_end
       wr_mole = 0
       wr_cont = 0
       wr_surf(:) = 0
-      wr_magn(:) = 0.0
+      wr_magn(:) = 0.0_PREC_DP
       IF(sav_w_prop) wr_prop = cr_prop(i)
       IF (sav_w_mole .OR. sav_w_doma .OR. sav_w_obje) THEN 
          IF(active_domain) THEN
@@ -992,7 +992,8 @@ loop_atoms: DO i = i_start, i_end
          ENDIF
       ENDIF
       IF(sav_w_surf) wr_surf(0:3) = cr_surf(0:3,i)
-      IF(sav_w_magn) wr_surf(0:3) = nint(cr_magn(0:3,i))   ! MAGNETIC_WORK
+      IF(sav_w_magn) wr_magn(0:3) = nint(cr_magn(0:3,i))   ! MAGNETIC_WORK
+!     IF(sav_w_valu) wr_valu      = nint(cr_valu(    i))   ! VALUE_WORK
       WRITE (ist, 4) cr_at_lis (cr_iscat (1,i) ),         &
                      (cr_pos (j, i),j = 1, 3),          &
                      cr_dw (cr_iscat (1,i) ), wr_prop,    &
@@ -1015,7 +1016,7 @@ DEALLOCATE(lwrite)
 !                                                                       
  3000 FORMAT    ('title ',a) 
  3010 FORMAT    ('spcgr ',a16, ', setting:',a3)
- 3011 FORMAT    ('spcgr ',a16,',',i4, ', setting:',a3) 
+ 3011 FORMAT    ('spcgr ',a16,',',' origin:',i4, ', setting:',a3) 
  3020 FORMAT    ('cell  ',5(f10.6,','),f10.6) 
  3021 FORMAT    ('gene  ',12(f9.6,','),i3) 
  3022 FORMAT    ('symm  ',12(f9.6,','),i3) 

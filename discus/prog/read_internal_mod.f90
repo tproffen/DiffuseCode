@@ -212,6 +212,7 @@ INTEGER           , dimension(3)         :: itype      ! type of current atom
 REAL(kind=PREC_DP), dimension(3)         :: posit      ! position of current atom
 INTEGER, DIMENSION(0:3)       :: isurface   ! surface  of current atom
 REAL(kind=PREC_DP), DIMENSION(0:3)       :: magn_mom   ! Magnetic moment
+REAL(kind=PREC_DP)                       :: at_value   ! Arbitrary atomic value
 INTEGER                       :: iprop      ! property of current atom
 REAL(KIND=PREC_DP), DIMENSION(5)         :: werte      ! temporary array
 !
@@ -307,6 +308,7 @@ call alloc_anis(nanis)
 !   ENDIF
 !ENDIF
 !  Allocate space for molecules
+!write(*,*) ' READ_INTERNAL ', n_mole, n_type, n_atom
 found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
    need_alloc = .false.
    IF ( MOLE_MAX_MOLE < n_mole*spc_n ) THEN
@@ -377,6 +379,7 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
            temp_num_atom, temp_len, temp_off, temp_type, temp_char,    &
            temp_file, temp_dens, temp_biso, temp_clin, temp_cqua,    &
            temp_fuzz, temp_cont)
+!write(*,*) ' GOT_MOLECULES ', ier_num, ier_typ, temp_num_mole
 !
 !  Build lookup table for original molecules
 !
@@ -416,7 +419,7 @@ temp_inmole = 0
 main: do ia = 1, natoms
    werte    = 0.0
    cr_natoms = cr_natoms + 1
-   CALL read_temp%crystal%get_cryst_atom ( ia, itype, posit, iprop, isurface, magn_mom, iin_mole)
+   CALL read_temp%crystal%get_cryst_atom ( ia, itype, posit, iprop, isurface, magn_mom, at_value, iin_mole)
 !write(*,'(a,4i4, 3f8.3, 2i4)') ' GOT ATOM ', ia, itype, posit, iin_mole
    CALL read_temp%crystal%get_cryst_scat ( ia, itype, at_name , dw1, occ1  )
    mole_exist: if(n_mole > 0) THEN
@@ -520,6 +523,7 @@ main: do ia = 1, natoms
 !  endif
    cr_surf(:,cr_natoms) = isurface               ! set the property flag
    cr_magn(:,cr_natoms) = magn_mom               ! set magnetic vector
+   cr_valu(  cr_natoms) = at_value               ! set arbitrary value
    cr_prop (cr_natoms) = iprop                 ! set the property flag
    j = mole_num_mole                           ! temporarily store number of molecules
    i = cr_natoms
@@ -532,6 +536,7 @@ main: do ia = 1, natoms
       enddo
    endif
 ENDDO main
+!write(*,*) ' DID MAIN      ', ier_num, ier_typ, mole_num_mole, mole_num_type, mole_num_atom
 !
 !
 CALL no_error 
@@ -561,8 +566,10 @@ DO i = 1, cr_natoms
    ENDDO 
 !write(*,'(a, 5i4)') ' ATOM, mol ', i, cr_iscat(1,i), cr_mole(i), temp_inmole(i), cr_iscat(2,i)
 ENDDO 
+!write(*,*) ' Do  build mole', ier_num, ier_typ, mole_num_mole, mole_num_type, mole_num_atom
 call do_build_molecule(cr_natoms, cr_iscat, cr_pos, cr_mole,                    &
      ubound(temp_inmole,1), temp_inmole, SPC_MAX, spc_table)
+!write(*,*) ' DID build mole', ier_num, ier_typ, mole_num_mole, mole_num_type, mole_num_atom
 !
 !  move first unit cell into lower left corner of crystal          
 !
@@ -751,7 +758,7 @@ end subroutine stru_get_atlis
 !
    SUBROUTINE struc_read_atoms_internal(strucfile, RD_NMAX, &
               rd_cr_natoms, rd_cr_pos, rd_cr_iscat, rd_cr_prop, &
-              rd_cr_surf, rd_cr_magn, rd_cr_mole )
+              rd_cr_surf, rd_cr_magn, rd_cr_valu, rd_cr_mole )
 !
 !  This subroutine adds all atoms from the internal storage to the local
 !  crystal rd_cr_pos. The number of atoms cr_natoms is incremented accordingly
@@ -769,6 +776,7 @@ use precision_mod
    INTEGER             , DIMENSION(3,1:RD_NMAX) , INTENT(INOUT) :: rd_cr_iscat
    INTEGER             , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT) :: rd_cr_surf
    REAL(kind=PREC_DP)  , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT) :: rd_cr_magn
+   REAL(kind=PREC_DP)  , DIMENSION(    1:RD_NMAX),INTENT(INOUT) :: rd_cr_valu
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_prop
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_mole
 !
@@ -791,6 +799,7 @@ integer                       :: dim_n_atom
    REAL(kind=PREC_DP), DIMENSION(3)         :: posit
    INTEGER, DIMENSION(0:3)       :: isurface
    REAL(kind=PREC_DP)   , DIMENSION(0:3)       :: magn_mom
+   REAL(kind=PREC_DP)                          :: at_value
    INTEGER, DIMENSION(1:2)       :: iin_mole
    INTEGER                       :: iprop
 !
@@ -808,7 +817,7 @@ integer                       :: dim_n_atom
 !  CALL readstru_size_int(strucfile, natoms, ncatoms, &           ! Get the number of atoms
 !             nscat, nanis, n_mole, n_type, n_atom)
    DO i=1,natoms
-      CALL read_temp%crystal%get_cryst_atom(i, itype, posit, iprop, isurface, magn_mom, iin_mole)
+      CALL read_temp%crystal%get_cryst_atom(i, itype, posit, iprop, isurface, magn_mom, at_value, iin_mole)
       rd_cr_natoms = rd_cr_natoms + 1
       rd_cr_pos(1,rd_cr_natoms) = posit(1)
       rd_cr_pos(2,rd_cr_natoms) = posit(2)
@@ -816,6 +825,7 @@ integer                       :: dim_n_atom
       rd_cr_iscat(:,rd_cr_natoms) = itype(:)
       rd_cr_prop (rd_cr_natoms) = iprop 
       rd_cr_magn(:,rd_cr_natoms) = magn_mom
+      rd_cr_valu(  rd_cr_natoms) = at_value
       rd_cr_mole (rd_cr_natoms) = iin_mole(1) 
    ENDDO
 !
@@ -823,7 +833,7 @@ integer                       :: dim_n_atom
 !*******************************************************************************
    SUBROUTINE struc_read_one_atom_internal(strucfile, iatom,  &
               rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, &
-              rd_cr_magn, rd_cr_mole, rd_cr_moleatom )
+              rd_cr_magn, rd_cr_valu, rd_cr_mole, rd_cr_moleatom )
 !
 !  This subroutine reads just atom "iatom" from the internal storage.
 !  The atom is copied into internal storage
@@ -839,6 +849,7 @@ use precision_mod
    INTEGER                            , INTENT(INOUT) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3),INTENT(INOUT) :: rd_cr_surf
    REAL(kind=PREC_DP)  , DIMENSION(0:3),INTENT(INOUT) :: rd_cr_magn
+   REAL(kind=PREC_DP)                  ,INTENT(INOUT) :: rd_cr_valu
    INTEGER                             ,INTENT(INOUT) :: rd_cr_mole
    INTEGER                             ,INTENT(INOUT) :: rd_cr_moleatom
 !
@@ -875,7 +886,7 @@ integer                       :: dim_n_atom
    IF ( iatom <= natoms ) THEN
       i = iatom
       CALL read_temp%crystal%get_cryst_atom(i, rd_cr_iscat, rd_cr_pos, &
-           rd_cr_prop, rd_cr_surf, rd_cr_magn, iin_mole)
+           rd_cr_prop, rd_cr_surf, rd_cr_magn, rd_cr_valu, iin_mole)
       rd_cr_mole     = iin_mole(1)
       rd_cr_moleatom = iin_mole(2)
    ELSE

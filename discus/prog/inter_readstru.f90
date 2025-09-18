@@ -53,6 +53,7 @@ INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_prop   ! (1:NMAX)
 INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_mole   ! (1:NMAX)
 INTEGER             , DIMENSION(:,:), ALLOCATABLE :: rd_cr_surf   ! (1:NMAX)
 REAL(kind=PREC_DP)  , DIMENSION(:,:), ALLOCATABLE :: rd_cr_magn   ! (1:NMAX)
+real(kind=PREC_DP)  , dimension(  :), allocatable :: rd_cr_valu   ! (1:NMAX)
 REAL(kind=PREC_DP)  , DIMENSION(3,2)  :: rd_cr_dim
 REAL(kind=PREC_DP)  , DIMENSION(3,2)  :: rd_cr_dim0
 INTEGER                               :: rd_as_natoms 

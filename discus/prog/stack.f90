@@ -1547,6 +1547,7 @@ DO i=1,st_nlayer
    cr_mole (  i) = 0
    cr_surf (:,i) = 0
    cr_magn (:,i) = 0
+   cr_valu (  i) = 0
    cr_prop (  i) = 1
 ENDDO
 mole_num_mole = 0
@@ -2095,7 +2096,7 @@ more1: IF (st_nlayer.ge.1) then
          j = st_natoms    ! Use value from header for array size
          st_natoms = 0
          CALL struc_read_atoms_internal (st_layer(st_type(i)),j,&
-                     st_natoms, st_pos, st_iscat, st_prop, st_surf, st_magn, st_mole)
+                     st_natoms, st_pos, st_iscat, st_prop, st_surf, st_magn, st_valu, st_mole)
          CLOSE (ist) 
          IF (ier_num.ne.0) then 
             RETURN 
@@ -2172,6 +2173,7 @@ more1: IF (st_nlayer.ge.1) then
          cr_prop (iatom-1+j) = st_prop(j)
          cr_surf (:,iatom-1+j) = 0                   ! Not on a surface
          cr_magn (:,iatom-1+j) = st_magn(:,j)
+         cr_valu (  iatom-1+j) = st_valu(  j)
          cr_mole (  iatom-1+j) = 0 !st_mole(  j)        ! MOLECULE NEEDS WORK
          DO k = 1, 3 
             cr_pos (k, iatom-1+j) = st_pos (k, j) + st_origin (k, i) 
@@ -2322,6 +2324,7 @@ if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
          cr_mole (  j   ) = cr_mole (  j+ndel)
          cr_surf (:,j   ) = cr_surf (:,j+ndel)
          cr_magn (:,j   ) = cr_magn (:,j+ndel)
+         cr_valu (  j   ) = cr_valu (  j+ndel)
          cr_prop (  j   ) = cr_prop (  j+ndel)
       endif
       j = j + 1                               ! Test next atom
@@ -3365,7 +3368,7 @@ sa_natoms     = 0
             st_SYM_ADD_MAX, st_sym_add_n, st_sym_add_power, st_sym_add )
    call struc_read_atoms_internal(st_infile, st_MMAX, &
             st_natoms, st_pos, st_iscat, st_prop, &
-            st_surf, st_magn, st_mole )
+            st_surf, st_magn, st_valu, st_mole )
 ELSE
    ier_num = -182
    ier_typ = ER_APPL

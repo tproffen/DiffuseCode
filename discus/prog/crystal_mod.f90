@@ -132,6 +132,7 @@ INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_prop   ! (  1:NMAX)  !Property flag
 INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_mole   ! (  1:NMAX)  !Atom is in this molecule
 INTEGER, DIMENSION(:,:), ALLOCATABLE ::  cr_surf   ! (  1:NMAX)  !Atom is on this surface 
 REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE ::  cr_magn   ! (  1:NMAX)  !Magnetic moment 
+real(kind=PREC_DP)   , DIMENSION(  :), allocatable ::  cr_valu   ! (  1:NMAX)  !(Arbitrary) atomic value
 !
 REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE ::  cr_pos    ! (3,1:NMAX)  !Atom coordinates
 !

@@ -51,7 +51,7 @@ loop_main: do while (.not.lend)                 ! Main super loop
             IF(sprompt /= prompt ) THEN
                ier_num = -10
                ier_typ = ER_COMM
-               ier_msg(1) = ' Error occured in exp2pdf menu'
+               ier_msg(1) = ' Error occured in superspace menu'
                prompt_status = PROMPT_ON
                prompt = orig_prompt
                RETURN
@@ -222,7 +222,7 @@ integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
-integer, parameter                        :: ncalc = 2 ! Number of values to calculate 
+integer, parameter                        :: ncalc = 3 ! Number of values to calculate 
 !
 data oname  / 'current', 'group', 'up'   , 'phase' , 'site' , 'pseudo', 'character', 'function', 'displacement',    &
               'replace', 'file' , 'qvec'  , 'amp'      , 'vec'     , 'number'      ,    &
@@ -245,7 +245,7 @@ call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 !
 if(lpresent(O_FILE)) then   ! Set file:
-   sup_file = opara(O_FILE)
+   sup_file(sup_current) = opara(O_FILE)
    return
 endif
 !
@@ -595,25 +595,6 @@ interface
   end function sup_fun_gen 
 end interface
 !
-!interface
-!  real(kind=kind(1.0_D0)) function sup_fun_sine(amp, amp0, arg1)
-!  USE precision_mod
-!  real(kind=PREC_DP), intent(in) :: amp
-!  real(kind=PREC_DP), intent(in) :: amp0
-!  real(kind=PREC_DP), intent(in) :: arg1
-!  real(kind=PREC_DP), intent(in) :: arg2
-!  end function sup_fun_sine
-!end interface
-!
-!interface
-!  real(kind=PREC_DP    ) function sup_fun_cren(amp, amp0, arg1, arg2)
-!  USE precision_mod
-!  real(kind=PREC_DP), intent(in) :: amp
-!  real(kind=PREC_DP), intent(in) :: amp0
-!  real(kind=PREC_DP), intent(in) :: arg1
-!  real(kind=PREC_DP), intent(in) :: arg2
-!  end function sup_fun_cren
-!end interface
 !
 PROCEDURE(sup_fun_gen   )   , POINTER :: p_sub_function   => NULL()
 !
@@ -635,7 +616,8 @@ integer  :: n_type     ! Number of molecule types
 integer  :: n_atom     ! Total number of atoms in molecules
 !
 integer  :: current  ! Current wave
-integer, dimension(sup_ngroups) :: group_iscat
+integer, dimension(sup_ngroups, sup_nwaves) :: group_iscat
+real(kind=PREC_DP), dimension(sup_ngroups, sup_nwaves) :: group_value
 integer  :: iatom  ! Dummy atom number from "super file"
 integer  :: katom  ! Dummy atom number from "super file"
 integer  :: jatom  ! Dummy atom number from  crystal structure
@@ -651,12 +633,13 @@ integer               :: ig    ! group counter
 integer               :: istep ! Number of crystal atoms per pseudo atom
 real(kind=PREC_DP)    :: xstep ! Number of crystal atoms per pseudo atom
 !
-character(len=4), dimension(:), allocatable :: rd_at_lis
+character(len=4), dimension(:,:), allocatable :: rd_at_lis
 REAL(kind=PREC_DP)  , DIMENSION(3)  :: rd_cr_pos
 INTEGER             , dimension(3)  :: rd_cr_iscat
 INTEGER                             :: rd_cr_prop
 INTEGER             , DIMENSION(0:3):: rd_cr_surf
 REAL(kind=PREC_DP)  , DIMENSION(0:3):: rd_cr_magn
+real(kind=PREC_DP)                  :: rd_cr_valu
 INTEGER                             :: rd_cr_mole
 INTEGER                             :: rd_cr_moleatom
 !
@@ -678,16 +661,20 @@ do iatom=1, cr_ncatoms
       rep_ampl(2,iatom, current) = (sup_prob(2,iatom, current) + sup_prob(1,iatom, current))*0.5_PREC_DP ! Average
    enddo
 enddo
+current = 1
 !
 !  Read list of pseudo atoms
 !
-call readstru_size_int(sup_file, dim_natoms, dim_ncatoms,      &
+call readstru_size_int(sup_file(current), dim_natoms, dim_ncatoms,      &
      dim_nscat, dim_nanis, dim_n_mole, dim_n_type, dim_n_atom, &
      natoms, ncatoms, nscat, nanis, n_mole, n_type, n_atom)
 !
 ! Get pseudo atom names 
-allocate(rd_at_lis(0:dim_nscat))
-call stru_get_atlis(sup_file, dim_nscat, rd_at_lis)
+allocate(rd_at_lis(0:dim_nscat, sup_nwaves))
+do current = 1, sup_nwaves
+   call stru_get_atlis(sup_file(current), dim_nscat, rd_at_lis(:,current))
+!write(*, *) ' RD_AT_LIS ', current  , ' :: ', rd_at_lis(:,current), ' >> ', sup_file(current)(1:len_trim(sup_file(current)))
+enddo
 !
 ! Determine steps:  Crystal atoms / Pseudo atoms / N_groups
 istep = 1
@@ -703,6 +690,9 @@ endif
 !write(*,*) ' GROUP 1:2, 1, 2, : ', sup_atom(1:2, 1, 2, sup_group(2))
 !write(*,*) ' GROUP 1:2, 2, 1, : ', sup_atom(1:2, 2, 1, sup_group(1))
 !write(*,*) ' GROUP 1:2, 2, 2, : ', sup_atom(1:2, 2, 2, sup_group(2))
+!write(sup_current)
+!write(*,*) ' Starting main loop', sup_file(sup_current)(1:len_trim(sup_file(sup_current)))
+!write(*,*) ' ATOMS             ', dim_natoms, sup_ngroups
 !
 !  Main loop
 !
@@ -710,13 +700,21 @@ loop_main: do iatom=1, dim_natoms, sup_ngroups
 !
 !  Read "pseudo atoms" from "super file"
 !
+!write(*,*) ' AT ATOM ', iatom
+!sup_current = 1
+   loop_current0: do current = 1, sup_nwaves
    do ig=1, sup_ngroups
       katom = iatom + ig - 1
-      call struc_read_one_atom_internal(sup_file, katom,  &
+      call struc_read_one_atom_internal(sup_file(current), katom,  &
                  rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, &
-                 rd_cr_magn, rd_cr_mole, rd_cr_moleatom )
-      group_iscat(ig) = rd_cr_iscat(1)
+                 rd_cr_magn, rd_cr_valu, rd_cr_mole, rd_cr_moleatom )
+      group_iscat(ig,current) = rd_cr_iscat(1)
+      group_value(ig,current) = rd_cr_valu
+!if(iatom==1) then
+!write(*,'(a, 4i6)') 'READ ATOM 1 ', current, iatom, katom, rd_cr_iscat(katom)
+!endif
    enddo
+   enddo loop_current0
    loop_cell: do jj=1, istep
       jatom = (iatom-1)*istep + jj
       call indextocell(jatom, ic, is)
@@ -730,31 +728,33 @@ loop_main: do iatom=1, dim_natoms, sup_ngroups
          if(sup_atom(1,is,current,sup_group(current))==' ') cycle loop_current   ! nothing defined for this current wave
             phase = 0.0_PREC_DP
 !GROUP   if(sup_atom(1,is, current, sup_group(sup_current))==rd_at_lis(rd_cr_iscat(1))) then
-         if(sup_atom(1,is, current, sup_group(current))==rd_at_lis(group_iscat(sup_group(current)))) then
+         if(sup_atom(1,is, current, sup_group(current))==rd_at_lis(group_iscat(sup_group(current),current),current)) then
             phase = 0.0_PREC_DP
+            phase = group_value(sup_group(current),current)
+!write(*,'(a, i10, f16.6)') ' AT ', jatom, phase
 !GROUP   elseif(sup_atom(2,is, current, sup_group(sup_current))==rd_at_lis(rd_cr_iscat(1))) then
-         elseif(sup_atom(2,is, current, sup_group(current))==rd_at_lis(group_iscat(sup_group(current)))) then
+         elseif(sup_atom(2,is, current, sup_group(current))==rd_at_lis(group_iscat(sup_group(current),current),current)) then
             phase = 0.5_PREC_DP
          endif
          do ii=1,3
          arg(ii) = (v(1)*sup_qvec(1, current) + v(2)*sup_qvec(2, current) + v(3)*sup_qvec(3, current) + &
                   sup_phase(ii,is, current)+ phase                             )!*zpi
          enddo
-!if(jatom<12) then
+!if(jatom<2) then
 ! write(*,'(3i5,12f8.3)') iatom, jatom, is, arg(1), sup_phase(1,is,current), sin(arg(1)), sup_ampl(2:3, 1,is,current), &
 ! arg(2), sup_phase(2,is,current), sin(arg(2)), sup_ampl(2:3, 2,is,current), v(1:2)
 !endif
-!if(iatom<=4) then
-!if(iatom<=200 .and. ic(2)==1 .and. ic(3)==1) then
+!if(iatom<=1) then
+!!if(iatom<=200 .and. ic(2)==1 .and. ic(3)==1) then
 !write(*,'(a, 3i4)') 'LOOP CELL', jj, current, sup_group(current)
 !write(*,'(a,i7,3f8.2, i3,1x, 2a5, i3, 2a6, 2(2x,3f8.3))') ' PSEUDO ',iatom, rd_cr_pos, &
-!  group_iscat(current), rd_at_lis(group_iscat(sup_group(current))),&
+!  group_iscat(1,current), rd_at_lis(group_iscat(sup_group(current),current), current),&
 !  ' HOST ', jatom, sup_atom(:,is,current, sup_group(current)), v, sup_qvec(:, current)
 !write(*,'(a,i7, 2(2a4,l3),3f10.4)')      ' sup_at ', is, &
-!  sup_atom(1,is,current, (sup_group(current))), rd_at_lis(group_iscat(sup_group(current))), &
-!  sup_atom(1,is,current, (sup_group(current)))==rd_at_lis(group_iscat(sup_group(current))), &
-!  sup_atom(2,is,current, (sup_group(current))), rd_at_lis(group_iscat(sup_group(current))), &
-!  sup_atom(2,is,current, (sup_group(current)))==rd_at_lis(group_iscat(sup_group(current))), &
+!  sup_atom(1,is,current, (sup_group(current))), rd_at_lis(group_iscat(sup_group(current),current), current), &
+!  sup_atom(1,is,current, (sup_group(current)))==rd_at_lis(group_iscat(sup_group(current),current), current), &
+!  sup_atom(2,is,current, (sup_group(current))), rd_at_lis(group_iscat(sup_group(current),current), current), &
+!  sup_atom(2,is,current, (sup_group(current)))==rd_at_lis(group_iscat(sup_group(current),current), current), &
 !  phase, sup_phase(1,is,current), arg(1)
 !endif
          select case(sup_func(is, current))
@@ -800,6 +800,7 @@ loop_main: do iatom=1, dim_natoms, sup_ngroups
 enddo loop_main
 !
 deallocate(rep_ampl)
+deallocate(rd_at_lis)
 !
 end subroutine super_run 
 !
@@ -831,7 +832,7 @@ data cfunc /'sine        ', 'crenel      ', 'triangle    ', 'User        '/
 !
 write(output_io,*)
 write(output_io, '(a )') ' Super space setting'
-write(output_io, '(2a)') ' Super space structure  : ', sup_file(1:len_trim(sup_file))
+write(output_io, '(2a)') ' Super space structure  : ', sup_file(sup_current)(1:len_trim(sup_file(sup_current)))
 loop_current: do current=1, sup_nwaves
    cond_show:if(any(sup_func(:, current)>0)) then
       write(string,'(3(f12.6:,'',''))') sup_qvec(:,current)
@@ -909,9 +910,70 @@ ig = 1
 !
 call alloc_super( is, ic, iw, ig)
 !
-sup_nwaves = 1
+sup_nwaves  = 0
+sup_ngroups = 1
+sup_current = 1
+
 
 end subroutine super_reset
+!
+!*******************************************************************************
+!
+subroutine super_set_value
+!-
+!  Set random phase values
+!
+use crystal_mod
+!
+use random_mod
+!
+implicit none
+!
+character(len=PREC_STRING) :: infile
+!
+cr_valu = ran(0)
+infile = 'initial_random.ni'
+call super_wrt_value(infile)
+!
+end subroutine super_set_value
+!
+!*******************************************************************************
+!
+subroutine super_wrt_value(infile)
+!-
+!  Write random phase values
+!
+use crystal_mod
+!
+use lib_write_mod
+use random_mod
+!
+implicit none
+!
+character(len=PREC_STRING), intent(in):: infile
+!
+character(len=PREC_STRING) :: string
+integer:: i,j, k
+real(kind=PREC_DP), dimension(:,:), allocatable :: field
+real(kind=PREC_DP), dimension(2) :: xmin
+real(kind=PREC_DP), dimension(2) :: xstep
+!
+allocate(field(cr_icc(1), cr_icc(2)))
+!
+k = 0
+do j=1, cr_icc(2)
+  do i=1,cr_icc(1)
+    k = k +1
+    field(i,j) = cr_valu(k)
+   enddo
+enddo
+string = infile
+xmin  = 0.0D0
+xstep = 1.0D0
+call tofile(cr_icc(1:2), string, field, xmin, xstep)
+deallocate(field)
+!
+end subroutine super_wrt_value
 !
 !*******************************************************************************
 !
