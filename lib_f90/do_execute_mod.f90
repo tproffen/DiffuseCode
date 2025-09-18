@@ -713,6 +713,7 @@ INTEGER, PARAMETER :: maxw = 3
 !                                                                       
 CHARACTER (len= * ) :: line 
 CHARACTER(MAX(PREC_STRING,LEN(line))) :: zeile, cpara (maxw) , cdummy
+CHARACTER(MAX(PREC_STRING,LEN(line))) :: line_expression  ! Dummy line for expressions
 INTEGER, dimension(MAXW) :: lpara !(maxw) 
 INTEGER :: ipos, ikp, ianz, level, laenge, lll 
 integer :: ianz_d, i 
@@ -720,6 +721,7 @@ INTEGER :: idummy
 INTEGER, DIMENSION(2) :: substr = (/0,VAR_CLEN/)    ! Dummy substring indices
 !     LOGICAL if_test 
 LOGICAL :: l_var 
+logical :: lexpr=.false.       ! Dummy for expressions
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP) :: wert
 !                                                                       
@@ -817,7 +819,7 @@ cond_main: IF (ipos.gt.0) then
                CALL upd_variable (line (4:ipos - 1), ipos - 4, wert,    &
                cpara (1), lpara (1), substr )
             ELSE 
-               CALL p_upd_para (line (4:ikp - 1), do_kpara, 1, wert, ianz_d, cdummy, substr)
+               CALL p_upd_para (line (4:ikp - 1), do_kpara, do_kpara, 1, .false., wert, ianz_d, cdummy, substr, lexpr, line_expression)
             ENDIF 
             IF (ier_num.ne.0) then 
                RETURN 

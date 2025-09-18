@@ -28,6 +28,8 @@ use variable_mod
 implicit none 
 !                                                                       
 integer, parameter :: maxw= 10 
+character(len=128)  :: CLOWER_LIMIT = '-2147483647  '  ! == -2**32
+character(len=128)  :: CUPPER_LIMIT = ' 2147483647  '  ! ==  2**32
 !
 character (len= * ), intent(INOUT) :: line 
 integer            , intent(IN)    :: indxg
@@ -36,10 +38,13 @@ integer            , intent(INOUT) :: length
 character(len=max(PREC_STRING,len(line))) :: zeile
 character(len=max(PREC_STRING,len(line))), dimension(maxw) :: cpara
 character(len=max(PREC_STRING,len(line)))                  :: string
+character(len=max(PREC_STRING,len(line)))                  :: line_expression
 !                                                                       
 integer, dimension(maxw)   :: lpara (maxw) 
-integer                    :: i, ikk, ianz, lll 
-integer, dimension(1:maxw) :: iii = 0
+integer                    :: i, j, ikk, ianz, lll 
+!integer, dimension(1:maxw) :: iii = 0
+integer, dimension(MAXW)   :: lower_limit     ! Lower limit for variable range 
+integer, dimension(MAXW)   :: upper_limit     ! Upper limit for variable range
 integer                    :: ising , indx_ind, indx_len, indx_env, indx_cwd
 integer                    :: indx_par, indx_isv, indx_ise, indx_fmd
 integer                    :: l_string 
@@ -49,9 +54,17 @@ integer                    :: indxpl ! Location of a substring '('
 integer                    :: indxpr ! Location of a substring ')'
 integer                    :: indxc  ! Location of a substring ':'
 integer, dimension(2)      :: substr ! Indices of substring
+!
+logical :: lrange = .false.
+logical :: lexpr = .false.
 !                                                                       
 real(kind=PREC_DP)    :: wert
 real(kind=PREC_DP), dimension(MAXW) :: werte
+!
+write(CLOWER_LIMIT, '(i128)') -huge(lower_limit)
+write(CUPPER_LIMIT, '(i128)')  huge(upper_limit)
+lrange = .FALSE.
+lexpr  = .FALSE.
 !                                                                       
 !     for flexibility                                                   
 !                                                                       
@@ -61,6 +74,13 @@ do while (ising.gt.0)
    ising = index (line, '''') 
 enddo 
 !                                                                       
+!write(*, '(a,a, l3)') ' CHAR LINE >', line(1:len_trim(line)), index(line(1:len_trim(line)),'EXPR')>0
+if(index(line(indxg+1:len_trim(line)),'EXPR')>0) then    ! something like ...= EXPR[index]
+   line_expression = line(indxg+7:len_trim(line))
+   lexpr           = .true.
+!write(*, '(a,a, l3)') ' EXPR_LINE >', line_expression(1:len_trim(line_expression)), lexpr
+!     call do_replace_expr(line, i)
+endif
 if(line(1:4)=='EXPR') then
   call do_set_expression (line, indxg, length) 
   return
@@ -189,16 +209,54 @@ if (ier_num.eq.0) then
                lll = i - ikk - 1 
                call get_params (zeile, ianz, cpara, lpara, maxw, lll)
                if (ier_num.eq.0) then 
-                  if (ianz.ge.1.or.ianz.le.3) then 
+                    lrange = .false.
+                     if(any(index(cpara(1:ianz),':')>0)) then    ! At least one ':'
+                        lrange = .true.
+                        do i = ianz, 1, -1          ! Loop over all possible dimensions
+                           j = index(cpara(i), ':')
+                           if(j>0) then
+                              if(j<lpara(i)) then
+                                 cpara(2*i) = cpara(i)(j+1:)
+                              else
+                                 cpara(2*i) = CUPPER_LIMIT
+                              endif
+                              if(j>1       ) then
+                                 cpara(2*i-1) = cpara(i)(1:j-1)
+                              else
+                                 cpara(2*i-1) = CLOWER_LIMIT
+                              endif
+                           else
+                              cpara(2*i  ) = cpara(i)
+                              cpara(2*i-1) = cpara(i)
+                           endif
+                           lpara(2*i  ) = len_trim(cpara(2*i  ))
+                           lpara(2*i-1) = len_trim(cpara(2*i-1))
+                        enddo
+                     endif
+                     if(lrange) ianz = 2*ianz
+
+                  if((lrange .and.(ianz >= 2 .and. ianz <= 6)) .or.  & ! then 
+                                        (ianz.ge.1 .and. ianz.le.3)      ) then
+!                 if (ianz.ge.1.or.ianz.le.3) then 
                      call ber_params (ianz, cpara, lpara, werte, maxw)
                      if (ier_num.eq.0) then 
-                        do i = 1, ianz 
-                        iii (i) = nint (werte (i) ) 
-                        enddo 
+!                       do i = 1, ianz 
+!                       iii (i) = nint (werte (i) ) 
+!                       enddo 
+                             lower_limit = -huge(lower_limit)
+                              upper_limit =  huge(upper_limit)
+                              if(lrange) then
+                                 lower_limit(1:ianz/2) = nint(werte(1:ianz:2))
+                                 upper_limit(1:ianz/2) = nint(werte(2:ianz:2))
+                                 ianz = ianz / 2           ! Back to number of dimensions
+                              else
+                                 lower_limit(1:ianz  ) = nint(werte(1:ianz  ))
+                                 upper_limit(1:ianz  ) = nint(werte(1:ianz  ))
+                              endif
 !                                                                       
 !     ------------Store result in the variable                          
 !                                                                       
-                        call p_upd_para (line (1:ikk - 1), iii, ianz, wert, ianz, string, substr)
+                        call p_upd_para(line (1:ikk - 1), lower_limit, upper_limit, ianz, lrange, wert, ianz, string, substr, lexpr, line_expression)
                      endif 
                   else 
                      ier_num = - 6 

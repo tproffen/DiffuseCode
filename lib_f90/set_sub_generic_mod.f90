@@ -44,16 +44,20 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
-   SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
+   SUBROUTINE upd_para (ctype, ww, upper_limit, maxw, lrange, wert, ianz, cstring, substr, lexpr, line_expression)
 !
    USE precision_mod
    CHARACTER (LEN=* ), INTENT(IN   )    :: ctype
    INTEGER           , INTENT(IN   )    :: maxw
    INTEGER           , INTENT(IN   )    :: ianz
-   INTEGER           , INTENT(IN   )    :: ww (maxw)
+   INTEGER           , INTENT(inout)    :: ww (maxw)
+   integer           , intent(inout)    :: upper_limit (maxw)
+   logical           , intent(in   )    :: lrange
    REAL(KIND=PREC_DP), INTENT(IN   )    :: wert
    CHARACTER (LEN=* ), INTENT(IN   )    :: cstring
    INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
+   logical           , intent(in   )    :: lexpr
+   CHARACTER (LEN=* ), INTENT(INout)    :: line_expression
 !
    END SUBROUTINE upd_para 
 END INTERFACE
