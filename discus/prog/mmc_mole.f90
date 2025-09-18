@@ -74,7 +74,7 @@ ALLOCATE(natom(                   MMC_MAX_CENT))
 call symm_setup      ! Do once with default, to avoid allocation that may happen in parallel
 !
 call mmc_initial(old_chem_period, itry, igen, iacc_good, iacc_neut, iacc_bad, &
-           done, loop)
+           done)
 lserial = .FALSE.
 !
 !iacc_good = 0

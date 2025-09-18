@@ -14,7 +14,7 @@ contains
 !*****7*****************************************************************
 !
 subroutine mmc_initial(old_chem_period, itry, igen, iacc_good, iacc_neut, iacc_bad, &
-           done, loop)
+           done)
 !-
 !  Perform the initial mmc run setup
 !+
@@ -35,7 +35,7 @@ INTEGER                     , INTENT(out) :: iacc_neut    ! Number accepted neut
 INTEGER                     , INTENT(out) :: iacc_bad     ! Number accepted bad
 !NTEGER       ,dimension(3) , intent(out) :: lbeg
 logical                     , intent(out) :: done
-logical                     , intent(out) :: loop
+!logical                     , intent(out) :: loop
 !
 integer :: i                 ! Dummy index
 INTEGER :: n_corr     ! Dummy for angle allocation
@@ -103,7 +103,7 @@ itry      = 0
 iacc_good = 0 
 iacc_neut = 0 
 iacc_bad = 0 
-loop = .TRUE. 
+!loop = .TRUE. 
 done = .TRUE. 
 !lbeg(1) = -1 
 !lbeg(2) =  0 
@@ -247,6 +247,7 @@ USE mmc_mod
 !
 USE debug_mod 
 USE errlist_mod 
+use lib_functions_mod
 use precision_mod
 use param_mod
 USE prompt_mod 
@@ -304,6 +305,9 @@ INTEGER           , DIMENSION(:), ALLOCATABLE :: ba_anz ! (CHEM_MAX_COR * MMC_MA
 INTEGER :: icc (3), jcc (3) 
 REAL(kind=PREC_DP) :: idir (3), jdir (3), disi (3), disj (3) 
 REAL(kind=PREC_DP) :: rdi=1.0, rdj=1.0, dpi=1.0, dpj
+integer           , dimension(:,:), allocatable :: vnn !(0:maxscat, 0:maxscat) 
+real(kind=PREC_DP), dimension(:,:), allocatable :: val !(0:maxscat, 0:maxscat) 
+!
 INTEGER           , DIMENSION(:,:), ALLOCATABLE :: xnn !(0:maxscat, 0:maxscat) 
 REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: xij !(0:maxscat, 0:maxscat) 
 REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: xi2 !(0:maxscat, 0:maxscat) 
@@ -316,7 +320,8 @@ DATA energy_name / 'none', 'Chemical correlation    ', 'Displacement correlation
      'Lennard Jones potential ',     'Buckingham    potential ', & 
      'Repulsive     potential ',     'Coordination number     ', &
      'Unidirectional corr     ',     'Groupwise    correlation', &
-     'Preferred groups        '                                  /         
+     'Preferred groups        ',     'Atom value   correlation'  &
+    /         
 !
 !lout = lout_in .and. mmc_out_feed    ! Combine system and user settings
 !
@@ -330,6 +335,8 @@ ALLOCATE(patom(3, 0:MAX_ATOM_ENV, MMC_MAX_CENT))
 ALLOCATE(iatom(0:MAX_ATOM_ENV, MMC_MAX_CENT))
 ALLOCATE(tatom(0:MAX_ATOM_ENV, MMC_MAX_CENT))
 ALLOCATE(natom(MMC_MAX_CENT))
+ALLOCATE( val (0:MAXSCAT, 0:MAXSCAT) )
+ALLOCATE( vnn (0:MAXSCAT, 0:MAXSCAT) )
 ALLOCATE( xnn (0:MAXSCAT, 0:MAXSCAT) )
 ALLOCATE( xij (0:MAXSCAT, 0:MAXSCAT) )
 ALLOCATE( xi2 (0:MAXSCAT, 0:MAXSCAT) )
@@ -423,6 +430,8 @@ main_corr: DO ic = 1, chem_ncor
          xj2 (is, js) = 0 
       ENDDO 
    ENDDO 
+   val = 0.0_PREC_DP
+   vnn = 0
    DO i = 1, CHEM_MAX_COR * MMC_MAX_ANGLES 
       ba_sum (i) = 0.0 
       ba_s2 (i) = 0.0 
@@ -495,7 +504,8 @@ is_energy:  IF (mmc_cor_energy (ic, MC_OCC)        .OR. &
                 mmc_cor_energy (ic, MC_LENNARD)    .OR. &
                 mmc_cor_energy (ic, MC_REPULSIVE)  .OR. &
                 mmc_cor_energy (ic, MC_COORDNUM )  .OR. &
-                mmc_cor_energy (ic, MC_BUCKING)         ) THEN    
+                mmc_cor_energy (ic, MC_BUCKING)    .or. &
+                mmc_cor_energy (ic, MC_VALUE  )         ) THEN    
 !                                                                       
 !     ---------- Loop over all neighbours                               
 !                                                                       
@@ -646,6 +656,7 @@ loop_neig:  DO j = 1, natom (icent)
                      p_cn (is, js) = p_cn (is, js) + 1 
                   ENDIF
                ENDIF 
+!
                IF (mmc_cor_energy (ic, MC_SPRING)    .OR.     &
                    mmc_cor_energy (ic, MC_LENNARD)   .OR.     &
                    mmc_cor_energy (ic, MC_REPULSIVE) .OR.     &
@@ -676,6 +687,13 @@ loop_neig:  DO j = 1, natom (icent)
                   xj2 (is, js) = xj2 (is, js) + dpj**2 
                   xnn (is, js) = xnn (is, js) + 1 
                ENDIF 
+               if(mmc_cor_energy(ic, MC_VALUE)) then
+                  val(is, js) = val(is, js) + min(abs(frac(cr_valu(i)-cr_valu(iatom (j, icent))      )), &
+                                                  abs(frac(cr_valu(i)-cr_valu(iatom (j, icent))+1.0D0)), &
+                                                  abs(frac(cr_valu(i)-cr_valu(iatom (j, icent))+1.0D0))  &
+                                                 )
+                  vnn (is, js) = vnn (is, js) + 1 
+               endif
             ENDDO loop_neig
 !                     j ! Loop over all neighbours                      
          ENDIF is_energy
@@ -771,6 +789,13 @@ IF (mmc_cor_energy (ic, MC_PREF)) THEN
 CALL mmc_correlations_pref(ic, mmc_pneig, rel_cycl, damp, lout, lfeed, ldetail,&
      max(MAXSCAT,3), CHEM_MAX_COR, maxdev)
 ENDIF
+!                                                                       
+!     ----- Atomic value  correlation                                        
+!                                                                       
+IF (mmc_cor_energy (ic, MC_VALUE)) THEN
+   CALL mmc_correlations_value(ic, val, vnn, rel_cycl, damp, lout, lfeed, ldetail,  &
+        MAXSCAT, CHEM_MAX_COR, maxdev)
+ENDIF
 !
 !  Coordination number
 !
@@ -819,6 +844,7 @@ ENDIF
 !                                                                       
 !     ----- correlation of displacements                                
 !                                                                       
+!write(*,*) ' DISP FEEDBACK ', xnn(1,1)
 disp_pair: DO is = 0, cr_nscat 
          DO js = is, cr_nscat 
          IF (mmc_pair (ic, MC_DISP, is, js) == -1 ) THEN 
@@ -832,17 +858,19 @@ disp_pair: DO is = 0, cr_nscat
             xi2 (is, js) = xi2 (is, js) / REAL(xnn (is, js) ) 
             xj2 (is, js) = xj2 (is, js) / REAL(xnn (is, js) ) 
 !                                                                       
+!write(*,*) ' DISP FEEDBACK ', xnn(1,1), xi2 (is, js), xj2 (is, js), mmc_cfac  (ic, MC_DISP), damp
             IF (xi2 (is, js)  /= 0.AND.xj2 (is, js)  /= 0.0) THEN 
                mmc_ach_corr (ic, je, is, js) = xij (is, js) / sqrt (xi2 &
                (is, js) * xj2 (is, js) )                                
                mmc_ach_corr (ic, je, js, is) = mmc_ach_corr (ic, je, is,&
                js)                                                      
 !               Feedback mechanism                                      
-               mmc_depth (ic, MC_DISP, 0, 0) = mmc_depth (ic, MC_DISP, 0,0) - &
+               mmc_depth (ic, MC_DISP, is, js) = mmc_depth (ic, MC_DISP, is, js) - &
                mmc_cfac  (ic, MC_DISP) * (mmc_target_corr (ic, MC_DISP, is, js) - &
                mmc_ach_corr (ic, MC_DISP, is, js) ) / 2. &
                     *ABS(mmc_target_corr (ic, MC_DISP, is, js)) &
                     * damp
+!write(*,*) ' DEPTH         ', mmc_depth (ic, MC_DISP, 0, 0), mmc_depth (ic, MC_DISP, is, js)
             ELSE 
                mmc_ach_corr (ic, je, is, js) = 0.0 
                mmc_ach_corr (ic, je, js, is) = 0.0 
@@ -1149,6 +1177,8 @@ DEALLOCATE(patom)
 DEALLOCATE(iatom)
 DEALLOCATE(tatom)
 DEALLOCATE(natom)
+DEALLOCATE(vnn)
+DEALLOCATE(val)
 DEALLOCATE(xnn)
 DEALLOCATE(xij)
 DEALLOCATE(xi2)
@@ -2125,7 +2155,7 @@ corr_pair: DO is = 0, cr_nscat
         ENDIF
         IF_FEED: IF(lfeed) THEN
            IF_lfeed: IF(mmc_lfeed(ic,MC_OCC)) THEN
-           IF_RELC: IF(rel_cycl>0.0) THEN
+           IF_RELC: IF(rel_cycl>0.0 .and. rel_cycl<=1.0) THEN
               call calc_change_pid(ic, MC_OCC, is, js, damp, divisor, 1.0D0, maxdev, change)
 !
 !          change = mmc_cfac(ic, MC_OCC) * (mmc_target_corr(ic, MC_OCC, is, js) -      &
@@ -2693,6 +2723,166 @@ ENDIF
      &        10x,f7.3,3x,f7.3,3x,i8)
 !
 END SUBROUTINE mmc_correlations_pref
+!
+!*******************************************************************************
+!
+SUBROUTINE mmc_correlations_value(ic, val, vnn, rel_cycl, damp, lout, lfeed, ldetail, &
+           MAXSCAT_L, MAX_COR, maxdev)
+!
+!     ----- Atomic value correlation                                        
+!
+!  The correlation is expressed as Warren-Cowley SRO alpha: = 1. - p_(dist)^{BA}/m_A
+!  p_(dist)^{BA}/m_A is the conditional probability to find an A neighbor to a B atom
+!  at distance/vector "dist"
+!  To improve the situation for ternary alloys, both 
+!  alpha 1.-p_(dist)^{BA}/m_A
+!  beta  1.-p_(dist)^{AB}/m_B
+!  are used
+!
+!  For binary sorting this is the same as the Welberry correlation parameter:
+!  C = (P^{AA} - m_a^2) / m_A / m_B
+!  where P^{AA} is the fraction of {AA} pairs in this neighborhood.
+!
+!  For ternary and higher sorting, the Warren-Cowley parameters provide much better
+!  numerical values, P^{AA} does depend on the relative fraction of A and B 
+!
+use crystal_mod 
+use mc_mod 
+use mmc_mod 
+!
+use prompt_mod
+use precision_mod
+!
+implicit none
+!
+integer              , intent(in) :: ic             ! Current correlation number
+integer              , intent(in) :: MAXSCAT_L      ! Array size number of atom types
+integer              , intent(in) :: MAX_COR        ! Maximum correlation number
+integer              , DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L) , intent(in) :: vnn    ! Accumulated neighbor numbers
+real(kind=PREC_DP)   , DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L) , intent(in) :: val    ! Accumulated values
+real(kind=PREC_DP)   , intent(in) :: rel_cycl ! Relative progress along cycles
+real(kind=PREC_DP)   , intent(in) :: damp     ! Damping coefficient for PID feedback
+logical              , intent(in) :: lout     ! Screen output T/F
+logical              , intent(in) :: lfeed    ! Feedback T/F
+logical              , intent(in) :: ldetail  ! Print detaild correlation info 
+real(kind=PREC_DP), dimension(2), intent(inout) :: maxdev
+!
+!
+!integer :: pair11
+!integer :: pair12
+!integer :: pair21
+!integer :: pair22
+integer :: is, js, je
+integer :: nneigh
+!integer :: ngrand
+logical :: lfirst
+real(PREC_DP) :: divisor
+real(PREC_DP) :: change
+!
+!integer :: sumA, sumB
+!real(kind=PREC_DP) :: probBA
+!real(kind=PREC_DP) :: probAB
+!real(kind=PREC_DP) :: beta
+!real(kind=PREC_DP) :: alpha
+!real(kind=PREC_DP) :: fact
+!real(kind=PREC_DP) :: comp_1
+!real(kind=PREC_DP) :: comp_2
+!real(kind=PREC_DP) :: welb_a, welb_b
+!real(kind=PREC_DP) :: prob11, prob22
+!real(kind=PREC_DP), dimension(2) :: welb_comp
+!real(kind=PREC_DP) :: r_nneigh      ! Grand number of pairs 
+!real(kind=PREC_DP) :: m_left        ! Relative composition of left  group
+!real(kind=PREC_DP) :: m_right       ! Relative composition of right group
+!real(kind=PREC_DP) :: m_other       ! Relative composition of other group
+real(kind=PREC_DP) :: achieved      ! achieved SRO parameter
+!integer :: k
+!
+!
+je = MC_VALUE 
+!
+lfirst = .TRUE.
+corr_pair: DO is = 0, cr_nscat 
+   corr_js: DO js = is, cr_nscat 
+      cond_pair: IF     (mmc_pair (ic, MC_VALUE, is, js) /=  0 ) THEN 
+        if(vnn(is, js)>0) then                                      ! Got neighbors
+           achieved = val(is,js)/real(vnn(is,js), kind=PREC_DP)
+           nneigh = vnn(is, js)
+        else
+           achieved = 0.0_PREC_DP
+           nneigh   = 1
+        endif
+        mmc_ach_corr( ic, MC_VALUE, is, js) = achieved
+        mmc_ach_pairs(ic, MC_VALUE, is, js) = vnn(is,js)
+!               Feedback mechanism                                      
+        IF(mmc_target_corr (ic, MC_VALUE, is, js) /= 0.0) THEN
+           divisor = ABS(mmc_target_corr (ic, MC_VALUE, is, js))
+        ELSE
+           divisor = 1.0
+        ENDIF
+        IF_FEED: IF(lfeed) THEN
+           IF_lfeed: IF(mmc_lfeed(ic,MC_VALUE)) THEN
+           IF_RELC: IF(rel_cycl>0.0) THEN
+              call calc_change_pid(ic, MC_VALUE, is, js, damp, divisor, 1.0D0, maxdev, change)
+!
+!          change = mmc_cfac(ic, MC_VALUE) * (mmc_target_corr(ic, MC_VALUE, is, js) -      &
+!                                           mmc_ach_corr   (ic, MC_VALUE, is, js) ) / 0.1& !divisor &
+!                  *ABS(mmc_target_corr(ic, MC_VALUE, is, js)) * damp
+!ENAGE
+               if(abs(mmc_target_corr(ic, MC_VALUE, is, js))<0.001D0) then
+!write(*,*) ' Zerol ', change, change*0.0001, mmc_target_corr(ic, MC_VALUE, is, js)
+                  mmc_depth(ic, MC_VALUE, is, js) = 0.0D0
+                  mmc_depth(ic, MC_VALUE, js, is) = mmc_depth (ic, MC_VALUE, is, js)
+                  change = 0.0D0
+               elseif(abs(mmc_target_corr(ic, MC_VALUE, is, js))<0.10) then
+!write(*,*) ' Small ', change, change*0.005
+                   change = change*0.005
+               elseif(abs(mmc_target_corr(ic, MC_VALUE, is, js))<0.2) then
+!write(*,*) ' SMALL ', change, change*0.05
+                   change = change*0.05
+               elseIF(mmc_target_corr(ic, MC_VALUE, is, js)*mmc_ach_corr(ic, MC_VALUE, is, js)>=0.0  .AND. &
+                  mmc_depth(ic, MC_VALUE, is, js)*(mmc_depth(ic, MC_VALUE, is, js)+change)<0.0         ) THEN
+!write(*,*) ' CHANGE ', change, -mmc_depth(ic, MC_VALUE, is, js)*0.100
+!                  change = change*0.05
+!                  change = -mmc_depth(ic, MC_VALUE, is, js)*0.005
+                   change = -mmc_depth(ic, MC_VALUE, is, js)*0.100
+               ENDIF
+!
+               mmc_depth(ic, MC_VALUE, is, js) = mmc_depth (ic, MC_VALUE, is, js) + change
+               mmc_depth(ic, MC_VALUE, js, is) = mmc_depth (ic, MC_VALUE, is, js)
+            ENDIF IF_RELC
+            ENDIF IF_lfeed
+         ENDIF IF_FEED
+!                                                                       
+!if(ic==1 .and. rel_cycl==0.0) then
+!write(88,'(5g18.6e3)') rel_cycl, mmc_ach_corr(ic, je,1,2),mmc_depth(ic, MC_VALUE, 1,2), change, damp
+!endif
+         cond_out: IF (lout .AND. mmc_pair(ic,MC_VALUE,is,js) < 0 .AND. lfirst) THEN
+!if(ic==1 .and. lfeed) then
+!write(88,'(5g18.6e3)') rel_cycl, mmc_ach_corr(ic, je,1,2),mmc_depth(ic, MC_VALUE, 1,2), change, damp
+!endif
+            mmc_h_ctarg = mmc_h_ctarg + 1          ! Increment targets in history
+            mmc_h_diff(mmc_h_ctarg, mmc_h_index) = mmc_target_corr(ic, je, is, js) - &
+                                                   mmc_ach_corr   (ic, je, is, js)
+            mmc_h_targ(mmc_h_ctarg)              = mmc_target_corr(ic, je, is, js)
+            lfirst = .FALSE.
+            WRITE (output_io, 3100) ic, cr_at_lis (is), cr_at_lis (js),         &
+                mmc_target_corr(ic, je, is, js),                                &
+                mmc_ach_corr   (ic, je, is, js),                                &
+                mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js), &
+               (mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js))/divisor, &
+                nneigh! , &
+!                mmc_depth(ic, MC_VALUE, is, js), change
+!write(*,'(a,f16.8)') ' depth ', mmc_depth(ic, MC_VALUE, is,js)
+!                                                                     
+         ENDIF cond_out
+      ENDIF cond_pair
+   ENDDO corr_js
+ENDDO corr_pair
+!
+ 3100 FORMAT (1x,i3,3x,'Atomic V ',a5,3x,a5,      8x,2(f7.3,3x),        &
+     &        10x,f7.3,3x,f7.3,3x,i8) !, 2f9.5)
+!
+END SUBROUTINE mmc_correlations_value
 !
 !*****7*****************************************************************
 !
