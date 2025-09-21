@@ -52,9 +52,6 @@ p_validate_var_spec => kuplot_validate_var_spec
 p_branch            => kuplot_branch
 !p_loop_mpi          => dummy_loop_mpi
 p_get_var_type      => kuplot_get_var_type
-IF(lstandalone) THEN
-p_top               => kuplot_top
-ENDIF
 !
 END SUBROUTINE kuplot_set_sub
 !

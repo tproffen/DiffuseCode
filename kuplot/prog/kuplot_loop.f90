@@ -35,7 +35,7 @@ integer :: length
       lend = .false.
 !                                                                       
 !                                                                       
-main: DO WHILE (.NOT.lend) 
+main: DO WHILE (.NOT.lend)
    CALL get_cmd (line, ll, befehl, lbef, zeile, lp, prompt) 
    ok: IF (ier_num.eq.0.and.ll.gt.0) THEN 
       IF (.NOT.(line==' ' .OR. line(1:1)=='#' .OR. line(1:1)=='!')) THEN
@@ -63,17 +63,6 @@ main: DO WHILE (.NOT.lend)
             write(output_io, 9000)
             stop
          ENDIF
-         IF(lstandalone) THEN
-            CALL errlist 
-            IF (ier_sta.ne.ER_S_LIVE) THEN 
-               IF (lmakro) THEN 
-                  CALL macro_close(-1)
-                  prompt_status = PROMPT_ON 
-               ENDIF 
-               lblock = .false. 
-               CALL no_error 
-            ENDIF 
-         ELSE
             IF(mpi_active .AND. ier_sta == ER_S_EXIT) THEN  ! Error while MPI is on
                ier_sta = ER_S_LIVE              ! Fake Error status to prevent stop
                CALL errlist                     ! but get error message
@@ -99,7 +88,6 @@ main: DO WHILE (.NOT.lend)
                   ENDIF 
                ENDIF 
             ENDIF 
-         ENDIF 
       ENDIF  fehler
 !
 !        If loop was run from a non interactive remote and we
@@ -107,11 +95,7 @@ main: DO WHILE (.NOT.lend)
          IF(.NOT. linteractive .AND. .NOT. lmakro) RETURN
       ENDDO main
 !                                                                       
-!------ END of PROGRAM                                                  
 !                                                                       
-      IF(lstandalone) THEN
-         CALL kuplot_do_exit
-      ENDIF
 !                                                                       
 8000 format(' ****EXIT**** Input error on normal read        ',        &
      &       '        ****',a1/)
