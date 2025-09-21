@@ -69,58 +69,44 @@ ok: IF (ier_num.eq.0.and.laenge.gt.0) then
 !     - Handle error message                                            
 !                                                                       
 fehler: IF (ier_num.ne.0) then 
-      IF( ier_num ==-9.and. ier_typ==ER_IO) THEN  
-         WRITE(output_io, 8000)
-         WRITE(output_io, 9000)
-         stop
-      ENDIF
-      IF(lstandalone) THEN
-         CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) then 
-            IF (lmakro.AND. lmacro_close) then 
+   IF( ier_num ==-9.and. ier_typ==ER_IO) THEN  
+      WRITE(output_io, 8000)
+      WRITE(output_io, 9000)
+      stop
+   ENDIF
+!
+   IF(mpi_active .AND. ier_sta == ER_S_EXIT) THEN  ! Error while MPI is on
+      ier_sta = ER_S_LIVE              ! Fake Error status to prevent stop
+      CALL errlist                     ! but get error message
+      ier_sta = ER_S_EXIT              ! Signal EXIT back to SUITE
+      ier_num = -9                     ! Signal error condition to SUITE
+      ier_typ = ER_COMM
+      EXIT main                        ! Now terminate program gracefully
+   ENDIF
+   CALL errlist
+   IF (ier_sta /= ER_S_LIVE) THEN 
+      IF (lmakro .OR.  lmakro_error) THEN 
+         IF(sprompt /= 'discus') THEN
+           ier_num = -9
+           ier_typ = ER_COMM
+           EXIT main
+         ELSE
+            IF(lmacro_close) THEN
                CALL macro_close(-1)
-               prompt_status = PROMPT_ON 
-            ENDIF 
-            lblock = .false. 
-            CALL no_error 
-         ENDIF 
-      ELSE
-         IF(mpi_active .AND. ier_sta == ER_S_EXIT) THEN  ! Error while MPI is on
-            ier_sta = ER_S_LIVE              ! Fake Error status to prevent stop
-            CALL errlist                     ! but get error message
-            ier_sta = ER_S_EXIT              ! Signal EXIT back to SUITE
-            ier_num = -9                     ! Signal error condition to SUITE
-            ier_typ = ER_COMM
-            EXIT main                        ! Now terminate program gracefully
-         ENDIF
-         CALL errlist
-         IF (ier_sta /= ER_S_LIVE) THEN 
-            IF (lmakro .OR.  lmakro_error) THEN 
-               IF(sprompt /= 'discus') THEN
-                 ier_num = -9
-                 ier_typ = ER_COMM
-                 EXIT main
-               ELSE
-                  IF(lmacro_close) THEN
-                     CALL macro_close(-1)
-                     lmakro_error = .FALSE.
-                     PROMPT_STATUS = PROMPT_ON
-                     sprompt = ' '
-                  ENDIF
-               ENDIF
+               lmakro_error = .FALSE.
+               PROMPT_STATUS = PROMPT_ON
+               sprompt = ' '
             ENDIF
-         ENDIF 
-      ENDIF 
-   ENDIF fehler
+         ENDIF
+      ENDIF
+   ENDIF 
+ENDIF fehler
 !
 !  If loop was run from a non interactive remote and we
 !  are no longer inside a makro, return after this command
    IF(.NOT. linteractive .AND. .NOT. lmakro) RETURN
 ENDDO main
 !                                                                       
-IF ( lstandalone ) THEN
-   CALL discus_do_exit 
-ENDIF
 !
 8000 format(' ****EXIT**** Input error on normal read        ',        &
      &       '        ****',a1/)

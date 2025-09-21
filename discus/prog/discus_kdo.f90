@@ -490,7 +490,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )       &
          ELSEIF (str_comp (befehl, 'wyckoff', 1, lbef, 7) ) THEN 
             CALL wyckoff_main (zeile, lcomm) 
 !                                                                       
-!       Branch to KUPLOT (standalone call system, suite do branch)
+!       Branch to KUPLOT 
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'branch', 2, lbef, 6) ) THEN 
             CALL p_branch (zeile, lcomm, .FALSE., 0     ) 
