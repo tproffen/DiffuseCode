@@ -251,7 +251,7 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
 !  Reset KUPLOT
 !
    IF(.NOT. l_kuplot_init) THEN
-      CALL kuplot_setup   (lstandalone)
+      CALL kuplot_setup
       l_kuplot_init = .true.
    ENDIF
    pname     = 'kuplot'
@@ -265,7 +265,7 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
 !  Reset DISCUS
 !
    IF(.NOT. l_discus_init) THEN
-      CALL discus_setup   (lstandalone)
+      CALL discus_setup
       l_discus_init = .true.
    ENDIF
 !

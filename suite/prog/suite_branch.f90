@@ -110,7 +110,7 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL kuplot_setup   (lstandalone)
+      CALL kuplot_setup
       suite_kuplot_init = .TRUE.
    ENDIF
    CALL kuplot_set_sub ()
@@ -137,7 +137,7 @@ ELSEIF(str_comp(zeile, 'discus', 3, length, 6)) THEN
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL discus_setup   (lstandalone)
+      CALL discus_setup
       suite_discus_init = .TRUE.
    ENDIF
    CALL discus_set_sub ()
@@ -180,7 +180,7 @@ ELSEIF(str_comp(zeile, 'refine', 3, length, 6)) THEN
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL refine_setup   (lstandalone)
+      CALL refine_setup
       suite_refine_init = .TRUE.
    ENDIF
    CALL refine_set_sub ()
@@ -345,7 +345,7 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL kuplot_setup   (lstandalone)
+      CALL kuplot_setup
       suite_kuplot_init = .TRUE.
    ENDIF
    CALL kuplot_set_sub ()
@@ -372,7 +372,7 @@ ELSEIF(str_comp(zeile, 'discus', 3, length, 6)) THEN
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL discus_setup   (lstandalone)
+      CALL discus_setup
       suite_discus_init = .TRUE.
    ENDIF
    CALL discus_set_sub ()
@@ -415,7 +415,7 @@ ELSEIF(str_comp(zeile, 'refine', 3, length, 6)) THEN
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL refine_setup   (lstandalone)
+      CALL refine_setup
       suite_refine_init = .TRUE.
    ENDIF
    CALL refine_set_sub ()

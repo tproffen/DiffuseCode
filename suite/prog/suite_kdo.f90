@@ -187,7 +187,7 @@ ELSE
           oprompt   = pname
           CALL program_files ()
        ELSE
-         CALL discus_setup   (lstandalone)
+         CALL discus_setup
          suite_discus_init = .TRUE.
        ENDIF
        var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
@@ -255,7 +255,7 @@ ELSE
           oprompt   = pname
           CALL program_files ()
        ELSE
-         CALL kuplot_setup   (lstandalone)
+         CALL kuplot_setup
          suite_kuplot_init = .TRUE.
        ENDIF
        var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
@@ -289,7 +289,7 @@ ELSE
           oprompt   = pname
           CALL program_files ()
        ELSE
-         CALL refine_setup   (lstandalone)
+         CALL refine_setup
          suite_refine_init = .TRUE.
        ENDIF
        var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
@@ -397,7 +397,7 @@ if(suite_kuplot_init) then
    oprompt   = pname
    call program_files ()
 else
-   call kuplot_setup   (lstandalone)
+   call kuplot_setup
    suite_kuplot_init = .TRUE.
 endif
 var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
@@ -488,7 +488,7 @@ if(suite_discus_init) then
    oprompt   = pname
    call program_files ()
 else
-   call discus_setup   (lstandalone)
+   call discus_setup
    suite_discus_init = .TRUE.
 endif
 var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)

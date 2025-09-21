@@ -60,7 +60,7 @@ IF(from_section=='kuplot_fit') THEN    !Return to KUPLOT
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL kuplot_setup   (lstandalone)
+      CALL kuplot_setup
       suite_kuplot_init = .TRUE.
    ENDIF
    var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
@@ -77,7 +77,7 @@ ELSEIF(from_section=='kuplot') THEN    !Return to KUPLOT
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL kuplot_setup   (lstandalone)
+      CALL kuplot_setup
       suite_kuplot_init = .TRUE.
    ENDIF
    var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
@@ -93,7 +93,7 @@ ELSEIF(from_section=='refine_fit') THEN    !Return to KUPLOT
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL refine_setup   (lstandalone)
+      CALL refine_setup
       suite_refine_init = .TRUE.
    ENDIF
    var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
