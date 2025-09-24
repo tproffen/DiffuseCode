@@ -950,8 +950,9 @@ INTEGER, intent(in) :: ikurv
 REAL , intent(inout) :: xpl (npkt), ypl (npkt) 
 !                                                                       
 !     REAL xfill (maxarray), yfill (maxarray) 
-REAL(kind=PREC_SP) xfill (npkt), yfill (npkt) 
-REAL(kind=PREC_SP) x1, x2, y1, y2, yb 
+REAL(kind=PREC_SP), dimension(npkt+2) ::  xfill
+REAL(kind=PREC_SP), dimension(npkt+2) ::  yfill
+REAL(kind=PREC_SP) :: x1, x2, y1, y2, yb 
 INTEGER :: ip, np, i1,i2
 !                                                                       
       CALL koor_shear (npkt, xpl, ypl) 
@@ -994,7 +995,7 @@ INTEGER :: ip, np, i1,i2
          ENDIF 
          ENDDO 
 !                                                                       
-         np = np + 1 
+         np = np + 1
          xfill (np) = x2 
          yfill (np) = yb 
 !                                                                       
@@ -1070,7 +1071,8 @@ IMPLICIT none
 INTEGER, intent(in) :: npkt, ikurv 
 REAL   , intent(inout) :: xpl (npkt), ypl (npkt) 
 !                                                                       
-REAL(kind=PREC_SP) :: xfill (npkt), yfill (npkt) 
+REAL(kind=PREC_SP), dimension(npkt+2) ::  xfill
+REAL(kind=PREC_SP), dimension(npkt+2) ::  yfill
 !     REAL xfill (maxarray), yfill (maxarray) 
 REAL(kind=PREC_SP) :: x1, x2, y1, y2, yb 
 INTEGER :: ip, np 
@@ -1098,9 +1100,9 @@ INTEGER :: ip, np
             yb = fillrange (iwin, iframe, ikurv, 3) 
          ENDIF 
 !                                                                       
-         np = 0 
-!        xfill (np) = x1 
-!        yfill (np) = yb 
+         np = 1 
+         xfill (np) = x1 
+         yfill (np) = yb 
 !                                                                       
          DO ip = 1, npkt 
          IF (xpl (ip) .ge.x1.and.xpl (ip) .le.x2) then 
@@ -1115,9 +1117,9 @@ INTEGER :: ip, np
          ENDIF 
          ENDDO 
 !                                                                       
-!        np = np + 1 
-!        xfill (np) = x2 
-!        yfill (np) = yb 
+         np = np + 1 
+         xfill (np) = x2 
+         yfill (np) = yb 
 !                                                                       
          IF (dbg) then 
             WRITE ( *, 1000) 1, xfill (1), yfill (1) 
