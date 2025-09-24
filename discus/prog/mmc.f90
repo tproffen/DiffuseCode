@@ -3351,7 +3351,7 @@ if(mmc_cor_energy (0, MC_DISP)) then
 endif
 if(allocated(mmc_comp)) deallocate(mmc_comp)
 allocate(mmc_comp(0:cr_nscat))
-call chem_elem(.true.)
+call chem_elem(.false.)
 do i=0,cr_nscat
   mmc_comp(i) = res_para(i+1)
 enddo
