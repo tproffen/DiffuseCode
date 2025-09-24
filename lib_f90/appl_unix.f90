@@ -18,7 +18,7 @@ CONTAINS
 !
 !*******************************************************************************!
 !
-SUBROUTINE appl_env (standalone) !, local_mpi_myid)
+SUBROUTINE appl_env
 !-                                                                      
 !     Reads environment variables, sets path for helpfile               
 !     UNIX version ..                                                   
@@ -42,7 +42,6 @@ use variable_mod
 !
 IMPLICIT none 
 !                                                                       
-LOGICAL, INTENT(IN) :: standalone
 !INTEGER, INTENT(IN) :: local_mpi_myid
 !                                                                       
 INTEGER, PARAMETER :: idef = 68
@@ -319,7 +318,6 @@ ENDIF
 !         Start from from process name
 !         Else assume /usr/local/bin
 !         Else assume $HOME/bin
-IF(standalone) THEN
 !
 !              Process folder
 !
@@ -354,7 +352,7 @@ IF(standalone) THEN
          share_dir_l = home_dir_l + 6
       ENDIF
    ENDIF
-ENDIF
+!ENDIF
 !
 if(operating==OS_LINUX_WSL) then
    var_val(VAR_OPERATING) = var_val(VAR_WSL)
@@ -482,9 +480,6 @@ endif
       current_dir   = start_dir
       current_dir_l = start_dir_l
 !
-!     Define terminal color scheme
-!
-!     CALL color_set_scheme (standalone, local_mpi_myid)
 !
 CALL lib_f90_getpname(PID,PID,process_name)
 ! Get Parent Process ID, required knowledge of operating
@@ -577,7 +572,7 @@ END SUBROUTINE start_pgxwin
 !
 !*******************************************************************************!
 !
-SUBROUTINE write_appl_env (standalone, local_mpi_myid)
+SUBROUTINE write_appl_env (local_mpi_myid)
 !-
 !  Writes the path for help manual etc to the welcome screen
 !+
@@ -593,13 +588,13 @@ USE terminal_mod
 !
 IMPLICIT NONE
 !                                                                       
-LOGICAL, INTENT(IN) :: standalone
 INTEGER, INTENT(IN) :: local_mpi_myid
 INTEGER             :: old_version
 INTEGER             :: new_version
 INTEGER             :: since_update
 CHARACTER(LEN=10)   :: cversion
 CHARACTER(LEN=PREC_STRING) :: line
+!
 !
 IF(local_mpi_myid/=0) RETURN
 !
@@ -612,7 +607,7 @@ old_version = 0
 new_version = 0
 !
 !
-IF(standalone .AND. local_mpi_myid==0) THEN
+IF(                 local_mpi_myid==0) THEN
    IF(term_scheme_exists) THEN
 !     WRITE ( *, 1900) TRIM(color_bg),TRIM(color_info), man_dir (1:LEN_TRIM(man_dir)) ,TRIM(color_fg)
 !     WRITE ( *, 2000) TRIM(color_bg),TRIM(color_info),umac_dir (1:LEN_TRIM(umac_dir)),TRIM(color_fg)
@@ -693,7 +688,7 @@ END SUBROUTINE write_appl_env
 !
 !*******************************************************************************!
 !
-SUBROUTINE color_set_scheme (standalone, local_mpi_myid)
+SUBROUTINE color_set_scheme (local_mpi_myid)
 !-
 !  Set the terminal color scheme 
 !  If the file share/discus.term.scheme exists it is used
@@ -712,7 +707,6 @@ USE support_mod
 !
 IMPLICIT NONE
 !
-LOGICAL, INTENT(IN) :: standalone
 INTEGER, INTENT(IN) :: local_mpi_myid
 !
 INTEGER, PARAMETER :: idef = 68
@@ -768,7 +762,7 @@ ELSE
    END DO color_search
    CLOSE(idef)
 ENDIF
-IF(standalone.AND.local_mpi_myid==0) THEN  ! set standard Background and Foreground
+IF(               local_mpi_myid==0) THEN  ! set standard Background and Foreground
    WRITE(*,'(a)') TRIM(color_bg)
    WRITE(*,'(a)') TRIM(color_fg)
 !
@@ -925,11 +919,7 @@ INTEGER :: progname_l
 INTEGER :: i
 !LOGICAL :: l_exist
 !
-IF(lstandalone) THEN
-   progname = pname          ! Make a local copy of the program name pname
-ELSE
-   progname = 'suite'
-ENDIF
+progname = 'suite'
 !
 progname_l = LEN(TRIM(progname))
 !
@@ -1121,7 +1111,9 @@ INTEGER             :: exit_msg
 INTEGER             :: ier_cmd
 LOGICAL             :: lda
 !
-if(gen_mpi_active) return               ! No update checks while mpi is active
+if(gen_mpi_active) then
+   return               ! No update checks while mpi is active
+endif
 if(.not. check_github() ) return    ! no www network access 
 WRITE(cfile,'(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_CURRENT.', PID ! Initiate search for new version
 !

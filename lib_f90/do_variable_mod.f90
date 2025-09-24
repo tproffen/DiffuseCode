@@ -614,12 +614,10 @@ ENDDO main
 !                                                                       
 !     Check against variables/functions of the main program             
 !                                                                       
-IF(lstandalone) THEN
    IF (ier_num.eq.0) THEN 
       CALL p_validate_var_spec (zeile, lp) 
       IF(ier_num /= 0) RETURN
    ENDIF 
-ELSE        ! Part of the suite, check all parts 
    CALL general_validate_var_spec (zeile, lp, diffev_reserved_n, diffev_reserved)
    IF(ier_num /= 0) RETURN
    CALL general_validate_var_spec (zeile, lp, discus_reserved_n, discus_reserved)
@@ -630,7 +628,6 @@ ELSE        ! Part of the suite, check all parts
    IF(ier_num /= 0) RETURN
    CALL general_validate_var_spec (zeile, lp,  suite_reserved_n,  suite_reserved)
    IF(ier_num /= 0) RETURN
-ENDIF 
 !                                                                       
 !     Check that the name contains only letters, Numbers and the "_"    
 !                                                                       

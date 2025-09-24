@@ -42,7 +42,6 @@ USE precision_mod
    LOGICAL              :: lconn             = .false.
    LOGICAL              :: lremote           = .false.
    LOGICAL              :: lsetup_done       = .false.
-   LOGICAL              :: lstandalone       = .true.
    LOGICAL              :: linteractive      = .true.
    LOGICAL              :: lturn_off         = .true.
    LOGICAL              :: l_to_top          = .FALSE.

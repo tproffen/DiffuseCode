@@ -281,7 +281,7 @@ cond_error: if(ier_num==0) then
             line = line(1:indxm-2)
             length = indxm-2
          ENDIF
-      ELSEIF(line(1:7)=='run_mpi' .AND. .NOT.mpi_active ) THEN !.AND. .NOT.lstandalone) THEN
+      ELSEIF(line(1:7)=='run_mpi' .AND. .NOT.mpi_active ) THEN 
 !
 !        run  a slave from diffev within discus_suite at NO MPI
 !
