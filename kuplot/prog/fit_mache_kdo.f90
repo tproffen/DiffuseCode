@@ -79,7 +79,7 @@ ELSEIF (befehl (1:1)  == '@') THEN
 ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) THEN
    CALL macro_continue (zeile, lp)
 !                                                                       
-!       Branch to DISCUS (standalone call system, suite do branch)
+!       Branch to DISCUS
 !                                                                       
 ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'branch', 2, lbef, 6) ) then
    CALL p_branch (zeile, lp, .FALSE., 0     )

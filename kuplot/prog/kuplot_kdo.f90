@@ -617,7 +617,7 @@ owerte = (/ 1.0D0 /)
          ELSEIF (str_comp (bef, 'smax', 3, lbef, 4) ) then 
             CALL do_smax (zei, lc) 
 !                                                                       
-!       Branch to DISCUS (standalone call system, suite do branch)
+!       Branch to DISCUS
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
             str_comp (bef, 'branch', 2, lbef, 6) ) then 
