@@ -53,11 +53,9 @@ USE support_mod
    CALL do_cwd ( send_direc, send_direc_l )        ! Get current working directory
    run_mpi_senddata%direc_l = send_direc_l         ! Copy directory into send structure
    run_mpi_senddata%direc   = send_direc(1:MIN(send_direc_l,200))
-   IF(.NOT.lstandalone) THEN
-      IF(run_mpi_senddata%out(1:run_mpi_senddata%out_l) /= '/dev/null') THEN
-         run_mpi_senddata%out_l   =   2                  ! Copy directory into send structure
-         run_mpi_senddata%out     = 'on'
-      ENDIF
+   IF(run_mpi_senddata%out(1:run_mpi_senddata%out_l) /= '/dev/null') THEN
+      run_mpi_senddata%out_l   =   2                  ! Copy directory into send structure
+      run_mpi_senddata%out     = 'on'
    ENDIF
 
    inpara(201) = run_mpi_senddata%generation
@@ -100,7 +98,7 @@ USE support_mod
          var_val( var_ref+5) = run_mpi_senddata%indiv   ! set variable: ref_indiv
 !
          mpi_is_slave = .true.
-         IF(flag_block .AND. .NOT. lstandalone) THEN
+         IF(flag_block ) then
             level = level_mpi
             ilevel(level) = nlevel_mpi
             rvalue_yes = .FALSE.

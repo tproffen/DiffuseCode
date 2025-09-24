@@ -556,44 +556,6 @@ init: IF (.not.pop_current.and.pop_gen.gt.0) THEN
       pop_current = .true. 
    ENDIF init
    iostatus = 0
-!write(*,*) ' IN READ_PAR_VALUES_CCC ', ier_num, ier_typ
-!                                                                       
-! Read old trial value, if not yet initialized, and a stand alone program                     
-!                                                                       
-  is_alone: IF (lstandalone) THEN
-  init_trial: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN 
-      DO j = 1, pop_c 
-        len_file = pop_ltrialfile 
-        CALL make_file (pop_trialfile, len_file, 4, j) 
-        CALL oeffne (iwr, pop_trialfile, stat) 
-        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
-        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
-        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
-        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
-        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
-        DO i = 1, pop_dimx 
-           READ (iwr, * ,END=20,ERR=20,iostat=iostatus) trial (i, j) 
-        ENDDO 
-      20 CONTINUE
-      CLOSE (iwr) 
-         IF ( iostatus /= 0) THEN
-            ier_num = -12
-               WRITE(error_io,'(10x,3(2x,I9))') pop_gen-1,i,j
-            ier_typ = ER_APPL
-            ier_msg(1) = 'Error while reading'
-            WRITE (ier_msg(2),2000) j
-            RETURN
-         ENDIF
-!
-      ENDDO 
-      pop_t = trial  ! (i,j) 
-      pop_current_trial = .true.
-   ELSE
-      trial = pop_t
-      pop_current_trial = .true.
-     ENDIF init_trial
-  ELSE  is_alone
-!write(*,*) ' IN READ_PAR_VALUES_DDD ', ier_num, ier_typ
      init_slave: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN 
         CALL create_trial
         IF(ier_num /= 0) RETURN
@@ -602,10 +564,7 @@ init: IF (.not.pop_current.and.pop_gen.gt.0) THEN
          trial = pop_t
          pop_current_trial = .true.
      ENDIF init_slave
-!write(*,*) ' IN READ_PAR_VALUES_EEE ', ier_num, ier_typ
-  ENDIF is_alone
 !
-! Read error  parent result file
 !
    30 CONTINUE
    CLOSE (iwr) 

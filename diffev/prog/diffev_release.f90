@@ -62,7 +62,7 @@ IF(lexist) THEN                ! A GENERATION FILE EXISTS
    CALL do_read_values(.TRUE.) ! We need to read values as this can be the first command after a continue
 ENDIF
 IF((pop_gen==0 .AND. .NOT. pop_initialized) .OR. .NOT.lexist) THEN   ! Population was not yet initialized
-   IF(pop_trialfile == ' ') pop_trial_file_wrt= .FALSE.
+!  IF(pop_trialfile == ' ') pop_trial_file_wrt= .FALSE.
    CALL do_initialise (l_init_x)
    pop_initialized = .TRUE.
 ENDIF

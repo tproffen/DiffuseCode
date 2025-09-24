@@ -54,8 +54,8 @@ LOGICAL                              :: pop_not_first     = .FALSE.
 LOGICAL                              :: pop_current       = .FALSE.
 LOGICAL                              :: pop_current_trial = .FALSE.
 LOGICAL                              :: pop_initialized   = .FALSE.
-LOGICAL                              :: pop_result_file_rd= .FALSE.
-LOGICAL                              :: pop_trial_file_wrt= .FALSE.
+LOGICAL, PARAMETER                   :: pop_result_file_rd= .FALSE.
+LOGICAL, PARAMETER                   :: pop_trial_file_wrt= .FALSE.
 LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_refine     !  (MAXDIMX)
 !
 LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_ad_sigma   !  (MAXDIMX)

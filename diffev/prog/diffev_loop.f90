@@ -81,17 +81,6 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
                write(output_io, 9000)
                stop
             ENDIF
-            IF(lstandalone) THEN
-               CALL errlist 
-               IF (ier_sta.ne.ER_S_LIVE) then 
-                  IF (lmakro.and.ier_sta.ne.ER_S_LIVE.AND.lmacro_close) then 
-                     CALL macro_close(-1)
-                     prompt_status = PROMPT_ON 
-                  ENDIF 
-                  lblock = .false. 
-                  CALL no_error 
-               ENDIF 
-            ELSE
                IF(mpi_active .AND. ier_sta == ER_S_EXIT) THEN  ! Error while MPI is on
                   ier_sta = ER_S_LIVE              ! Fake Error status to prevent stop
                   CALL errlist                     ! but get error message
@@ -117,7 +106,6 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
                      ENDIF 
                   ENDIF 
                ENDIF 
-            ENDIF
          ENDIF 
 !
 !        If loop was run from a non interactive remote and we
@@ -130,12 +118,7 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
       ENDIF
 !
    ELSEIF(gen_mpi_active) THEN  master_slave
-!      IF(.NOT. lstandalone) THEN
-!        p_execute_cost ==> suite_execute_cost
-!      ELSE
-!        p_execute_cost ==> diffev_execute_cost
-!      ENDIF
-      CALL RUN_MPI_SLAVE  ! MPI slave, standalone never
+      CALL RUN_MPI_SLAVE  ! MPI slave
    ELSE master_slave
       ier_num = -23       ! Mpi returned a slave ID, but MPI is not active !?!
       ier_typ = ER_APPL

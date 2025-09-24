@@ -47,8 +47,8 @@ pop_dimx = 1
 !
 pop_current_trial  = .FALSE.
 pop_initialized    = .FALSE.
-pop_result_file_rd = .FALSE.
-pop_trial_file_wrt = .FALSE.
+!pop_result_file_rd = .FALSE.
+!pop_trial_file_wrt = .FALSE.
 pop_current        = .FALSE.
 !
 CALL diffev_do_allocate_appl(zeile,lcomm)

@@ -3,7 +3,7 @@ MODULE diffev_setup_mod
 CONTAINS
 !
 !*****7*****************************************************************
-SUBROUTINE diffev_setup(standalone)
+SUBROUTINE diffev_setup
 !                                                                       
 !     This routine makes inital setup of DIFFEV                         
 !                                                                       
@@ -21,8 +21,6 @@ USE lib_init_mod
 USE random_state_mod
 !
 IMPLICIT none 
-!
-LOGICAL, INTENT(IN) :: standalone
 !
 INTEGER, PARAMETER  :: np = 1
 INTEGER, DIMENSION(np) :: iwerte = 0
@@ -44,7 +42,6 @@ IF(random_linit) CALL ini_ran_ix (np, iwerte, 0)
 !
 !     Call initial default allocation
 !
-IF(standalone) CALL lib_alloc_default
 MAXPOP     = 0
 MAXDIMX    = 0
 MAX_CONSTR = 0
@@ -53,54 +50,18 @@ CALL diffev_alloc_default
 !     Call initialization routine.                                      
 !                                                                       
 CALL diffev_initarrays 
-IF(standalone) CALL init_sysarrays 
-!                                                                       
-!     get envirmonment information                                      
-!                                                                       
-IF(standalone) CALL appl_env (lstandalone) !, gen_mpi_myid)
 !                                                                       
 !------ Write starting screen                                           
 !                                                                       
 version   = aktuell 
 !
-IF(standalone) THEN
-   IF(cdebug=='ON') THEN
-      is_debug = 'DEBUG VERSION'
-   ELSE
-      is_debug = '             '
-   ENDIF
-   WRITE ( *, 1000) version, is_debug, cdate
-   CALL write_appl_env (lstandalone, gen_mpi_myid)
-ENDIF
-!                                                                       
 !     try to read default file                                          
 !                                                                       
 CALL diffev_autodef 
 !
-!     Define Slave/stand alone status
-!
-IF(standalone) THEN
-   pop_result_file_rd = .true.
-   pop_trial_file_wrt = .true.
-ELSE
-   pop_result_file_rd = .false.
-   pop_trial_file_wrt = .false.
-ENDIF
-!                                                                       
-!     Check for command line parameters                                 
-!                                                                       
-IF(standalone) CALL cmdline_args(gen_mpi_myid)
 !
 lsetup_done = .true.
 !                                                                       
-1000 FORMAT (/,                                                              &
-     10x,59('*'),/,                                                          &
-     10x,'*',15x,'D I F F E V   Version ',a10,10x,'*',/,                     &
-     10x,'*',22(' '),a13,22(' '),'*',/                                       &
-     10x,'*         Created : ',a35,3x,'*',/,                                &
-     10x,'*',57('-'),'*',/,                                                  &
-     10x,'* (c) R.B. Neder  ','(reinhard.neder@fau.de)                 *',/, &
-     10x,59('*'),/)                                        
 END SUBROUTINE diffev_setup                          
 !
 !

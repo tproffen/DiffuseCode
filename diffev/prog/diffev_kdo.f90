@@ -320,30 +320,6 @@ ELSE
 !     -- compare the trial results to the last generation         
 !                                                                 
    ELSEIF (str_comp (befehl, 'comp', 3, lbef, 4) ) THEN 
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) THEN 
-         IF (ianz.eq.0) THEN
-            pop_result_file_rd = .true.
-         ELSEIF (ianz.eq.1) THEN
-            IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
-               IF(lstandalone) THEN 
-                  ier_num = -27
-                  ier_typ = ER_APPL
-                  RETURN 
-               ELSE
-                  pop_result_file_rd = .false.
-               ENDIF
-            ENDIF
-         ELSE
-            ier_num = -6
-            ier_typ = ER_COMM
-            RETURN 
-         ENDIF
-      ELSE
-         ier_num = -6
-         ier_typ = ER_COMM
-         RETURN 
-      ENDIF
       CALL do_compare 
 !
 !     Turn random state log ON
@@ -430,7 +406,7 @@ ELSE
       ENDIF
       IF (pop_n.gt.3) THEN
          IF((pop_gen==0 .AND. .NOT. pop_initialized) .OR. .NOT.lexist) THEN   ! Population was not yet initialized
-            IF(pop_trialfile == ' ') pop_trial_file_wrt= .FALSE.
+!           IF(pop_trialfile == ' ') pop_trial_file_wrt= .FALSE.
             CALL do_initialise (l_init_x)
             pop_initialized = .TRUE.
          ENDIF
@@ -511,10 +487,11 @@ ELSE
 !     -- initialise the sequence                                  
 !                                                                 
    ELSEIF (str_comp (befehl, 'init', 3, lbef, 4) ) THEN 
+!     pop_trial_file_wrt = .false.
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) THEN 
          IF (ianz.eq.0) THEN 
-            pop_trial_file_wrt = .true.
+!           pop_trial_file_wrt = .true.
             l_init_x = .true.
             CALL do_initialise (l_init_x)
             pop_initialized = .TRUE.
@@ -523,17 +500,10 @@ ELSE
                 str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7).AND.        &
                 ianz==1 ) THEN
                IF(str_comp (cpara(ianz),'silent',6, lpara(ianz), 6).AND. ianz==1) THEN
-                  IF(lstandalone) THEN 
-                     ier_num = -27
-                     ier_typ = ER_APPL
-                     RETURN 
-                  ELSE
-                     pop_trial_file_wrt = .false.
                      ianz = ianz - 1
                      l_init_x = .true.
                      CALL do_initialise (l_init_x)
                      pop_initialized = .TRUE.
-                  ENDIF
                ELSEIF(str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7).AND. ianz==1) THEN
                   IF(.NOT.pop_current) THEN       ! Population has not been read/calculated
                      INQUIRE(FILE='GENERATION', EXIST=lexist)
@@ -560,7 +530,7 @@ ELSE
 !                 If last parameter is 'silent' turn trial files off, else leave current status
 !
                   IF(str_comp (cpara(ianz),'silent',6, lpara(ianz), 6)) THEN
-                     pop_trial_file_wrt = .false.
+!                    pop_trial_file_wrt = .false.
                      ianz = ianz -1
                   ENDIF
                   IF (ianz == 1 .OR. ianz ==2) THEN 
@@ -697,7 +667,7 @@ ELSE
          CALL do_read_values(.TRUE.)         ! We need to read values as this can be the first command after a continue
       ENDIF
       IF((pop_gen==0 .AND. .NOT. pop_initialized) .OR. .NOT.lexist) THEN   ! Population was not yet initialized
-         IF(pop_trialfile == ' ') pop_trial_file_wrt= .FALSE.
+!        IF(pop_trialfile == ' ') pop_trial_file_wrt= .FALSE.
          CALL do_initialise (l_init_x)
          pop_initialized = .TRUE.
       ENDIF
@@ -844,11 +814,9 @@ ELSE
                ENDIF
             ENDIF
             IF ( ier_num == 0) THEN
-                  IF(.NOT.lstandalone) THEN
                      init_slave: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN
                         CALL read_par_values
                      ENDIF init_slave
-                  ENDIF
                IF(gen_mpi_active) THEN   !Parallel processing with MPI
 !                 run_mpi_kid_per_core = INT(pop_c/(run_mpi_max_slaves*NUM_NODE))+1
 !                 IF(.NOT.ALLOCATED(kid_on_node)) THEN
@@ -988,27 +956,8 @@ ELSE
 !     -- set the trial file                                       
 !                                                                 
    ELSEIF (str_comp (befehl, 'trialfile', 3, lbef, 9) ) THEN 
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) THEN 
-         IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
-            IF(lstandalone) THEN 
-               ier_num = -27
-               ier_typ = ER_APPL
-               RETURN 
-            ELSE
-               pop_trial_file_wrt = .false.
-               pop_trialfile = ' '
-               pop_ltrialfile = 1
-            ENDIF 
-         ELSE
-            pop_trial_file_wrt = .true.
-            CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-            IF (ier_num.eq.0) THEN 
-               pop_trialfile = cpara (1)(1:lpara(1)) 
-               pop_ltrialfile = lpara (1) 
-            ENDIF 
-         ENDIF 
-      ENDIF 
+      ier_num = 1
+      ier_typ = ER_APPL
 !                                                                 
 !     -- set the parameter type                                   
 !                                                                 
@@ -1053,38 +1002,8 @@ ELSE
    ELSEIF (str_comp (befehl, 'reset'   , 5, lbef, 5) ) THEN 
       CALL diffev_do_reset
    ELSEIF (str_comp (befehl, 'restrial', 5, lbef, 8) ) THEN 
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) THEN 
-         CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                           oname, loname, opara, lopara, lpresent, owerte)
-         IF(ier_num==0) THEN
-!
-         IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
-            IF(lstandalone) THEN 
-               ier_num = -27
-               ier_typ = ER_APPL
-               RETURN 
-            ELSE
-               pop_result_file_rd = .false.
-               trial_results = ' '
-               ltrial_results = 1
-            ENDIF 
-         ELSE
-            CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-            IF (ier_num.eq.0) THEN 
-               trial_results = cpara (1)(1:lpara(1)) 
-               ltrial_results = lpara (1) 
-            ENDIF 
-         ENDIF 
-         n_rvalue_i = NINT(owerte(O_PARTIAL))
-!        IF(ianz>1) THEN
-!           CALL del_params (1, ianz, cpara, lpara, maxw) 
-!           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-!           IF(ier_num/=0) RETURN
-!           n_rvalue_i = NINT(werte(1))
-!        ENDIF
-      ENDIF 
-      ENDIF 
+      ier_num = 1
+      ier_typ = ER_APPL
 !
 !     -- Write a new set of children for the current generation
 !
@@ -1126,7 +1045,7 @@ ELSE
          ENDIF
       ENDIF
 !                                                                       
-!       Branch to DISCUS/ KUPLOT (standalone call system, suite do branch)
+!       Branch to DISCUS/ KUPLOT
 !                                                                       
          ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) THEN
             CALL p_branch (zeile, lcomm, .FALSE., 0     )
