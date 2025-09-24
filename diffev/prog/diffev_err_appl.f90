@@ -13,7 +13,7 @@ USE lib_errlist_func
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU=-37,IO=0)
+      PARAMETER    (IU=-37,IO=1)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
@@ -59,6 +59,10 @@ USE lib_errlist_func
      &  'Too many members in population',                               & ! -2  ! diffev
      &  'The generation number must be >= zero',                        & ! -1  ! diffev
      &  ' '                                                             & !  0  ! diffev
+     &     /
+!
+      DATA ERROR (  1: io) /                                            &
+     &  'Trialfiles are no longer written/ read'                        & !  1  ! diffev
      &     /
 !
       CALL disp_error ('APPL',error,iu,io)
