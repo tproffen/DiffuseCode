@@ -96,7 +96,7 @@ IF(ier_num == 0) THEN
             ENDDO
             llength = LEN_TRIM(line)
             CALL do_operating(line, llength)
-            CALL color_set_scheme(.TRUE., 0)
+            CALL color_set_scheme(0)
          ELSE
             ier_num = -12
             ier_typ = ER_MAC

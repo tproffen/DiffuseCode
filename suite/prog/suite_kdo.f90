@@ -70,9 +70,6 @@ CHARACTER (LEN=MAX(PREC_STRING,LEN(line))) :: zeile
 CHARACTER (LEN=   9)                  :: befehl 
 INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
 !                                                                       
-!                                                                       
-lstandalone = .false.  ! Switch to slave mode for DIFFEV/DISCUS/KUPLOT
-!                                                                       
 CALL no_error 
 !                                                                 
 !-------If a commentary return immediately                        
@@ -153,7 +150,7 @@ ELSE
           oprompt   = pname
           CALL program_files ()
        ELSE
-         CALL diffev_setup   (lstandalone)
+         CALL diffev_setup
          suite_diffev_init = .TRUE.
        ENDIF
        var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)

@@ -159,7 +159,7 @@ ELSEIF(str_comp(zeile, 'diffev', 3, length, 6)) THEN
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL diffev_setup   (lstandalone)
+      CALL diffev_setup
       suite_diffev_init = .TRUE.
    ENDIF
    CALL diffev_set_sub ()
@@ -394,7 +394,7 @@ ELSEIF(str_comp(zeile, 'diffev', 3, length, 6)) THEN
       oprompt   = pname
       CALL program_files ()
    ELSE
-      CALL diffev_setup   (lstandalone)
+      CALL diffev_setup
       suite_diffev_init = .TRUE.
    ENDIF
    CALL diffev_set_sub ()

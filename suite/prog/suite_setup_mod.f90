@@ -29,7 +29,7 @@ CALL init_sysarrays
 !                                                                       
 !     get envirmonment information                                      
 ! 
-CALL appl_env (.TRUE.)
+CALL appl_env
 !
 END SUBROUTINE setup_suite_start
 !
@@ -91,7 +91,7 @@ CALL ini_ran_ix (np, iwerte, 0)
 !
 !     Define terminal color scheme
 !
-CALL color_set_scheme (.TRUE.,   gen_mpi_myid)
+CALL color_set_scheme(gen_mpi_myid)
 !
 IF(gen_mpi_myid==0) THEN
 !
@@ -127,7 +127,7 @@ version_discus = version
    do i=1, len_trim(version)
       if(iachar(version(i:i))<0 .or. iachar(version(i:i))>nine) version(i:i) = ' ' ! Eliminate characters
    enddo
-   CALL write_appl_env (.TRUE., gen_mpi_myid)
+   CALL write_appl_env (gen_mpi_myid)
 ENDIF
 !                                                                       
 !     try to read default file                                          

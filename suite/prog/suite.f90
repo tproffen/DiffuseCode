@@ -43,8 +43,6 @@ IMPLICIT none
 INTEGER, PARAMETER :: master = 0 ! Master ID for MPI
 EXTERNAL :: suite_sigint
 gen_mpi_myid      = 0
-lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
-!lstandalone       = .true.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !
 CALL setup_suite_start           ! Do start up procedures
 if(ier_num/=0) call errlist
@@ -74,7 +72,7 @@ IF(gen_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    CALL discus_setup
    call experi_setup
    CALL kuplot_setup
-   CALL diffev_setup   (lstandalone)
+   CALL diffev_setup
    suite_experi_init = .TRUE.
    suite_discus_init = .TRUE.
    suite_kuplot_init = .TRUE.
@@ -99,7 +97,7 @@ ELSE
    call experi_setup
    CALL discus_setup
    CALL kuplot_setup
-   CALL diffev_setup(lstandalone)
+   CALL diffev_setup
    CALL refine_setup
    suite_experi_init = .TRUE.
    suite_discus_init = .TRUE.
@@ -156,7 +154,7 @@ INTEGER           :: prompt_keep
 !
 CALL exit_all
 CALL set_signal
-CALL color_set_scheme(.TRUE.,0)
+CALL color_set_scheme(0)
 !
 prompt_keep = prompt_status
 prompt_status = PROMPT_ON
