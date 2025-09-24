@@ -109,7 +109,7 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
       ENDDO main
 !                                                                       
    ELSEIF(gen_mpi_active) THEN  master_slave
-      CALL RUN_MPI_SLAVE  ! MPI slave, standalone never
+      CALL RUN_MPI_SLAVE  ! MPI slave
    ELSE master_slave
       ier_num = -23       ! Mpi returned a slave ID, but MPI is not active !?!
       ier_typ = ER_APPL

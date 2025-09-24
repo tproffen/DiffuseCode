@@ -252,7 +252,7 @@ ELSE  is_math
 !     CALL refine_toglobal(zeile)
 !                                                                 
 !                                                                       
-!       Branch to DISCUS/ KUPLOT (standalone call system, suite do branch)
+!       Branch to DISCUS/ KUPLOT
 !                                                                       
    ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) THEN is_befehl
       CALL p_branch (zeile, lcomm, .FALSE., 0     )

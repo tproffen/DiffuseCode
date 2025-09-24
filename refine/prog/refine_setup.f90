@@ -3,7 +3,7 @@ MODULE refine_setup_mod
 CONTAINS
 !
 !*****7*****************************************************************
-SUBROUTINE refine_setup !(standalone)
+SUBROUTINE refine_setup
 !                                                                       
 !     This routine makes inital setup of REFINE                         
 !                                                                       
@@ -20,8 +20,6 @@ USE lib_init_mod
 USE random_state_mod
 !
 IMPLICIT none 
-!
-!LOGICAL, INTENT(IN) :: standalone
 !
 INTEGER, PARAMETER  :: np = 1
 INTEGER, DIMENSION(np) :: iwerte = 0
