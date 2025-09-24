@@ -1750,6 +1750,11 @@ main_corr: do ic = 1, chem_ncor
    je = MC_COORDNUM
    call mmc_correlation_write_corr(ic, je, 'Coor num ', .false.)
 !
+!  Atomic_value correlations
+!
+   je = MC_VALUE
+   call mmc_correlation_write_corr(ic, je, 'Valu.Cor.', .true.)
+!
 !  Displacement correlations
 !
    je = MC_DISP 
