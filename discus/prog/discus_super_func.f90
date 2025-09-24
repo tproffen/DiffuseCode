@@ -26,6 +26,8 @@ use prompt_mod
 use str_comp_mod
 use sup_mod
 !
+use lib_write_mod
+!
 implicit none
 !
 CHARACTER(len=11)          :: befehl
@@ -579,6 +581,7 @@ use superspace_mod
 use super_waves_mod
 !
 use lib_functions_mod
+use lib_write_mod
 !
 use precision_mod
 use wink_mod
@@ -648,6 +651,12 @@ real(kind=PREC_DP)                              :: r1
 real(kind=PREC_DP)                              :: phase
 real(kind=PREC_DP)                              :: prob
 real(kind=PREC_DP), dimension(3) :: v
+!
+real(kind=PREC_DP), dimension(:,:), allocatable :: value_field
+real(kind=PREC_DP), dimension(2) :: xxmin, xxstep 
+!
+allocate(value_field(cr_icc(1), cr_icc(2)))
+value_field = 0.0D0
 !
 p_sub_function => sup_fun_sine          ! Default to sine function
 !
@@ -731,6 +740,7 @@ loop_main: do iatom=1, dim_natoms, sup_ngroups
          if(sup_atom(1,is, current, sup_group(current))==rd_at_lis(group_iscat(sup_group(current),current),current)) then
             phase = 0.0_PREC_DP
             phase = group_value(sup_group(current),current)
+value_field(ic(1),ic(2)) = group_value(sup_group(current),current)
 !write(*,'(a, i10, f16.6)') ' AT ', jatom, phase
 !GROUP   elseif(sup_atom(2,is, current, sup_group(sup_current))==rd_at_lis(rd_cr_iscat(1))) then
          elseif(sup_atom(2,is, current, sup_group(current))==rd_at_lis(group_iscat(sup_group(current),current),current)) then
@@ -799,8 +809,15 @@ loop_main: do iatom=1, dim_natoms, sup_ngroups
    enddo loop_cell
 enddo loop_main
 !
+xxmin(1) = 1.0D0
+xxmin(2) = 1.0D0
+xxstep(1) = 1D0
+xxstep(2) = 1D0
+call tofile(cr_icc(1:2), 'value_field.ni', value_field, xxmin, xxstep)
+!
 deallocate(rep_ampl)
 deallocate(rd_at_lis)
+deallocate(value_field)
 !
 end subroutine super_run 
 !
