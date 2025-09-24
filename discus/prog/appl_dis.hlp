@@ -3897,7 +3897,7 @@
    Defines the wave length to be used. Anomalous dispersion will only
    be calculated if the wave length is given as symbol.
 3  xray
-!p xray  [table:{"waass" | "inter"}
+!p xray  [table:{"waas" | "inter"}
 
    Switches to X-ray calculation
 
