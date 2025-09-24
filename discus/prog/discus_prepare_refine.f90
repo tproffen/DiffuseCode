@@ -570,13 +570,15 @@ write(IDI,'(a )') 'rlambda = 1.5409'
 write(IDI,'(a )') 'powder'
 if(c_form == 'discamb') then
    write(IDI,'(3a)') '  xray table:discamb, file:', hkl_file(1:j), '.tsc'
+   write(IDI,'(a )') '  set axis, q'
+   write(IDI,'(a )') '  set calc, grid'
 else
    write(IDI,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+   write(IDI,'(a )') '  set axis, q'
+   write(IDI,'(a )') '  set calc, complete'
 endif
-write(IDI,'(a )') '  set axis, q'
-write(IDI,'(a )') '  set calc, complete'
 write(IDI,'(a,f7.5,a )') '  set qmin, 4.*PI*sind(F_XMIN*0.5)/ rlambda -0.2'
-write(IDI,'(a,f7.5,a )') '  set qmax, 4.*PI*sind(F_XMAX*0.5)/ rlambda +0.2'
+write(IDI,'(a,f7.5,a )') '  set qmax, 4.*PI*sind(F_XMAX*0.5)/ rlambda +0.05'
 write(IDI,'(a )') '  set dq  , 0.005'
 write(IDI,'(a )') '  set dh  , 1.0'
 write(IDI,'(a )') '  set dk  , 1.0'
