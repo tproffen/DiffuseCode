@@ -16,6 +16,7 @@ USE appl_env_mod
 use blanks_mod
 USE envir_mod
 USE errlist_mod 
+use gen_mpi_mod
 USE lib_errlist_func
 use lib_config
 USE operating_mod
@@ -42,11 +43,12 @@ INTEGER           :: old_version
 INTEGER           :: new_version
 CHARACTER(LEN=10) :: cversion
 INTEGER           :: since_update
-
+!
 !                                                                       
 IF (ier_num.ne.0) THEN 
    CALL errlist 
 ENDIF 
+cond_mpi: if(.not.gen_mpi_active) then   ! Updates only without MPI
 !CALL lib_f90_init_updates
 CALL lib_f90_test_updates(old_version, new_version, cversion, since_update)
 IF(new_version > old_version ) THEN
@@ -107,6 +109,7 @@ IF(operating == OS_LINUX_WSL) THEN
       ENDIF
    endif
 ENDIF
+endif cond_mpi
 !
 !------ Delete JMOL scripts
 !
