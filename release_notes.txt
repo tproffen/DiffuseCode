@@ -14,6 +14,10 @@ DISCUS
   export       Added option to shift origin to "-1" at SHELX export
   mmc          Fixed "displacement correlation"
                Added atom value correlation
+  output       BUG FIX Powder output modified limits given in powder menu
+  powder       Improved internal workings for convolution
+               BUG FIX, Preferred orientation and non-00l stacks needed to 
+               be aligned as in 6.19.00
   show         Added display of "-1" location
   super        Added multiple waves from separate input files
                Added interpretation of atomic value as phase
