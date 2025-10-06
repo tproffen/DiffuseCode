@@ -325,6 +325,8 @@ logical :: four_log_user   ! Store user setting for Fourier log
 real(kind=PREC_DP) :: fwhm
 real(kind=PREC_DP) :: ss       ! time
 !
+integer :: ii
+!
 !
 CALL dlink(ano, lambda, rlambda, renergy, l_energy, &
            diff_radiation, diff_table, diff_power) 
@@ -332,9 +334,12 @@ if(ier_num/=0) return
 !                 IF(ier_num.eq.0) THEN 
 CALL phases_set(zeile, lp)
 CALL pow_conv_limits
-pow_qmin_u = pow_qmin   !! save user values
-pow_qmax_u = pow_qmax
-pow_deltaq_u=pow_deltaq
+pow_qmin_u     = pow_qmin   !! save user values
+pow_qmax_u     = pow_qmax
+pow_deltaq_u   = pow_deltaq
+pow_tthmin_u   = pow_tthmin
+pow_tthmax_u   = pow_tthmax
+pow_deltatth_u = pow_deltatth
 pow_npkt_u  = nint((pow_qmax_u-pow_qmin_u)/pow_deltaq_u) + 1 ! save user number of points
 if(pow_profile/=0) then
 !  fwhm = SQRT(MAX(ABS(pow_u*pow_qmax**2 + pow_v*pow_qmax + pow_w), 0.00001D0) ) 
@@ -366,7 +371,7 @@ pow_qmax_c = pow_qmax
 pow_deltaq_c = pow_deltaq
 !write(*,*)
 !write(*,*) ' POWDER  ', pow_npkt_u, pow_qmin_u, pow_qmax_u, pow_deltaq_u
-!write(*,*) ' POWDER  ', pow_npkt_u, pow_qmin_c, pow_qmax_c, pow_deltaq_c
+!writeINITIAL(*,*) ' POWDER  ', pow_npkt_u, pow_qmin_c, pow_qmax_c, pow_deltaq_c
 !write(*,*) ' POWDER  ', nint((pow_qmax-pow_qmin)/pow_deltaq)+ 1, pow_qmin, pow_qmax, pow_deltaq
 IF(ier_num==0) THEN
    IF(.NOT.pha_multi) pha_frac(1) = 1.0E0
@@ -383,14 +388,25 @@ ss = seknds (0.0D0)
       elseif(pow_four_type==POW_GRID) then
          CALL powder_nufft (FOUR_TURBO)
       endif
+!
+!DBGCQUAD
+!open(77,file='POWDER/PRAE_CONV.inte',status='unknown')
+!DO ii=0,int((pow_qmax-pow_qmin)/pow_deltaq)
+!  write(77,'(2(2x,G17.7E3))') pow_qmin+(ii)*pow_deltaq, pow_qsp(ii)
+!enddo
+!close(77)
    if(ier_num/=0) return
 ss = seknds (ss )
 write(output_io, '('' Elapsed time      Powder : '',G13.6,'' sec'')') ss
 four_log = four_log_user
    call powder_run_post
 ENDIF 
-pow_qmin = pow_qmin_u ! Restore user settings
-pow_qmax = pow_qmax_u ! Restore user settings
+pow_qmin   = pow_qmin_u ! Restore user settings
+pow_qmax   = pow_qmax_u ! Restore user settings
+pow_deltaq = pow_deltaq_u
+pow_tthmin   = pow_tthmin_u
+pow_tthmax   = pow_tthmax_u
+pow_deltatth = pow_deltatth_u
 !
 end subroutine powder_run
 !
@@ -462,11 +478,11 @@ character(len=27), dimension(0:2), parameter :: ctable = (/ &
 DATA cfour / 'normal Fourier', 'Stacking fault' / 
 DATA ccalc / 'rez. space integration     ', &
              'Debye formula              ', &
-     &       'Debye formula long         ', &
-             'Debye formula fast         ', &
-     &       'Debye formula via histogram', &
+             'Integration NUFFT          ', &
+             'Integration grid           ', &
+             'Debye formula via histogram', &
              'new integration            '  &
-     &/                                                                 
+      /                                                                 
       DATA cpref / 'Rietveld Toraya model', 'Modified March model ' / 
 DATA cprofile / 'Profile function switched off', &
                 'Gaussian                     ', &
@@ -1879,7 +1895,8 @@ real(kind=PREC_DP), dimension(0:1) :: scale_diffuse = 1.0_PREC_DP   ! scale fact
 !REAL(kind=PREC_DP) :: ss 
 !character(len=256) :: ofile
 !
-call trans_to_short(pow_hkl_del, pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack)   ! Transform if pow_hkl_del(3) is not the smallest step
+call trans_to_short(pow_hkl_del, pow_pref_hkl, pow_four_mode==POW_STACK, &
+     pow_four_mode==POW_FOURIER, cr_is_stack)   ! Transform if pow_hkl_del(3) is not the smallest step
 !
 scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
 !
@@ -2359,7 +2376,7 @@ loop_h: DO ih = h_start, h_end
                   q = (zpi) * dstar
                   IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                      itth = nint( (q - pow_qmin) / pow_deltaq )
-                     inten = DBLE (csf (i,1,1) * conjg (csf (i,1,1) ) )
+                     inten = DBLE (csf (i,1,1) * conjg (csf (i,1,1) ) ) * scale_diffuse(scale_mode)
                      IF (pow_pref) THEN 
                         inten = inten * DBLE(calc_preferred (hkl,         &
                         pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
@@ -2370,7 +2387,8 @@ loop_h: DO ih = h_start, h_end
 !write(*,'(a,1(2x,3f8.4), i5, g18.6e3, f8.4, 4l2)') ' CENTRAL rod1', hkl(:), i, inten, q, pow_l_all, l_hh_real, l_kk_real, l_ll_real
 !endif
 !write(91,'(1f8.4, g18.6e3)') hkl(3), inten
-                     pow_qsp (itth) = pow_qsp (itth) + inten * scale_diffuse(scale_mode)
+!                     pow_qsp (itth) = pow_qsp (itth) + inten * scale_diffuse(scale_mode)
+            call powder_split(n_pkt, q, pow_qmin, pow_deltaq, inten, pow_qsp)
                   ENDIF 
 !                 ENDIF 
                ENDIF cond_full_a
@@ -2493,8 +2511,10 @@ loop_h: DO ih = h_start, h_end
 !****************************************************************************************************************************************************************************************
 !****************************************************************************************************************************************************************************************
                         q = (zpi) * dstar
+                     inten = DBLE (csf (i,1,1) * conjg (csf (i,1,1) ) ) * scale_diffuse(scale_mode)
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = nint( (q - pow_qmin) / pow_deltaq )
+!                       inten = inten * scale_diffuse(scale_mode)
                         IF (pow_pref) THEN 
                            inten = inten * DBLE(calc_preferred (hkl,         &
                            pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
@@ -2504,7 +2524,8 @@ loop_h: DO ih = h_start, h_end
 !write(*,'(a,2(2x,3f8.4), i5, g18.6e3, f8.4)') ' CENTRAL RODB', eck(:,1), eck(:,2), i, inten, q
 !endif
 !write(91,'(1f8.4, g18.6e3)') hkl(3), inten
-                        pow_qsp (itth) = pow_qsp (itth) + inten * scale_diffuse(scale_mode)
+            call powder_split(n_pkt, q, pow_qmin, pow_deltaq, inten, pow_qsp)
+!                       pow_qsp (itth) = pow_qsp (itth) + inten * scale_diffuse(scale_mode)
                      ENDIF 
 !                 ENDIF 
                   ENDIF  cond_full_b
@@ -2545,7 +2566,8 @@ endif
 !
 !ss = seknds (ss) 
 !write(*,*) ' POWDER is done  restt '
-call trans_to_short_reset(pow_hkl_del, pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack) ! Restore transformed structure
+call trans_to_short_reset(pow_hkl_del, pow_pref_hkl, pow_four_mode==POW_STACK, &
+     pow_four_mode==POW_FOURIER, cr_is_stack) ! Restore transformed structure
 !
 !     Prepare and calculate average form factors
 !
@@ -2696,6 +2718,7 @@ integer :: n_nscat
 integer :: n_pha
 integer :: ih,ik,il
 integer                     :: itth    ! Index in powder pattern on Q-scale
+integer                     :: itth1, itth2   ! Index in powder pattern on Q-scale
 integer     , dimension(3)  :: n_qxy   ! required size in reciprocal space this run
 real(PREC_DP), dimension(3) :: hkl
 real(PREC_DP)               :: dstar   ! 2.*sin(theta)/lambda
@@ -2703,6 +2726,8 @@ real(PREC_DP)               :: q       ! 2PI*2.*sin(theta)/lambda
 real(PREC_DP)               :: inten   ! Calculated intensity
 real(PREC_DP)               :: xstart  ! q-scale start 
 real(PREC_DP)               :: xdelta  ! q-scale steps
+real(PREC_DP)               :: frac1   ! q-scale steps
+real(PREC_DP)               :: frac2   ! q-scale steps
 real(kind=PREC_DP), dimension(0:1) :: scale_diffuse = 1.0_PREC_DP   ! scale factor for diffuse rods in case of stacking faults  
 !integer :: i
 real(kind=PREC_DP), dimension(  :,:,:), allocatable :: scale_grid
@@ -2714,7 +2739,9 @@ integer :: n_bragg
 integer :: n_diff 
 integer :: n_zero 
 !
-call trans_to_short(pow_hkl_del, pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack)   ! Transform if pow_hkl_del(3) is not the smallest step
+!
+call trans_to_short(pow_hkl_del, pow_pref_hkl, pow_four_mode==POW_STACK, &
+     pow_four_mode==POW_FOURIER, cr_is_stack)   ! Transform if pow_hkl_del(3) is not the smallest step
 !
 scale_diffuse = 1.0_PREC_DP  ! scale factor for diffuse rods in case of stacking faults
 !
@@ -2900,21 +2927,31 @@ cond_stack_mode_prep: if(pow_four_mode==POW_STACK .or. cr_is_stack) then ! Stack
    enddo
 endif cond_stack_mode_prep
 !
+!write(*,*) ' IN POWDER_NUFFT ', pow_pref
+!hkl(1) = 1.0D0
+!hkl(2) = 1.0D0
+!hkl(3) = 0.0D0
+!dstar = lib_blen(cr_rten, hkl)
+!q = zpi * dstar
+!write(*,*) ' PREFFERRED ', hkl, dstar, q, DBLE(calc_preferred (hkl,         &
+!               pow_pref_type, pow_pref_hkl, pow_pref_g1,         &
+!               pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))
 do il=1, inc(3)
    do ik=1, inc(2)
       do ih=1, inc(1)
 !
+         hkl = hkl_grid(:, ih,ik,il)
          dstar = lib_blen(cr_rten, hkl_grid(:, ih,ik,il)) 
          q = zpi * dstar
          if( pow_qmin <= q .and. q <= (pow_qmax+pow_deltaq) ) then
             itth = nint( (q - pow_qmin) / pow_deltaq )
-            inten = dsi(ih,ik,il)
+            inten = dsi(ih,ik,il) * scale_grid(ih,ik,il)
             if(pow_pref) then
                inten = inten * DBLE(calc_preferred (hkl,         &
                pow_pref_type, pow_pref_hkl, pow_pref_g1,         &
                pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))
             endif
-            pow_qsp(itth) = pow_qsp(itth) + inten * scale_grid(ih,ik,il)
+            call powder_split(n_pkt, q, pow_qmin, pow_deltaq, inten, pow_qsp)
          endif
       enddo
    enddo
@@ -2928,9 +2965,47 @@ xdelta = pow_deltaq/zpi
 ! messes up cfact
 CALL powder_stltab(n_pkt, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
 !
-call trans_to_short_reset(pow_hkl_del, pow_four_mode==POW_STACK, pow_four_mode==POW_FOURIER, cr_is_stack) ! Restore transformed structure
+call trans_to_short_reset(pow_hkl_del, pow_pref_hkl, pow_four_mode==POW_STACK, &
+     pow_four_mode==POW_FOURIER, cr_is_stack) ! Restore transformed structure
 !
 end subroutine powder_nufft
+!
+!*****7*****************************************************************
+!
+subroutine powder_split(MAXPKT, q, pow_qmin, pow_deltaq, inten, pow_qsp)
+!-
+!  Split the intensity onto the two adjacent bins
+!+
+use precision_mod
+!
+implicit none
+!
+integer                                 , intent(in)   :: MAXPKT
+real(kind=PREC_DP)                      , intent(in)   :: q
+real(kind=PREC_DP)                      , intent(in)   :: pow_qmin
+real(kind=PREC_DP)                      , intent(in)   :: pow_deltaq
+real(kind=PREC_DP)                      , intent(in)   :: inten
+real(kind=PREC_DP), dimension(0:MAXPKT), intent(inout) :: pow_qsp(0:MAXPKT)
+!
+integer :: itth1
+integer :: itth2
+real(kind=PREC_DP) :: frac1
+real(kind=PREC_DP) :: frac2
+!
+itth1 = int( (q - pow_qmin) / pow_deltaq )
+itth2 = itth1 + 1
+frac1 = 1.0D0 - ((q - pow_qmin) / pow_deltaq - int((q - pow_qmin) / pow_deltaq))
+frac2 =         ((q - pow_qmin) / pow_deltaq - int((q - pow_qmin) / pow_deltaq))
+!write(*,'(3i4, 2f12.6,f14.6, i8, f10.6)') nint(hkl), dstar, q, (q - pow_qmin) / pow_deltaq, int((q - pow_qmin) / pow_deltaq), &
+!(q - pow_qmin) / pow_deltaq- int((q - pow_qmin) / pow_deltaq)
+!write(*,'(i8, f9.5, 2f16.6)') itth1, frac1, inten * scale_grid(ih,ik,il), inten * scale_grid(ih,ik,il)*frac1
+!write(*,'(i8, f9.5, 2f16.6)') itth2, frac2, inten * scale_grid(ih,ik,il), inten * scale_grid(ih,ik,il)*frac2
+!read(*,*) itth
+!endif
+pow_qsp(itth1) = pow_qsp(itth1) + inten * frac1
+pow_qsp(itth2) = pow_qsp(itth2) + inten * frac2
+!
+end subroutine powder_split
 !
 !*****7*****************************************************************
 !
@@ -3358,7 +3433,7 @@ use precision_mod
 USE wink_mod
 !
 IMPLICIT NONE
-!
+integer :: i
 !
 if(pow_constlam) then           ! Constant lambda instrument
    IF(pow_qtthmin) THEN         ! Negative 2TH_zero, adjust lower limits

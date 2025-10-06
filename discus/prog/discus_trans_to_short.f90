@@ -14,6 +14,7 @@ character(len=PREC_STRING)      , save :: trn_structure     ! Original structure
 !character(len=PREC_STRING)      , save :: trn_stacksimple   ! Original stacking fault list
 character(len=PREC_STRING), dimension(:)    , allocatable, save :: trn_stacklayer ! Original stacking fault layers
 real(kind=PREC_DP)        , dimension(3)                 , save :: trn_pow_hkl_del   ! Original hkl steps
+real(kind=PREC_DP)        , dimension(3)                 , save :: trn_pow_hkl_pref  ! Original hkl for preferred axis
 real(kind=PREC_DP)        , dimension(:,:)  , allocatable, save :: trn_stack_origins ! Original stacking fault origins
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable, save :: trn_stack_trans   ! Original stacking fault translations
 logical                         , save :: trn_changed       ! Stucture was changed
@@ -22,7 +23,7 @@ contains
 !
 !*******************************************************************************
 !
-subroutine trans_to_short(pow_hkl_del, pow_four_mode_is_stack, pow_four_mode_is_four, crystal_is_stack)
+subroutine trans_to_short(pow_hkl_del, pow_pref_hkl, pow_four_mode_is_stack, pow_four_mode_is_four, crystal_is_stack)
 !-
 ! Main transformation routine
 !+
@@ -41,6 +42,7 @@ use precision_mod
 implicit none
 !
 real(kind=PREC_DP), dimension(3), intent(inout) :: pow_hkl_del
+real(kind=PREC_DP), dimension(3), intent(inout) :: pow_pref_hkl
 logical                         , intent(in)    :: pow_four_mode_is_stack
 logical                         , intent(in)    :: pow_four_mode_is_four 
 logical                         , intent(in)    :: crystal_is_stack
@@ -71,7 +73,7 @@ real(kind=PREC_DP), dimension(4) ::  ures(4)  ! Dummy vectors
 trn_changed = .false.
 !
 if(    pow_hkl_del(3)<=pow_hkl_del(2) .and. pow_hkl_del(2)<=pow_hkl_del(1)) then ! 3<2<1 nothing to do
-!  write(*,*) 'Sequence 3 < 2 < 1'
+!  write(*,*) 'Sequence 3 < 2 < 1 NOTHING DONE'
   return 
 elseif(pow_hkl_del(3)<=pow_hkl_del(1) .and. pow_hkl_del(1)< pow_hkl_del(2)) then ! 3<1<2 nothing to do
 !  write(*,*) 'Sequence 3 < 1 < 2'
@@ -86,6 +88,7 @@ call save_internal_backup(trn_structure) ! Save as full backup
 trn_changed = .true.
 !
 trn_pow_hkl_del = pow_hkl_del        ! Save users original steps
+trn_pow_hkl_pref = pow_pref_hkl       ! Save users original Preferred axis
 !
 tran_g = 0.0_PREC_DP
 !
@@ -96,6 +99,9 @@ if(    pow_hkl_del(2)< pow_hkl_del(3) .and. pow_hkl_del(3)< pow_hkl_del(1)) then
   pow_hkl_del(1) = trn_pow_hkl_del(1)
   pow_hkl_del(2) = trn_pow_hkl_del(3)
   pow_hkl_del(3) = trn_pow_hkl_del(2)
+  pow_pref_hkl(1) = trn_pow_hkl_pref(1)
+  pow_pref_hkl(2) = trn_pow_hkl_pref(3)
+  pow_pref_hkl(3) = trn_pow_hkl_pref(2)
 !  write(*,*) 'Sequence 2 < 3 < 1', pow_hkl_del
 elseif(pow_hkl_del(2)< pow_hkl_del(3) .and. pow_hkl_del(3)==pow_hkl_del(1)) then ! 2 < 3 == 1
   tran_g(1,3) =  1.0_PREC_DP
@@ -104,6 +110,9 @@ elseif(pow_hkl_del(2)< pow_hkl_del(3) .and. pow_hkl_del(3)==pow_hkl_del(1)) then
   pow_hkl_del(1) = trn_pow_hkl_del(3)
   pow_hkl_del(2) = trn_pow_hkl_del(1)
   pow_hkl_del(3) = trn_pow_hkl_del(2)
+  pow_pref_hkl(1) = trn_pow_hkl_pref(3)
+  pow_pref_hkl(2) = trn_pow_hkl_pref(1)
+  pow_pref_hkl(3) = trn_pow_hkl_pref(2)
 !  write(*,*) 'Sequence 2 < 3 == 1', pow_hkl_del
 elseif(pow_hkl_del(2)< pow_hkl_del(1) .and. pow_hkl_del(1)< pow_hkl_del(3)) then ! 2 < 1 < 3
   tran_g(1,3) =  1.0_PREC_DP
@@ -112,6 +121,9 @@ elseif(pow_hkl_del(2)< pow_hkl_del(1) .and. pow_hkl_del(1)< pow_hkl_del(3)) then
   pow_hkl_del(1) = trn_pow_hkl_del(3)
   pow_hkl_del(2) = trn_pow_hkl_del(1)
   pow_hkl_del(3) = trn_pow_hkl_del(2)
+  pow_pref_hkl(1) = trn_pow_hkl_pref(3)
+  pow_pref_hkl(2) = trn_pow_hkl_pref(1)
+  pow_pref_hkl(3) = trn_pow_hkl_pref(2)
 !  write(*,*) 'Sequence 2 < 3 < 1', pow_hkl_del
 elseif(pow_hkl_del(1)< pow_hkl_del(2) .and. pow_hkl_del(2)< pow_hkl_del(3)) then ! 1 < 2 < 3
   tran_g(1,3) =  1.0_PREC_DP
@@ -120,6 +132,9 @@ elseif(pow_hkl_del(1)< pow_hkl_del(2) .and. pow_hkl_del(2)< pow_hkl_del(3)) then
   pow_hkl_del(1) = trn_pow_hkl_del(3)
   pow_hkl_del(2) = trn_pow_hkl_del(2)
   pow_hkl_del(3) = trn_pow_hkl_del(1)
+  pow_pref_hkl(1) = trn_pow_hkl_pref(3)
+  pow_pref_hkl(2) = trn_pow_hkl_pref(2)
+  pow_pref_hkl(3) = trn_pow_hkl_pref(1)
 !  write(*,*) 'Sequence 1 < 2 < 3', pow_hkl_del
 elseif(pow_hkl_del(1)< pow_hkl_del(2) .and. pow_hkl_del(2)==pow_hkl_del(3)) then ! 1 < 2 == 3
   tran_g(1,2) =  1.0_PREC_DP
@@ -128,6 +143,9 @@ elseif(pow_hkl_del(1)< pow_hkl_del(2) .and. pow_hkl_del(2)==pow_hkl_del(3)) then
   pow_hkl_del(1) = trn_pow_hkl_del(2)
   pow_hkl_del(2) = trn_pow_hkl_del(3)
   pow_hkl_del(3) = trn_pow_hkl_del(1)
+  pow_pref_hkl(1) = trn_pow_hkl_pref(2)
+  pow_pref_hkl(2) = trn_pow_hkl_pref(3)
+  pow_pref_hkl(3) = trn_pow_hkl_pref(1)
 !  write(*,*) 'Sequence 1 < 2 == 3', pow_hkl_del
 elseif(pow_hkl_del(1)< pow_hkl_del(3) .and. pow_hkl_del(3)< pow_hkl_del(2)) then ! 1 < 3 < 2
   tran_g(1,2) =  1.0_PREC_DP
@@ -136,6 +154,9 @@ elseif(pow_hkl_del(1)< pow_hkl_del(3) .and. pow_hkl_del(3)< pow_hkl_del(2)) then
   pow_hkl_del(1) = trn_pow_hkl_del(2)
   pow_hkl_del(2) = trn_pow_hkl_del(3)
   pow_hkl_del(3) = trn_pow_hkl_del(1)
+  pow_pref_hkl(1) = trn_pow_hkl_pref(2)
+  pow_pref_hkl(2) = trn_pow_hkl_pref(3)
+  pow_pref_hkl(3) = trn_pow_hkl_pref(1)
 !  write(*,*) 'Sequence 1 < 3 < 2', pow_hkl_del
 endif
 !
@@ -225,7 +246,7 @@ end subroutine trans_to_short
 !
 !*******************************************************************************
 !
-subroutine trans_to_short_reset(pow_hkl_del, pow_four_mode_is_stack, pow_four_mode_is_four, crystal_is_stack)
+subroutine trans_to_short_reset(pow_hkl_del, pow_pref_hkl, pow_four_mode_is_stack, pow_four_mode_is_four, crystal_is_stack)
 !-
 ! Restore transformation routine
 !+
@@ -240,6 +261,7 @@ use precision_mod
 implicit none
 !
 real(kind=PREC_DP), dimension(3), intent(inout) :: pow_hkl_del
+real(kind=PREC_DP), dimension(3), intent(inout) :: pow_pref_hkl
 logical                         , intent(in)    :: pow_four_mode_is_stack
 logical                         , intent(in)    :: pow_four_mode_is_four 
 logical                         , intent(in)    :: crystal_is_stack
@@ -297,6 +319,7 @@ cond_changed:if(trn_changed) then        ! Structure was changed, restore backup
    backup_file = trn_structure(1:len_trim(trn_structure)) ! 
    call readstru_internal(MAXMASK, backup_file, uni_mask)   ! Read  backup file
    pow_hkl_del = trn_pow_hkl_del
+   pow_pref_hkl = trn_pow_hkl_pref
 !  call store_remove_single(trn_structure, ier_num)
 !write(*,*) ' RESTORING IS DONE'
 endif cond_changed
