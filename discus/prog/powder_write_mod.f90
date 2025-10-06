@@ -86,6 +86,9 @@ REAL(kind=PREC_DP)      :: normalizer
 REAL(kind=PREC_DP) :: xmin, xmax, xdel
 REAL(kind=PREC_DP)      :: xequ    ! x-position of equdistant curve
 REAL(kind=PREC_DP)      :: yequ    ! y-value    of equdistant curve
+REAL(kind=PREC_DP)      :: tthmin_u  ! User limit minimum for equdistant curve
+REAL(kind=PREC_DP)      :: tthmax_u  ! User limit maximum for equdistant curve
+REAL(kind=PREC_DP)      :: tthdel_u  ! User step          for equdistant curve
 REAL(kind=PREC_DP)      :: tthmin  ! minimum for equdistant curve
 REAL(kind=PREC_DP)      :: tthmax  ! minimum for equdistant curve
 REAL(KIND=PREC_DP)      ::   qmin  ! minimum for equdistant curve
@@ -319,44 +322,44 @@ IF( cpow_form == 'tth' ) THEN
 !
 !write(*,*) ' TTH ', out_user_limits
    IF(out_user_limits .AND. value /= val_pdf) THEN ! User provided values, not for PDF
-      pow_tthmin   = out_user_values(1)
-      pow_tthmax   = out_user_values(2)
-      pow_deltatth = out_user_values(3)
+      tthmin_u   = out_user_values(1)
+      tthmax_u   = out_user_values(2)
+      tthdel_u = out_user_values(3)
       npkt_u       = out_user_inc(1)
-!write(*,*) ' PRE   EQUI ', npkt_u, pow_tthmin, pow_tthmax, pow_deltatth
+!write(*,*) ' PRE   EQUI ', npkt_u, tthmin_u, tthmax_u, tthdel_u
    ELSE                                          ! Convert q limits
 !!write(*,*) ' NO USER LIMITS ', pow_qmin_u, xmin
 !write(*,*) ' NO user        ', xpl(0), xpl(npkt)
       arg        = pow_qmin_u/(zpi) * rlambda / 2.d0 ! Directly with arg in asind()
-      pow_tthmin = nint(2.*asind(arg)*1.0D5)/1.0D5     ! results in error ??????????
+      tthmin_u = nint(2.*asind(arg)*1.0D5)/1.0D5     ! results in error ??????????
       arg        = MIN(1.0D0,pow_qmax_u/zpi * rlambda / 2.)
       if(arg>1.0D0) then
-         pow_tthmax = 180.0D0
+         tthmax_u = 180.0D0
       else
-         pow_tthmax = nint(2.*asind(arg)*1.0D5)/1.0D5
+         tthmax_u = nint(2.*asind(arg)*1.0D5)/1.0D5
       endif
-      pow_deltatth = xpl(istart+2)-xpl(istart+1)
-      npkt_u     = int((pow_tthmax-pow_tthmin)/pow_deltatth) + 1
+      tthdel_u = xpl(istart+2)-xpl(istart+1)
+      npkt_u     = int((tthmax_u-tthmin_u)/tthdel_u) + 1
    ENDIF
-!write(*,*) ' PRE   equi ', 0        , pow_tthmin, pow_tthmax, pow_deltatth, npkt_u
-   IF(pow_tthmin < xpl(0) ) THEN           ! User lower limit too low!
+!write(*,*) ' PRE   equi ', 0        , tthmin_u, tthmax_u, tthdel_u, npkt_u
+   IF(tthmin_u < xpl(0) ) THEN           ! User lower limit too low!
       tthmin = nint(xpl(0)*1.0D5)/1.0D5
-      npkt_u = INT((pow_tthmax-tthmin)/pow_deltatth) + 1             
+      npkt_u = INT((tthmax_u-tthmin)/tthdel_u) + 1             
    ELSE
-      tthmin = pow_tthmin
+      tthmin = tthmin_u
    ENDIF
-!write(*,*) ' PRE   equi ', 1        ,     tthmin, pow_tthmax, pow_deltatth, npkt_u
-   IF(pow_tthmax > xpl(npkt) ) THEN              ! User upper limit too high!
+!write(*,*) ' PRE   equi ', 1        ,     tthmin, tthmax_u, tthdel_u, npkt_u
+   IF(tthmax_u > xpl(npkt) ) THEN              ! User upper limit too high!
       tthmax = nint(xpl(npkt)*1.0D5)/1.0D5
-      npkt_u = INT((tthmax-tthmin)/pow_deltatth) + 1             
+      npkt_u = INT((tthmax-tthmin)/tthdel_u) + 1             
    ELSE
-      tthmax = pow_tthmax
+      tthmax = tthmax_u
    ENDIF
-!write(*,*) ' PRE   equi ', 2        ,     tthmin,     tthmax, pow_deltatth, npkt_u
+!write(*,*) ' PRE   equi ', 2        ,     tthmin,     tthmax, tthdel_u, npkt_u
    xmin = nint(tthmin*1.0D5)/1.0D5               ! Adjust limits needed later to cut 
    xmax = nint(tthmax*1.0D5)/1.0D5               ! off rounding errors
-   npkt_equi =     INT((tthmax-tthmin)/pow_deltatth) + 1             
-!write(*,*) ' PRE   EQUI ', npkt_equi, tthmin, tthmax, pow_deltatth, npkt_u
+   npkt_equi =     INT((tthmax-tthmin)/tthdel_u) + 1             
+!write(*,*) ' PRE   EQUI ', npkt_equi, tthmin, tthmax, tthdel_u, npkt_u
    ALLOCATE(y2a (0:POW_WR_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
    ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
    ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
@@ -365,7 +368,7 @@ IF( cpow_form == 'tth' ) THEN
    y2a  = 0.0
    CALL spline (npkt, xpl, ypl, 1.d31, 1.d31, y2a)
    DO ii = 0, npkt_equi
-      xequ = tthmin + (ii)*pow_deltatth
+      xequ = tthmin + (ii)*tthdel_u
       CALL splint (npkt, xpl, ypl, y2a, xequ, yequ, ier_num)
       IF(ier_num/=0) THEN
          DEALLOCATE( xpl, stat = all_status)
@@ -2275,7 +2278,7 @@ IF(pow_type==POW_COMPL .or. pow_type==POW_NUFFT .or. pow_type==POW_GRID) THEN
          if(j>ubound(dummy,1)) exit first
          if(j<lbound(dummy,1)) exit first
          ii = abs(j-i)*nint(pseudo)
-         if(ii>40000          ) exit first
+         if(ii>40000          ) cycle first
          tth1 = (j-i-1)*dtth
          pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2) !, p3, p4) 
          dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)*pra1

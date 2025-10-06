@@ -67,6 +67,9 @@ REAL(KIND=PREC_DP)       :: pow_tthzero    =  0.0D0
 REAL(KIND=PREC_DP)       :: pow_tthmin     =  0.1D0
 REAL(KIND=PREC_DP)       :: pow_tthmax     = 40.0D0
 REAL(KIND=PREC_DP)       :: pow_deltatth   =  0.05D0
+REAL(KIND=PREC_DP)       :: pow_tthmin_u   =  0.1D0
+REAL(KIND=PREC_DP)       :: pow_tthmax_u   = 40.0D0
+REAL(KIND=PREC_DP)       :: pow_deltatth_u =  0.05D0
 REAL(KIND=PREC_DP)       :: pow_qzero      =  0.0D0
 REAL(KIND=PREC_DP)       :: pow_qmin       =  0.2D0
 REAL(KIND=PREC_DP)       :: pow_qmax       =  7.0D0
