@@ -2370,7 +2370,7 @@ INTEGER, PARAMETER :: IWR=11
 !
 CHARACTER(LEN=15), PARAMETER :: ofile='refine_best.mac'
 CHARACTER(LEN=15), PARAMETER :: nfile='refine_new.res '
-INTEGER             :: i
+INTEGER             :: i, j
 !
 INTEGER :: MAXW
 INTEGER :: ianz
@@ -2535,6 +2535,11 @@ if(ref_csigma_u /= ' ') then
 endif
 write(IWR, '(a)') '#'
 !
+j = 0
+do i=1, refine_par_n            ! Write values for all refined parameters
+   j = max(j, len_trim(refine_params(i)))
+enddo
+!
 !  Set free parameters
 !
 do i=1, refine_par_n            ! Write values for all refined parameters
@@ -2542,18 +2547,21 @@ do i=1, refine_par_n            ! Write values for all refined parameters
    if(refine_range(i,1)>refine_range(i,2)) then    ! No range parameter
       string = ' '
    elseif(refine_range(i,1) > -0.5*HUGE(0.0) .and. refine_range(i,2) < 0.5*HUGE(0.0)) then  ! [low, high]
-      write(string,'(a,g20.8e3,a,g20.8e3,a)') ' , range:[', refine_range(i,1), ',', refine_range(i,2), ']'
+      write(string,'(a,g15.8e3,a,g15.8e3,a)') ', range:[', refine_range(i,1), ',', refine_range(i,2), ']'
    elseif(refine_range(i,1) < -0.5*HUGE(0.0) .and. refine_range(i,2) < 0.5*HUGE(0.0)) then  ! [   , high]
-      write(string,'(a,g20.8e3,a)') ' , range:[,', refine_range(i,2), ']'
+      write(string,'(a,g15.8e3,a)') ', range:[,', refine_range(i,2), ']'
    elseif(refine_range(i,1) > -0.5*HUGE(0.0) .and. refine_range(i,2) > 0.5*HUGE(0.0)) then  ! [low,     ]
-      write(string,'(a,g20.8e3,a)') ' , range:[', refine_range(i,1), ',]'
+      write(string,'(a,g15.8e3,a)') ', range:[', refine_range(i,1), ',]'
    else
-      write(string,'(a,g20.8e3,a,g20.8e3,a)') ' , range:[', refine_range(i,1), ',', refine_range(i,2), ']'
+      write(string,'(a,g15.8e3,a,g15.8e3,a)') ', range:[', refine_range(i,1), ',', refine_range(i,2), ']'
    endif
-   write(long_line, '(2a,G20.8E3,(a,i1),(a,g15.8e3),a,a)') refine_params(i)(1:len_trim(refine_params(i))), ' , value:',refine_p(i), &
-   ' , points:', refine_nderiv(i), ' , shift:',abs(refine_shift(i)), ' , status:free', string(1:len_trim(string))
+   write(long_line, '(a)') refine_params(i)(1:len_trim(refine_params(i)))
+   write(long_line(j+1:PREC_STRING), '(a8,G16.8E3,(a,i1),(a,g15.8e3),a,a)') ', value:',refine_p(i), &
+   ', points:', refine_nderiv(i), ', shift:',abs(refine_shift(i)), ', status:free', string(1:len_trim(string))
+!  write(long_line, '(2a,G20.8E3,(a,i1),(a,g15.8e3),a,a)') refine_params(i)(1:len_trim(refine_params(i))), ' , value:',refine_p(i), &
+!  ' , points:', refine_nderiv(i), ' , shift:',abs(refine_shift(i)), ' , status:free', string(1:len_trim(string))
    length = len_trim(long_line)
-   call rem_bl(long_line, length)
+!  call rem_bl(long_line, length)
    write(IWR, '(2a)') 'newpara ', long_line(1:length)
 enddo
 write(IWR, '(a)') '#'
@@ -2564,9 +2572,11 @@ MAXW = refine_fix_n
 ALLOCATE(cpara(MAXW))
 ALLOCATE(lpara(MAXW))
 ALLOCATE(werte(MAXW))
+j = 0
 DO i = 1, refine_fix_n                  ! Copy parameter names to prepare calculation
    cpara(i) = refine_fixed(i)
    lpara(i) = LEN_TRIM(refine_fixed(i))
+   j = max(j, len_trim(refine_fixed(i)))
 ENDDO
 ianz = refine_fix_n
 CALL ber_params(ianz, cpara, lpara, werte, MAXW)
@@ -2575,19 +2585,22 @@ DO i=1, refine_fix_n            ! Make sure each parameter is defined as a varia
    if(refine_range_fix(i,1)>refine_range_fix(i,2)) then    ! No range parameter
       string = ' '
    elseif(refine_range_fix(i,1) > -0.5*HUGE(0.0) .and. refine_range_fix(i,2) < 0.5*HUGE(0.0)) then  ! [low, high]
-      write(string,'(a,g20.8e3,a,g20.8e3,a)') ' , range:[', refine_range_fix(i,1), ',', refine_range_fix(i,2), ']'
+      write(string,'(a,g15.8e3,a,g15.8e3,a)') ', range:[', refine_range_fix(i,1), ',', refine_range_fix(i,2), ']'
    elseif(refine_range_fix(i,1) < -0.5*HUGE(0.0) .and. refine_range_fix(i,2) < 0.5*HUGE(0.0)) then  ! [   , high]
-      write(string,'(a,g20.8e3,a)') ' , range:[,', refine_range_fix(i,2), ']'
+      write(string,'(a,g15.8e3,a)') ', range:[,', refine_range_fix(i,2), ']'
    elseif(refine_range_fix(i,1) > -0.5*HUGE(0.0) .and. refine_range_fix(i,2) > 0.5*HUGE(0.0)) then  ! [low,     ]
-      write(string,'(a,g20.8e3,a)') ' , range:[', refine_range_fix(i,1), ',]'
+      write(string,'(a,g15.8e3,a)') ', range:[', refine_range_fix(i,1), ',]'
    else
-      write(string,'(a,g20.8e3,a,g20.8e3,a)') ' , range:[', refine_range_fix(i,1), ',', refine_range_fix(i,2), ']'
+      write(string,'(a,g15.8e3,a,g15.8e3,a)') ', range:[', refine_range_fix(i,1), ',', refine_range_fix(i,2), ']'
    endif
    long_line = ' '
-   WRITE(long_line, '(2a,G20.8E3,(a,i1),(a,g15.8e3),a,a)') refine_fixed(i)(1:len_trim(refine_fixed(i))), ' , value:', werte(i),  &
-   ' , points:', refine_nderiv_fix(i), ' , shift:',abs(refine_shift_fix(i)), ' , status:fixed', string(1:len_trim(string))
+   write(long_line, '(a)') refine_fixed(i)(1:len_trim(refine_fixed(i)))
+   WRITE(long_line(j+1:PREC_STRING), '(a8,G16.8E3,(a,i1),(a,g15.8e3),a,a)') ', value:', werte(i),  &
+   ', points:', refine_nderiv_fix(i), ', shift:',abs(refine_shift_fix(i)), ', status:fixed', string(1:len_trim(string))
+!  WRITE(long_line, '(a9,G20.8E3,(a,i1),(a,g15.8e3),a,a)') refine_fixed(i)(1:len_trim(refine_fixed(i))), ', value:', werte(i),  &
+!  ' , points:', refine_nderiv_fix(i), ' , shift:',abs(refine_shift_fix(i)), ' , status:fixed', string(1:len_trim(string))
    length = len_trim(long_line)
-   call rem_bl(long_line, length)
+!  call rem_bl(long_line, length)
    write(IWR, '(2a)') 'newpara ', long_line(1:length)
 ENDDO
 !
