@@ -844,6 +844,11 @@
 !p                                   It is either sigma <arg2> or FWHM <arg2> 
 !p                                   if the third argument is equal to "f". 
 
+!p lognormal(x, my, p_sigma)       ! Returns the probability density function
+!p                                   for a normalizes lognormal distribution
+!p                                   with parameters my and p_sigma at the 
+!p                                   position x.
+
 !p pois(<arg>)                     ! Returns Poisson  distributed pseudo
 !p                                   random value with mean <arg>.
 
