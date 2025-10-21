@@ -13,6 +13,7 @@ USE ersetz_mod
 USE do_read_number_mod
 USE errlist_mod 
 USE get_params_mod
+use gauss_lorentz_pseudo_mod
 USE lib_length
 USE lib_random_func
 USE precision_mod
@@ -70,6 +71,18 @@ ier_typ = ER_NONE
 lcom = length_com (string, ikl) 
 IF (lcom.eq.0) then 
          CALL ersetz2 (string, ikl, iklz, ww, 0, lll) 
+elseif(lcom == 9) then 
+   if(string (ikl - 9:ikl-1) == 'lognormal') then
+      call get_params(line, ianz, cpara, lpara, 3, lp) 
+      call eval(cpara(1), lpara(1) ) 
+      call eval(cpara(2), lpara(2) ) 
+      call eval(cpara(3), lpara(3) ) 
+      werte(1) = do_read_number(cpara(1), lpara(1) ) 
+      werte(2) = do_read_number(cpara(2), lpara(2) ) 
+      werte(3) = do_read_number(cpara(3), lpara(3) ) 
+      ww = lognormal(werte(1), werte(2), werte(3))
+      CALL ersetz2(string, ikl, iklz, ww, 9, lll)
+   endif
 ELSEIF (lcom.eq.7) then 
 !
    IF(string (ikl - 7:ikl - 1) .eq.'pnumber') THEN

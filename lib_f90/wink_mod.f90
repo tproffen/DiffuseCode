@@ -11,6 +11,7 @@ real(PREC_DP), parameter :: pi  = 3.14159265358979323846264338327950288419716939
 real(PREC_DP), parameter :: zpi = 2.0D0 * pi
 real(PREC_DP), parameter :: fpi = 4.0D0 * pi
 real(PREC_DP), parameter :: rad = pi/180.D0
+real(PREC_DP), parameter :: sq_zpi = sqrt(2.0D0 * pi)
 !
 !
 end module wink_mod

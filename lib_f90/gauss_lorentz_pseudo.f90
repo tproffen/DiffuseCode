@@ -4,10 +4,12 @@ MODULE gauss_lorentz_pseudo_mod
 ! Pseudovoigt function normalized to a width FWHM 1.0
 !
 USE precision_mod
+use wink_mod
 !
 PRIVATE
 PUBLIC  GLP_MAX, GLP_NPT, glp_gauss_tbl, glp_loren_tbl
 PUBLIC  glp_setup, glp_gauss, glp_loren, glp_pseud, glp_pseud_indx
+public  lognormal
 !
 INTEGER           , PARAMETER :: GLP_MAX = 40000
 REAL(KIND=PREC_DP), PARAMETER :: glp_step = 0.0005d0
@@ -138,6 +140,25 @@ REAL(KIND=PREC_DP), INTENT(IN) :: fwhm  ! FWHM,     must be >= 0.0D0
 glp_pseud_indx =(eta*glp_loren_tbl(i) + (1.0D0-eta)*glp_gauss_tbl(i))/fwhm
 !
 END FUNCTION glp_pseud_indx
+!
+!*******************************************************************************
+!
+real(kind=PREC_DP) function lognormal(x, ln_mean, ln_sigma)
+!-
+!  Calculate a lognormal function value
+!  ln_mean is the ln(mean) of the Gaussian distribution
+!  ln_sigma is the ln(sigma) of the Gaussian distribution
+!+
+!
+implicit none
+!
+real(kind=PREC_DP), intent(in) :: x
+real(kind=PREC_DP), intent(in) :: ln_mean
+real(kind=PREC_DP), intent(in) :: ln_sigma
+!
+lognormal = 1./(x*ln_sigma*sq_zpi)*exp(-((log(x)-ln_mean)**2)/(2.0_PREC_DP*ln_sigma**2))
+!
+end function lognormal
 !
 !*******************************************************************************
 !
