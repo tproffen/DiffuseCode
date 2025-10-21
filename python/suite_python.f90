@@ -48,16 +48,15 @@ INTEGER, PARAMETER :: master = 0 ! Master ID for MPI
 EXTERNAL :: suite_sigint
 !
 gen_mpi_myid      = 0
-lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !
 IF( .NOT. lsetup_done ) THEN    ! ! If necessary do initial setup
    CALL run_mpi_init    ! Do the initial MPI configuration
    CALL setup_suite_start     ! Define initial parameter, array values
    CALL setup_suite     ! Define initial parameter, array values
    CALL suite_set_sub
-   CALL discus_setup(lstandalone)
-   CALL kuplot_setup(lstandalone)
-   CALL diffev_setup(lstandalone)
+   CALL discus_setup
+   CALL kuplot_setup
+   CALL diffev_setup
    suite_discus_init = .TRUE.
    suite_kuplot_init = .TRUE.
    suite_diffev_init = .TRUE.
@@ -73,7 +72,6 @@ IF( .NOT. lsetup_done ) THEN    ! ! If necessary do initial setup
 ELSE
    CALL suite_set_sub
 ENDIF
-lstandalone = .false.
 linteractive = .false.
 !
 END SUBROUTINE initialize_suite
