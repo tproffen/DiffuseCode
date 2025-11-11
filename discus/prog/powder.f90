@@ -325,7 +325,7 @@ logical :: four_log_user   ! Store user setting for Fourier log
 real(kind=PREC_DP) :: fwhm
 real(kind=PREC_DP) :: ss       ! time
 !
-integer :: ii
+!integer :: ii
 !
 !
 CALL dlink(ano, lambda, rlambda, renergy, l_energy, &
@@ -2718,7 +2718,7 @@ integer :: n_nscat
 integer :: n_pha
 integer :: ih,ik,il
 integer                     :: itth    ! Index in powder pattern on Q-scale
-integer                     :: itth1, itth2   ! Index in powder pattern on Q-scale
+!integer                     :: itth1, itth2   ! Index in powder pattern on Q-scale
 integer     , dimension(3)  :: n_qxy   ! required size in reciprocal space this run
 real(PREC_DP), dimension(3) :: hkl
 real(PREC_DP)               :: dstar   ! 2.*sin(theta)/lambda
@@ -2726,8 +2726,8 @@ real(PREC_DP)               :: q       ! 2PI*2.*sin(theta)/lambda
 real(PREC_DP)               :: inten   ! Calculated intensity
 real(PREC_DP)               :: xstart  ! q-scale start 
 real(PREC_DP)               :: xdelta  ! q-scale steps
-real(PREC_DP)               :: frac1   ! q-scale steps
-real(PREC_DP)               :: frac2   ! q-scale steps
+!real(PREC_DP)               :: frac1   ! q-scale steps
+!real(PREC_DP)               :: frac2   ! q-scale steps
 real(kind=PREC_DP), dimension(0:1) :: scale_diffuse = 1.0_PREC_DP   ! scale factor for diffuse rods in case of stacking faults  
 !integer :: i
 real(kind=PREC_DP), dimension(  :,:,:), allocatable :: scale_grid
@@ -3433,7 +3433,6 @@ use precision_mod
 USE wink_mod
 !
 IMPLICIT NONE
-integer :: i
 !
 if(pow_constlam) then           ! Constant lambda instrument
    IF(pow_qtthmin) THEN         ! Negative 2TH_zero, adjust lower limits
