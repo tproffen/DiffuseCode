@@ -691,6 +691,13 @@ if(ier_num.eq.0) then
    chem_quick     = .TRUE.
    cr_is_asym     = .false.  ! Crystal is not an asymmetric unit
    cr_is_stack    = .false.  ! Crystal is not build as stacking faults
+!
+cr_flags(:,1) = .true.       ! Crystal is supercell
+cr_flags(1,2) = .false.      ! Not an asymmetric unit
+cr_flags(2,2) = .false.      ! Not an asymmetric unit and Certain
+cr_flags(:,3:5) = .true.     ! Periodic boundaries may be applied
+cr_flags(:,6)   = .true.     ! Crystal is homogeneous and Certain about this
+
 !ELSE
 !   IF(ier_msg(3) == ' ') THEN
 !      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
@@ -3332,7 +3339,7 @@ INTEGER :: length
 !
 CHARACTER(LEN= 200) :: hostfile  ! original structure file name
 !
-INTEGER, PARAMETER :: NOPTIONAL = 8
+INTEGER, PARAMETER :: NOPTIONAL = 9
 INTEGER, PARAMETER :: O_METRIC  = 1
 INTEGER, PARAMETER :: O_SPACE   = 2
 INTEGER, PARAMETER :: O_SORT    = 3
@@ -3340,7 +3347,8 @@ INTEGER, PARAMETER :: O_ATOM    = 4     ! For LAMMPS
 integer, parameter :: O_UNIQUE  = 5
 integer, parameter :: O_NAMES   = 6
 integer, parameter :: O_REFINE  = 7
-integer, parameter :: O_FORM    = 8
+integer, parameter :: O_DIFFEV  = 8
+integer, parameter :: O_FORM    = 9
 CHARACTER(LEN=   6)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -3349,8 +3357,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique',  'name', 'refine', 'form'   /
-DATA loname /  6,        5     ,  4    ,  4    ,  6      ,   4    ,  6      ,  4       /
+DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique',  'name', 'refine', 'diffev', 'form'   /
+DATA loname /  6,        5     ,  4    ,  4    ,  6      ,   4    ,  6      ,  6      ,  4       /
 !
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_a0
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_win
@@ -3371,9 +3379,15 @@ logical                       :: l_not_full = .true.
 LOGICAL :: lout = .FALSE.
 !
 !
-opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'biso  ', 'chem  ', 'no    ', 'waas  ' /)   ! Always provide fresh default values
-lopara =  (/  6,        6      ,  6      ,  6      ,  6      ,  6      ,  6      ,  4       /)
-owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0     /)
+opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'biso  ', 'chem  ', &
+             'no    ', 'no    ', 'waas  '                                &
+           /)   ! Always provide fresh default values
+lopara =  (/  5,        2      ,  6      ,  4      ,  4      ,  4      , &
+              2      ,  2      ,  4                                      &
+          /)
+owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    , &
+              0.0    ,  0.0    ,  0.0                                    &
+          /)
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
 IF (ier_num.ne.0) THEN 
@@ -3414,7 +3428,8 @@ IF (ianz.ge.1) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          IF (ier_num.ne.0) return 
          if(lpresent(O_REFINE)) opara(O_NAMES) = 'shelx'
-         CALL ins2discus (ianz, cpara, lpara, MAXW, opara(O_NAMES), opara(O_REFINE), opara(O_FORM), ofile) 
+         CALL ins2discus (ianz, cpara, lpara, MAXW, opara(O_NAMES), opara(O_REFINE), &
+              opara(O_DIFFEV), opara(O_FORM), ofile) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -3593,7 +3608,8 @@ END SUBROUTINE do_import
 !
 !*****7**************************************************************** 
 !
-SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, c_names, c_refine, c_form, ofile) 
+SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, c_names, c_refine, c_diffev, &
+           c_form, ofile) 
 !-                                                                      
 !     converts a SHELXL "ins" or "res" file to DISCUS                   
 !+                                                                      
@@ -3611,6 +3627,8 @@ use string_convert_mod
 USE wink_mod
 USE precision_mod
 USE support_mod
+use envir_mod
+use take_param_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -3620,7 +3638,8 @@ INTEGER                             , INTENT(IN)    :: MAXW    ! Array sizes
 CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara   ! File name (parameters)
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara   ! Length file name parameters
 character(len=*)                    , intent(in)    :: c_names ! "chem" or "shelx" flag to interpret names
-character(len=*)                    , intent(in)    :: c_refine! "no" or "yes" flag to write refine files
+character(len=*)                    , intent(inout) :: c_refine! "no" or "yes" flag to write refine files
+character(len=*)                    , intent(inout) :: c_diffev! "no" or "yes" flag to write diffev files
 character(len=*)                    , intent(in)    :: c_form  ! "waas" or "table" or "discamb" flag for atom form factors
 CHARACTER(LEN=*)                    , INTENT(OUT)   :: ofile   ! Resulting output file
 !                                                                       
@@ -3628,16 +3647,17 @@ real(kind=PREC_DP), parameter :: TOL = 0.00005_PREC_DP
 INTEGER, PARAMETER :: NFV = 50 
 integer, parameter :: IRD = 34
 integer, parameter :: IWR = 35
-integer, parameter :: IDI = 36
-integer, parameter :: IRE = 37
-integer, parameter :: IDI_PO = 38    ! DISCUS_POWDER
-integer, parameter :: IRE_PO = 39    ! REFINE_POWDER
+integer, parameter :: IDI_MA = 36    ! DISCUS_MAIN PART
+integer, parameter :: IRE_MA = 37    ! REFINE_MAIN PART
+integer, parameter :: IDI_PO = 39    ! DISCUS_POWDER
+integer, parameter :: IRE_PO = 41    ! REFINE_POWDER
 !                                                                       
 REAL(KIND=PREC_DP), dimension(MAXW) :: werte
 !                                                                       
 INTEGER, PARAMETER :: shelx_num = 59       ! Number of SHELX commands to ignore 
 CHARACTER(len=4), dimension(shelx_num) :: shelx_ign ! (1:shelx_num) 
 CHARACTER(len=4), dimension(:), allocatable  :: c_atom    ! Atom types 
+CHARACTER(len=4), dimension(:), allocatable  :: s_atom    ! Atom types on SFAC line
 !      CHARACTER(4) command 
 !CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE :: eadp_names
 CHARACTER(len=80)  :: line1 
@@ -3704,6 +3724,33 @@ integer             :: space_number
 integer             :: space_origin   ! Origin choice 1 or 2
 character(len=3)    :: space_setting  ! 'abc' , etc
 logical             :: lspace_group   ! use generators of space group symbol
+!
+!character(len=PREC_STRING) :: string
+logical             :: l_refine       ! refine is not just "no"
+logical             :: l_diffev       ! diffev is not just "no"
+!
+integer, parameter :: NOPTIONAL = 9
+integer, parameter :: O_STYLE   = 1
+integer, parameter :: O_LAMBDA  = 2
+integer, parameter :: O_SYMBOL  = 3
+integer, parameter :: O_ATOM    = 4     ! For LAMMPS
+integer, parameter :: O_UNIQUE  = 5
+integer, parameter :: O_NAMES   = 6
+integer, parameter :: O_REFINE  = 7
+integer, parameter :: O_DIFFEV  = 8
+integer, parameter :: O_FORM    = 9
+character(len=   6)       , dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(len=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
+character(len=PREC_STRING), dimension(NOPTIONAL,2) :: ref_dif
+!
+DATA oname  / 'style ', 'lambda', 'symbol', 'atom', 'unique',  'name', 'refine', 'diffev', 'form'   /
+DATA loname /  5,        6      ,  6      ,  4    ,  6      ,   4    ,  6      ,  6      ,  4       /
+!
 !                                                                       
 DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
 'BOND', 'BUMP', 'CGLS', 'CHIV', 'CONF', 'CONN', 'DAMP', 'DANG',   &
@@ -3713,6 +3760,16 @@ DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
 'MPLA', 'NCSY', 'OMIT', 'PART', 'PLAN', 'REM ', 'RESI', 'RTAB',   &
 'SADI', 'SAME', 'SHEL', 'SIMU', 'SIZE', 'SPEC', 'SUMP', 'STIR',   &
 'SWAT', 'TEMP', 'TIME', 'TWIN', 'UNIT', 'WGHT', 'WPDB', 'ZERR' /  
+!
+opara  =  (/ 'powder  ', '1.540592', 'CUA1    ', 'atom    ', 'biso    ', 'chem    ', &
+             'no      ', 'no      ', 'waas    '                                &
+           /)   ! Always provide fresh default values
+lopara =  (/  6,        8      ,  4      ,  4      ,  4      ,  4      , &
+              2      ,  2      ,  4                                      &
+          /)
+owerte =  (/  0.0,     1.540592,  1.540592, 0.0    ,  0.0    ,  0.0    , &
+              0.0    ,  0.0    ,  0.0                                    &
+          /)
 !
 fv = 0.0_PREC_DP
 !                                                                       
@@ -3769,6 +3826,7 @@ close(ird)
 ihklf = lcontent  ! Default to this as last line
 !
 allocate(c_atom(lcontent))  ! We have at most this many different atom types
+allocate(s_atom(lcontent))  ! We have at most this many different atom types on SFAC
 !
 open(unit=IRD, file=infile, status='old')  ! Simplified open as we know file exists
 allocate(content(lcontent))
@@ -3786,6 +3844,7 @@ loop_read: do
           close(IRD)
           close(iWR)
           deallocate(c_atom )
+          deallocate(s_atom )
           deallocate(content)
           deallocate(spc_mat)
           return !         ! Serious error, continuation line missing, abort
@@ -3918,7 +3977,7 @@ loop_header: do jc=1, ifvar
         spc_mat(  4,  4, n_mat) = 1.0_PREC_DP
      ENDIF 
   elseif(content(jc)(1:4) == 'SFAC') then          ! SFAC
-     if(.not. lshelx_names) then                   ! Only if chemical names are requested
+!    if(.not. lshelx_names) then                   ! Only if chemical names are requested
      line = content(jc)(6:len_trim(content(jc)))
      call do_cap(line)
      length = len_trim(line)
@@ -3931,10 +3990,12 @@ loop_header: do jc=1, ifvar
         IF (j.le.length) THEN 
            ntyp = ntyp + 1 
            c_atom (ntyp) = ' ' 
+           s_atom (ntyp) = ' ' 
            i = 0 
            DO while (j.le.length.and.line (j:j) .ne.' ') 
               i = i + 1 
               c_atom (ntyp) (i:i) = line (j:j) 
+              s_atom (ntyp) (i:i) = line (j:j) 
               j = j + 1 
            ENDDO 
            IF(ntyp == ntyp_prev + 2) THEN
@@ -3955,6 +4016,9 @@ loop_header: do jc=1, ifvar
            ENDIF
         ENDIF 
      ENDDO atom_search1
+     if(lshelx_names) then                   ! Only if chemical names are requested
+        ntyp = 0
+        c_atom = ' '
      endif
   elseif(content(jc)(1:4) == 'EXTI') then          ! EXTI
      line = content(jc)(6:len_trim(content(jc)))
@@ -4033,6 +4097,14 @@ loop_atoms: do jc=ifvar +1, ihklf-1
       iscat = iscat + 1
       ntyp  = ntyp  + 1
       c_atom(iscat) = content(jc)(1:4)
+      line = content(jc)(1:4)
+      call do_cap(line)
+      if(line(1:2)=='HO') then
+         if(s_atom(nint(wwerte(1)))=='H') then    ! Holmium or H at O?
+         c_atom(iscat)(2:2) = '_'                                    ! Place underscore
+         content(jc)(2:2)   = '_'
+      endif
+      endif
    else
       iscat = nint(wwerte(1))
    endif
@@ -4055,8 +4127,47 @@ loop_atoms: do jc=ifvar +1, ihklf-1
 enddo loop_atoms
 !
 !===============================================================================
+!  Optional parameters "refine:yes"                 refine with default
+!  Optional parameters "refine:[style:powder,...]   refine with details
+!  Optional parameters "diffev:yes"                 diffev with default
+!  Optional parameters "diffev:[style:powder,...]   diffev with details
+!
+l_refine = c_refine /= 'no'
+l_diffev = c_diffev /= 'no'
+!
+if(l_diffev) then     ! Interpret the diffev parameters
+  length = len_trim(c_diffev)
+  if(c_diffev(1:1) == '[') then
+     c_diffev(1:1)           = ' '
+     c_diffev(length:length) = ' '
+  endif
+  call get_params (c_diffev, ianz, ccpara, llpara, maxw, length) 
+  call get_optional(ianz, MAXW, ccpara, llpara, NOPTIONAL,  ncalc, &
+                    oname, loname, opara, lopara, lpresent, owerte)
+  ref_dif(:,2) = opara           ! Copy all DIFFEV details
+  if(.not. (lpresent(O_LAMBDA) .or. lpresent(O_SYMBOL))) then
+     ref_dif(O_SYMBOL, 2) = ' '
+     write(ref_dif(O_LAMBDA,2), '(f8.6)') rlambda     ! Use SHELX input
+  endif
+  call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, lpresent, ref_dif, 2)
+endif
+!
+!===============================================================================
+!
+!===============================================================================
+!if(c_diffev=='yes' .or. c_diffev=='single' .or.            &
+!   c_diffev=='powder') then
+if(l_diffev) then
+   call write_diffev_generic(substance)
+   if(ref_dif(O_STYLE,2)=='powder' ) then 
+      call write_diffev_powder_part1(substance, user_name,      &
+           spcgr_syst(space_number), latt) 
+   endif
+endif
+!
+!===============================================================================
 if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
-   call write_refine_single_part1(IDI, IRE, ofile, infile, ilist, fv(1),  &
+   call write_refine_single_part1(IDI_MA, IRE_MA, ofile, infile, ilist, fv(1),  &
         discus_file(1), hkl_file, fcf_file)
 endif
 if(c_refine=='all' .or. c_refine=='powder') then
@@ -4096,12 +4207,19 @@ do iscat=1, ntyp
 !
 !===============================================================================
       if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
-         call write_refine_single_part2(IDI, IRE, j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'free')
+         call write_refine_single_part2(IDI_MA, IRE_MA, j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'free')
       endif
       if(c_refine=='all' .or. c_refine=='powder') then
          uij_l(1, iscat,j) = (uij_l(1, iscat,j)+uij_l(2, iscat,j)+uij_l(3, iscat,j))/3.0_PREC_DP
          l = 1
          call write_refine_single_part2(IDI_PO, IRE_PO, j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'fixed')
+      endif
+      if(l_diffev) then
+         if(ref_dif(O_STYLE,2)=='powder' ) then 
+         uij_l(1, iscat,j) = (uij_l(1, iscat,j)+uij_l(2, iscat,j)+uij_l(3, iscat,j))/3.0_PREC_DP
+         l = 1
+         call write_diffev_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'fixed')
+         endif
       endif
 !
 !===============================================================================
@@ -4128,7 +4246,12 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
          structure(is) = 'molecule end'
          is= is + 1
          structure(is) = 'molecule'
+      else
+         is= is + 1
+         structure(is) = 'molecule'
+         lmole = .true.
       endif
+!      write(IWR, '(a)') structure(is)(1:len_trim(structure(is)))
       cycle loop_atoms_set
    endif
    iatom = iatom + 1
@@ -4147,10 +4270,16 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
 !
 !===============================================================================
    if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
-      call write_refine_single_part3(IDI, IRE, content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'free')
+      call write_refine_single_part3(IDI_MA, IRE_MA, content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'free')
    endif
    if(c_refine=='all' .or. c_refine=='powder') then
       call write_refine_single_part3(IDI_PO, IRE_PO, content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
+   endif
+   if(l_diffev) then
+      if(ref_dif(O_STYLE,2)=='powder' ) then 
+      call write_diffev_single_part3(&
+           content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
+      endif
    endif
 !
 !===============================================================================
@@ -4169,6 +4298,11 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
    structure(is)(67:123) = ',       1,       0,       0,   1.000000, _,   0,   0,   0'
 !
 enddo loop_atoms_set
+if(lmole) then
+   is = is + 1
+   structure(is) = 'molecule end'
+!   write(IWR, '(a)') structure(is)(1:len_trim(structure(is)))
+endif
 loop_write: do j=1, 2*lcontent
    if(structure(j) /= ' ') then
       if(structure(j)(1:5) == 'gener' .and. lspace_group) then
@@ -4182,12 +4316,19 @@ close(IWR)
 !
 !===============================================================================
 if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
-   call write_refine_single_part4(IDI, IRE, ofile, discus_file(1), hkl_file, fcf_file, &
+   call write_refine_single_part4(IDI_MA, IRE_MA, ofile, discus_file(1), hkl_file, fcf_file, &
         ilist, c_form, rlambda, P_exti, hkl_max)
 endif
 if(c_refine=='all'.or. c_refine=='powder') then
    call write_refine_powder_part4(IDI_PO, IRE_PO, substance, discus_file(2), hkl_file, fcf_file, &
         ilist, c_form, rlambda, P_exti, spcgr_syst(space_number), latt, hkl_max)
+endif
+if(l_diffev) then
+write(*,*) ' Lambd Symb     ', ref_dif(O_SYMBOL, 2)(1:8), ref_dif(O_LAMBDA, 2)(1:8)
+   call write_diffev_powder_part4(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
+        ref_dif(O_SYMBOL, 2),&
+        hkl_file   &
+        )
 endif
 !===============================================================================
 !
@@ -4200,6 +4341,7 @@ deallocate(uij_l)
 deallocate(uij_at)
 deallocate(nanis)
 deallocate(c_atom)
+deallocate(s_atom)
 !                                                                       
 !1000 FORMAT    (a) 
 !2000 FORMAT    ('title ',a) 
@@ -4237,6 +4379,52 @@ deallocate(c_atom)
 !4000 FORMAT    (a) 
 !                                                                       
 END SUBROUTINE ins2discus                     
+!
+!*****7*************************************************************************
+!
+subroutine get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, lpresent, ref_dif, &
+           iprog)
+!-
+!  Interpret wavelength 
+!+
+!
+use errlist_mod
+use element_data_mod, only: get_wave
+use precision_mod
+!
+implicit none
+!
+integer                                   , intent(in)    :: NOPTIONAL ! number of optional
+integer                                   , intent(in)    :: O_LAMBDA  ! Entry numerical
+integer                                   , intent(in)    :: O_SYMBOL  ! Entry symbol
+logical         , dimension(NOPTIONAL)    , intent(in)    :: lpresent  ! is present
+character(len=*), dimension(NOPTIONAL, 2) , intent(inout) :: ref_dif   ! Actual values
+integer                                   , intent(in)    :: iprog     ! REFINE=1  or DIFFEV=2
+!
+character(len=4)   :: lambda
+real(kind=PREC_DP) :: rlambda   ! numerical value
+real(kind=PREC_DP) :: energy    ! numerical value
+logical, parameter :: l_energy = .false.
+integer            :: diff_radiation
+!
+diff_radiation = 1
+if(lpresent(O_SYMBOL)) then      ! User provided wavelength symbol
+   rlambda = 0.0
+   lambda = ref_dif(O_SYMBOL, iprog)
+   call get_wave ( lambda , rlambda, energy, l_energy, &
+                      diff_radiation,ier_num, ier_typ )
+   write(ref_dif(O_LAMBDA, iprog), '(f8.6)') rlambda
+elseif(lpresent(O_LAMBDA)) then
+   read(ref_dif(O_LAMBDA, iprog), *) rlambda
+   lambda = ' '
+   call get_wave ( lambda , rlambda, energy, l_energy, &
+                      diff_radiation,ier_num, ier_typ )
+   ref_dif(O_SYMBOL, iprog) = ' '
+endif
+write(*,*) ' GOT WAVELENGTH ', ier_num, ier_typ
+write(*,*) ' Lambd Symb     ', ref_dif(O_SYMBOL, iprog)(1:8), ref_dif(O_LAMBDA, iprog)(1:8)
+!
+end subroutine get_wavelength
 !
 !*****7**************************************************************** 
 !
@@ -6482,7 +6670,8 @@ use wyckoff_mod
 use build_name_mod
 use envir_mod
 use matrix_mod
-use lib_nx_read_mod
+!use lib_nx_read_mod
+use unified_read_mod
 use lib_nx_transfer_mod
 use precision_mod
 use string_convert_mod
@@ -6497,6 +6686,8 @@ character(len=*), dimension(1:MAXW), intent(inout) :: cpara
 integer         , dimension(1:MAXW), intent(inout) :: lpara
 character(len=*)                   , intent(OUT)   :: ofile 
 !
+real(kind=PREC_DP), parameter :: TOL = 1.0D-6
+!
 real(kind=PREC_DP)   , dimension(3) :: werte
 !
 real(kind=PREC_DP)        , dimension(3)                  :: unit_cell_lengths
@@ -6506,7 +6697,7 @@ integer                                                   :: symmetry_origin
 character(len=3)                                          :: symmetry_abc
 integer                                                   :: symmetry_n_mat    ! Data conform to symmetry
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat ! Actual Symmetry matrices
-integer                   , dimension(3,3  )              :: unit_cells   ! Number of unit cells
+integer                   , dimension(3    )              :: unit_cells   ! Number of unit cells
 !
 integer                                                   :: number_of_types
 character(len=4)          , dimension(:),     allocatable :: types_names
@@ -6521,7 +6712,7 @@ integer                   , dimension(:,:  ), allocatable :: atom_unit_cell   ! 
 integer                   , dimension(:    ), allocatable :: atom_site    ! Atom is on this site in its unit cell
 integer                   , dimension(:    ), allocatable :: atom_property  ! Atom has this property flag
 real(kind=PREC_DP)        , dimension(:,:  ), allocatable :: magnetic_spins ! Atom has these magnetic moments
-real(kind=PREC_DP)        , dimension(  :  ), allocatable :: at_value       ! Arbitrary atomic value
+!real(kind=PREC_DP)        , dimension(  :  ), allocatable :: at_value       ! Arbitrary atomic value
 logical                   , dimension(2,6)                :: crystal_flags  ! Flags 
 character(len=PREC_STRING), dimension(  5)                :: crystal_meta  ! Metadata
 type(anis_adp_type) :: anisotropic_adp
@@ -6532,6 +6723,7 @@ character(len=PREC_STRING) :: outfile
 integer :: i, j      ! Dummy indices
 integer :: n_gene    ! Number generators for molecules
 integer :: n_symm    ! Number symmetryop for molecules
+integer :: NMSG      ! Array dimension ier_msg
 logical :: lout
 !
 real(kind=PREC_DP), dimension(3,3) :: xx        ! Dummy tensor
@@ -6543,21 +6735,50 @@ integer           :: space_number
 integer           :: space_origin
 character(len=3)  :: space_setting
 !
+logical :: l_property
+logical :: l_anisotropic_adp
+logical :: l_molecules
+logical :: l_average_struc
+logical :: l_magnetic_spins
+logical :: l_types_occupancy
+!
 if(MAXW>1) then
    call do_build_name (ianz, cpara, lpara, werte, maxw, 1)
    if(ier_num/=0) return
 endif
 !
-call nx_read_structure(python_script_dir, cpara(1), unit_cell_lengths, unit_cell_angles,  &
-                       symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
-                       symmetry_mat, unit_cells, number_of_types, types_names,      &
-                       types_ordinal, types_charge, types_isotope, number_of_atoms, &
-                       atom_type, atom_pos, atom_unit_cell, atom_site,     &
-                       atom_property, crystal_flags, crystal_meta,                  &
-                       anisotropic_adp, molecules, average_struc, magnetic_spins,   &
-                       types_occupancy,  &
-                       ier_num)
-if(ier_num/=0) return
+NMSG = ubound(ier_msg,1)
+
+call unified_read_structure(cpara(1), unit_cell_lengths, unit_cell_angles,                &
+                             symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                             symmetry_mat, unit_cells, number_of_types, types_names,      &
+                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
+                             atom_type, atom_pos, atom_unit_cell, atom_site,              &
+                             atom_property, crystal_flags, crystal_meta,                  &
+                             anisotropic_adp, molecules, average_struc, magnetic_spins,   &
+                             types_occupancy,                                             &
+                             l_property, l_anisotropic_adp, l_molecules, l_average_struc, &
+                             l_magnetic_spins, l_types_occupancy,                         &
+                             NMSG, ier_num, ier_msg)
+!
+!call nx_read_structure(python_script_dir, cpara(1), unit_cell_lengths, unit_cell_angles,  &
+!                       symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+!                       symmetry_mat, unit_cells, number_of_types, types_names,      &
+!                       types_ordinal, types_charge, types_isotope, number_of_atoms, &
+!                       atom_type, atom_pos, atom_unit_cell, atom_site,     &
+!                       atom_property, crystal_flags, crystal_meta,                  &
+!                       anisotropic_adp, molecules, average_struc, magnetic_spins,   &
+!                       types_occupancy,  &
+!                       ier_num)
+if(ier_num/=0) then
+   ier_typ = ER_HDF
+   return
+endif
+!
+!write(*,*) ' l_property, l_anisotropic_adp, l_molecules, l_average_struc, ',&
+!                             'l_magnetic_spins, l_types_occupancy', &
+!l_property, l_anisotropic_adp, l_molecules, l_average_struc, &
+!                             l_magnetic_spins, l_types_occupancy
 !
 cr_a0  = unit_cell_lengths
 cr_win = unit_cell_angles
@@ -6584,16 +6805,24 @@ spc_n      = symmetry_n_mat
 spc_mat        = 0.0_PREC_DP
 spc_mat(4,4,:) = 1.0_PREC_DP
 spc_mat(1:3,1:4,1:spc_n) = symmetry_mat(1:3,1:4,1:spc_n)
+call get_symmetry_type_all
 call sym_mat_to_spacegroup(spc_n, spc_mat, space_group, space_number, space_origin, space_setting)
 cr_spcgrno = space_number
 cr_syst    = spcgr_syst(cr_spcgrno)
 !write(*,*) ' SPACE GROUP  ', space_group, cr_spcgr, space_number, spc_n
 !write(*,*) '       ORIGIN ', space_origin, spcgr_para, space_setting, symmetry_abc
 !
+cr_icc    = unit_cells
 cr_nscat  = number_of_types
 cr_natoms = number_of_atoms
+cr_ncatoms = cr_natoms/(cr_icc(1)*cr_icc(2)*cr_icc(3))
 call alloc_crystal_nmax(number_of_atoms)
 call alloc_crystal_scat(number_of_types)
+!
+if(.not.l_types_occupancy .or. .not.allocated(types_occupancy)) then
+   allocate(types_occupancy(1:number_of_types))
+   types_occupancy = 1.0_PREC_DP
+endif
 !
 ! Copy atom names
 !
@@ -6602,7 +6831,7 @@ do i=1,number_of_types
    cr_at_lis(i) = types_names(i)
    call do_cap(cr_at_lis(i))
    if(cr_at_lis(i)=='VA  ') cr_at_lis(i)='VOID'
-   cr_dw = 0.00001_PREC_DP         ! Default Debyw Waller terms
+   cr_dw = 0.00001_PREC_DP         ! Default Debye Waller terms
    cr_occ(i) = types_occupancy(i)
 enddo
 call guess_atom_all
@@ -6610,12 +6839,38 @@ call guess_atom_all
 ! Copy ADPs
 !
 cr_anis_full = 0.0_PREC_DP
-if(anisotropic_adp%anisotropic_n_type>0) then     ! File contained ADPs
+if(l_anisotropic_adp .and.  anisotropic_adp%anisotropic_n_type>0) then     ! File contained ADPs
    call alloc_anis(anisotropic_adp%anisotropic_n_type)
    cr_nanis = anisotropic_adp%anisotropic_n_type
    do i=1,anisotropic_adp%anisotropic_n_type
 !write(*,'(a,7f9.6)') ' ANIS ', anisotropic_adp%anisotropic_adp(1:7,i)
       cr_anis_full(1:6,i) = anisotropic_adp%anisotropic_adp(1:6,i)
+      if(maxval(abs(cr_anis_full(2:,i)))>TOL) then   ! Elements 1 to 6 are given, Anisotropic atom type
+         uij(1,1) = cr_anis_full(1,i)
+         uij(2,2) = cr_anis_full(2,i)
+         uij(3,3) = cr_anis_full(3,i)
+         uij(2,3) = cr_anis_full(4,i)
+         uij(3,2) = cr_anis_full(4,i)
+         uij(1,3) = cr_anis_full(5,i)
+         uij(3,1) = cr_anis_full(5,i)
+         uij(1,2) = cr_anis_full(6,i)
+         uij(2,1) = cr_anis_full(6,i)
+      else
+         uij      = 0.0_PREC_DP
+         uij(1,1) = cr_anis_full(1,i)
+         uij(2,2) = cr_anis_full(1,i)
+         uij(3,3) = cr_anis_full(1,i)
+      endif
+      call uij_to_xx(uij, cr_ar, xx)      ! Transform Uij to XX tensor
+      call xx_to_cart(xx, cr_eimat, ucij) ! Transform XX to cartesian basis
+      call calc_prin(i, cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
+   enddo
+else                                               ! No ADP on file
+   cr_nanis = 1
+   call alloc_anis(cr_nanis)
+   cr_anis_full(1:3, 1) = 1.0D-5
+   cr_anis_full(4:5, 1) = 0.0D0
+   i = 1
       uij(1,1) = cr_anis_full(1,i)
       uij(2,2) = cr_anis_full(2,i)
       uij(3,3) = cr_anis_full(3,i)
@@ -6628,28 +6883,52 @@ if(anisotropic_adp%anisotropic_n_type>0) then     ! File contained ADPs
       call uij_to_xx(uij, cr_ar, xx)      ! Transform Uij to XX tensor
       call xx_to_cart(xx, cr_eimat, ucij) ! Transform XX to cartesian basis
       call calc_prin(i, cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
-   enddo
+!   cr_dw(1) = 8.0_PREC_DP*PI**2
+endif
+if(.not.l_magnetic_spins) then
+   allocate(magnetic_spins(3,number_of_atoms))
+   magnetic_spins = 0.0_PREC_DP
 endif
 !
 ! Copy atoms
 !
+!write(*,*) ' ADP BOUND ', ubound(anisotropic_adp%anisotropic_adp)
+!write(*,'(a,12i4)')           ' ADP index ', anisotropic_adp%atom_index(1:12)
+!write(*,'(a,12i4)')           ' ADP number', anisotropic_adp%anisotropic_n_type, cr_nanis
+!do i=1, cr_nanis
+!write(*,'(a,6f10.6,a,f10.6)') ' ADP uij   ', anisotropic_adp%anisotropic_adp(1:6,i), ' || ',&
+!anisotropic_adp%anisotropic_adp(7,i)
+!enddo
 do i=1,number_of_atoms
    cr_iscat(1,i) = atom_type(i)
    cr_iscat(2,i) = 1   ! WORK  SYMMETRY OPERATION that created atom
+   if(l_anisotropic_adp) then
    if(anisotropic_adp%anisotropic_n_type>0) then
       cr_iscat(3,i) = anisotropic_adp%atom_index(i)
+      cr_dw(cr_iscat(1,i)) = anisotropic_adp%anisotropic_adp(7,cr_iscat(3,i))*8.0_PREC_DP*PI**2
    else
       cr_iscat(3,i) = 1
    endif
-   cr_dw(cr_iscat(3,i)) = real(cr_iscat(3,i),kind=PREC_DP)
-   cr_dw(cr_iscat(3,i)) = anisotropic_adp%anisotropic_adp(7,cr_iscat(3,i))*8.0_PREC_DP*PI**2
+   else
+      cr_iscat(3,i) = 1
+   endif
+!  cr_dw(cr_iscat(3,i)) = real(cr_iscat(3,i),kind=PREC_DP)
    cr_pos(:,i)   = atom_pos (:,i)
-   cr_prop(i)    = atom_property(i)
-   cr_magn(:,i)  = magnetic_spins(:,i)
+   if(l_property) then
+      cr_prop(i)    = atom_property(i)
+   else
+      cr_prop(i)    = 1
+   endif
+   if(l_magnetic_spins) then
+      cr_magn(1:3,i)  = magnetic_spins(1:3,i)
+   else
+      cr_magn(1:3,i)  = 0.0_PREC_DP
+   endif
 !  cr_valu(  i)  = at_value      (  i)
    cr_valu(  i)  = 0.0_PREC_DP   ! at_values(i)  VALUES_WORK !
 enddo
 !
+if(l_molecules) then
 if(molecules%number_moles>0) then     ! Structure contains molecules
    n_gene = 1
    n_symm = 1
@@ -6677,18 +6956,17 @@ if(molecules%number_moles>0) then     ! Structure contains molecules
    mole_num_mole = molecules%number_moles
    mole_num_type = molecules%number_types
 endif
+endif
 !
 do j=1,3
    cr_dim(j, 1) = minval(cr_pos(j,:))
    cr_dim(j, 2) = maxval(cr_pos(j,:))
 enddo
-do i = 1, 3 
-   cr_icc(i) = max(1,int(cr_dim(i,2) - cr_dim(i,1) + 1. ) )                                                
-enddo 
-!                                                                       
-!     ------Define (average) number of atoms per unit cell              
-!                                                                       
-cr_ncatoms = max(1,cr_natoms / (cr_icc(1) * cr_icc(2) * cr_icc (3) ))
+cr_icc    = unit_cells
+cr_nscat  = number_of_types
+cr_natoms = number_of_atoms
+cr_ncatoms = max(1,cr_natoms/(cr_icc(1)*cr_icc(2)*cr_icc(3)))
+!
 if(cmd==3) then            ! Import into DISCUS ==> save a cell file
    j = index(cpara(1)(1:lpara(1)),'.', .true.)
    outfile = cpara(1)(1:j) // 'stru'
@@ -6709,16 +6987,16 @@ endif
 !
 deallocate(symmetry_mat)
 !deallocate(unit_cells)
-deallocate(types_names)
-deallocate(types_ordinal)
-deallocate(types_charge)
-deallocate(types_isotope)
-deallocate(types_occupancy)
-deallocate(atom_type    )
-deallocate(atom_pos     )
-deallocate(atom_unit_cell)
-deallocate(atom_site    )
-deallocate(atom_property)
+if(allocated(types_names    ))  deallocate(types_names)
+if(allocated(types_ordinal  ))  deallocate(types_ordinal)
+if(allocated(types_charge   ))  deallocate(types_charge)
+if(allocated(types_isotope  ))  deallocate(types_isotope)
+if(allocated(types_occupancy))  deallocate(types_occupancy)
+if(allocated(atom_type      ))  deallocate(atom_type    )
+if(allocated(atom_pos       ))  deallocate(atom_pos     )
+if(allocated(atom_unit_cell ))  deallocate(atom_unit_cell)
+if(allocated(atom_site      ))  deallocate(atom_site    )
+if(allocated(atom_property  ))  deallocate(atom_property)
 if(allocated(anisotropic_adp%anisotropic_adp)) deallocate(anisotropic_adp%anisotropic_adp)
 !
 end subroutine nexus2discus
