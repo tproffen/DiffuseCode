@@ -33,6 +33,7 @@ LOGICAL               ::  sav_t_w_mole  , sav_w_mole   = .true.
 LOGICAL               ::  sav_t_w_obje  , sav_w_obje   = .true.
 LOGICAL               ::  sav_t_w_doma  , sav_w_doma   = .true.
 LOGICAL               ::  sav_t_w_prop  , sav_w_prop   = .true.
+LOGICAL               ::  sav_t_w_aver  , sav_w_aver   = .false.
 !
 INTEGER               ::  sav_t_start   , sav_start    =  1
 INTEGER               ::  sav_t_end     , sav_end      = -1
