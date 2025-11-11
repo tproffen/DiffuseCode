@@ -782,19 +782,25 @@ IF (cpara (1) (1:2) .eq.'NE') then
 !                                                                       
 ELSEIF (cpara (1) (1:2) .eq.'CR') then 
    CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.4) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     cr_icc (1) = nint (werte (1) ) 
-                     cr_icc (2) = nint (werte (2) ) 
-                     cr_icc (3) = nint (werte (3) ) 
-                     cr_ncatoms = nint (werte (4) ) 
-                     chem_purge = .FALSE.     ! Crystal dimension should allow periodic boundary
-                  ELSE
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+   IF (ier_num.eq.0) then 
+      IF (ianz.eq.4) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         cr_icc (1) = nint (werte (1) ) 
+         cr_icc (2) = nint (werte (2) ) 
+         cr_icc (3) = nint (werte (3) ) 
+         cr_ncatoms = nint (werte (4) ) 
+         chem_purge = .FALSE.     ! Crystal dimension should allow periodic boundary
+!
+         cr_flags(:,1) = .true.       ! Crystal is supercell
+         cr_flags(1,2) = .false.      ! Not an asymmetric unit
+         cr_flags(2,2) = .false.      ! Not an asymmetric unit and Certain
+         cr_flags(:,3:5) = .true.     ! Periodic bouindaries may be applied
+         cr_flags(:,6)   = .true.     ! Crystal is homogeneous and Certain about this
+      ELSE
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+   ENDIF 
 !                                                                       
 !     --- 'set lots': sample volume (lots)                              
 !                                                                       
