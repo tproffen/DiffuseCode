@@ -37,7 +37,7 @@ INTEGER, DIMENSION(1)             :: werte
 !
 CALL RANDOM_SEED(SIZE=nseeds)      ! Get seed size 
 IF(.NOT. ALLOCATED(seed_vals)) THEN
-CALL alloc_random()                ! Just in case, if random had not been initialized
+   CALL alloc_random()             ! Just in case, if random had not been initialized
    werte(:) = 0
    CALL ini_ran_ix(np,werte, 0)
 ENDIF
