@@ -36,11 +36,17 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   endif( _gf90_version_info VERSION_LESS 4.6)
 endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
-set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+#set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set (CMAKE_MODULE_PATH "${DIFFUSE_SOURCE_DIR}/cmake")
+
+#set (h5fortran_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set (h5fortran_DIR "${DIFFUSE_SOURCE_DIR}/cmake")
+link_directories(${DIFFUSE_BINARY_DIR}/h5fortran/lib)
+include_directories (${DIFFUSE_BINARY_DIR}/h5fortran/include)
 
 set (DIFFUSE_VERSION_MAJOR 6)
 set (DIFFUSE_VERSION_MINOR 19)
-set (DIFFUSE_VERSION_PATCH 00)
+set (DIFFUSE_VERSION_PATCH 01a)
 
 # Readline required for all programs
 
@@ -104,6 +110,8 @@ endif ()
 
 set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ${FFTW_DOUBLE_LIB} ${FFTW_DOUBLE_OPENMP_LIB} ${Python3_LIBRARIES} )
+set (DIFFUSE_LIBS ${DIFFUSE_LIBS} h5fortran "${HDF5_LIBRARIES}" )
+include_directories ("${HDF5_INCLUDE_DIRS}")
 
 # Set Compiler Flags
 
