@@ -62,6 +62,8 @@ use discus_allocate_appl_mod
       ier_sta = ER_S_CONT 
       ier_msg (:) = ' ' 
 !
+cr_flags = .false.       ! Assume no flags are set
+!
 !     /space_group/
 !
       CALL spcgr_setup 
