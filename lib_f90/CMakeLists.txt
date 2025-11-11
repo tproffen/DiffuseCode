@@ -25,12 +25,13 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               length_string_mod.f90 lib_f90_config.f90 lib_f90_fftw3.f90 
               lib_conv.f90 lib_conver_shelx.f90 lib_element_status.f90 
               lib_forpython.f90 lib_functions.f90
+              lib_h5fortran_mod.f90
               lib_get_var_type.f90  lib_global_flags.f90 
               lib_ik.f90 lib_lanczos.f90 lib_load.f90
               lib_math.f90 lib_metric.f90 lib_nx_read.f90 lib_nx_write.f90 
               lib_nx_transfer_mod.f90
               lib_f90_profile.f90 lib_timer.f90
-              lib_timer_mod.f90 lib_trans.f90 
+              lib_timer_mod.f90 lib_trans.f90 lib_unified_chars_mod.f90
               lib_use_coor.f90 lib_weights.f90
               lib_write_debug.f90 lib_upd_mod.f90 
               macro.f90  matrix_mod.f90 map_1dtofield.f90 
@@ -38,7 +39,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               operating_mod.f90 reserved_mod.f90
               random.f90 random_state_mod.f90 str_comp_mod.f90 
               string_convert_mod.f90
-              sup.f90 set_sub_generic_mod.f90 variable_test.f90 
+              sup.f90 set_sub_generic_mod.f90 unified_read.f90 unified_write.f90 variable_test.f90 
               charact_mod.f90 debug_mod.f90 doact_mod.f90 doexec_mod.f90 
               doloop_mod.f90 envir_mod.f90 errlist_mod.f90 learn_mod.f90
               terminal_mod.f90 mpi_slave_mod.f90 dummy_loop_mpi.f90
