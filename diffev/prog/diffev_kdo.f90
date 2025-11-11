@@ -620,6 +620,11 @@ ELSE
    ELSEIF (str_comp (befehl, 'newparam', 3, lbef, 8) ) THEN 
       CALL add_param(zeile, length)
 !                                                                 
+!     -- Aomit old generations from the backup files 'purge'       
+!                                                                 
+   ELSEIF (str_comp (befehl, 'purge', 3, lbef, 5) ) THEN 
+      CALL purge_files(zeile, length)
+!                                                                 
 !     -- set the name of a refinement parameter                   
 !                                                                 
    ELSEIF (str_comp (befehl, 'pop_name', 3, lbef, 8) ) THEN 
