@@ -1160,9 +1160,10 @@ real(kind=PREC_DP), dimension(MAXWW), intent(in) :: wwerte  ! Position vector
 integer                             , intent(in) :: ianz    ! dimension should be 3
 logical                             , intent(in) :: loutput ! Output to screen?
 !
+integer, parameter:: NRULE = 13                   
 character(len=PREC_STRING), dimension(2)  :: line
-character(len=PREC_STRING), dimension(10) :: rules
-integer                   , dimension(10) :: irule
+character(len=PREC_STRING), dimension(NRULE) :: rules
+integer                   , dimension(NRULE) :: irule
 integer                          :: i,j     ! Dummy indices
 real(kind=PREC_DP), dimension(3) :: vec     ! Position vector
 real(kind=PREC_DP), dimension(3) :: w,u     ! Position vector
@@ -1279,7 +1280,7 @@ if(loutput) write(output_io,'(a)') ' '
 call xx_to_cart(xx, cr_eimat, ucij)  ! Transform XX to cartesian basis
 call uij_to_xx(xx, ar_inv, uij)      ! Transform Uij from XX tensor
 call calc_prin_3x3(1    , 1       , ucij, 1, prin)
-call build_rules(uij, line, rules, irule)
+call build_rules(uij, line, NRULE, rules, irule)
 !
 write(output_io,'(  a)')      line(1)(1:len_trim(line(1)))
 write(output_io,'(a,a)')  ' Constraints:  ',line(2)(1:len_trim(line(2)))
@@ -1732,7 +1733,7 @@ end subroutine do_anis_wyc_sym
 !
 !*******************************************************************************
 !
-subroutine build_rules(uij, line, rules, irule)
+subroutine build_rules(uij, line, NRULE, rules, irule)
 !-
 !  Build Rules for Uij
 !+
@@ -1744,20 +1745,23 @@ use precision_mod
 implicit none
 !
 real(kind=PREC_DP), dimension(3,3), intent(inout) :: uij
-character(len=*), dimension(2) , intent(inout) :: line
-character(len=*), dimension(10), intent(out)   :: rules
-integer         , dimension(10), intent(out)   :: irule
+character(len=*), dimension(2)    , intent(inout) :: line
+integer                           , intent(in)    :: NRULE
+character(len=*), dimension(NRULE), intent(out)   :: rules
+integer         , dimension(NRULE), intent(out)   :: irule
 !
 real(kind=PREC_DP), parameter :: TOL = 1.0D-7
 real(kind=PREC_DP), parameter :: TOLH= 1.0D-2
 integer :: i
 !
 rules = ' '
-irule = 10
+irule = NRULE
 !  Rules   U11 == U22
 if    (abs(abs(uij(1,1))-abs(uij(2,2)))<TOL) then   !  U11 == U22
    rules(1) = 'U11 = U22'
    irule(1) =  1
+   rules(11) = 'U11 /= U12'
+   irule(11) =  -1
 elseif(abs(abs(uij(1,1))+abs(uij(2,2)))<TOL) then   !  U11 == -U22
    rules(1) = 'U11 = -U22'
    irule(1) = -1
@@ -1766,6 +1770,8 @@ endif
 if    (abs(abs(uij(1,1))-abs(uij(3,3)))<TOL) then   !  U11 == U22
    rules(2) = 'U11 = U33'
    irule(2) =  1
+   rules(12) = 'U11 /= U13'
+   irule(12) =  -1
 elseif(abs(abs(uij(1,1))+abs(uij(3,3)))<TOL) then   !  U11 == -U22
    rules(2) = 'U11 = -U33'
    irule(2) = -1
@@ -1774,6 +1780,8 @@ endif
 if    (abs(abs(uij(2,2))-abs(uij(3,3)))<TOL) then   !  U11 == U22
    rules(3) = 'U22 = U33'
    irule(3) =  1
+   rules(13) = 'U22 /= U23'
+   irule(13) =  -1
 elseif(abs(abs(uij(1,1))+abs(uij(3,3)))<TOL) then   !  U11 == -U22
    rules(3) = 'U22 = -U33'
    irule(3) = -1
@@ -1827,7 +1835,7 @@ if(cr_syst==cr_trigonal .or. cr_syst==cr_hexagonal) then
    endif
 endif
 !
-   do i=1, 10
+   do i=1, NRULE
       line(2) = line(2)(1:len_trim(line(2))) //'    ' // rules(i)(1:len_trim(rules(i)))
    enddo
    i = len_trim(line(2))
