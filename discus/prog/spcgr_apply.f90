@@ -1,8 +1,18 @@
 MODULE spcgr_apply
 !
 USE errlist_mod
+use precision_mod
 !
 IMPLICIT NONE
+!
+private
+public get_symmetry_matrices, firstcell, symmetry, get_is_sym, spcgr_get_setting
+public get_wyckoff, symmetry_make_wyckoff, wyckoff_main
+public sym_mat_to_spacegroup, recip_symm
+public get_symmetry_type_all
+public setup_lattice
+public mole_insert_current, mole_insert_explicit
+public first_mole, mole_firstcell
 !
 CONTAINS
 !
@@ -1573,6 +1583,7 @@ INTEGER :: n_center
 INTEGER :: igroup 
 INTEGER :: block = 1
 LOGICAL :: lident 
+logical, dimension(3) :: l_is_ident
 REAL(KIND=PREC_DP), dimension(4) :: trans! (4) 
 REAL(KIND=PREC_DP), dimension(4) :: orig ! (4) 
 REAL(KIND=PREC_DP), dimension(4) :: copy ! (4) 
@@ -1587,7 +1598,7 @@ REAL(kind=PREC_DP) :: eps
 !CHARACTER(len=87),  dimension(     1:WYC_MAX)  :: wyc_xyz  ! (1:SPC_MAX) 
 !REAL(kind=PREC_DP), dimension(3,   1:WYC_MAX)  :: wyc_axis ! (4, 4, 1:SPC_MAX) 
 !                                                                       
-DATA eps / 0.00001_PREC_DP/
+DATA eps / 0.00002_PREC_DP/
 !                                                                       
 n_center = 1 
 IF (cr_spcgr (1:1) .eq.'P') then 
@@ -1628,6 +1639,7 @@ orig(4) = 1.0_PREC_DP
 !     apply all symmetry operations to original position                
 !                                                                       
 res_para(0) = 3    ! 3 fixed output data, symm matrix no's in 4, ...
+wyc_fix     = .false.   ! Assume general position
 DO is = 1, spc_n 
    IF (gen_sta.eq.GEN_SYMM) then 
       igroup = mod (is - 1, block) + 1 
@@ -1646,9 +1658,9 @@ DO is = 1, spc_n
    lident = .true. 
    trans = 0.0_PREC_DP
    DO i = 1, 3 
-      lident = lident.and.                        &
-         (     abs(orig(i) - copy(i) )      .lt.eps .OR.   &
-           abs(abs(orig(i) - copy(i) )-1.0) .lt.eps)
+      l_is_ident(i) =(    abs(orig(i) - copy(i) )      .lt.eps .OR.   &
+                      abs(abs(orig(i) - copy(i) )-1.0) .lt.eps)
+      lident = lident.and. l_is_ident(i)
       trans(i) = orig(i) - copy(i)
    ENDDO 
    IF (lident) then 
@@ -1681,15 +1693,36 @@ DO is = 1, spc_n
                (wyc_mat(2, j, wyc_n), j = 1, 4), (wyc_mat(3, j, wyc_n), j = 1, 4)                                        
          ENDIF 
 !write(*,'(a,3(2x,f10.4))') ' WYC AXIS ', wyc_axis(:,wyc_n)
+!write(*,'( a)') '>>123456789 123456789 123456789 123456789 123456789 123456789 123456789 <<'
+!write(*,'(3a)') '>>',wyc_char(wyc_n),'<<'
+!write(*,'(7a)') '>> X >',wyc_char(wyc_n)(22:24),'<>',wyc_char(wyc_n)(25:28),'<  >',wyc_char(wyc_n)(48:51),'<>'
+!write(*,'(7a)') '>> Y >',wyc_char(wyc_n)(30:32),'<>',wyc_char(wyc_n)(33:36),'<  >',wyc_char(wyc_n)(53:56),'<>'
+!write(*,'(7a)') '>> Z >',wyc_char(wyc_n)(38:40),'<>',wyc_char(wyc_n)(41:44),'<  >',wyc_char(wyc_n)(58:61),'<>'
       ENDIF 
       res_para(0) = REAL(NINT(res_para(0)+1), kind=PREC_DP)
       res_para(NINT(res_para(0))) = REAL(is, kind=PREC_DP)
    ENDIF 
 !                                                                       
 ENDDO 
+!
+call get_wyckoff_name(loutput)
+!
+call get_wyckoff_fixed
+call wyc_calc
+!
 !                                                                       
 IF (loutput) then 
    WRITE (output_io, 6000) spc_n / wyc_n, wyc_n, spc_n 
+   if(wyc_n == 1) then
+      write(output_io, '(a)') ' General position x; y; z'
+   else
+      write(output_io, '(a, 3(a,a))') ' Special position : '   , &
+      (wyc_fix_pos(i)(1:len_trim(wyc_fix_pos(i))), ' ; ', i=1,2) &
+      ,wyc_fix_pos(3)(1:len_trim(wyc_fix_pos(i)))
+   endif
+write(*,'(a, 4i10)') ' WYC_MATRIX ', wyc_fix_mat(1,:)
+write(*,'(a, 4i10)') ' WYC_MATRIX ', wyc_fix_mat(2,:)
+write(*,'(a, 4i10)') ' WYC_MATRIX ', wyc_fix_mat(3,:)
 ENDIF 
 res_para(1) = REAL(spc_n / wyc_n, kind=PREC_DP)
 res_para(2) = REAL(        wyc_n, kind=PREC_DP)
@@ -1710,6 +1743,490 @@ res_para(3) = REAL(spc_n        , kind=PREC_DP)
      &  '    Highest Multiplicity',/,i8,20x,i8,20x,i8)                  
 !                                                                       
 END SUBROUTINE get_wyckoff                    
+!
+!********************************************************************** 
+!
+subroutine get_wyckoff_name(loutput)
+!-!
+!  Determine wyckoff point group
+!+
+!
+use wyckoff_mod
+!
+use errlist_mod
+use get_params_mod
+use ber_params_mod
+use precision_mod
+use prompt_mod
+!
+logical, intent(in) :: loutput
+!
+integer :: i
+integer :: n_1bar, n_2, n_m, n_3, n_3bar, n_4, n_4bar, n_6, n_6bar
+!
+wyc_point_no = 0               ! Assume failure
+n_1bar = 0
+n_2    = 0
+n_m    = 0
+n_3    = 0
+n_3bar = 0
+n_4    = 0
+n_4bar = 0
+n_6    = 0
+n_6bar = 0
+!
+do i = 2, wyc_n
+   if(wyc_char(i)(1:3)=='-1 ')  n_1bar = n_1bar + 1
+   if(wyc_char(i)(1:3)==' 2 ')  n_2    = n_2    + 1
+   if(wyc_char(i)(1:3)==' m ')  n_m    = n_m    + 1
+   if(wyc_char(i)(1:2)==' 3' )  n_3    = n_3   + 1
+   if(wyc_char(i)(1:2)=='-3' )  n_3bar = n_3bar+ 1
+   if(wyc_char(i)(1:2)==' 4' )  n_4    = n_4   + 1
+   if(wyc_char(i)(1:2)=='-4' )  n_4bar = n_4bar+ 1
+   if(wyc_char(i)(1:2)==' 6' )  n_6    = n_6   + 1
+   if(wyc_char(i)(1:2)=='-6' )  n_6bar = n_6bar+ 1
+enddo
+!write(*,'(a)') ' -1  2  m  3 -3  4 -4  6 -6'
+!write(*,'(9i3)')  n_1bar, n_2, n_m, n_3, n_3bar, n_4, n_4bar, n_6, n_6bar
+if(wyc_n == 1) then             ! General position
+   wyc_point_no = 1
+elseif(wyc_n == 2) then
+   if(wyc_char(2)(1:2) == '-1') then
+      wyc_point_no = 2     ! -1
+   elseif(wyc_char(2)(1:2) == ' 2') then
+      wyc_point_no = 3     !  2
+   elseif(wyc_char(2)(1:2) == ' m') then
+      wyc_point_no = 4     !  m
+   else
+      wyc_point_no = 0
+   endif
+elseif(wyc_n == 3) then
+   if(    n_1bar==0 .and. n_2==0 .and. n_3==2) then
+      wyc_point_no = 16    !  3
+   endif
+elseif(wyc_n == 4) then
+   if(    n_1bar==1 .and. n_2==1 .and. n_m==1) then
+      wyc_point_no = 5     ! 2/m
+   elseif(n_1bar==0 .and. n_2==3 .and. n_m==0) then
+      wyc_point_no = 6     ! 2 2 2
+   elseif(n_1bar==0 .and. n_2==1 .and. n_m==2) then
+      wyc_point_no = 7     ! m m 2
+   elseif(n_1bar==0 .and. n_2==1 .and. n_4==2) then
+      wyc_point_no = 9     ! 4
+   elseif(n_1bar==0 .and. n_2==1 .and. n_4bar==2) then
+      wyc_point_no = 10    ! -4
+   endif
+elseif(wyc_n == 8) then
+   if(    n_1bar==1 .and. n_2==3 .and. n_m==3) then
+      wyc_point_no = 8     ! m m m
+   elseif(n_1bar==1 .and. n_2==1 .and. n_m==1 .and. n_4==2 .and. n_4bar==2) then
+      wyc_point_no = 11    !  4/m
+   elseif(n_1bar==0 .and. n_2==5 .and. n_m==0 .and. n_4==2 .and. n_4bar==0) then
+      wyc_point_no = 12    !  4 2 2
+   elseif(n_1bar==0 .and. n_2==1 .and. n_m==4 .and. n_4==2 .and. n_4bar==0) then
+      wyc_point_no = 13    !  4 m m
+   elseif(n_1bar==0 .and. n_2==3 .and. n_m==2 .and. n_4==0 .and. n_4bar==2) then
+      wyc_point_no = 14    !  4 m m
+   endif
+elseif(wyc_n == 6) then
+   if(    n_1bar==1 .and. n_2==0 .and. n_m==0 .and. n_3==2 .and. n_3bar==2 &
+                                              .and. n_6==0 .and. n_6bar==0) then
+      wyc_point_no = 17    ! -3
+   elseif(n_1bar==0 .and. n_2==3 .and. n_m==0 .and. n_3==2 .and. n_3bar==0 &
+                                              .and. n_6==0 .and. n_6bar==0) then
+      wyc_point_no = 18    !  3 2
+   elseif(n_1bar==0 .and. n_2==0 .and. n_m==3 .and. n_3==2 .and. n_3bar==0 &
+                                              .and. n_6==0 .and. n_6bar==0) then
+      wyc_point_no = 19    !  3 m
+   elseif(n_1bar==0 .and. n_2==1 .and. n_m==0 .and. n_3==2 .and. n_3bar==0 &
+                                              .and. n_6==2 .and. n_6bar==0) then
+      wyc_point_no = 21    !  6
+   elseif(n_1bar==0 .and. n_2==0 .and. n_m==1 .and. n_3==2 .and. n_3bar==0 &
+                                              .and. n_6==0 .and. n_6bar==2) then
+      wyc_point_no = 22    !  6
+   endif
+elseif(wyc_n == 12) then
+   if(    n_1bar==1 .and. n_2==3 .and. n_m==3 .and. n_3==2 .and. n_3bar==2 &
+                                              .and. n_6==0 .and. n_6bar==0) then
+      wyc_point_no = 20    ! -3 m
+   elseif(n_1bar==1 .and. n_2==1 .and. n_m==1 .and. n_3==2 .and. n_3bar==2 &
+                                              .and. n_6==2 .and. n_6bar==2) then
+      wyc_point_no = 23    !  6/m
+   elseif(n_1bar==0 .and. n_2==7 .and. n_m==0 .and. n_3==2 .and. n_3bar==0 &
+                                              .and. n_6==2 .and. n_6bar==0) then
+      wyc_point_no = 24    !  6 2 2
+   elseif(n_1bar==0 .and. n_2==1 .and. n_m==6 .and. n_3==2 .and. n_3bar==0 &
+                                              .and. n_6==2 .and. n_6bar==0) then
+      wyc_point_no = 25    !  6 m m
+   elseif(n_1bar==0 .and. n_2==3 .and. n_m==4 .and. n_3==2 .and. n_3bar==0 &
+                                              .and. n_6==0 .and. n_6bar==2) then
+      wyc_point_no = 26    ! -6 m 2
+   elseif(n_1bar==0 .and. n_2==3 .and. n_m==0 .and. n_3==8 .and. n_3bar==0 &
+                                              .and. n_6==0 .and. n_6bar==0) then
+      wyc_point_no = 28    ! 2 3
+   endif
+elseif(wyc_n == 16) then
+   if(    n_1bar==1 .and. n_2==5 .and. n_m==5 .and. n_3==0 .and. n_3bar==0 &
+                                              .and. n_4==2 .and. n_4bar==2) then
+      wyc_point_no = 15    !  4/m m m
+   endif
+elseif(wyc_n == 24) then
+   if(    n_1bar==1 .and. n_2==7 .and. n_m==7 .and. n_3==2 .and. n_3bar==2 &
+                                              .and. n_6==2 .and. n_6bar==2) then
+      wyc_point_no = 27    ! 6/m m m
+   elseif(n_1bar==1 .and. n_2==3 .and. n_m==3 .and. n_3==8 .and. n_3bar==8 &
+                                              .and. n_4==0 .and. n_4bar==0) then
+      wyc_point_no = 29    ! m -3
+   elseif(n_1bar==0 .and. n_2==9 .and. n_m==0 .and. n_3==8 .and. n_3bar==0 &
+                                              .and. n_4==6 .and. n_4bar==0) then
+      wyc_point_no = 30    ! 4 3 2
+   elseif(n_1bar==0 .and. n_2==3 .and. n_m==6 .and. n_3==8 .and. n_3bar==0 &
+                                              .and. n_4==0 .and. n_4bar==6) then
+      wyc_point_no = 31    ! -4 3 m
+   endif
+elseif(wyc_n == 48) then
+   if(    n_1bar==1 .and. n_2==9 .and. n_m==9 .and. n_3==8 .and. n_3bar==8 &
+                                              .and. n_4==6 .and. n_4bar==6) then
+      wyc_point_no = 32    ! m -3 m 
+   endif
+endif
+!
+if(loutput) write(output_io, '(a,i3,2a)') ' Point group ', wyc_point_no, ' : ',wyc_point_names(wyc_point_no)
+!
+end subroutine get_wyckoff_name
+!
+!********************************************************************** 
+!
+subroutine get_wyckoff_fixed
+!-!
+!  Determine if any x, y, z are fixed by symmetry
+!+
+!
+use wyckoff_mod
+!
+use berechne_mod
+use precision_mod
+!
+integer :: i
+!
+wyc_fix     = .false.
+wyc_fix_pos(1) = '  x'
+wyc_fix_pos(2) = '  y'
+wyc_fix_pos(3) = '  z'
+!wyc_fix_mat    = imat
+!
+if(wyc_n == 1) return           ! General position
+!
+! First check if any position for -1 is given in wyc_char(48-61)
+!
+if(any(wyc_char(2:wyc_n)(48:51)/=' ' .or. wyc_char(2:wyc_n)(53:56)/=' ' &
+  .or. wyc_char(2:wyc_n)(58:61)/=' ')) then
+   loop_1bar: do i=2, wyc_n
+      if(wyc_char(i)(48:51)/=' ') then
+         wyc_fix(:) = .true.                 ! Fixed position in 1bar or Nbar
+         wyc_fix_pos(1) = wyc_char(i)(48:51)
+         wyc_fix_pos(2) = wyc_char(i)(53:56)
+         wyc_fix_pos(3) = wyc_char(i)(58:61)
+!         wyc_fix_mat    = zero
+!         do j = 1,3
+!         length = len_trim(wyc_fix_pos(j))
+!write(*,*) ' >>',wyc_fix_pos(j)(1:length),'<< ', length
+!         wyc_fix_mat(j,4) = nint(berechne(wyc_fix_pos(j), length, add_dot=.true.)*24.0D0)
+!         enddo
+         return
+      endif
+   enddo loop_1bar
+endif
+!
+! Special solutions for each point group
+!   -- centrosymmetric are done
+!   -- 3bar; 4bar 6bar containing PGs are done
+! remainig:
+! 2       : location on 2-fold axis
+! m       : location on mirror plane
+! 2 2 2   : Intersection of all axes
+! m m 2   ! location on 2-fold axis
+! 4       : location on 4-fold axis
+! 4 2 2   : Intersection of all axes
+! 4 m m   : location on 4-fold axis
+! 3       : location on 3-fold axis
+! 3 2 1   : Intersection of all axes
+! 3 m 1   : location on 3-fold axis
+! 6       : location on 6-fold axis
+! 6 2 2   : Intersection of all axes
+! 6 m m   : location on 6-fold axis
+! 2 3     : Intersection of all two-fold axes parallel <100>
+! 4 3 2   : Intersection of all two-fold axes parallel <100>
+!
+!write(*,'(a)')       '                >>22      30        40        50 <<<'
+!write(*,'(a)')       '                >>>23456789 123456789 123456789 1<<<'
+!do i=2, wyc_n
+!write(*,'(a,i2,a1,a8,a4,a,a3,3l3 )') ' PG ',wyc_point_no,':',  &
+!wyc_point_names(wyc_point_no),' >>>',  &
+!wyc_char(i)(22:44), '<<<', &
+!index(wyc_char(i)(22:24),'x')/=0,  &
+!index(wyc_char(i)(30:32),'y')/=0,  &
+!index(wyc_char(i)(38:40),'z')/=0
+!enddo
+!
+if(wyc_point_no == 3) then      ! 2       : location on 2-fold axis
+   call fix_axis('2')
+elseif(wyc_point_no == 4) then      ! m       : location on mirror plane
+   call fix_mirror
+elseif(wyc_point_no == 6) then      ! 2 2 2   : intersection of all three axes
+   call fix_intersection_3('2')
+elseif(wyc_point_no == 7) then      ! m m 2   : location on 2-fold axis
+   call fix_axis('2')
+elseif(wyc_point_no == 9) then      ! 4       : location on 4-fold axis
+   call fix_axis('4')
+elseif(wyc_point_no == 12) then      ! 4 2 2   : Intersection of 4 and 2
+   call fix_intersection('4', '2')
+elseif(wyc_point_no == 13) then      ! 4 m m   : location on 4-fold axis
+   call fix_axis('4')
+elseif(wyc_point_no == 16) then      ! 3       : location on 3-fold axis
+   call fix_axis('3')
+elseif(wyc_point_no == 18) then      ! 3 2     : Intersection of 3 and 2
+   call fix_intersection('3', '2')
+elseif(wyc_point_no == 19) then      ! 3 m     : location on 3-fold axis
+   call fix_axis('3')
+elseif(wyc_point_no == 21) then      ! 6       : location on 6-fold axis
+   call fix_axis('6')
+elseif(wyc_point_no == 12) then      ! 6 2 2   : Intersection of 6 and 2
+   call fix_intersection('6', '2')
+elseif(wyc_point_no == 25) then      ! 6 m m   : location on 6-fold axis
+   call fix_axis('6')
+elseif(wyc_point_no == 28) then      ! 2 3     : Intersection of 2 and 2 and 2
+   call fix_intersection_3('2')
+elseif(wyc_point_no == 30) then      ! 4 3 2   : Intersection of 4 and 2
+   call fix_intersection('4', '2')
+endif
+!
+end subroutine get_wyckoff_fixed
+!
+!********************************************************************** 
+!
+subroutine fix_mirror
+!-
+!  Locate coordinates on single mirror plane
+!+
+use wyckoff_mod
+!
+implicit none
+!
+wyc_fix_pos(1) = wyc_char(2)(22:28)
+wyc_fix_pos(2) = wyc_char(2)(30:36)
+wyc_fix_pos(3) = wyc_char(2)(38:44)
+if(index(wyc_char(2)(22:24),'x')/=0) then  ! x is free
+   wyc_fix(1)     = .false.
+   if(index(wyc_char(2)(30:32),'y')/=0) then  ! y is free
+      wyc_fix(2)     = .false.
+      wyc_fix(3)     = .true.
+   else                                       ! z is free
+      wyc_fix(2)     = .true.
+      wyc_fix(3)     = .false.
+   endif
+else                                       ! x is fixed
+   wyc_fix(1)     = .true.
+   wyc_fix(2)     = .false.
+   wyc_fix(3)     = .false.
+endif
+!
+end subroutine fix_mirror
+!
+!********************************************************************** 
+!
+subroutine fix_axis(c_type)
+!-
+!  Locate and use axis c_type
+!+
+!
+use wyckoff_mod
+!
+implicit none
+!
+character(len=*), intent(in) :: c_type
+!
+integer :: i
+!
+   loop_mm2: do i=2, wyc_n
+      if(index(wyc_char(i)(1:3),c_type)>0) then   ! found 2-fold axis
+         exit loop_mm2
+      endif
+   enddo loop_mm2
+   wyc_fix_pos(1) = wyc_char(i)(22:28)         ! use coordinates of axis
+   wyc_fix_pos(2) = wyc_char(i)(30:36)
+   wyc_fix_pos(3) = wyc_char(i)(38:44)
+   if(index(wyc_char(i)(22:24),'x')==0) then   ! no x, is fixed
+      wyc_fix(1)     = .true.
+      if(index(wyc_char(i)(30:36),'y')==0) then  ! no y, is fixed
+         wyc_fix(2)     = .true.
+         wyc_fix(3)     = .false.
+      else
+         wyc_fix(2)     = .false.
+         wyc_fix(3)     = .true.
+      endif
+   else
+      wyc_fix(1)     = .false.                 ! x is free, 
+      wyc_fix(2)     = .true.                  ! others are fixed
+      wyc_fix(3)     = .true.
+   endif
+!
+end subroutine fix_axis
+!
+!********************************************************************** 
+!
+subroutine fix_intersection(c_type,d_type)
+!-
+!  Locate and use intersection of axis c_type and d_type
+!+
+!
+use wyckoff_mod
+!
+implicit none
+!
+character(len=*), intent(in) :: c_type   ! Axis 1
+character(len=*), intent(in) :: d_type   ! Axis 2
+!
+character(len=1), dimension(3), parameter :: xyz = (/'x', 'y', 'z'/)
+integer, dimension(3), parameter :: ilow = (/22,30, 38/)
+integer, dimension(3), parameter :: ihigh= (/28,36, 44/)
+integer :: i, j
+integer, dimension(3) :: ind
+!
+j= 1
+!
+loop_axis1: do i=2, wyc_n
+   if(index(wyc_char(i)(1:3),c_type)>0) then   ! found axis type 1
+      if(index(wyc_char(i)(22:24),'x')/=0) then   ! Found x
+         j = 1
+         ind(2) = j      ! Use these characters
+         ind(3) = j
+      elseif(index(wyc_char(i)(30:36),'y')==0) then  ! Found y
+         j = 2
+         ind(1) = j      ! Use these characters
+         ind(3) = j
+      elseif(index(wyc_char(i)(38:44),'z')==0) then  ! Found z
+         j = 3
+         ind(1) = j      ! Use these characters
+         ind(2) = j
+      endif
+      exit loop_axis1
+   endif
+enddo loop_axis1
+!
+loop_axis2: do i=2, wyc_n
+   if(index(wyc_char(i)(1:3),d_type)>0) then   ! found axis type 2
+      if(index(wyc_char(i)(ilow(j):ihigh(j)),xyz(j))==0) then   ! no complementary xyz to c_type, is fixed
+         ind(j) = i
+         exit loop_axis2
+      endif
+      endif
+enddo loop_axis2
+wyc_fix = .true.                            ! Fixed point
+wyc_fix_pos(1) = wyc_char(ind(1))(22:28)    ! use x coordinates of axis as in ind(1)
+wyc_fix_pos(2) = wyc_char(ind(2))(30:36)    ! use y coordinates of axis as in ind(2)
+wyc_fix_pos(3) = wyc_char(ind(3))(38:44)    ! use z coordinates of axis as in ind(*)
+!
+end subroutine fix_intersection
+!
+!********************************************************************** 
+!
+subroutine fix_intersection_3(c_type)
+!-
+!  Locate and use intersection of 3 axis c_type
+!+
+!
+use wyckoff_mod
+!
+implicit none
+!
+character(len=*), intent(in) :: c_type   ! Axis 1
+!
+integer :: i
+!
+loop_axis1: do i=2, wyc_n
+   if(index(wyc_char(i)(1:3),c_type)>0) then   ! found axis type 1
+      if(index(wyc_char(i)(22:24),'x')==0) then   ! Fixed along x
+         wyc_fix_pos(1) = wyc_char(i)(22:28)    ! use x coordinates of axis 
+      endif
+      if(index(wyc_char(i)(30:36),'y')==0) then  ! Fixed y
+         wyc_fix_pos(2) = wyc_char(i)(30:36)    ! use y coordinates of axis 
+      endif
+      if(index(wyc_char(i)(38:44),'z')==0) then  ! Fixed z
+         wyc_fix_pos(3) = wyc_char(i)(38:44)    ! use z coordinates of axis 
+      endif
+   endif
+enddo loop_axis1
+!
+wyc_fix = .true.                            ! Fixed point
+!
+end subroutine fix_intersection_3
+!
+!********************************************************************** 
+!
+subroutine wyc_calc
+!
+use wyckoff_mod
+use berechne_mod
+!
+implicit none
+!
+character(len=PREC_DP) :: string
+!
+character(len=1), dimension(3), parameter :: xyz = (/'x','y','z'/)
+character(len=PREC_DP) :: line
+integer :: length, ind, i, j
+!
+wyc_fix_mat = 0.0D0
+!
+do i = 1,3
+   line   = wyc_fix_pos(i)(1:len_trim(wyc_fix_pos(i)))
+   length = len_trim(line  )
+   do j=1, 3
+      ind = index(line,xyz(j))
+      if(ind>0) then
+         line(ind:ind) = ' '
+         string = line(1:ind-1)
+         if(string(ind-1:ind-1)=='+' .or. string(ind-1:ind-1)==' ') then
+            wyc_fix_mat(i,j) = 1
+            line(ind-1:ind-1) = ' '
+         elseif(string(ind-1:ind-1)=='-') then
+            wyc_fix_mat(i,j) = -1
+            line(ind-1:ind-1) = ' '
+         elseif(string(ind-2:ind-1)=='+2' .or. string(ind-2:ind-1)==' 2') then
+            wyc_fix_mat(i,j) =  2
+            line(ind-2:ind-1) = ' '
+         elseif(string(ind-2:ind-1)=='-2') then
+            wyc_fix_mat(i,j) = -2
+            line(ind-2:ind-1) = ' '
+         endif
+      endif
+   enddo
+   string = line
+   wyc_fix_mat(i,4) = nint(berechne(string, length, add_dot=.true.)*24.0D0)
+enddo
+
+!
+!if(ind==0) then       ! X is fixed
+!   wyc_fix_mat(i,i) = 0
+!   wyc_fix_mat(i,4) = nint(berechne(string, length, add_dot=.true.)*24.0D0)
+!else
+!   string = string(1:ind-1)
+!   if(string(ind-1:ind-1)=='+' .or. string(ind-1:ind-1)==' ') then
+!      wyc_fix_mat(i,i) = 1
+!   elseif(string(ind-1:ind-1)=='-') then
+!      wyc_fix_mat(i,i) = -1
+!   elseif(string(ind-2:ind-1)=='+2' .or. string(ind-2:ind-1)==' 2') then
+!      wyc_fix_mat(i,i) =  2
+!   elseif(string(ind-2:ind-1)=='-2') then
+!      wyc_fix_mat(i,i) = -2
+!   endif
+!   string(1:ind) = ' '
+!   wyc_fix_mat(i,4) = nint(berechne(string, length, add_dot=.true.)*24.0D0)
+!endif
+!enddo
+!
+end subroutine wyc_calc
 !
 !********************************************************************** 
 !
@@ -3287,6 +3804,37 @@ else
 endif
 !
 end subroutine sym_mat_to_spacegroup
+!
+!*****7*************************************************************************
+!
+subroutine get_symmetry_type_all
+!-
+!  Get the symmetry type for all metrices
+!
+use wyckoff_mod
+!
+use precision_mod
+!
+implicit none
+!
+integer :: j
+!
+spc_spur = 0.0_PREC_DP
+!
+do j=1, spc_n
+   spc_spur(j) = spc_mat(1, 1, j)  + spc_mat(2, 2, j) + spc_mat(3, 3, j)
+   spc_det (j) = spc_mat(1, 1, j) * (spc_mat(2, 2, j) * spc_mat(3, 3, j) -   &
+                                     spc_mat(3, 2, j) * spc_mat(2, 3, j) ) - &
+                 spc_mat(1, 2, j) * (spc_mat(2, 1, j) * spc_mat(3, 3, j) -   &
+                                     spc_mat(3, 1, j) * spc_mat(2, 3, j) ) + &
+                 spc_mat(1, 3, j) * (spc_mat(2, 1, j) * spc_mat(3, 2, j) -   &
+                                     spc_mat(3, 1, j) * spc_mat(2, 2, j) )
+!
+   call get_symmetry_type (SPC_MAX, j, spc_mat, spc_spur,        &
+        spc_det, spc_char, spc_xyz, spc_axis)
+enddo
+!
+end subroutine get_symmetry_type_all
 !
 !*****7*************************************************************************
 !
