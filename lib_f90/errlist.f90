@@ -49,6 +49,8 @@ ELSEIF(ier_typ == ER_MAC ) THEN
    CALL errlist_mac
 ELSEIF(ier_typ == ER_MATH) THEN
    CALL errlist_math
+ELSEIF(ier_typ == ER_HDF ) THEN
+   CALL errlist_hdf
 ELSE
    CALL p_errlist_appl
 ENDIF
@@ -487,6 +489,34 @@ character(len=11) :: color   ! Use this color
 !
        CALL disp_error ('MATH',error,iu,io)
        END
+!
+!*****7****************************************************************
+!
+SUBROUTINE errlist_hdf
+!-
+!       Displays error Messages for the error type MATHematical errors
+!+
+USE errlist_mod
+IMPLICIT      NONE
+!
+!
+INTEGER, PARAMETER :: iu =  -5
+INTEGER, PARAMETER :: io =   0
+!
+CHARACTER(LEN=45)  ERROR(IU:IO)
+!
+DATA ERROR/                                   &
+  'File does not appear to be an HDF5 file ', & !- 5  ! hdf
+  'Array has wrong dimensions              ', & !- 4  ! hdf
+  'Array has wrong rank                    ', & !- 3  ! hdf
+  'Data set does not exist                 ', & !- 2  ! hdf
+  'Input file does not exist               ', & !- 1  ! hdf
+  ' '                                         & !  0  ! command
+  /
+!
+CALL disp_error ('HDF ',error,iu,io)
+end subroutine errlist_hdf
+!
 !*****7****************************************************************
 !
 SUBROUTINE errlist_save
