@@ -9,7 +9,7 @@ CONTAINS
 !
 !****7***************************************************************** 
 !
-REAL(KIND=PREC_DP) FUNCTION berechne (string, laenge) 
+REAL(KIND=PREC_DP) FUNCTION berechne (in_string, laenge, add_dot) 
 !-                                                                      
 !     Calculates the value of the expression stored in string           
 !+                                                                      
@@ -27,29 +27,56 @@ IMPLICIT none
 !                                                                       
 INTEGER, PARAMETER :: maxw =3
 !                                                                       
-CHARACTER (LEN=*), INTENT(INOUT) :: string 
+CHARACTER (LEN=*), INTENT(INOUT) :: in_string 
 INTEGER          , INTENT(INOUT) :: laenge
+logical, optional, intent(in)    :: add_dot
 !
-CHARACTER(LEN=LEN(string)) :: zeile, line, cpara (maxw) 
+CHARACTER(LEN=PREC_STRING) :: string
+CHARACTER(LEN=PREC_STRING) :: zeile, line, cpara (maxw) 
 INTEGER          :: c
-INTEGER :: lpara (maxw) 
+INTEGER :: lpara (maxw) !
 !INTEGER :: max 
 INTEGER :: ikla, iklz, ikla1, ikla2, ikl, ll, lll, ie 
 INTEGER :: ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom 
 INTEGER :: omask ! , nmask might be needed later
 REAL(KIND=PREC_DP)    :: werte (maxw) 
-REAL(KIND=PREC_DP)    :: r 
+!REAL(KIND=PREC_DP)    :: r 
 LOGICAL  , DIMENSION(LEN(string),0:1) :: lmask
+!
+string = in_string
 !                                                                       
 lmask = .TRUE.
 !                                                                       
 ier_num = 0 
 ier_typ = ER_NONE 
-berechne = 0D0
+berechne = 0.0D0
 !
+!write(*,*) ' BERECHNE >>', string(1:laenge),'<<< ', laenge, ier_num
 IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
-   CONTINUE 
+   berechne = 0.0D0
+   return 
 ELSE 
+   if(present(add_dot)) then
+      if(add_dot) then
+         if(in_string(laenge:laenge)==')') then
+            string =        in_string(1:len_trim(in_string)-1) // '.)'
+            laenge = len_trim(string)
+         else
+            string = '(' // in_string(1:len_trim(in_string)) // '.)'
+            laenge = len_trim(string)
+         endif
+      else
+         string = in_string
+      endif
+   else
+      string = in_string
+   endif
+!write(*,*) ' BERECHNE >>', string(1:laenge),'<<< ', laenge, ier_num
+   if(string=='(.)' .or. string=='.') then
+      berechne = 0.0D0
+      string = '0.0D0'
+      return
+   endif
    CALL ersetz_variable (string, laenge, lmask, omask) 
    DO ie=2,laenge-1  !while (ie.ne.0)
       IF(string(ie:ie)=='E') THEN
@@ -189,8 +216,9 @@ ELSE
       ikla = INDEX (string, '(') 
    ENDDO 
 ENDIF 
-r = do_read_number (string, laenge) 
+!r = do_read_number (string, laenge) 
 berechne = do_read_number (string, laenge) 
+in_string = string
 ! 999 CONTINUE 
 !                                                                       
 END FUNCTION berechne                         
