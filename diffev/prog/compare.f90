@@ -389,7 +389,7 @@ CHARACTER (LEN=7)              :: stat = 'unknown'
 CHARACTER (LEN=PREC_STRING)    :: line 
 CHARACTER (LEN=PREC_STRING)    :: fname
 INTEGER                        :: j, i, ii , k
-INTEGER                        :: len_file,length 
+INTEGER                        :: length 
 INTEGER                        :: pop_dimx_old
 INTEGER                        :: iostatus, isuccess
 INTEGER                        :: ieq
@@ -581,7 +581,7 @@ init: IF (.not.pop_current.and.pop_gen.gt.0) THEN
 !
     950 FORMAT (A,'.',A   )
     970 FORMAT (A,'.',A,'.',I4.4   )
-   2000 FORMAT ('Child No. ',i4)
+!  2000 FORMAT ('Child No. ',i4)
 !                                                                       
 END SUBROUTINE read_par_values                
 !
