@@ -1413,6 +1413,11 @@ IF(ier_num==0) THEN
 ENDIF
 !
 CALL symm_restore                      ! Store current symmetry settings
+!
+!
+cr_flags(:,1)   = .false.    ! NOT: Crystal is supercell
+cr_flags(:,3:5) = .false.    ! NOT: Periodic boundaries may be applied
+cr_flags(:,6)   = .false.    ! NOT: Crystal is homogeneous and Certain about this
 !                                                                       
 END SUBROUTINE boundary                       
 !

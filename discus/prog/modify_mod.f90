@@ -1182,16 +1182,17 @@ END SUBROUTINE do_purge_atoms
 !     modes, otherwise we select speed mode. Any changes are            
 !     reported on screen.                                               
 !+                                                                      
-      USE discus_config_mod 
-      USE chem_mod 
-      USE pdf_mod 
+USE discus_config_mod 
+use crystal_mod
+USE chem_mod 
+USE pdf_mod 
 !
-      USE errlist_mod 
-      USE prompt_mod 
-      IMPLICIT none 
+USE errlist_mod 
+USE prompt_mod 
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      LOGICAL lpurge 
+LOGICAL lpurge 
 !                                                                       
       IF (lpurge) THEN 
          WRITE (output_io, 1000) 
@@ -1210,6 +1211,9 @@ END SUBROUTINE do_purge_atoms
             pdf_lexact = .true. 
       WRITE (output_io, 1100) 'PDF calculation mode set to EXACT ..' 
          ENDIF 
+         cr_flags(1,1)   = .false.    ! Not necessarily a supercell any longer
+         cr_flags(1,3:5) = .false.    ! No longer periodic boundaries 
+         cr_flags(1,6)   = .false.    ! No longer homogeneous
       ELSE 
 !       To be added ..                                                  
       ENDIF 

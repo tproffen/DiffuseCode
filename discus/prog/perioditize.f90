@@ -615,6 +615,12 @@ call map_to_aver
 !
 if(allocated(pdt_pos)) deallocate(pdt_pos)
 !
+cr_flags(:,1) = .true.       ! Crystal is supercell
+cr_flags(1,2) = .false.      ! Not an asymmetric unit
+cr_flags(2,2) = .false.      ! Not an asymmetric unit and Certain
+cr_flags(:,3:5) = .true.     ! Periodic boundaries may be applied
+cr_flags(:,6)   = .true.     ! Crystal is homogeneous and Certain about this
+!
 end subroutine perioditize_run
 !
 !*******************************************************************************

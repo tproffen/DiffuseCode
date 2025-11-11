@@ -216,7 +216,14 @@ main_loop: DO
                         CALL deco_run
                         par_omp_use = .TRUE.             ! Turn parallel processing back on
                         par_omp_maxthreads = -1          
-                        if(ier_num == 0) ladd = .true.   ! allow new add command
+                        if(ier_num == 0) then
+                           ladd = .true.   ! allow new add command
+                           cr_flags(1,1)   = .false.    ! Not necessarily a supercell any longer
+                           cr_flags(1,2)   = .false.    ! Not necessarily a supercell any longer
+                           cr_flags(1,3:5) = .false.    ! No longer periodic boundaries 
+                           cr_flags(1,6)   = .false.    ! No longer homogeneous
+                           cr_flags(2,:)   = .true.     ! All flag status are known
+                        endif
                      ENDIF
                  ELSE
                      ier_num = -129
