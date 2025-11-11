@@ -13,11 +13,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-203,IO=11)
+      PARAMETER    (IU=-204,IO=11)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -201) /                          &
+     &  'Element name is unknown',                       & !-204 ! discus
      &  'Contradictory molecule info at atom line     ', & !-203 ! discus
      &  'No.  names in TSC file differ from structure ', & !-202 ! discus
      &  'Atom names in TSC file differ from structure '  & !-201 ! discus
