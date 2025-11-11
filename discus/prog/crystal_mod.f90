@@ -71,6 +71,7 @@ REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE ::  cr_delfr_u! (  0:MAXSCAT)
 REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE ::  cr_delfi_u! (  0:MAXSCAT)
 REAL(kind=PREC_DP), DIMENSION(3,2)          ::  cr_dim0     = &
    RESHAPE((/0.0D0,0.0D0,0.0D0, 1.0D0,1.0D0,1.0D0/),SHAPE(cr_dim0))
+logical, dimension(2,6)               :: cr_flags  ! Supercell, asymmetric, periodXYZ, homogeneous
 !
 integer, dimension(  :), allocatable  ::  cr_ndiffer   ! (  0:MAXSCAT)   ! Number of different atoms of this type
 LOGICAL                               ::  cr_acentric = .true.
