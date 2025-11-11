@@ -1836,6 +1836,7 @@ integer          , optional, intent(in)   :: el_number
 integer :: j
 !
 j = 0
+get_ordi = 0
 !
 if(present(el_number)) then
    j = el_number
@@ -1843,7 +1844,9 @@ else
    call symbf(el_name, j)
 endif
 !
-get_ordi = per_ordi(j)
+if(j>0) then
+   get_ordi = per_ordi(j)
+endif
 !
 end function 
 !
