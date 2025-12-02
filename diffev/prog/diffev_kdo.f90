@@ -28,6 +28,8 @@ USE diffev_random
 USE diffev_release_mod
 USE diffev_set_gen_mod
 !
+use diffev_load_mod
+!
 USE ber_params_mod
 USE blanks_mod
 USE build_name_mod
@@ -176,6 +178,11 @@ ELSE
 !
    ELSEIF (str_comp (befehl, 'allocate', 3, lbef,  8) ) THEN
       CALL diffev_do_allocate_appl (zeile, lcomm)
+!
+!     -- Loaddata set to populate F_XMIN etc
+!
+   ELSEIF (str_comp (befehl, 'data', 3, lbef, 4) ) THEN
+      CALL diffev_load(.true., zeile, length)
 !
 !     -- Deallocate array sizes
 !

@@ -295,6 +295,7 @@ USE lib_errlist_func
 USE precision_mod
 USE prompt_mod
 USE support_mod
+use variable_mod
 !
 IMPLICIT none
 !
@@ -367,6 +368,19 @@ run_mpi_senddata%direc   = send_direc(1:MIN(send_direc_l,200))
 run_mpi_senddata%ierr_msg_l = 80
 run_mpi_senddata%ierr_msg_n =  7
 !
+run_mpi_senddata%data_ext = 0.0_PREC_DP
+!
+run_mpi_senddata%data_ext(1,1) = var_val(VAR_F_XMIN)
+run_mpi_senddata%data_ext(2,1) = var_val(VAR_F_XMAX)
+run_mpi_senddata%data_ext(3,1) = var_val(VAR_F_XSTP)
+!
+run_mpi_senddata%data_ext(1,2) = var_val(VAR_F_YMIN)
+run_mpi_senddata%data_ext(2,2) = var_val(VAR_F_YMAX)
+run_mpi_senddata%data_ext(3,2) = var_val(VAR_F_YSTP)
+!
+run_mpi_senddata%data_ext(1,3) = var_val(VAR_F_ZMIN)
+run_mpi_senddata%data_ext(2,3) = var_val(VAR_F_ZMAX)
+run_mpi_senddata%data_ext(3,3) = var_val(VAR_F_ZSTP)
 !
 IF(pop_gen /= lastgen) THEN                   ! New GENERATION , new job distribution
    IF(ALLOCATED(kid_at_node  )) DEALLOCATE(kid_at_node)
@@ -797,6 +811,19 @@ slave: DO
       job_l = len_str(line)
       mpi_is_slave = .true.
       mpi_slave_error = 0
+!
+      var_val(VAR_F_XMIN) = run_mpi_senddata%data_ext(1,1)
+      var_val(VAR_F_XMAX) = run_mpi_senddata%data_ext(2,1)
+      var_val(VAR_F_XSTP) = run_mpi_senddata%data_ext(3,1)
+!
+      var_val(VAR_F_YMIN) = run_mpi_senddata%data_ext(1,2)
+      var_val(VAR_F_YMAX) = run_mpi_senddata%data_ext(2,2)
+      var_val(VAR_F_YSTP) = run_mpi_senddata%data_ext(3,2)
+!
+      var_val(VAR_F_ZMIN) = run_mpi_senddata%data_ext(1,3)
+      var_val(VAR_F_ZMAX) = run_mpi_senddata%data_ext(2,3)
+      var_val(VAR_F_ZSTP) = run_mpi_senddata%data_ext(3,3)
+!
 !             Execute the "generic" cost function calculation
 !deallocate(run_mpi_senddata%trial_values)
 !allocate(run_mpi_senddata%trial_values(1:ubound(run_mpi_senddata%trial_values,1)))

@@ -104,9 +104,11 @@ USE population
 USE run_mpi_mod
 !
 USE errlist_mod
+use lib_errlist_func
 USE random_state_mod
 USE precision_mod
 USE support_mod
+use variable_mod
 !
 IMPLICIT NONE
 !
@@ -116,6 +118,7 @@ CHARACTER(LEN=40) :: macro_file = 'diffev_best.mac'
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=  39), PARAMETER :: string = 'cat *.mac |grep -F ref_para > /dev/null'
 CHARACTER(LEN=PREC_STRING) :: message
+character(len=PREC_STRING) :: datadir, dataname
 INTEGER            , PARAMETER :: lstring = 39
 INTEGER :: exit_msg
 INTEGER :: i, i1, nn
@@ -128,6 +131,7 @@ IF(l_test) THEN     ! Need to test for ref_para in macros
                              CMDMSG=message, EXITSTAT=exit_msg  )
    IF(exit_msg == 0) l_ref_para = .TRUE.   ! string "ref_para" was found
    l_test = .FALSE.                        ! no more need to test
+   if(ier_num>0) call no_error
 ENDIF
 !
 nseed_run = random_nseeds()
@@ -135,13 +139,7 @@ random_nseed   = MIN(RUN_MPI_NSEEDS, nseed_run)  !  to be debugged depend on com
 IF(write_random_state) THEN
    CALL oeffne(IWR, macro_file, 'unknown')
 !
-   WRITE(IWR,'(a)') 'discus'
-   WRITE(IWR,'(a)') 'reset'
-   WRITE(IWR,'(a)') 'exit'
-   WRITE(IWR,'(a)') 'kuplot'
-   WRITE(IWR,'(a)') 'reset'
-   WRITE(IWR,'(a)') 'exit'
-   WRITE(IWR,'(a,a)') random_prog(1)(1:LEN_TRIM(random_prog(1))), '   ! temporarily step into section'
+!  WRITE(IWR,'(a,a)') random_prog(1)(1:LEN_TRIM(random_prog(1))), '   ! temporarily step into section'
    WRITE(IWR,'(a)') '#@ HEADER'
    WRITE(IWR,'(a)') '#@ NAME         diffev_best.mac'
    WRITE(IWR,'(a)') '#@ '
@@ -166,6 +164,33 @@ IF(write_random_state) THEN
    WRITE(IWR,'(a)') '#@ USAGE        @diffev_best.mac'
    WRITE(IWR,'(a)') '#@'
    WRITE(IWR,'(a)') '#@ END'
+   WRITE(IWR,'(a)') '#'
+!  datadir = 'DATA'
+!  loop_datadir: do i=1, var_num
+!     if(var_name(i)=='DATADIR') then
+!        datadir = var_char(i)
+!        exit loop_datadir
+!     endif
+!  enddo loop_datadir
+!  dataname = 'unknown'
+!  loop_dataname: do i=1, var_num
+!     if(var_name(i)=='DATAFILE') then
+!        dataname = var_char(i)
+!        exit loop_dataname
+!     endif
+!  enddo loop_dataname
+!  if(dataname/='unknown') then
+!     WRITE(IWR,'(a)') 'diffev'
+!     WRITE(IWR,'(5a)') '  data xy, ', DATADIR(1:len_trim(DATADIR)), '/', dataname(1:len_trim(dataname)),  &
+!                       ' ! Load data file, populates F_XMIN etc.'
+!     WRITE(IWR,'(a)') 'exit'
+!  endif
+   WRITE(IWR,'(a)') 'discus'
+   WRITE(IWR,'(a)') 'reset'
+   WRITE(IWR,'(a)') 'exit'
+   WRITE(IWR,'(a)') 'kuplot'
+   WRITE(IWR,'(a)') 'reset'
+   WRITE(IWR,'(a)') 'exit'
    WRITE(IWR,'(a)') '#'
    WRITE(IWR,'(a,i12)') 'REF_GENERATION = ',pop_gen
    WRITE(IWR,'(a,i12)') 'REF_MEMBER     = ',pop_n
@@ -202,6 +227,8 @@ IF(write_random_state) THEN
 !     WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
 !  ENDIF
 !
+   WRITE(IWR,'(a)') 'diffev ! Temporarily step into DIFFEV to load data'
+!
    IF(random_nseed>0) THEN
       line = ' '
       line(1:5) = 'seed '
@@ -232,6 +259,15 @@ IF(write_random_state) THEN
       WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
    ENDIF
    WRITE(IWR,'(a)') '#'
+!  WRITE(IWR,'(a)') 'exit   ! Return to SUITE'
+   WRITE(IWR,'(a)') '@global.mac   ! Load data file names '
+   WRITE(IWR,'(a)') '  if(index("%c",DATAFILE,''h5'')>0) then'
+   WRITE(IWR,'(a)') '    data h5, "%c/DATA/%c", DATADIR, DATAFILE   ! Populates F_XMIN, F_XMAX, F_XSTP'
+   WRITE(IWR,'(a)') '  elseif(index("%c",DATAFILE,''hkl'')>0) then'
+   WRITE(IWR,'(a)') '    data hklf4, "%c/DATA/%c", DATADIR, DATAFILE   ! Populates F_XMIN, F_XMAX, F_XSTP'
+   WRITE(IWR,'(a)') '  else'
+   WRITE(IWR,'(a)') '    data xy, "%c/DATA/%c", DATADIR, DATAFILE   ! Populates F_XMIN, F_XMAX, F_XSTP'
+   WRITE(IWR,'(a)') '  endif'
    WRITE(IWR,'(a)') 'exit   ! Return to SUITE'
    WRITE(IWR,'(a)') '#      ! Each macro on run_mpi command must have an exit to suite as well'
    WRITE(IWR,'(a)') '#      ! Each macro is preceeded with a command that steps into the section'
@@ -268,6 +304,7 @@ USE population
 USE run_mpi_mod
 !
 USE errlist_mod
+use lib_errlist_func
 USE random_state_mod
 USE precision_mod
 USE support_mod
@@ -287,6 +324,7 @@ INTEGER :: nseed_run    ! Actual number of seed used by compiler
 LOGICAL, SAVE :: l_test     = .TRUE.
 LOGICAL, SAVE :: l_ref_para = .FALSE.
 !
+!
 CALL diffev_random_write_on(run_mpi_senddata%prog, run_mpi_senddata%prog_l,  &
      run_mpi_senddata%mac, run_mpi_senddata%mac_l, run_mpi_senddata%repeat)
 !
@@ -298,6 +336,7 @@ IF(l_test) THEN     ! Need to test for ref_para in macros
                              CMDMSG=message, EXITSTAT=exit_msg  )
    IF(exit_msg == 0) l_ref_para = .TRUE.   ! string "ref_para" was found
    l_test = .FALSE.                        ! no more need to test
+   if(ier_num>0) call no_error
 ENDIF
 !
 nseed_run = run_mpi_senddata%nseeds

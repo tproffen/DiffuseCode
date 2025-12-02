@@ -65,6 +65,7 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    CHARACTER (LEN=100)   :: prog       !269 : 368
    CHARACTER (LEN=100)   :: mac        !369 : 468
    CHARACTER (LEN=100)   :: out        !469 : 568
+   real(kind=PREC_DP), dimension(3,3)                  :: data_ext       ! F_xmin, etc. for the 3 dimensions
    REAL(kind=PREC_DP),DIMENSION(0:RUN_MPI_MAXRVALUE  ) :: rvalue         !  (MAXPOP)
    REAL(kind=PREC_DP),DIMENSION(1:RUN_MPI_COUNT_TRIAL) :: trial_values   !  (MAXPOP)
    CHARACTER(LEN=16),DIMENSION(1:RUN_MPI_COUNT_TRIAL) :: trial_names   !  (MAXPOP)
