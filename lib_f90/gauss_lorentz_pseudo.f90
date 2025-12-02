@@ -143,20 +143,20 @@ END FUNCTION glp_pseud_indx
 !
 !*******************************************************************************
 !
-real(kind=PREC_DP) function lognormal(x, ln_mean, ln_sigma)
+real(kind=PREC_DP) function lognormal(x, ln_mean, sigma)
 !-
 !  Calculate a lognormal function value
 !  ln_mean is the ln(mean) of the Gaussian distribution
-!  ln_sigma is the ln(sigma) of the Gaussian distribution
+!     sigma is the    sigma  of the Gaussian distribution
 !+
 !
 implicit none
 !
-real(kind=PREC_DP), intent(in) :: x
-real(kind=PREC_DP), intent(in) :: ln_mean
-real(kind=PREC_DP), intent(in) :: ln_sigma
+real(kind=PREC_DP), intent(in) :: x         ! Positioon at which to calculate
+real(kind=PREC_DP), intent(in) :: ln_mean   ! my = ln(mean)
+real(kind=PREC_DP), intent(in) ::    sigma  ! sigma 
 !
-lognormal = 1./(x*ln_sigma*sq_zpi)*exp(-((log(x)-ln_mean)**2)/(2.0_PREC_DP*ln_sigma**2))
+lognormal = 1./(x*sigma*sq_zpi)*exp(-((log(x)-ln_mean)**2)/(2.0_PREC_DP*sigma**2))
 !
 end function lognormal
 !
