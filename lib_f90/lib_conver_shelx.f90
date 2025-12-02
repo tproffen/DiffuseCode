@@ -23,8 +23,8 @@ character(len=*), intent(in) :: infile
 character(len=*), intent(in) :: outfile   ! output file
 integer, dimension(3), intent(out) :: hkl_max   ! maximum abs(h,k,l)
 !
-integer, parameter :: IRD = 45
-integer, parameter :: IWR = 46
+integer, parameter :: IRD = 55
+integer, parameter :: IWR = 56
 !
 !character(len=PREC_STRING)     ::  infile   !  input file
 character(len=PREC_STRING), dimension(:), allocatable :: initial   ! first two lines
