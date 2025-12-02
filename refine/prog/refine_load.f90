@@ -25,7 +25,7 @@ use lib_data_struc_h5
 !
 IMPLICIT NONE
 !
-LOGICAL         , INTENT(IN)    :: LDATA   ! Datai==TRUE ot SIGMA == FALSE
+LOGICAL         , INTENT(IN)    :: LDATA   ! Data==TRUE or SIGMA == FALSE
 CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
