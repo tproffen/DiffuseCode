@@ -125,8 +125,8 @@ REAL(kind=PREC_DP), DIMENSION(1:3, 1:3) ::  diff_vi_hkl  = reshape((/1.00, 0.00,
                                                                  0.0 , 1.00, 0.00, &
                                                                  0.00, 0.00, 0.00/),shape(diff_vi_hkl))
 REAL(kind=PREC_DP), DIMENSION(1:3, 1:3) ::  off_shift= 0.00              ! (hkl, abs_ord_top)
-REAL(kind=PREC_DP)                      ::  renergy  = 17.480782
-REAL(kind=PREC_DP)                      ::  rlambda  =  0.709260
+REAL(kind=PREC_DP)                      ::  renergy  = 17.4807812D0 
+REAL(kind=PREC_DP)                      ::  rlambda  =  0.7092610D0 
 LOGICAL                                 ::  l_energy = .false.
 REAL(kind=PREC_DP), DIMENSION(1:3,1:4)             ::  diff_eck_u  = 0.0   ! User supplied corners
 REAL(kind=PREC_DP), DIMENSION(1:3, 1:3)           ::  diff_vi_u   = 0.0
@@ -142,6 +142,8 @@ REAL(kind=PREC_DP)   , DIMENSION(1:3)   ::  zone_uvw     = (/ 0.0, 0.0, 1.0/)
 REAL(kind=PREC_DP)   , DIMENSION(1:3)   ::  zone_ewald   = 0.0
 REAL(kind=PREC_DP)                      ::  zone_res     = 0.0
 REAL(kind=PREC_DP)                      ::  zone_delta_d = 0.015
+!
+REAL(kind=PREC_DP)                      ::  diff_scale   = 1.000D0       ! Intensity scale factor
 !
 REAL(KIND=PREC_DP), DIMENSION(4,3)      ::  diff_res             ! Resolution sigma and vectors
 REAL(KIND=PREC_DP), DIMENSION(3,3)      ::  diff_tr              ! Resolution transformation matrix
