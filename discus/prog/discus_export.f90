@@ -27,13 +27,14 @@ INTEGER  :: ianz
 integer  :: ncycle
 logical  :: lforce
 logical  :: lshift                    ! Shift origin in SHELX export
-INTEGER, PARAMETER :: NOPTIONAL = 6
+INTEGER, PARAMETER :: NOPTIONAL = 7
 INTEGER, PARAMETER :: O_RMCVS   = 1
 INTEGER, PARAMETER :: O_CYCLE   = 2
 INTEGER, PARAMETER :: O_SPCGR   = 3
 INTEGER, PARAMETER :: O_SITE    = 4
 INTEGER, PARAMETER :: O_FORCE   = 5
 INTEGER, PARAMETER :: O_ORIGIN  = 6   ! Shift origin in SHELX export
+INTEGER, PARAMETER :: O_LAMBDA  = 7   ! Wave length  in SHELX export
 CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=    PREC_STRING           ), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -46,12 +47,12 @@ INTEGER  :: rmcversion
 integer  :: scatty_site
 !
 !
-DATA oname  / 'version', 'cycle  ', 'spcgr  ', 'site   ', 'force  ', 'origin ' /
-DATA loname /  7       ,  5       ,  5       ,  4       ,  5       ,  5        /
+DATA oname  / 'version', 'cycle  ', 'spcgr  ', 'site   ', 'force  ', 'origin ', 'lambda ' /
+DATA loname /  7       ,  5       ,  5       ,  4       ,  5       ,  5       ,  6        /
 !
-opara  =  (/ '6.00000', '20     ','P1     ', 'average', 'no     ', 'no     ' /)   ! Always provide fresh default values
-lopara =  (/  7       ,  2       ,  7      ,  7       ,  2       ,  2        /)
-owerte =  (/  6.0D0   ,  20.0D0  ,  0.0D0  ,  0.0D0   , 0.0D0    ,  0.0D0    /)
+opara  =  (/ '6.00000', '20     ','P1     ', 'average', 'no     ', 'no     ', 'MOA1   ' /) ! Always provide fresh default values
+lopara =  (/  7       ,  2       ,  7      ,  7       ,  2       ,  2       ,  4        /)
+owerte =  (/  6.0D0   ,  20.0D0  ,  0.0D0  ,  0.0D0   , 0.0D0    ,  0.0D0   ,  0.70926D0/)
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, lp)
 IF (ier_num.ne.0) THEN
@@ -94,7 +95,7 @@ IF (ianz.ge.1) THEN
          ncycle = NINT(owerte(O_CYCLE))
          lforce = opara(O_FORCE) =='yes'
          lshift = opara(O_ORIGIN)=='yes' .or. opara(O_ORIGIN)=='shift'
-         CALL discus2ins (ianz, cpara, lpara, MAXW, ncycle, lforce, lshift)
+         CALL discus2ins (ianz, cpara, lpara, MAXW, ncycle, lforce, lshift, lpresent(O_LAMBDA), opara(O_LAMBDA))
       ELSE
          ier_num = - 6
          ier_typ = ER_COMM
@@ -240,7 +241,7 @@ END SUBROUTINE discus2cif
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-SUBROUTINE discus2ins (ianz, cpara, lpara, MAXW, ncycle, lforce, lshift)
+SUBROUTINE discus2ins (ianz, cpara, lpara, MAXW, ncycle, lforce, lshift, llambda, clambda)
 !
 USE chem_aver_mod
 USE class_internal
@@ -276,6 +277,8 @@ INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 integer            ,                  intent(in)    :: ncycle
 logical            ,                  intent(in)    :: lforce
 logical            ,                  intent(in)    :: lshift   ! Shift origin to 1bar position
+logical            ,                  intent(in)    :: llambda
+character(len=*)   ,                  intent(in)    :: clambda
 !
 INTEGER, PARAMETER :: IWR = 35
 integer, parameter :: MAXMASK = 4
@@ -305,12 +308,26 @@ logical                  :: lout = .FALSE.
 logical                  :: l_not_full = .TRUE.
 LOGICAL                  :: orig_OK =.FALSE.
 logical, dimension(0:MAXMASK) :: uni_mask
+real(kind=PREC_DP)       :: lambda_user
+real(kind=PREC_DP)       :: energy
 REAL(KIND=PREC_DP)       :: z_unit
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP)   , DIMENSION(3), PARAMETER :: NULL = (/0.00, 0.00, 0.00/)
+!
 uni_mask(0)   = .true.
 uni_mask(1:3) = .true.
 uni_mask(4)   = .false.
+!
+if(llambda) then     ! User provided lambda:
+   call get_wave(clambda , lambda_user, energy, .false., &
+                      1,ier_num, ier_typ )
+   if(ier_num/=0) then    ! Failure, try to read numeric value
+      call no_error
+      read(clambda,   *  ) lambda_user
+   endif
+else
+  lambda_user = rlambda    ! Use current wave length
+endif
 !
 if(.not.lforce .and. maxval(cr_icc)>1) then
   ier_num = -185
@@ -574,7 +591,7 @@ IF(cr_syst==4 .AND. cr_iset/=1) THEN
 ELSE
    WRITE(IWR, 1000) cr_name(1:LEN_TRIM(cr_name)), cr_spcgr(1:LEN_TRIM(cr_spcgr))
 ENDIF
-WRITE(IWR, 1100) rlambda, cr_a0(:), cr_win(:)
+WRITE(IWR, 1100) lambda_user, cr_a0(:), cr_win(:)
 WRITE(IWR, 1200) z_unit, NULL, NULL
 IF(cr_acentric) THEN
    WRITE(IWR, 1310) -1*IABS(lattice)
