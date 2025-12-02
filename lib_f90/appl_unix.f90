@@ -358,8 +358,12 @@ if(operating==OS_LINUX_WSL) then
    var_val(VAR_OPERATING) = var_val(VAR_WSL)
 elseif(operating==OS_LINUX) then
    var_val(VAR_OPERATING) = var_val(VAR_LINUX)
+   call get_environment_variable("USER", user_name)
+   call get_environment_variable("HOME", user_profile)
 elseif(operating==OS_MACOSX) then
    var_val(VAR_OPERATING) = var_val(VAR_MAC)
+   call get_environment_variable("USER", user_name)
+   call get_environment_variable("HOME", user_profile)
 else
    var_val(VAR_OPERATING) = var_val(VAR_UNDEF)
 endif
