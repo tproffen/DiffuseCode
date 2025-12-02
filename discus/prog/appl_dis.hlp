@@ -2676,7 +2676,7 @@
 2  export
 !p export "cif",<file{".cif"}> [, {["spcgr:original"] | ["spcgr:"<spacegroup>]}
 !p export "shelx",<file{".ins"}> [, "cycle:"<number>] [, "force:"{"yes"|"no"}]
-!p                [, "origin:"{"no"|"yes"|"shift"}]
+!p                [, "origin:"{"no"|"yes"|"shift"}] [, "lambda:"{<symbols>|<value>}] 
 !p export "rmcprofile",<file{".rmc6f"]>  ["version:"{"6"|"7"}]
 !p export "vasp",<file]>
 !p export "poscar",<file]>
@@ -2706,6 +2706,10 @@
    "origin:yes" or "origin:shift" DISCUS will shift the center of 
    symmetry to 0,0,0. This will change the current structure and a 
    warning is displayed.
+   Optionally you can specify the wave length with either
+   lambda:MOA1    Or any other valid symbol
+   lambda:0.70926 Your numerical choice
+   The wave length defaults to Molybdenum Kalpha
 
    rmcprofile
    Exports the atoms of the current structure as a RMCprofile 
@@ -4005,7 +4009,7 @@
 !p import "cmaker",<file[".xyz"]>
 !p import "lammps",<file>
 !p import "shelx",<file[".ins"]> [, "names:shelx" | "names:chem"]
-!p                               [, "refine:no" | "refine:yes"]
+!p              [, "refine:[parameters]" | "diffev:[parameters]"]
 !p import "rmcprofile",<file[".cssr"]>
 !p           [, "sort:discus" ]
 !p import "cell",<file>
@@ -4052,7 +4056,7 @@
 3  shelx
 !p "shelx",<file{".ins"]>
 !p                        [, "names:shelx" | "names:chem"]
-!p                        [, "refine:no" | "refine:yes"]
+!p       [, "refine:[parameters]" | "diffev:[parameters]"]
 
    If the first parameter is "shelx" the input file is assumed to be a
    SHELX "*.ins" or "*.res" file. The extension ".ins" may be omitted.
@@ -4069,10 +4073,35 @@
    Atom coordinates are properly interpreted including the use of SHELX free
    variables.
 
-   If the optional parameter "refine:yes" is present, DISCUS will write
-   the cell file, a REFINE main macro, a main DISCUS macro and a KUPLOT
-   macro ready to perform the equivalent refinement throught the REFINE
-   section.
+   If the optional parameter "refine:[parameters]" is present, DISCUS 
+   will write the cell file, a REFINE main macro, a main DISCUS macro 
+   and a KUPLOT macro ready to perform the equivalent refinement throught 
+   the REFINE section.
+   the "parameters" are a list of optional parameters to specify details:
+   style:single     ! The macros are set up for a single crystal refinement
+   style:powder     ! Setup for a powder diffraction refinement
+   style:pdf        ! Setup for a PDF refinement
+   lambda:value     ! Defines a numerical value for the wave length
+   lambda:name      ! Defines a wave length symbol like Cu, CUA1, CU12 etc
+   form:waas        ! Use the Waasmeier-Kirfel atomic form factors
+   form:discamb     ! Use the DISCAMB generated atomic form factors
+
+   If the optional parameter "DIFFEV:[parameters]" is present, DISCUS 
+   will write the cell file, a DIFFEV main macro, a main DISCUS macro 
+   and a KUPLOT macro ready to perform the equivalent refinement throught 
+   the DIFFEV section.
+   the "parameters" are a list of optional parameters to specify details:
+   style:single     ! The macros are set up for a single crystal refinement
+   style:powder     ! Setup for a powder diffraction refinement
+   style:pdf        ! Setup for a PDF refinement
+   lambda:value     ! Defines a numerical value for the wave length
+   lambda:name      ! Defines a wave length symbol like Cu, CUA1, CU12 etc
+   form:waas        ! Use the Waasmeier-Kirfel atomic form factors
+   form:discamb     ! Use the DISCAMB generated atomic form factors
+   compute:serial   ! If multiple individual calculations a needed, they
+                      are set up to be done serially
+   compute:parallel ! If multiple individual calculations a needed, they
+                      are set up to be done in parallel
 
    LIMITATIONS
    The "DISP" instruction is ignored.
@@ -8710,13 +8739,18 @@
    to the boundary can be set within the ==> 'domain' menu through
    the ==> 'domain/fuzzy' command.
 3  format
-!p format {"keyword" | "nokeyword" }
+!p format {"keyword" | "nokeyword" | "nexus" }
+!p format {"format:keyword" | "format:nokeyword" | "format:nexus" }
 
-   The keyword controlled format uses keywords analogous to the commands 
+   The "keyword" controlled format uses keywords analogous to the commands 
    of DISCUS to describe the information in the structure file. See the
    help on "data" at the main help level for a complete listing of all
    keywords. A flexible number of keywords can be included at the header
-   of the structure file ==> 'write' and 'omit'.
+   of the structure file ==> 'write' and 'omit'. The file is a simple
+   ASCII text file
+
+   The "nexus" file format is a binary HDF5 file. It follows the
+   NeXus style.
 
    The non-keyword controlled format writes a simplified file that contains
    only the following information:
