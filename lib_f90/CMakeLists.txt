@@ -4,6 +4,8 @@
 #include_directories(${DIFFUSE_BINARY_DIR}/forpy)
 #link_directories(${DIFFUSE_BINARY_DIR}/forpy)
 
+include_directories(${DIFFUSE_BINARY_DIR}/h5fortran)
+
 set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               appl_unix.f90 arrays_mod.f90 blanks_mod.f90 berechne_mod.f90 
               ber_params_mod.f90 blockdat.f90 build_name_mod.f90
@@ -51,7 +53,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               times_mod.f90 variable_mod.f90 wink_mod.f90 precision_mod.f90 
               precision_command_mod.f90
               memory.f90 support_mod.f90 
-              refine_params.f90
+              refine_control.f90 refine_data_mod.f90 refine_params.f90
               forpy_mod.F90
               )
 #             sockets_mod.f90
@@ -147,6 +149,7 @@ IF (WIN32 OR CYGWIN )
   set (CSOURCES ${CSOURCES} win32-glob.c)
 ENDIF (WIN32 OR CYGWIN)
 
+
 if (DIFFUSE_SHARED_LIB) 
   add_library (lib_f90  SHARED ${FSOURCES})
   add_library (lib_f90c SHARED ${CSOURCES})
@@ -154,6 +157,8 @@ else (DIFFUSE_SHARED_LIB)
   add_library (lib_f90  ${FSOURCES})
   add_library (lib_f90c ${CSOURCES})
 endif (DIFFUSE_SHARED_LIB) 
+
+add_dependencies (lib_f90 h5fortran_lib)
 #
 if (DIFFUSE_SHARED_LIB)
   install (TARGETS lib_f90 lib_f90c DESTINATION lib)
