@@ -6,6 +6,8 @@ find_package(MPI)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
+include_directories(${DIFFUSE_SOURCE_DIR}/kuplot/prog)
+include_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
@@ -13,7 +15,8 @@ set (SOURCE_MAIN diffev.f90 )
 set (SOURCES_ALL diffev_allocate_appl.f90 diffev_blk_appl.f90 compare.f90 diffev_config.f90
              constraint.f90 create_trial.f90 diff_evol.f90 diffev_add_param.f90
              diffev_setup.f90 diffev_set_sub.f90 diffev_set_cost.f90 diffev_loop.f90 diffev_branch.f90
-             diffev_err_appl.f90 diffev_do_exit.f90 diffev_execute_cost.f90 initialise.f90 diffev_kdo.f90
+             diffev_err_appl.f90 diffev_do_exit.f90 diffev_execute_cost.f90 diffev_load.f90 
+             initialise.f90 diffev_kdo.f90
              diffev_refine.f90 diffev_release.f90 diffev_reset.f90 diffev_random.f90 diffev_loop_mpi.f90
              diffev_distrib_mod.f90 diffev_set_gen.f90
              population.f90 diffev_show.f90 support_diffev_mod.f90
@@ -40,7 +43,7 @@ else (DIFFUSE_SHARED_LIB)
   add_library (diffev_all ${SOURCES_ALL})
 endif (DIFFUSE_SHARED_LIB)
 
-add_dependencies ( diffev_all lib_f90)
+add_dependencies ( diffev_all kuplot_all lib_f90)
 
 set (LIBS diffev_all ${LIBS} diffev_all ${LIBS_OPT})
 
