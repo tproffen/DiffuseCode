@@ -234,6 +234,7 @@
 !p lastfile    ! Defines a file name for the parameters for the last generation
 !p logfile     ! Defines the file name for the parameters for each generation
 !p newparam    ! Defines Ra new parameter or new values for a parameter
+!p purge       ! Purges old Generations from log files
 !p pop_name    ! Defines names for the individual parameters
 !p refine      ! Defines which parameters are refined/fixed
 !p release     ! Initialize a parameter that had been fixed
@@ -760,6 +761,24 @@
    set. This process is repeated until a valid parameter set is found, or
    until DIFFEV has tried so for MAX_CONSTR_TRIAL times. In this latter
    case the program stops.  
+2  data
+!p data "kuplot", <number>
+!p data <type>, <infile>
+
+!p data "kuplot", <number>
+
+!p data <type>,<infile>
+
+   Currently the command serves toload the data set once and thus to place
+   proper values into the system variables:
+   F_XMIN = xmin[1]
+   F_XMAX = xmax[1]
+   F_XSTP = (xmax[1] - xmin[1]) / (np[1]-1)
+
+   Likewise for 2D data the variable F_YMIN, F_YMAX, F_YSTP are set.
+   The loaded data set is currently discared.
+
+   Refer to the KUPLOT section for instructions on loading data.
 2  deallocate
 !p deallocate {"all" | "constraint" | "population"}
 
@@ -948,7 +967,13 @@
      pop_sig[<ipar>]  = 0.001
      pop_lsig[<ipar>] = 0.0001
      type {"real"<"integer"}.<ipar>
-     
+2  purge
+!p purge <n>
+
+   This command removes all info on the initial <n> generations from
+   the logfiles in folder DIFFEV.     
+   This will significantly shorten the log files in case of a lengthy
+   DIFFEV refinement.
 2  read
 !p read
 
