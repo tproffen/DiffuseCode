@@ -2405,12 +2405,12 @@ WRITE(IWR, '(a)') '#'
 WRITE(IWR,'(a)') 'variable real, Rvalue'
 !
 WRITE(IWR,'(a)') 'variable integer, F_DATA'
-WRITE(IWR,'(a)') 'variable real, F_XMIN'
-WRITE(IWR,'(a)') 'variable real, F_XMAX'
-WRITE(IWR,'(a)') 'variable real, F_YMIN'
-WRITE(IWR,'(a)') 'variable real, F_YMAX'
-WRITE(IWR,'(a)') 'variable real, F_XSTP'
-WRITE(IWR,'(a)') 'variable real, F_YSTP'
+!WRITE(IWR,'(a)') 'variable real, F_XMIN'
+!WRITE(IWR,'(a)') 'variable real, F_XMAX'
+!WRITE(IWR,'(a)') 'variable real, F_YMIN'
+!WRITE(IWR,'(a)') 'variable real, F_YMAX'
+!WRITE(IWR,'(a)') 'variable real, F_XSTP'
+!WRITE(IWR,'(a)') 'variable real, F_YSTP'
 DO i=1, refine_fix_n            ! Make sure each fixed parameter is defined as a variable
    WRITE(IWR,'(a,a)') 'variable real, ',refine_fixed(i)
 ENDDO
