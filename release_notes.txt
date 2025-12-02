@@ -1,17 +1,30 @@
-6.19.01  DRAFT
+6.20.00  DRAFT
 GENERAL
                Changed warnings into blue color
-               variables i[] and r[] can be used with a range of indices as in
+               Variables i[] and r[] can be used with a range of indices as in
                r[1:10] = 0.0
                r[ :10] = 0.0
                r[1:  ] = 0.0
+               Added system variables 'F_XMIN', 'F_XMAX', 'F_XSTP' and equivalent
+               for 'Y' and 'Z' 
+               Their values are set to the data limits by the 'data' commands
+               in REFINE and DIFFEV
+  functions    Added a lognormal function
+DIFFEV  
+  GENERAL      Adapted diffev_best.mac to include 'data' command
+  data         Added a 'data' command that creates variable F_XMIN, F_XMAX etc
+  purge        Added a command to purge the initial <n> generations from the logfiles.
+DISCUS
+  import       Added options to prepare a refine / diffev setup
+  save         Added a unified HDF5 type structure format
 DISCUS
   GENERAL      REPLACE command with several new atom types
-               most variables can be used with a range of indices as in
+  GENERAL      Most variables can be used with a range of indices as in
                x[1:10] = 0.0
                occ[ :10] = 0.0
                b[1:  ] = 0.0
   export       Added option to shift origin to "-1" at SHELX export
+               Added option to include wave length at SHELXL export
   mmc          Fixed "displacement correlation"
                Added atom value correlation
   output       BUG FIX Powder output modified limits given in powder menu
@@ -21,7 +34,7 @@ DISCUS
   show         Added display of "-1" location
   super        Added multiple waves from separate input files
                Added interpretation of atomic value as phase
-  surface      Extended options to replace a shell by other atom types
+  surface      Extended options of 'set' to replace a shell by other atom types
 
 
 6.19.00  RELEASE 2025_05_22
