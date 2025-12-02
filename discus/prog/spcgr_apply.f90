@@ -1720,9 +1720,6 @@ IF (loutput) then
       (wyc_fix_pos(i)(1:len_trim(wyc_fix_pos(i))), ' ; ', i=1,2) &
       ,wyc_fix_pos(3)(1:len_trim(wyc_fix_pos(i)))
    endif
-write(*,'(a, 4i10)') ' WYC_MATRIX ', wyc_fix_mat(1,:)
-write(*,'(a, 4i10)') ' WYC_MATRIX ', wyc_fix_mat(2,:)
-write(*,'(a, 4i10)') ' WYC_MATRIX ', wyc_fix_mat(3,:)
 ENDIF 
 res_para(1) = REAL(spc_n / wyc_n, kind=PREC_DP)
 res_para(2) = REAL(        wyc_n, kind=PREC_DP)
@@ -2175,7 +2172,8 @@ character(len=PREC_DP) :: string
 !
 character(len=1), dimension(3), parameter :: xyz = (/'x','y','z'/)
 character(len=PREC_DP) :: line
-integer :: length, ind, i, j
+integer :: length, ind, i, j, k
+integer, dimension(3) :: shift
 !
 wyc_fix_mat = 0.0D0
 !
@@ -2205,7 +2203,50 @@ do i = 1,3
    string = line
    wyc_fix_mat(i,4) = nint(berechne(string, length, add_dot=.true.)*24.0D0)
 enddo
-
+!
+shift = wyc_fix_mat(1:3,4)
+if(shift(1) /= 0) then     ! Additive term on X
+   k = len_trim(wyc_fix_pos(1))
+   line   = wyc_fix_pos(1)(k-3:k)
+   if(wyc_fix_mat(1,1)/=0) then
+      wyc_fix_mat(1,4) = 0    ! Clear shift on X
+      if(wyc_fix_mat(2,1)/=0) then   ! Impose shift on Y
+         wyc_fix_mat(2,4) = wyc_fix_mat(2,4) - shift(1) * wyc_fix_mat(1,1) / wyc_fix_mat(2,1)
+         k = len_trim(wyc_fix_pos(2))
+         wyc_fix_pos(2)(k+1: ) = line
+         if(wyc_fix_mat(1,1)*wyc_fix_mat(2,1) <0) then
+            wyc_fix_pos(2)(k+1:k+1) = '-'
+         else
+            wyc_fix_pos(2)(k+1:k+1) = '+'
+         endif
+      endif
+      if(wyc_fix_mat(3,1)/=0) then   ! Impose shift on Z
+         wyc_fix_mat(3,4) = wyc_fix_mat(3,4) - shift(1) * wyc_fix_mat(1,1) / wyc_fix_mat(3,1)
+         k = len_trim(wyc_fix_pos(3))
+         if(wyc_fix_mat(1,1)*wyc_fix_mat(2,1) <0) then
+            wyc_fix_pos(2)(k+1:k+1) = '-'
+         else
+            wyc_fix_pos(2)(k+1:k+1) = '+'
+         endif
+      endif
+      k = len_trim(wyc_fix_pos(1))
+      wyc_fix_pos(1)(k-3:k) = ' '
+   endif
+elseif(shift(2) /= 0) then       ! Additive term on Y
+   if(wyc_fix_mat(1,1)==0 .and. wyc_fix_mat(2,2)/=0 .and. wyc_fix_mat(3,2)/=0) then   ! x,y+,y
+      k = len_trim(wyc_fix_pos(2))
+      line   = wyc_fix_pos(2)(k-3:k)
+      wyc_fix_mat(2,4) = 0    ! Clear shift on Y
+      wyc_fix_mat(3,4) = wyc_fix_mat(3,4) - shift(2) * wyc_fix_mat(2,2) / wyc_fix_mat(3,2)
+      k = len_trim(wyc_fix_pos(3))
+      wyc_fix_pos(3)(k+1: ) = line
+      if(wyc_fix_mat(2,2)*wyc_fix_mat(3,2) <0) then
+         wyc_fix_pos(3)(k+1:k+1) = '-'
+      else
+         wyc_fix_pos(3)(k+1:k+1) = '+'
+      endif
+   endif
+endif
 !
 !if(ind==0) then       ! X is fixed
 !   wyc_fix_mat(i,i) = 0
