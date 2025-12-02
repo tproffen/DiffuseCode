@@ -84,6 +84,8 @@ renergy  = 17.480782
 rlambda  =  0.709260
 l_energy = .false.
 !
+diff_scale = 1.0D0
+!
 l_zone = .false.
 zone_uvw      = (/0.0, 0.0, 1.0/)
 zone_ewald(:) = 0.0

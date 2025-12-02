@@ -277,6 +277,10 @@ IF (nlots.ne.1) then
 ENDIF 
 !
 call four_weight               ! Correct the relative weight of Bragg and diffuse
+!
+csf = csf* sqrt(diff_scale)
+dsi = dsi* diff_scale
+!
 call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
                     four_filter, FOUR_FILTER_LANCZOS, dsi)
 call four_conv           ! Convolute diffraction pattern
@@ -630,6 +634,10 @@ do i=1, num(1)
 enddo
 !
 call four_weight               ! Correct the relative weight of Bragg and diffuse
+!
+csf = csf* sqrt(diff_scale)
+dsi = dsi* diff_scale
+!
 call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
                     four_filter, FOUR_FILTER_LANCZOS, dsi)
 if(fave==0.0D0) then
@@ -897,6 +905,10 @@ do i=1, num(1)
 enddo
 !
 call four_weight               ! Correct the relative weight of Bragg and diffuse
+!
+csf = csf* sqrt(diff_scale)
+dsi = dsi* diff_scale
+!
 call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
                     four_filter, FOUR_FILTER_LANCZOS, dsi)
 if(fave==0.0D0) then

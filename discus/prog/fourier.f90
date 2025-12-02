@@ -1167,8 +1167,14 @@ endif
 !
 !
 if(lpresent(O_SCALE)) then
+   if(lpresent(O_FILTER)) then
+      if(opara(O_FILTER)=='lanczos') then
    four_nscale = nint(owerte(O_SCALE))
    four_rscale =      owerte(O_SCALE) 
+      endif
+  else
+     diff_scale = owerte(O_SCALE)
+  endif
 endif
 !
 if(lpresent(O_DAMP )) then
@@ -1438,6 +1444,11 @@ if(four_filter==FOUR_FILTER_OFF) then
   write(output_io, 1320) 
 elseif(four_filter==FOUR_FILTER_LANCZOS) then
    write(output_io, 1321) four_width, four_damp, four_rscale
+endif
+if(diff_scale > 1.E4 .or. diff_scale < 1.E-4) then
+   write(output_io, '(a, g20.8e3)') '   Intensity scale    : ', diff_scale
+else
+   write(output_io, '(a, f10.4  )') '   Intensity scale    : ', diff_scale
 endif
 !
 IF(l_zone) THEN
