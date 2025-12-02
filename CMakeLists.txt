@@ -39,14 +39,13 @@ endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 #set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set (CMAKE_MODULE_PATH "${DIFFUSE_SOURCE_DIR}/cmake")
 
-#set (h5fortran_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-set (h5fortran_DIR "${DIFFUSE_SOURCE_DIR}/cmake")
-link_directories(${DIFFUSE_BINARY_DIR}/h5fortran/lib)
-include_directories (${DIFFUSE_BINARY_DIR}/h5fortran/include)
+#set (h5fortran_DIR "${DIFFUSE_SOURCE_DIR}/cmake")
+link_directories(${DIFFUSE_BINARY_DIR}/h5fortran)
+include_directories (${DIFFUSE_BINARY_DIR}/h5fortran)
 
 set (DIFFUSE_VERSION_MAJOR 6)
-set (DIFFUSE_VERSION_MINOR 19)
-set (DIFFUSE_VERSION_PATCH 01a)
+set (DIFFUSE_VERSION_MINOR 20)
+set (DIFFUSE_VERSION_PATCH 00)
 
 # Readline required for all programs
 
@@ -110,7 +109,7 @@ endif ()
 
 set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ${FFTW_DOUBLE_LIB} ${FFTW_DOUBLE_OPENMP_LIB} ${Python3_LIBRARIES} )
-set (DIFFUSE_LIBS ${DIFFUSE_LIBS} h5fortran "${HDF5_LIBRARIES}" )
+set (DIFFUSE_LIBS ${DIFFUSE_LIBS} h5fortran_lib "${HDF5_LIBRARIES}" )
 include_directories ("${HDF5_INCLUDE_DIRS}")
 
 # Set Compiler Flags
@@ -120,7 +119,7 @@ set (CMAKE_C_FLAGS "-fPIC")
 #
 if ( ISGNU )
 # set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -std=legacy -fno-automatic")
-  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -ffast-math -std=legacy -ffree-line-length-400")
+  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -ffast-math -std=gnu -ffree-line-length-400")
 elseif ( IFORT )
   set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 ")
 endif ()
@@ -139,7 +138,7 @@ if (DEBUG)
 #   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=f2008 -fall-intrinsics -Wall")
 #   set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wall -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wimplicit-interface -Wunused-parameter -fwhole-file -std=f2008 -fimplicit-none  -pedantic -ffree-line-length-400")
 #   set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -Wunused-dummy-argument -Wmaybe-uninitialized -Wconversion -fwhole-file -fimplicit-none  -pedantic -ffree-line-length-400")
-    set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Wall -Wconversion -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -Wno-unused-dummy-argument -fwhole-file -fimplicit-none -pedantic -Wuninitialized -ffree-line-length-400")
+    set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -std=gnu -fbacktrace -Wall -Wconversion -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -Wno-unused-dummy-argument -fwhole-file -fimplicit-none -pedantic -Wuninitialized -ffree-line-length-400")
   elseif (IFORT)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
     set (CMAKE_Fortran_FLAGS "-fPIC -cpp -check=all -g -O0 -backtrace")
@@ -149,10 +148,11 @@ endif (DEBUG)
 # Go into directories
 
 add_subdirectory(finufft)
+add_subdirectory(h5fortran)
 add_subdirectory(lib_f90) # this must be first for date.inc
 add_subdirectory(kuplot/prog)
-add_subdirectory(diffev/prog)
 add_subdirectory(refine/prog)
+add_subdirectory(diffev/prog)
 add_subdirectory(discus/prog)
 add_subdirectory(experi/prog)
 add_subdirectory(suite/prog)
