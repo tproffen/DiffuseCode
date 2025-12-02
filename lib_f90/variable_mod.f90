@@ -47,6 +47,15 @@ END TYPE var_arrays
    INTEGER, PARAMETER :: VAR_OPERATING = 26
    INTEGER, PARAMETER :: VAR_STRING    = 27
    INTEGER, PARAMETER :: VAR_EXPRESSION= 28
+   INTEGER, PARAMETER :: VAR_F_XMIN    = 37
+   INTEGER, PARAMETER :: VAR_F_XMAX    = 38
+   INTEGER, PARAMETER :: VAR_F_XSTP    = 39
+   INTEGER, PARAMETER :: VAR_F_YMIN    = 40
+   INTEGER, PARAMETER :: VAR_F_YMAX    = 41
+   INTEGER, PARAMETER :: VAR_F_YSTP    = 42
+   INTEGER, PARAMETER :: VAR_F_ZMIN    = 43
+   INTEGER, PARAMETER :: VAR_F_ZMAX    = 44
+   INTEGER, PARAMETER :: VAR_F_ZSTP    = 45
 !
    INTEGER, PARAMETER :: VAR_clen      = 200
 !
@@ -368,6 +377,78 @@ CONTAINS
    var_char ( i) = ' '
    var_l    ( i) = 13
    var_type ( i) = IS_INTE
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = var_val(VAR_FALSE)
+!
+   i = i + 1
+   var_name ( i) = 'F_XMIN'
+   var_char ( i) = ' '
+   var_l    ( i) =  6
+   var_type ( i) = IS_REAL
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = var_val(VAR_FALSE)
+!
+   i = i + 1
+   var_name ( i) = 'F_XMAX'
+   var_char ( i) = ' '
+   var_l    ( i) =  6
+   var_type ( i) = IS_REAL
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = var_val(VAR_FALSE)
+!
+   i = i + 1
+   var_name ( i) = 'F_XSTP'
+   var_char ( i) = ' '
+   var_l    ( i) =  6
+   var_type ( i) = IS_REAL
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = var_val(VAR_FALSE)
+!
+   i = i + 1
+   var_name ( i) = 'F_YMIN'
+   var_char ( i) = ' '
+   var_l    ( i) =  6
+   var_type ( i) = IS_REAL
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = var_val(VAR_FALSE)
+!
+   i = i + 1
+   var_name ( i) = 'F_YMAX'
+   var_char ( i) = ' '
+   var_l    ( i) =  6
+   var_type ( i) = IS_REAL
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = var_val(VAR_FALSE)
+!
+   i = i + 1
+   var_name ( i) = 'F_YSTP'
+   var_char ( i) = ' '
+   var_l    ( i) =  6
+   var_type ( i) = IS_REAL
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = var_val(VAR_FALSE)
+!
+   i = i + 1
+   var_name ( i) = 'F_ZMIN'
+   var_char ( i) = ' '
+   var_l    ( i) =  6
+   var_type ( i) = IS_REAL
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = var_val(VAR_FALSE)
+!
+   i = i + 1
+   var_name ( i) = 'F_ZMAX'
+   var_char ( i) = ' '
+   var_l    ( i) =  6
+   var_type ( i) = IS_REAL
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = var_val(VAR_FALSE)
+!
+   i = i + 1
+   var_name ( i) = 'F_ZSTP'
+   var_char ( i) = ' '
+   var_l    ( i) =  6
+   var_type ( i) = IS_REAL
    var_diff ( i) = .FALSE.
    var_val  ( i) = var_val(VAR_FALSE)
 !
