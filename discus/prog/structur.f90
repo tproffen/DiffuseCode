@@ -3615,6 +3615,7 @@ SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, c_names, c_refine, c_diffev, &
 !+                                                                      
 use prep_refine_mod
 use spcgr_mod
+!use spcgr_apply
 !
 USE ber_params_mod
 USE blanks_mod
@@ -3647,14 +3648,10 @@ real(kind=PREC_DP), parameter :: TOL = 0.00005_PREC_DP
 INTEGER, PARAMETER :: NFV = 50 
 integer, parameter :: IRD = 34
 integer, parameter :: IWR = 35
-integer, parameter :: IDI_MA = 36    ! DISCUS_MAIN PART
-integer, parameter :: IRE_MA = 37    ! REFINE_MAIN PART
-integer, parameter :: IDI_PO = 39    ! DISCUS_POWDER
-integer, parameter :: IRE_PO = 41    ! REFINE_POWDER
 !                                                                       
 REAL(KIND=PREC_DP), dimension(MAXW) :: werte
 !                                                                       
-INTEGER, PARAMETER :: shelx_num = 59       ! Number of SHELX commands to ignore 
+INTEGER, PARAMETER :: shelx_num = 58       ! Number of SHELX commands to ignore 
 CHARACTER(len=4), dimension(shelx_num) :: shelx_ign ! (1:shelx_num) 
 CHARACTER(len=4), dimension(:), allocatable  :: c_atom    ! Atom types 
 CHARACTER(len=4), dimension(:), allocatable  :: s_atom    ! Atom types on SFAC line
@@ -3664,11 +3661,8 @@ CHARACTER(len=80)  :: line1
 CHARACTER(len=80)  :: line2 
 CHARACTER(len=160) :: line 
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ofile))) :: infile          ! Input file name
-character(len=PREC_STRING), dimension(2) :: discus_file          ! Main discus macro
 character(len=PREC_STRING)               :: substance            ! substance name   
 !character(len=PREC_STRING), dimension(2) :: refine_file          ! Main refine macro
-character(len=PREC_STRING) :: hkl_file             ! Reflection data file
-character(len=PREC_STRING) :: fcf_file             ! Reflection data file
 character(len=160), dimension(:), allocatable :: content      ! Complete content of Shelx file
 character(len=PREC_STRING), dimension(:), allocatable :: structure    ! Complete DISCUS result
 integer :: lcontent   ! Number of lines in content
@@ -3703,7 +3697,8 @@ LOGICAL :: lmole     ! If true we are reading a molecule
 logical :: lshelx_names  ! Use atom names from actual list instead of Chemical names
 integer :: n_mat     ! Number space group matrices
 integer             , dimension(3) :: hkl_max
-REAL(KIND=PREC_DP)                 :: P_exti    ! Extrinction parameter
+integer                            :: P_ncycle  ! Number of refinement cycles
+REAL(KIND=PREC_DP)                 :: P_exti    ! Extxinction parameter
 REAL(KIND=PREC_DP)                 :: rlambda   ! Wave length
 REAL(KIND=PREC_DP), dimension(6)   :: latt      !Lattice parameters in input file
 REAL(KIND=PREC_DP), dimension(3,4) :: gen       ! Generator matrices constructed from 'SYMM' commands
@@ -3717,6 +3712,8 @@ INTEGER, PARAMETER                    :: MAXP  = 11 ! Dummy number of parameters
 CHARACTER (LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(MAXP) :: ccpara     ! Parameter needed for SFAC analysis
 INTEGER             , DIMENSION(MAXP) :: llpara
 REAL(KIND=PREC_DP)  , DIMENSION(MAXP) :: wwerte
+real(kind=PREC_DP)                    :: lambda_user
+real(kind=PREC_DP)                    :: energy
 !                                                                       
 integer             :: ispace         ! 'spcgr' line in structure
 character(len=20)   :: space_group    ! As determined from input file
@@ -3729,17 +3726,15 @@ logical             :: lspace_group   ! use generators of space group symbol
 logical             :: l_refine       ! refine is not just "no"
 logical             :: l_diffev       ! diffev is not just "no"
 !
-integer, parameter :: NOPTIONAL = 9
+integer, parameter :: NOPTIONAL = 7
 integer, parameter :: O_STYLE   = 1
 integer, parameter :: O_LAMBDA  = 2
-integer, parameter :: O_SYMBOL  = 3
-integer, parameter :: O_ATOM    = 4     ! For LAMMPS
-integer, parameter :: O_UNIQUE  = 5
-integer, parameter :: O_NAMES   = 6
-integer, parameter :: O_REFINE  = 7
-integer, parameter :: O_DIFFEV  = 8
-integer, parameter :: O_FORM    = 9
-character(len=   6)       , dimension(NOPTIONAL) :: oname   !Optional parameter names
+integer, parameter :: O_COMPUTE = 3
+integer, parameter :: O_FORM    = 4
+integer, parameter :: O_REFINE  = 5
+integer, parameter :: O_DIFFEV  = 6
+integer, parameter :: O_SYMBOL  = NOPTIONAL
+character(len=   7)       , dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(len=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -3748,27 +3743,27 @@ real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
 integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
 character(len=PREC_STRING), dimension(NOPTIONAL,2) :: ref_dif
 !
-DATA oname  / 'style ', 'lambda', 'symbol', 'atom', 'unique',  'name', 'refine', 'diffev', 'form'   /
-DATA loname /  5,        6      ,  6      ,  4    ,  6      ,   4    ,  6      ,  6      ,  4       /
+DATA oname  / 'style ', 'lambda', 'compute', 'form  ',  'refine', 'diffev', 'UNUSED'   /
+DATA loname /  5,        6      ,  7       ,  4      ,   6      ,  6      ,  6         /
 !
 !                                                                       
 DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
 'BOND', 'BUMP', 'CGLS', 'CHIV', 'CONF', 'CONN', 'DAMP', 'DANG',   &
 'DEFS', 'DELU', 'DFIX', 'DISP',         'EQIV',         'EXYZ',   &
 'FEND', 'FLAT', 'FMAP', 'FRAG', 'FREE', 'GRID', 'HFIX', 'HOPE',   &
-'HTAB', 'ISOR', 'L.S.', 'LAUE',         'MERG', 'MORE', 'MOVE',   &
+'HTAB', 'ISOR',         'LAUE',         'MERG', 'MORE', 'MOVE',   &
 'MPLA', 'NCSY', 'OMIT', 'PART', 'PLAN', 'REM ', 'RESI', 'RTAB',   &
 'SADI', 'SAME', 'SHEL', 'SIMU', 'SIZE', 'SPEC', 'SUMP', 'STIR',   &
 'SWAT', 'TEMP', 'TIME', 'TWIN', 'UNIT', 'WGHT', 'WPDB', 'ZERR' /  
 !
-opara  =  (/ 'powder  ', '1.540592', 'CUA1    ', 'atom    ', 'biso    ', 'chem    ', &
-             'no      ', 'no      ', 'waas    '                                &
+opara  =  (/ 'powder  ', '1.540592', 'serial  ', 'waas    ',  &
+             'no      ', 'no      ', 'unused  '                           &
            /)   ! Always provide fresh default values
-lopara =  (/  6,        8      ,  4      ,  4      ,  4      ,  4      , &
-              2      ,  2      ,  4                                      &
+lopara =  (/  6        ,   8      ,  6        ,  4        ,  &
+              2        ,  2       ,  6                                    &
           /)
-owerte =  (/  0.0,     1.540592,  1.540592, 0.0    ,  0.0    ,  0.0    , &
-              0.0    ,  0.0    ,  0.0                                    &
+owerte =  (/  0.0,     1.540592,   0.0       ,  0.0      ,  &
+              0.0    ,  0.0    ,   0.0                                   &
           /)
 !
 fv = 0.0_PREC_DP
@@ -3776,6 +3771,7 @@ fv = 0.0_PREC_DP
 lmole    = .false. 
 ispace   = 2        ! Default line for space group symbol   
 ilist    = 0        ! Defaulkt to no LIST instruction
+hkl_max  = 5        ! Default all HKL to 5
 !
 ntyp      = 0
 ntyp_prev = 0
@@ -4020,6 +4016,10 @@ loop_header: do jc=1, ifvar
         ntyp = 0
         c_atom = ' '
      endif
+  elseif(content(jc)(1:4) == 'L.S.') then          ! l.S.
+     line = content(jc)(6:len_trim(content(jc)))
+     read(line,*,end=666, err=666) P_ncycle
+666  continue
   elseif(content(jc)(1:4) == 'EXTI') then          ! EXTI
      line = content(jc)(6:len_trim(content(jc)))
      read(line,*,end=888, err=888) P_exti
@@ -4144,35 +4144,64 @@ if(l_diffev) then     ! Interpret the diffev parameters
   call get_params (c_diffev, ianz, ccpara, llpara, maxw, length) 
   call get_optional(ianz, MAXW, ccpara, llpara, NOPTIONAL,  ncalc, &
                     oname, loname, opara, lopara, lpresent, owerte)
+  if(ier_num/=0) return
   ref_dif(:,2) = opara           ! Copy all DIFFEV details
-  if(.not. (lpresent(O_LAMBDA) .or. lpresent(O_SYMBOL))) then
-     ref_dif(O_SYMBOL, 2) = ' '
+  if(.not. (lpresent(O_LAMBDA)                        )) then
      write(ref_dif(O_LAMBDA,2), '(f8.6)') rlambda     ! Use SHELX input
+     ref_dif(O_SYMBOL, 2) = ' '
+  else
+     call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, opara(O_LAMBDA), ref_dif, 2)
   endif
-  call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, lpresent, ref_dif, 2)
+endif
+!
+if(l_refine) then     ! Interpret the refine parameters
+  length = len_trim(c_refine)
+  if(c_refine(1:1) == '[') then
+     c_refine(1:1)           = ' '
+     c_refine(length:length) = ' '
+  endif
+  call get_params (c_refine, ianz, ccpara, llpara, maxw, length) 
+  call get_optional(ianz, MAXW, ccpara, llpara, NOPTIONAL,  ncalc, &
+                    oname, loname, opara, lopara, lpresent, owerte)
+  if(ier_num/=0) return
+  ref_dif(:,1) = opara           ! Copy all REFINE details
+  if(.not. (lpresent(O_LAMBDA)                        )) then
+     write(ref_dif(O_LAMBDA,1), '(f8.6)') rlambda     ! Use SHELX input
+     ref_dif(O_SYMBOL, 1) = ' '
+  else
+     call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, opara(O_LAMBDA), ref_dif, 1)
+  endif
 endif
 !
 !===============================================================================
 !
 !===============================================================================
-!if(c_diffev=='yes' .or. c_diffev=='single' .or.            &
-!   c_diffev=='powder') then
 if(l_diffev) then
-   call write_diffev_generic(substance)
-   if(ref_dif(O_STYLE,2)=='powder' ) then 
+   call write_diffev_generic(substance, ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2), &
+                             ilist)
+   if(ref_dif(O_STYLE,2)=='single' ) then 
+      call write_diffev_single_part1(substance, user_name,      &
+           spcgr_syst(space_number), latt, ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2)) 
+   elseif(ref_dif(O_STYLE,2)=='powder' ) then 
       call write_diffev_powder_part1(substance, user_name,      &
-           spcgr_syst(space_number), latt) 
+           spcgr_syst(space_number), latt, ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2)) 
+   elseif(ref_dif(O_STYLE,2)=='pdf' ) then 
+      call write_diffev_pdf_part1(substance, user_name,      &
+           spcgr_syst(space_number), latt, ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2)) 
    endif
 endif
 !
 !===============================================================================
-if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
-   call write_refine_single_part1(IDI_MA, IRE_MA, ofile, infile, ilist, fv(1),  &
-        discus_file(1), hkl_file, fcf_file)
-endif
-if(c_refine=='all' .or. c_refine=='powder') then
-   call write_refine_powder_part1(IDI_PO, IRE_PO, substance, infile, 0, 1.000_PREC_DP,  &
-        spcgr_syst(space_number), latt, discus_file(2), hkl_file)
+if(l_refine) then
+   if(ref_dif(O_STYLE,1)=='single' ) then
+      call write_refine_single_part1(substance, ilist, fv(1))
+   elseif(ref_dif(O_STYLE,1)=='powder' ) then
+      call write_refine_powder_part1(substance, 0, 1.000_PREC_DP,  &
+           spcgr_syst(space_number), latt, ref_dif(O_STYLE,1))
+   elseif(ref_dif(O_STYLE,1)=='pdf' ) then
+      call write_refine_powder_part1(substance, 0, 1.000_PREC_DP,  &
+           spcgr_syst(space_number), latt, ref_dif(O_STYLE,1))
+   endif
 endif
 !
 !===============================================================================
@@ -4206,16 +4235,23 @@ do iscat=1, ntyp
       i = i + 6
 !
 !===============================================================================
-      if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
-         call write_refine_single_part2(IDI_MA, IRE_MA, j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'free')
-      endif
-      if(c_refine=='all' .or. c_refine=='powder') then
-         uij_l(1, iscat,j) = (uij_l(1, iscat,j)+uij_l(2, iscat,j)+uij_l(3, iscat,j))/3.0_PREC_DP
-         l = 1
-         call write_refine_single_part2(IDI_PO, IRE_PO, j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'fixed')
+      if(l_refine) then
+         if(ref_dif(O_STYLE,1)=='single' ) then
+            call write_refine_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'free')
+         elseif(ref_dif(O_STYLE,1)=='powder' ) then
+            uij_l(1, iscat,j) = (uij_l(1, iscat,j)+uij_l(2, iscat,j)+uij_l(3, iscat,j))/3.0_PREC_DP
+            l = 1
+            call write_refine_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'fixed')
+         elseif(ref_dif(O_STYLE,1)=='pdf' ) then
+            uij_l(1, iscat,j) = (uij_l(1, iscat,j)+uij_l(2, iscat,j)+uij_l(3, iscat,j))/3.0_PREC_DP
+            l = 1
+            call write_refine_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'fixed')
+         endif
       endif
       if(l_diffev) then
-         if(ref_dif(O_STYLE,2)=='powder' ) then 
+         if(ref_dif(O_STYLE,2)=='single' .or.          & ! SINGLE
+            ref_dif(O_STYLE,2)=='powder' .or.          & ! POWDER
+            ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
          uij_l(1, iscat,j) = (uij_l(1, iscat,j)+uij_l(2, iscat,j)+uij_l(3, iscat,j))/3.0_PREC_DP
          l = 1
          call write_diffev_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'fixed')
@@ -4269,16 +4305,24 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
    endif
 !
 !===============================================================================
-   if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
-      call write_refine_single_part3(IDI_MA, IRE_MA, content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'free')
-   endif
-   if(c_refine=='all' .or. c_refine=='powder') then
-      call write_refine_single_part3(IDI_PO, IRE_PO, content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
+!  if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
+   if(l_refine) then
+      if(ref_dif(O_STYLE,1)=='single' ) then
+         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'free')
+!   if(c_refine=='all' .or. c_refine=='powder') then
+      elseif(ref_dif(O_STYLE,1)=='powder' ) then
+         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
+      elseif(ref_dif(O_STYLE,1)=='pdf' ) then
+         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
+      endif
    endif
    if(l_diffev) then
-      if(ref_dif(O_STYLE,2)=='powder' ) then 
-      call write_diffev_single_part3(&
-           content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
+      if(ref_dif(O_STYLE,2)=='single' .or.          & ! SINGLE
+         ref_dif(O_STYLE,2)=='powder' .or.          & ! POWDER
+         ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
+         call write_diffev_single_part3(&
+           content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, &
+           'fixed')
       endif
    endif
 !
@@ -4315,20 +4359,32 @@ close(IWR)
 !
 !
 !===============================================================================
-if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
-   call write_refine_single_part4(IDI_MA, IRE_MA, ofile, discus_file(1), hkl_file, fcf_file, &
-        ilist, c_form, rlambda, P_exti, hkl_max)
-endif
-if(c_refine=='all'.or. c_refine=='powder') then
-   call write_refine_powder_part4(IDI_PO, IRE_PO, substance, discus_file(2), hkl_file, fcf_file, &
-        ilist, c_form, rlambda, P_exti, spcgr_syst(space_number), latt, hkl_max)
+if(l_refine) then
+   if(ref_dif(O_STYLE,1)=='single' ) then
+      call write_refine_single_part4(substance, &
+           ilist, c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, hkl_max, P_ncycle)
+   elseif(ref_dif(O_STYLE,1)=='powder' ) then
+      call write_refine_powder_part4(substance,  &
+           ilist, c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
+   elseif(ref_dif(O_STYLE,1)=='pdf' ) then
+      call write_refine_pdf_part4(substance,  &
+           ilist, c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
+   endif
 endif
 if(l_diffev) then
-write(*,*) ' Lambd Symb     ', ref_dif(O_SYMBOL, 2)(1:8), ref_dif(O_LAMBDA, 2)(1:8)
-   call write_diffev_powder_part4(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
-        ref_dif(O_SYMBOL, 2),&
-        hkl_file   &
-        )
+   if(ref_dif(O_STYLE,2)=='single' ) then 
+      call write_diffev_single_part4(substance, &
+           ilist, c_form, ref_dif(O_LAMBDA, 2), ref_dif(O_SYMBOL, 2),  &
+            ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2), P_exti, hkl_max, P_ncycle)
+   elseif(ref_dif(O_STYLE,2)=='powder' ) then 
+      call write_diffev_powder_part4(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
+           ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
+           )
+   elseif(ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
+      call write_diffev_pdf_part4(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
+           ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
+           )
+   endif
 endif
 !===============================================================================
 !
@@ -4382,13 +4438,14 @@ END SUBROUTINE ins2discus
 !
 !*****7*************************************************************************
 !
-subroutine get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, lpresent, ref_dif, &
+subroutine get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, lambda, ref_dif, &
            iprog)
 !-
 !  Interpret wavelength 
 !+
 !
 use errlist_mod
+use lib_errlist_func, only: no_error
 use element_data_mod, only: get_wave
 use precision_mod
 !
@@ -4397,32 +4454,27 @@ implicit none
 integer                                   , intent(in)    :: NOPTIONAL ! number of optional
 integer                                   , intent(in)    :: O_LAMBDA  ! Entry numerical
 integer                                   , intent(in)    :: O_SYMBOL  ! Entry symbol
-logical         , dimension(NOPTIONAL)    , intent(in)    :: lpresent  ! is present
+character(len=4)                          , intent(in)    :: lambda    ! Input string or number
 character(len=*), dimension(NOPTIONAL, 2) , intent(inout) :: ref_dif   ! Actual values
 integer                                   , intent(in)    :: iprog     ! REFINE=1  or DIFFEV=2
 !
-character(len=4)   :: lambda
 real(kind=PREC_DP) :: rlambda   ! numerical value
 real(kind=PREC_DP) :: energy    ! numerical value
 logical, parameter :: l_energy = .false.
 integer            :: diff_radiation
 !
 diff_radiation = 1
-if(lpresent(O_SYMBOL)) then      ! User provided wavelength symbol
-   rlambda = 0.0
-   lambda = ref_dif(O_SYMBOL, iprog)
-   call get_wave ( lambda , rlambda, energy, l_energy, &
-                      diff_radiation,ier_num, ier_typ )
-   write(ref_dif(O_LAMBDA, iprog), '(f8.6)') rlambda
-elseif(lpresent(O_LAMBDA)) then
-   read(ref_dif(O_LAMBDA, iprog), *) rlambda
-   lambda = ' '
-   call get_wave ( lambda , rlambda, energy, l_energy, &
-                      diff_radiation,ier_num, ier_typ )
-   ref_dif(O_SYMBOL, iprog) = ' '
-endif
-write(*,*) ' GOT WAVELENGTH ', ier_num, ier_typ
-write(*,*) ' Lambd Symb     ', ref_dif(O_SYMBOL, iprog)(1:8), ref_dif(O_LAMBDA, iprog)(1:8)
+rlambda = 0.0
+ref_dif(O_SYMBOL, iprog) = lambda 
+call get_wave ( lambda , rlambda, energy, l_energy, &
+                   diff_radiation,ier_num, ier_typ )
+if(ier_num/=0) then    ! Failure, try to read numeric value
+   call no_error
+   read( lambda,   *  ) rlambda
+   ref_dif(O_SYMBOL, iprog) = ' ' 
+endif 
+!
+write(ref_dif(O_LAMBDA, iprog), '(f8.6)') rlambda
 !
 end subroutine get_wavelength
 !
