@@ -5388,17 +5388,17 @@ main: DO
          laccept = .TRUE.
       endif
    elseif(mmc_move == MC_MOVE_SWVALUE) then   ! Switch values between atoms
+      call random_number(z)
+      isel(1) = int(cr_natoms*z)+1
+      call random_number(z)
+      isel(2) = int(cr_natoms*z)+1
+      natoms = 2
    ENDIF 
 !                                                                       
 !-----      ----Check whether geometrical constrains apply              
 !                                                                       
       IF (laccept) THEN 
          CALL check_geometry_multi (isel, natoms, laccept, MMC_MAX_ATOM) 
-         call random_number(z)
-         isel(1) = int(cr_natoms*z)+1
-         call random_number(z)
-         isel(2) = int(cr_natoms*z)+1
-         natoms = 2
 !write(*,*) ' SELECTED ', isel(1:2), cr_iscat(1,isel(1)), cr_iscat(1,isel(2))
       ENDIF 
       IF(laccept) EXIT main
