@@ -318,8 +318,8 @@ ELSE
 !
 !     -- Test a simple forpy application
 !
-   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'testforpy', 9, lbef, 9) ) then
-      call suite_test_forpy! (zeile, lcomm, lend)
+!   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'testforpy', 9, lbef, 9) ) then
+!      call suite_test_forpy! (zeile, lcomm, lend)
 !
 !     -- Test a simple jmol plot
 !
@@ -597,37 +597,37 @@ end subroutine suite_test_jmol
 !
 !*******************************************************************************
 !
-subroutine suite_test_forpy
-!-
-!  Test a quick access to forpy library
-!+
-!
-use errlist_mod
-use precision_mod
-!
-use lib_forpython_mod
-use forpy_mod
-!
-implicit none
-!
-type(ndarray)   :: p_arr   ! A python array
-real(kind=PREC_DP), dimension(2,3) :: matrix
-!
-matrix(1,1) = 1.0
-matrix(1,2) = 2.0
-matrix(1,3) = 3.0
-matrix(2,1) = 4.0
-matrix(2,2) = 5.0
-matrix(2,3) = 6.0
-!
-call forpy_start(ier_num)
-ier_num = ndarray_create_ones(p_arr, [2, 2], dtype="float64", order="F")
-ier_num = print_py(p_arr)
-ier_num = ndarray_create(p_arr, matrix)
-ier_num = print_py(p_arr)
-call p_arr%destroy
-!
-end subroutine suite_test_forpy
+!subroutine suite_test_forpy
+!!-
+!!  Test a quick access to forpy library
+!!+
+!!
+!use errlist_mod
+!use precision_mod
+!!
+!use lib_forpython_mod
+!use forpy_mod
+!!
+!implicit none
+!!
+!type(ndarray)   :: p_arr   ! A python array
+!real(kind=PREC_DP), dimension(2,3) :: matrix
+!!
+!matrix(1,1) = 1.0
+!matrix(1,2) = 2.0
+!matrix(1,3) = 3.0
+!matrix(2,1) = 4.0
+!matrix(2,2) = 5.0
+!matrix(2,3) = 6.0
+!!
+!call forpy_start(ier_num)
+!ier_num = ndarray_create_ones(p_arr, [2, 2], dtype="float64", order="F")
+!ier_num = print_py(p_arr)
+!ier_num = ndarray_create(p_arr, matrix)
+!ier_num = print_py(p_arr)
+!call p_arr%destroy
+!!
+!end subroutine suite_test_forpy
 !
 !*******************************************************************************
 !end module suite_mache_kdo_mod

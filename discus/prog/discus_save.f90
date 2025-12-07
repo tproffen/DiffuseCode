@@ -1369,7 +1369,7 @@ use wyckoff_mod
 use element_data_mod
 use envir_mod
 use errlist_mod
-use nx_write_mod
+!use nx_write_mod
 use lib_nx_transfer_mod
 use param_mod
 use wink_mod
@@ -1553,18 +1553,18 @@ else
    average_struc%aver_n_atoms = 0  ! Assume no average structure
 endif
 !
-call nx_write_structure(python_script_dir, outfile, program_version, author,          &
-           cr_a0, cr_win, cr_spcgr, spcgr_para, cr_set,                &
-           spc_n, symmetry_mat, unit_cells,                                     &
-           cr_nscat, types_names, types_ordinal, types_charge, types_isotope,   &
-           cr_natoms, atom_id, atom_type, atom_pos, atom_unit_cell, atom_site,  &
-           status_flags, cr_nanis, ier_num,                                     &
-           property_flags = cr_prop,                                            &
-           anisotropic_adp = anis_adp,                                          &
-           molecules      = molecules,                                          &
-           types_occupancy= types_occupancy,                                    &
-           average_struc  = average_struc                                       &
-           )
+!call nx_write_structure(python_script_dir, outfile, program_version, author,          &
+!           cr_a0, cr_win, cr_spcgr, spcgr_para, cr_set,                &
+!           spc_n, symmetry_mat, unit_cells,                                     &
+!           cr_nscat, types_names, types_ordinal, types_charge, types_isotope,   &
+!           cr_natoms, atom_id, atom_type, atom_pos, atom_unit_cell, atom_site,  &
+!           status_flags, cr_nanis, ier_num,                                     &
+!           property_flags = cr_prop,                                            &
+!           anisotropic_adp = anis_adp,                                          &
+!           molecules      = molecules,                                          &
+!           types_occupancy= types_occupancy,                                    &
+!           average_struc  = average_struc                                       &
+!           )
 !
 deallocate(symmetry_mat)
 deallocate(types_names)

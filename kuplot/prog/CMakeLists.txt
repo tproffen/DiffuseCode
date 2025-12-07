@@ -44,14 +44,14 @@ set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY})
 
 set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 
-if (DIFFUSE_HDF5)
+#if (DIFFUSE_HDF5)
   if (DEFINED ENV{HDF5_INC_DIR})
     include_directories($ENV{HDF5_INC_DIR})
   endif ()
   set (SOURCES_ALL ${SOURCES_ALL} kuplot_load_h5.f90)
-else (DIFFUSE_HDF5)
-  set (SOURCES_ALL ${SOURCES_ALL} kuplot_load_h5_no.f90)
-endif ()
+#else (DIFFUSE_HDF5)
+#  set (SOURCES_ALL ${SOURCES_ALL} kuplot_load_h5_no.f90)
+#endif ()
 
 # NEXUS support ?
 

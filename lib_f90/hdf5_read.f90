@@ -675,10 +675,10 @@ subroutine nx_read_scattering_place(infile, length, O_LAYER, O_TRANS, NOPTIONAL,
 ! Read a NEXUS HDF5 file in the Diffuse Developers common file format via FORPY
 !+
 !
-use lib_nx_read_mod
+!use lib_nx_read_mod
 !
-use lib_forpython_mod
-use forpy_mod
+!use lib_forpython_mod
+!use forpy_mod
 !
 use iso_fortran_env, only: real64
 use iso_c_binding, only:C_CHAR
@@ -726,16 +726,16 @@ real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat ! Actu
 ! TEMPORARY DEBUG
 !character(kind=C_CHAR, len=:), allocatable :: dname
 !
-call nx_read_scattering(infile, &
-file_type, file_version, file_date, file_program, file_author, &
-ndims, d5_dims, d5_data, &
-signal, radiation, is_space, value_type, &
-h5_llims, h5_steps_full, axes, &
-h5_x, h5_y, h5_z, &
-h5_unit(1:3), h5_unit(4:6), &
-space_group, symmetry_applied, symmetry_n_mat, symmetry_mat,    &
-ier_num &
-)
+!call nx_read_scattering(infile, &
+!file_type, file_version, file_date, file_program, file_author, &
+!ndims, d5_dims, d5_data, &
+!signal, radiation, is_space, value_type, &
+!h5_llims, h5_steps_full, axes, &
+!h5_x, h5_y, h5_z, &
+!h5_unit(1:3), h5_unit(4:6), &
+!space_group, symmetry_applied, symmetry_n_mat, symmetry_mat,    &
+!ier_num &
+!)
 !
 !
 if(    is_space=='direct' .or. is_space=='patterson') then

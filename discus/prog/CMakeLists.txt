@@ -78,16 +78,16 @@ set( SOURCES_ALL  discus_allocate_appl_mod.f90 atom_env_mod.f90
 
 set( LIBS lib_f90 lib_f90c kuplot_all ${DIFFUSE_LIBS})
 
-if (DIFFUSE_HDF5)
+#if (DIFFUSE_HDF5)
   if (DEFINED ENV{HDF5_INC_DIR})
     include_directories($ENV{HDF5_INC_DIR})
   endif ()
   set (SOURCES_ALL ${SOURCES_ALL} hdf_write.f90)
   message (DISCUS " HDF5 is ON  ${DIFFUSE_HDF5} ")
-else (DIFFUSE_HDF5)
-  set (SOURCES_ALL ${SOURCES_ALL} hdf_write_no.f90)
-  message (DISCUS " HDF5 is OFF ${DIFFUSE_HDF5} ")
-endif ()
+#else (DIFFUSE_HDF5)
+#  set (SOURCES_ALL ${SOURCES_ALL} hdf_write_no.f90)
+#  message (DISCUS " HDF5 is OFF ${DIFFUSE_HDF5} ")
+#endif ()
 
 # NEXUS support ?
 
