@@ -5,12 +5,10 @@
    another by a comma ",". There is no predefined need for any specific
    sequence of commands.
 
-   ! NEW ! 
    Command lines can be continued by placing an "&" as last character 
    into a line. Example
    evaluate 5+6  &  ! the rest is a comment
-   +5
-   This will effrectively be identical to 
+   This will effectively be identical to 
    evaluate 5+6+5
 
    Commands are case sensitive, all commands and alphabetic parameters MUST
@@ -26,7 +24,7 @@
    comment and ignored.
 
    The word PROG in this part of the help section is to be replaced
-   by the name of the program you are using (e.g. DISCUS).
+   by the name of the program section you are using (e.g. DISCUS).
 
    Further help topics are:
 3  News
@@ -35,8 +33,8 @@
 4  2022_June
 
    fget
-   Added an optional parameter "hash:sikp" / "hash:read" to sikp/read
-   lines starting with a hashh "#". 
+   Added an optional parameter "hash:skip" / "hash:read" to sikp/read
+   lines starting with a hash "#". 
 4  2022_March
 
    Adapted optional parameters to handle format specifiers in 
@@ -699,9 +697,9 @@
    a<length>         Character = alphanumeric string
                      As in "a20"
 
-   The optional parameter "hash" determins how lines that start with a
+   The optional parameter "hash" determines how lines that start with a
    hash "#" are treated. By default or "hash:skip" these lines are 
-   skipped and fget automatically reas the next line. With "hash:read" 
+   skipped and fget automatically reads the next line. With "hash:read" 
    the lines are read into the input variable. 
 
    Example: 
@@ -937,8 +935,8 @@
 !p                                   line ='Discus'
 !p                                   index('Discus','s')
 !p                                   index('Discus','s', BACK)
-!p                                   index("%",'Discus',"%",'s')
-!p                                   index("%",line    ,"%",'s')
+!p                                   index("%c",'Discus',"%c",'s')
+!p                                   index("%c",line    ,"%c",'s')
 !p                                   index("%c",getcwd(0), '/')
 !p length(<line>)                    !Returns the length of string <line>
 !p                                   The line may be

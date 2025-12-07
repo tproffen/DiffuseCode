@@ -4005,7 +4005,7 @@
 !p                                   complex queries. 
 !p                                   
 2  import
-!p import "cif",<file[".cif"]>
+!p import "cif",<file[".cif"]> [, "names:cif", | "names:chem"]
 !p import "cmaker",<file[".xyz"]>
 !p import "lammps",<file>
 !p import "shelx",<file[".ins"]> [, "names:shelx" | "names:chem"]
@@ -4034,9 +4034,13 @@
    In order to transform a DISCUS file format the "metric:host" 
    parameter becomes mandatory.
 3  cif
-!p "cif", <file{".cif"]>
+!p "cif", <file{".cif"]>[, "names:cif", | "names:chem"]
 
    Imports a CIF file into the corresponding discus "stru" file.
+
+   As default, the atom names are taken from the "symbol" entry in the
+   atom list and used for the individual atoms. 
+   With the optional parameter "names:cif" the atom labels are used instead. 
 
    Multiple "data_" entries are written to separate files. 
    Entries 2 etc have the corresponding number appended to the 
