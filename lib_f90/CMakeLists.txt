@@ -26,11 +26,11 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               hdf5_def.f90 
               length_string_mod.f90 lib_f90_config.f90 lib_f90_fftw3.f90 
               lib_conv.f90 lib_conver_shelx.f90 lib_element_status.f90 
-              lib_forpython.f90 lib_functions.f90
+              lib_functions.f90
               lib_h5fortran_mod.f90
               lib_get_var_type.f90  lib_global_flags.f90 
               lib_ik.f90 lib_lanczos.f90 lib_load.f90
-              lib_math.f90 lib_metric.f90 lib_nx_read.f90 lib_nx_write.f90 
+              lib_math.f90 lib_metric.f90
               lib_nx_transfer_mod.f90
               lib_f90_profile.f90 lib_timer.f90
               lib_timer_mod.f90 lib_trans.f90 lib_unified_chars_mod.f90
@@ -56,6 +56,10 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               refine_control.f90 refine_data_mod.f90 refine_params.f90
               forpy_mod.F90
               )
+#lib_nx_read.f90 lib_nx_write.f90 
+#             lib_forpython.f90 
+#             forpy_mod.F90
+#             )
 #             sockets_mod.f90
 
 #set (CSOURCES FCreadline.c csocket.c csup.c)
@@ -107,16 +111,16 @@ else (CUDA_FOUND)
   set (FSOURCES ${FSOURCES} parallel_none.f90)
 endif (CUDA_FOUND)
 #
-if (DIFFUSE_HDF5)
+#if (DIFFUSE_HDF5)
   if (DEFINED ENV{HDF5_INC_DIR})
     include_directories($ENV{HDF5_INC_DIR})
   endif ()
   set (FSOURCES ${FSOURCES} hdf_write.f90 hdf5_read.f90 hdf5_params.f90)
   message (LIB_F90 " HDF5 is ON  ${DIFFUSE_HDF5} ")
-else (DIFFUSE_HDF5)
-  set (FSOURCES ${FSOURCES} hdf_write_no.f90 hdf5_params_no.f90)
-  message (LIB_F90 " HDF5 is OFF ${DIFFUSE_HDF5} ")
-endif ()
+#else (DIFFUSE_HDF5)
+#  set (FSOURCES ${FSOURCES} hdf_write_no.f90 hdf5_params_no.f90)
+#  message (LIB_F90 " HDF5 is OFF ${DIFFUSE_HDF5} ")
+#endif ()
 
 include_directories(${FFTW_INCLUDE_DIRS})
 
