@@ -3,7 +3,7 @@ MODULE reserved_mod
 IMPLICIT NONE
 SAVE
 !
-INTEGER, PARAMETER :: lib_reserved_n    =122
+INTEGER, PARAMETER :: lib_reserved_n    =113
 INTEGER, PARAMETER :: discus_reserved_n = 43 
 INTEGER, PARAMETER :: diffev_reserved_n = 24
 INTEGER, PARAMETER :: refine_reserved_n =  1
@@ -23,9 +23,6 @@ DATA lib_reserved /                                                         &
 'MPI_FIRST     ', 'NUM_NODES     ', 'REF_INDIV     ', 'F_VALUE       ', &
 'MPI_OFF       ', 'PROGRAM       ', 'REF_KID       ', 'DIFFEV        ', &
 'DISCUS        ', 'IS_TOP        ', 'KUPLOT        ', 'MPI_ON        ', &
-'F_XMIN        ', 'F_XMAX        ', 'F_XSTP        ', 'F_YMIN        ', &
-'F_YMAX        ', 'F_YSTP        ', 'F_ZMIN        ', 'F_ZMAX        ', &
-'F_ZSTP        ',                                                       &
 'REFINE        ', 'FALSE         ', 'STATE         ', 'SUITE         ', &
 'UNDEF         ', 'LOOP          ', 'SLOW          ', 'TRUE          ', &
 'MPI           ',                                                       &
@@ -51,6 +48,9 @@ DATA lib_reserved /                                                         &
 'le'            , 'gt'            , 'ge'            , 'eq'            , &
 'or'            , 'by'            , 'i'             , 'r'               &
 /
+!'F_XMIN        ', 'F_XMAX        ', 'F_XSTP        ', 'F_YMIN        ', &
+!'F_YMAX        ', 'F_YSTP        ', 'F_ZMIN        ', 'F_ZMAX        ', &
+!'F_ZSTP        ',                                                       &
 !                                                                       
 DATA discus_reserved /                                                  &
 'mol_biso'      , 'mol_cont'      , 'mol_dens'      , 'mol_test'      , &
