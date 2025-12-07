@@ -296,13 +296,15 @@ INTEGER                  :: length
 INTEGER                  :: lbef
 INTEGER                  :: lattice = 1
 INTEGER                  :: unique_n
-INTEGER                  :: shelx_n
-real(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: true_occ
+integer                  :: uu
+INTEGER           , dimension(:)  , allocatable :: shelx_n
+real(kind=PREC_DP), DIMENSION(:)  , ALLOCATABLE :: true_occ
 real(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: n_atoms 
 character(len=4)                             :: atom_name
 CHARACTER (LEN=2), DIMENSION(:), ALLOCATABLE :: unique_names
-CHARACTER (LEN=4), DIMENSION(:), ALLOCATABLE :: shelx_names
-integer           ,DIMENSION(:), ALLOCATABLE :: shelx_types 
+CHARACTER (LEN=4), DIMENSION(:,:), ALLOCATABLE :: shelx_names
+integer           ,DIMENSION(:,:), ALLOCATABLE :: shelx_types 
+integer           ,DIMENSION(:,:), ALLOCATABLE :: shelx_look 
 real(kind=PREC_DP),DIMENSION(:), ALLOCATABLE :: unique_n_atoms 
 logical                  :: lout = .FALSE.
 logical                  :: l_not_full = .TRUE.
@@ -517,11 +519,13 @@ ENDDO
 !
 ! Create unique Shelx names
 !
-ALLOCATE(shelx_names(1:cr_natoms))
-allocate(shelx_types(1:cr_natoms))
-shelx_names(:) = ' '
-shelx_types(:) = 0
-shelx_n = 0
+ALLOCATE(shelx_names(1:cr_natoms,1:unique_n))
+allocate(shelx_types(1:cr_natoms,1:unique_n))
+allocate(shelx_n    (            1:unique_n))
+allocate(shelx_look (1:cr_natoms,1:2       ))
+!shelx_names    = ' '
+!shelx_types    = 0
+!shelx_n        = 0
 !!loop_shelx_o: DO i=1,cr_natoms
 !!   l = shelx_n
 !!   DO j=l,1,-1
@@ -549,20 +553,35 @@ shelx_n = 0
 !!   if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))  shelx_names(shelx_n)(2:2) = '0'
 !!   shelx_types(shelx_n)      = cr_iscat(1,i)
 !!ENDDO loop_shelx_o
-shelx_names(:) = ' '
-shelx_types(:) = 0
-shelx_n = 0
+shelx_names    = ' '
+shelx_types    = 0
+shelx_n        = 0
+shelx_look     = 0
 loop_shelx: do i=1,cr_natoms
-   l = shelx_n
+   j = cr_iscat(1,i)
+   call guess_element(atom_name, is_cond, cr_at_lis(j), scat_equ=cr_scat_equ(j),   &
+                                                        scat_equ_name=cr_at_equ(j))
+   uu = 1
+   loop_unique: do j=1, unique_n
+      if(atom_name == unique_names(j)) then     ! Found the corresponding uinque name
+         uu = j
+         exit loop_unique
+      endif
+   enddo loop_unique
+   l = shelx_n(uu)
+!if(i==3) write(*,*) cr_at_lis(cr_iscat(1,i)), uu
    do j=l,1,-1                              ! Count previous names backwards
       atom_name = cr_at_lis(cr_iscat(1,i))
-      if(atom_name == shelx_names(j)) then  ! Found previous name, augment a new name
+!if(i==3) write(*,*) j, ' ', atom_name, ' ',atom_name == shelx_names(j, uu), ' ', shelx_names(j, uu)
+      if(atom_name == shelx_names(j, uu)) then  ! Found previous name, augment a new name
          if(len_trim(atom_name)< 4) then    ! Previous atom name is short enough
-            shelx_n = shelx_n + 1
-            shelx_names(shelx_n) = atom_name   ! New atom name is identical but:
-            shelx_types(shelx_n) = cr_iscat(1,i)
-            read(shelx_names(j)(4:4),'(i1)') k
-            write(shelx_names(shelx_n)(4:4),'(i1)') k+1 ! We increment a number at digit 4
+            shelx_n(uu) = shelx_n(uu) + 1
+            shelx_names(shelx_n(uu), uu) = atom_name   ! New atom name is identical but:
+            shelx_types(shelx_n(uu), uu) = cr_iscat(1,i)
+            shelx_look(i,2) = uu
+            shelx_look(i,1) = shelx_n(uu)
+!           read(shelx_names(j)(4:4),'(i1)') k
+            write(shelx_names(shelx_n(uu), uu)(3:4),'(i2)') shelx_n(uu) ! We increment a number at digit 4
             cycle loop_shelx
          else                               ! Error previous atom name is 4 characters as well!
             ier_num = 10
@@ -573,16 +592,21 @@ loop_shelx: do i=1,cr_natoms
          endif
       endif
    enddo
-   shelx_n = shelx_n + 1
-   shelx_names(shelx_n) = cr_at_lis(cr_iscat(1,i))
-   shelx_types(shelx_n)      = cr_iscat(1,i)
+   shelx_n(uu) = shelx_n(uu) + 1
+   shelx_names(shelx_n(uu), uu) = cr_at_lis(cr_iscat(1,i))
+   write(shelx_names(shelx_n(uu), uu)(3:4),'(i2)') shelx_n(uu) ! We increment a number at digit 4
+   shelx_types(shelx_n(uu), uu)      = cr_iscat(1,i)
+   shelx_look(i,2) = uu
+   shelx_look(i,1) = shelx_n(uu)
 enddo loop_shelx
 !
-DO i=1,shelx_n
+do uu=1, unique_n
+DO i=1,shelx_n(uu)
    DO j=1,4
-      IF(shelx_names(i)(j:j) == ' ' .and. len_trim(shelx_names(i))>j) shelx_names(i)(j:j) = '0'
+      IF(shelx_names(i, uu)(j:j) == ' ' .and. len_trim(shelx_names(i, uu))>j) shelx_names(i, uu)(j:j) = '0'
    ENDDO
 ENDDO
+enddo
 !
 !  Start writing the actual file 
 !
@@ -622,10 +646,12 @@ DO i=2, j                                 ! Omit identity x,y,z
 ENDDO
 !
 WRITE(IWR, 1500) names(1:LEN_TRIM(names)) ! SFAC
+!do uu=1, unique_n
 do i=1, unique_n
    write(IWR,'(a6,a2,1x,3f9.5)') 'DISP $',unique_names(i)(1:2), &
-   cr_delfr(shelx_types(i)), cr_delfi(shelx_types(i)), 0.0_PREC_DP
+   cr_delfr(shelx_types(1, i)), cr_delfi(shelx_types(1, i)), 0.0_PREC_DP
 enddo
+!enddo
 WRITE(IWR, 1600) units(1:LEN_TRIM(units)) ! UNIT
 WRITE(IWR, 1700) ncycle      ! L.S.
 WRITE(IWR, 1800)             ! BOND
@@ -642,7 +668,7 @@ WRITE(IWR, 2400)             ! FVAR
 !
 DO i=1, cr_natoms
    IF(cr_mole(i)==0) THEN
-      CALL shelx_write_atom(IWR,i, unique_n, unique_names, cr_natoms, shelx_names)
+      CALL shelx_write_atom(IWR,i, unique_n, unique_names, cr_natoms, shelx_names, shelx_look)
    ENDIF
 ENDDO
 !
@@ -652,7 +678,7 @@ DO i=1,mole_num_mole
    WRITE(IWR,2450) i
    DO j = 1, mole_len (i)
       k = mole_cont (mole_off (i) + j)
-      CALL shelx_write_atom(IWR,k, unique_n, unique_names, cr_natoms, shelx_names)
+      CALL shelx_write_atom(IWR,k, unique_n, unique_names, cr_natoms, shelx_names, shelx_look)
    ENDDO
 ENDDO
 WRITE(IWR, 2600)             ! HKLF 4
@@ -663,6 +689,8 @@ DEALLOCATE(unique_n_atoms)
 DEALLOCATE(unique_names)
 DEALLOCATE(shelx_names)
 DEALLOCATE(shelx_types)
+DEALLOCATE(shelx_n)
+DEALLOCATE(shelx_look)
 CLOSE(IWR)
 !
 !
@@ -692,7 +720,7 @@ END SUBROUTINE discus2ins
 !
 !*******************************************************************************
 !
-SUBROUTINE shelx_write_atom(IWR, i, unique_n, unique_names, natoms, shelx_names)
+SUBROUTINE shelx_write_atom(IWR, i, unique_n, unique_names, natoms, shelx_names, shelx_look)
 !
 USE crystal_mod
 USE param_mod
@@ -708,7 +736,8 @@ INTEGER                              , INTENT(IN) :: i
 INTEGER                              , INTENT(IN) :: unique_n
 CHARACTER(LEN=*), DIMENSION(unique_n), INTENT(IN) :: unique_names
 INTEGER                              , INTENT(IN) :: natoms
-CHARACTER(LEN=*), DIMENSION(natoms  ), INTENT(IN) :: shelx_names
+CHARACTER(LEN=*), DIMENSION(natoms, unique_n  ), INTENT(IN) :: shelx_names
+integer         , dimension(natoms, 2         ), intent(in) :: shelx_look
 !
 character(len=4) :: atom_name
 real(kind=PREC_DP), parameter :: TOL = 2.0D-5
@@ -741,10 +770,10 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: vec
    biso = cr_dw(cr_iscat(1,i))/8./REAL(pi**2)
 if(abs(cr_prin(4,1,cr_iscat(3,i))-cr_prin(4,2,cr_iscat(3,i)))>TOL  .or.  &
    abs(cr_prin(4,1,cr_iscat(3,i))-cr_prin(4,3,cr_iscat(3,i)))>TOL      ) then
-   write(IWR, 2510) shelx_names(i)(1:4), stype, cr_pos(:,i), occup, cr_anis_full(1:2,cr_iscat(3,i))
+   write(IWR, 2510) shelx_names(shelx_look(i,1), shelx_look(i,2))(1:4), stype, cr_pos(:,i), occup, cr_anis_full(1:2,cr_iscat(3,i))
    write(IWR, 2511) cr_anis_full(3:6,cr_iscat(3,i))
 else
-   WRITE(IWR,2500) shelx_names(i), stype, cr_pos(:,i), occup,biso
+   WRITE(IWR,2500) shelx_names(shelx_look(i,1), shelx_look(i,2)), stype, cr_pos(:,i), occup,biso
 endif
 !
 2500 FORMAT(a4,1x,i2,3(f12.6),f12.5,f11.5)
