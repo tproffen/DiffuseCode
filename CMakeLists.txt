@@ -54,7 +54,6 @@ find_package(X11 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(FFTW REQUIRED)
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 #find_package(PythonExtensions REQUIRED)
 
 option(DIFFUSE_SHARED_LIB "If on build shared libraries" OFF)
@@ -91,9 +90,9 @@ endif (DISCUS_CUDA)
 option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
 
 # Option to build with HDF5 support 
-option(DIFFUSE_HDF5 "DIFFUSE_HDF5" ON )
+#option(DIFFUSE_HDF5 "DIFFUSE_HDF5" ON )
 
-if ( DIFFUSE_HDF5 )
+#if ( DIFFUSE_HDF5 )
   find_package(HDF5 COMPONENTS Fortran REQUIRED)
   set (LINK_LIBS ${LINK_LIBS} "${HDF5_LIBRARIES}" )
   INCLUDE_DIRECTORIES ("${HDF5_INCLUDE_DIRS}")
@@ -101,14 +100,19 @@ if ( DIFFUSE_HDF5 )
 # message (status " LINK_LIBS ${LINK_LIBS}")
 # message (status " HDF5_LIBRARY ${HDF5_FORTRAN_SHARED_LIBRARY}" )
 # message (status " HDF5_INCLUDE ${HDF5_FORTRAN_INCLUDE_PATH}" )
-else ()
-  message (status " HDF5 is OFF ${DIFFUSE_HDF5} ")
-endif ()
+#else ()
+#  message (status " HDF5 is OFF ${DIFFUSE_HDF5} ")
+#endif ()
+#
+if (DIFFUSE_PYTHON)
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+  set (DIFFUSE_LIBS ${Python3_LIBRARIES})
+endif (DIFFUSE_PYTHON)
 
 # Set common libraries
 
-set (DIFFUSE_LIBS ${READLINE_LIBRARY})
-set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ${FFTW_DOUBLE_LIB} ${FFTW_DOUBLE_OPENMP_LIB} ${Python3_LIBRARIES} )
+set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ${READLINE_LIBRARY})
+set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ${FFTW_DOUBLE_LIB} ${FFTW_DOUBLE_OPENMP_LIB} )
 set (DIFFUSE_LIBS ${DIFFUSE_LIBS} h5fortran_lib "${HDF5_LIBRARIES}" )
 include_directories ("${HDF5_INCLUDE_DIRS}")
 
