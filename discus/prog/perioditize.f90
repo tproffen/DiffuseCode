@@ -222,9 +222,9 @@ if(str_comp (cpara(1), 'ncells', 2, lpara(1), 6) ) then
    call perioditize_set_ncells(ianz, cpara, lpara, werte, maxw)
 elseif(str_comp (cpara(1), 'natoms', 2, lpara(1), 6) ) then
    call perioditize_set_natoms(ianz, cpara, lpara, werte, maxw)
-elseif(str_comp (cpara(1), 'site', 2, lpara(2), 4) ) then
+elseif(str_comp (cpara(1), 'site', 2, lpara(1), 4) ) then
    call perioditize_set_site  (ianz, cpara, lpara, maxw, .false.)
-elseif(str_comp (cpara(1), 'wyckoff', 2, lpara(2), 7) ) then
+elseif(str_comp (cpara(1), 'wyckoff', 2, lpara(1), 7) ) then
    call perioditize_set_site  (ianz, cpara, lpara, maxw, .true.)
 endif
 !
@@ -655,6 +655,7 @@ real(kind=PREC_DP), dimension(3) :: u             ! fractional coordinates of at
 real(kind=PREC_DP), dimension(3) :: v             ! fractional coordinates of atom
 integer, dimension(3) :: shift                    ! Integer shift vector
 integer, dimension(3) :: icell                    ! Old atom is in this new cell
+integer, dimension(3) :: jcell                    ! Old atom is in this new cell
 !
 integer, dimension(  :), allocatable ::  tmp_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
 integer, dimension(  :), allocatable ::  tmp_prop   ! (  1:NMAX)  !Property flag
@@ -762,35 +763,43 @@ cr_icc = pdt_ihig - pdt_ilow + 1
 n = 0
 nn = 0
 do m=1, nprior
-   icell = floor(cr_pos(:, m) + 0.15) - pdt_ilow + 1
+   icell = floor(cr_pos(:, m) + 0.025) - pdt_ilow + 1
+   jcell = floor(cr_pos(:, m)        ) - pdt_ilow + 1
    u = cr_pos(:, m)
-   if(icell(1)<0          ) then
-      icell(1) = icell(1) + cr_icc(1)
-      u(1)     = u(1)     + cr_icc(1)
-   elseif(icell(1)==0         ) then
-      icell(1) = 1
-   elseif(icell(1)>cr_icc(1)  ) then
-      icell(1) = icell(1) - cr_icc(1)
-      u(1)     = u(1)     - cr_icc(1)
+   do j=1, 3
+   if(icell(j)<0           .and. jcell(j)<0) then  ! Really low coordinates
+      icell(j) = icell(j) + cr_icc(1)
+      u(j)     = u(j)     + cr_icc(j)
+   elseif(icell(j)<0           .and. jcell(j)==0) then  ! close to zero
+      icell(j) = 1
+   elseif(icell(j)==0         ) then
+      icell(j) = 1
+   elseif(icell(1)>cr_icc(1) .and.jcell(j)>cr_icc(1)  ) then
+      icell(j) = icell(j) - cr_icc(j)
+      u(j)     = u(j)     - cr_icc(j)
+   elseif(icell(1)>cr_icc(1) .and.jcell(j)==cr_icc(1)  ) then ! At upper edge within rounding
+      icell(j) = icell(j) - 1
+      u(j)     = u(j)     
    endif
-   if(icell(2)<0          ) then
-      icell(2) = icell(2) + cr_icc(2)
-      u(2)     = u(2)     + cr_icc(2)
-   elseif(icell(2)==0         ) then
-      icell(2) = 1
-   elseif(icell(2)>cr_icc(2)  ) then
-      icell(2) = icell(2) - cr_icc(2)
-      u(2)     = u(2)     - cr_icc(2)
-   endif
-   if(icell(3)<0          ) then
-      icell(3) = icell(3) + cr_icc(3)
-      u(3)     = u(3)     + cr_icc(3)
-   elseif(icell(3)==0         ) then
-      icell(3) = 1
-   elseif(icell(3)>cr_icc(3)  ) then
-      icell(3) = icell(3) - cr_icc(3)
-      u(3)     = u(3)     - cr_icc(3)
-   endif
+   enddo
+!  if(icell(2)<0          ) then
+!     icell(2) = icell(2) + cr_icc(2)
+!     u(2)     = u(2)     + cr_icc(2)
+!  elseif(icell(2)==0         ) then
+!     icell(2) = 1
+!  elseif(icell(2)>cr_icc(2)  ) then
+!     icell(2) = icell(2) - cr_icc(2)
+!     u(2)     = u(2)     - cr_icc(2)
+!  endif
+!  if(icell(3)<0          ) then
+!     icell(3) = icell(3) + cr_icc(3)
+!     u(3)     = u(3)     + cr_icc(3)
+!  elseif(icell(3)==0         ) then
+!     icell(3) = 1
+!  elseif(icell(3)>cr_icc(3)  ) then
+!     icell(3) = icell(3) - cr_icc(3)
+!     u(3)     = u(3)     - cr_icc(3)
+!  endif
    call celltoindex(icell, 1, j)
    dmin = 1.0E12
    do i=j, j+pdt_nsite-1    ! Loop over sites in this cell
