@@ -3438,7 +3438,7 @@ IF (ianz.ge.1) THEN
       IF (ianz >= 2) THEN 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          IF (ier_num.ne.0) return 
-         CALL cif2discus (ianz, cpara, lpara, MAXW, ofile) 
+         CALL cif2discus (ianz, cpara, lpara, MAXW, opara(O_NAMES), ofile) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -3615,7 +3615,11 @@ SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, c_names, c_refine, c_diffev, &
 !+                                                                      
 use prep_refine_mod
 use spcgr_mod
+use save_temp_mod      ! To save the current structure
 !use spcgr_apply
+!
+use crystal_mod
+use wyckoff_mod
 !
 USE ber_params_mod
 USE blanks_mod
@@ -3661,6 +3665,7 @@ CHARACTER(len=80)  :: line1
 CHARACTER(len=80)  :: line2 
 CHARACTER(len=160) :: line 
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ofile))) :: infile          ! Input file name
+character(len=32         )               :: save_file            ! substance name   
 character(len=PREC_STRING)               :: substance            ! substance name   
 !character(len=PREC_STRING), dimension(2) :: refine_file          ! Main refine macro
 character(len=160), dimension(:), allocatable :: content      ! Complete content of Shelx file
@@ -3682,6 +3687,8 @@ integer :: iatom      ! Current atom
 real(kind=PREC_DP), dimension(:,:)  , allocatable :: posit   ! List of all Atom positions
 real(kind=PREC_DP), dimension(:,:)  , allocatable :: uij_at  ! Current uij, list as per atom
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: uij_l   ! List of all Uij
+real(kind=PREC_DP), dimension(:,:)  , allocatable :: occ_at  ! Current occ, list as per atom
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: occ_l   ! List of all Occ
 !
 INTEGER i, j, k, jj , l
 INTEGER ix, iy, iz, idot 
@@ -3702,7 +3709,7 @@ REAL(KIND=PREC_DP)                 :: P_exti    ! Extxinction parameter
 REAL(KIND=PREC_DP)                 :: rlambda   ! Wave length
 REAL(KIND=PREC_DP), dimension(6)   :: latt      !Lattice parameters in input file
 REAL(KIND=PREC_DP), dimension(3,4) :: gen       ! Generator matrices constructed from 'SYMM' commands
-real(kind=PREC_DP), dimension(:,:,:), allocatable :: spc_mat ! Space group matrices constructed from 'SYMM' commands
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: spc_mat_local ! Space group matrices constructed from 'SYMM' commands
 REAL(KIND=PREC_DP), dimension(NFV) :: fv        ! SHELX free variables
 !REAL(KIND=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: eadp_values
 !
@@ -3801,12 +3808,12 @@ IF (ier_num /= 0) THEN
 ENDIF 
 lshelx_names = c_names =='shelx'
 !
-allocate(spc_mat(4,4,192))
-spc_mat = 0.0_PREC_DP
-spc_mat(1,1,1) = 1.0_PREC_DP     ! Identity element
-spc_mat(2,2,1) = 1.0_PREC_DP
-spc_mat(3,3,1) = 1.0_PREC_DP
-spc_mat(4,4,1) = 1.0_PREC_DP
+allocate(spc_mat_local(4,4,192))
+spc_mat_local = 0.0_PREC_DP
+spc_mat_local(1,1,1) = 1.0_PREC_DP     ! Identity element
+spc_mat_local(2,2,1) = 1.0_PREC_DP
+spc_mat_local(3,3,1) = 1.0_PREC_DP
+spc_mat_local(4,4,1) = 1.0_PREC_DP
 n_mat  = 1                       ! We have one matrix
 n_mat  = 1                       ! We have one matrix
 !
@@ -3842,7 +3849,7 @@ loop_read: do
           deallocate(c_atom )
           deallocate(s_atom )
           deallocate(content)
-          deallocate(spc_mat)
+          deallocate(spc_mat_local)
           return !         ! Serious error, continuation line missing, abort
       endif
       line = line1(1:icont -1) // ' ' // line2(1:len_trim(line2))
@@ -3969,8 +3976,8 @@ loop_header: do jc=1, ifvar
         is = is + 1
         WRITE (structure(is), 2600) ( (gen (i, j), j = 1, 4), i = 1, 3) 
         n_mat = n_mat +1
-        spc_mat(1:3,1:4, n_mat) = gen
-        spc_mat(  4,  4, n_mat) = 1.0_PREC_DP
+        spc_mat_local(1:3,1:4, n_mat) = gen
+        spc_mat_local(  4,  4, n_mat) = 1.0_PREC_DP
      ENDIF 
   elseif(content(jc)(1:4) == 'SFAC') then          ! SFAC
 !    if(.not. lshelx_names) then                   ! Only if chemical names are requested
@@ -4042,7 +4049,7 @@ loop_header: do jc=1, ifvar
      exit loop_header
   endif
 enddo loop_header
-call ins2discus_symmetry(centering, n_mat, spc_mat, ubound(structure,1), structure, &
+call ins2discus_symmetry(centering, n_mat, spc_mat_local, ubound(structure,1), structure, &
      space_group, space_number, space_origin, space_setting )
 if(ier_num/=0) then
    lspace_group = .false.   ! Use generators from file
@@ -4109,12 +4116,20 @@ loop_atoms: do jc=ifvar +1, ihklf-1
       iscat = nint(wwerte(1))
    endif
    do j=2,11                     ! Check Free variables
-      ifv = nint(wwerte(i)/10._PREC_DP)
-      IF(ifv.gt.1) THEN
-               wwerte(i) = (wwerte(i) - ifv * 10) * fv (ifv)
+      ifv = nint(wwerte(j)/10._PREC_DP)
+if(jc == ifvar+1) then
+   energy = wwerte(j)
+endif
+      if(ifv==1) then
+         wwerte(j) = wwerte(j) - 10.0D0     ! Fixed variable 
+      elseif(ifv.gt.1) THEN
+               wwerte(j) = (wwerte(j) - ifv * 10) * fv (ifv)
       ELSEIF (ifv.lt. - 1) THEN
-               wwerte(i) = (abs (wwerte(i)) + ifv * 10) * (1. - fv(IABS(ifv)))
+               wwerte(j) = (abs (wwerte(j)) + ifv * 10) * (1. - fv(IABS(ifv)))
       ENDIF
+if(jc == ifvar+1) then
+  write(*,*) 'VALUE ', wwerte(j), ifv, energy
+endif
    enddo
    iatom = iatom + 1
    posit(:,iatom) = wwerte(2:4)
@@ -4134,6 +4149,16 @@ enddo loop_atoms
 !
 l_refine = c_refine /= 'no'
 l_diffev = c_diffev /= 'no'
+!
+if(l_diffev .or. l_refine) then    ! Prepare a refinement
+   save_file = 'current_structure_rbn'
+   call save_temp(save_file)       ! Make a backup copy of the current file to prevent changing it
+   cr_spcgr = space_group(1:min(16, len_trim(space_group)))
+   cr_set   = space_setting
+   cr_iset  = space_origin
+   spc_n    = n_mat
+   spc_mat  = spc_mat_local
+endif
 !
 if(l_diffev) then     ! Interpret the diffev parameters
   length = len_trim(c_diffev)
@@ -4385,6 +4410,9 @@ if(l_diffev) then
            ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
            )
    endif
+endif
+if(l_diffev .or. l_refine) then    ! Prepare a refinement
+   call restore_temp(save_file)
 endif
 !===============================================================================
 !
@@ -5786,7 +5814,7 @@ END SUBROUTINE rmc6f_period
 !
 !*******************************************************************************
 !
-SUBROUTINE cif2discus (ianz, cpara, lpara, MAXW, ofile) 
+SUBROUTINE cif2discus (ianz, cpara, lpara, MAXW, c_names, ofile) 
 !-                                                                      
 !     converts a CIF file to DISCUS                   
 !+                                                                      
@@ -5806,6 +5834,7 @@ IMPLICIT none
 !                                                                       
 INTEGER          , INTENT(INOUT)                 :: ianz 
 INTEGER          , INTENT(IN)                    :: MAXW 
+character(len=*)                    , intent(in)    :: c_names ! "chem" or "cif" flag to interpret names
 CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
 INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile 
@@ -6172,6 +6201,7 @@ analyze_atom: DO
             nentries = nentries + 1
             IF(line_cap(1:16)=='_ATOM_SITE_LABEL')           j_label = nentries
             IF(line_cap(1:22)=='_ATOM_SITE_TYPE_SYMBOL')     j_symb  = nentries
+            IF(line_cap(1:17)=='_ATOM_SITE_SYMBOL')          j_symb  = nentries
             IF(line_cap(1:25)=='_ATOM_SITE_U_ISO_OR_EQUIV')  j_uiso  = nentries
             IF(line_cap(1:25)=='_ATOM_SITE_B_ISO_OR_EQUIV')  j_biso  = nentries
             IF(line_cap(1:20)=='_ATOM_SITE_OCCUPANCY')       j_occ   = nentries
@@ -6253,6 +6283,9 @@ atoms:   DO                                 ! Get all atoms information
                TEMP%at_bvalue = 0.0
                TEMP%at_occ    = 0.0
                TEMP%at_pos    = 0.0
+               if(c_names =='cif') then
+                  TEMP%at_name   = ccpara(j_label)(1:MIN(4,llpara(j_label)))
+               else
                IF(j_symb > 0) THEN  ! I prefer the atom symbol to its label
                   TEMP%label     = ccpara(j_label)(1:      llpara(j_label) )
                   TEMP%symbol    = ccpara(j_symb )(1:      llpara(j_symb ) )
@@ -6263,6 +6296,7 @@ atoms:   DO                                 ! Get all atoms information
                   TEMP%symbol    = ' '
                   TEMP%at_name   = ccpara(j_label)(1:MIN(4,llpara(j_label)))
                   CALL test_atom_name(.FALSE.,TEMP%at_name)
+               ENDIF
                ENDIF
                TEMP%at_pos(1) = pos(1)
                TEMP%at_pos(2) = pos(2)
