@@ -2367,6 +2367,7 @@ IMPLICIT NONE
 REAL(kind=PREC_DP), INTENT(IN) :: rval   ! Current R-value
 !
 INTEGER, PARAMETER :: IWR=11
+INTEGER, PARAMETER :: INP=12
 !
 CHARACTER(LEN=15), PARAMETER :: ofile='refine_best.mac'
 CHARACTER(LEN=15), PARAMETER :: nfile='refine_new.res '
@@ -2386,6 +2387,7 @@ INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 !
 OPEN(UNIT=IWR, FILE=ofile, STATUS='unknown')
+!
 WRITE(IWR, '(a)') '#@ HEADER'
 WRITE(IWR, '(a)') '#@ NAME         refine_best.mac'
 WRITE(IWR, '(a)') '#@ '
@@ -2522,6 +2524,7 @@ DEALLOCATE(werte)
 !
 
 OPEN(UNIT=IWR, FILE=nfile, STATUS='unknown')
+OPEN(UNIT=INP, FILE='newpara_new.mac', status='unknown')
 write(IWR, '(a)') 'refine'
 write(IWR, '(a)') 'reset'
 write(IWR, '(a)') '#'
@@ -2534,6 +2537,7 @@ if(ref_csigma_u /= ' ') then
    write(IWR, '(2a)') 'data ', ref_csigma_u(1:len_trim(ref_csigma_u))
 endif
 write(IWR, '(a)') '#'
+write(IWR, '(a)') '@newpara_new.mac'
 !
 j = 0
 do i=1, refine_par_n            ! Write values for all refined parameters
@@ -2562,9 +2566,9 @@ do i=1, refine_par_n            ! Write values for all refined parameters
 !  ' , points:', refine_nderiv(i), ' , shift:',abs(refine_shift(i)), ' , status:free', string(1:len_trim(string))
    length = len_trim(long_line)
 !  call rem_bl(long_line, length)
-   write(IWR, '(2a)') 'newpara ', long_line(1:length)
+   write(INP, '(2a)') 'newpara ', long_line(1:length)
 enddo
-write(IWR, '(a)') '#'
+write(INP, '(a)') '#'
 !
 ! Set fixed parameter values
 !
@@ -2601,9 +2605,11 @@ DO i=1, refine_fix_n            ! Make sure each parameter is defined as a varia
 !  ' , points:', refine_nderiv_fix(i), ' , shift:',abs(refine_shift_fix(i)), ' , status:fixed', string(1:len_trim(string))
    length = len_trim(long_line)
 !  call rem_bl(long_line, length)
-   write(IWR, '(2a)') 'newpara ', long_line(1:length)
+   write(INP, '(2a)') 'newpara ', long_line(1:length)
 ENDDO
 !
+write(INP, '(a)') '#'
+close(INP)
 write(IWR, '(a)') '#'
 write(IWR, '(a, i10)') 'set cycle, ', refine_cycles
 if(conv_status) then
