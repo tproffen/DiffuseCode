@@ -3732,14 +3732,21 @@ logical             :: lspace_group   ! use generators of space group symbol
 !character(len=PREC_STRING) :: string
 logical             :: l_refine       ! refine is not just "no"
 logical             :: l_diffev       ! diffev is not just "no"
+logical             :: l_free_lattice
+logical             :: l_free_adp
+logical             :: l_free_position
+logical             :: l_free_profile
+logical             :: l_free_asym
+logical             :: l_free_preferred
 !
-integer, parameter :: NOPTIONAL = 7
+integer, parameter :: NOPTIONAL = 8
 integer, parameter :: O_STYLE   = 1
 integer, parameter :: O_LAMBDA  = 2
 integer, parameter :: O_COMPUTE = 3
 integer, parameter :: O_FORM    = 4
 integer, parameter :: O_REFINE  = 5
 integer, parameter :: O_DIFFEV  = 6
+integer, parameter :: O_FREE    = 7
 integer, parameter :: O_SYMBOL  = NOPTIONAL
 character(len=   7)       , dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(len=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
@@ -3750,8 +3757,8 @@ real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
 integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
 character(len=PREC_STRING), dimension(NOPTIONAL,2) :: ref_dif
 !
-DATA oname  / 'style ', 'lambda', 'compute', 'form  ',  'refine', 'diffev', 'UNUSED'   /
-DATA loname /  5,        6      ,  7       ,  4      ,   6      ,  6      ,  6         /
+DATA oname  / 'style ', 'lambda', 'compute', 'form  ',  'refine', 'diffev', 'free   ', 'UNUSED'  /
+DATA loname /  5,        6      ,  7       ,  4      ,   6      ,  6      ,  4       ,  6        /
 !
 !                                                                       
 DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
@@ -3764,13 +3771,13 @@ DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
 'SWAT', 'TEMP', 'TIME', 'TWIN', 'UNIT', 'WGHT', 'WPDB', 'ZERR' /  
 !
 opara  =  (/ 'powder  ', '1.540592', 'serial  ', 'waas    ',  &
-             'no      ', 'no      ', 'unused  '                           &
+             'no      ', 'no      ', 'none    ', 'unused  '   &
            /)   ! Always provide fresh default values
 lopara =  (/  6        ,   8      ,  6        ,  4        ,  &
-              2        ,  2       ,  6                                    &
+              2        ,  2       ,  4        ,  6           &
           /)
 owerte =  (/  0.0,     1.540592,   0.0       ,  0.0      ,  &
-              0.0    ,  0.0    ,   0.0                                   &
+              0.0    ,  0.0    ,   0.0       ,  0.0         &
           /)
 !
 fv = 0.0_PREC_DP
@@ -4127,9 +4134,9 @@ endif
       ELSEIF (ifv.lt. - 1) THEN
                wwerte(j) = (abs (wwerte(j)) + ifv * 10) * (1. - fv(IABS(ifv)))
       ENDIF
-if(jc == ifvar+1) then
-  write(*,*) 'VALUE ', wwerte(j), ifv, energy
-endif
+!if(jc == ifvar+1) then
+!  write(*,*) 'VALUE ', wwerte(j), ifv, energy
+!endif
    enddo
    iatom = iatom + 1
    posit(:,iatom) = wwerte(2:4)
@@ -4169,6 +4176,7 @@ if(l_diffev) then     ! Interpret the diffev parameters
   call get_params (c_diffev, ianz, ccpara, llpara, maxw, length) 
   call get_optional(ianz, MAXW, ccpara, llpara, NOPTIONAL,  ncalc, &
                     oname, loname, opara, lopara, lpresent, owerte)
+  write(*,*) ' FREE ', opara(7)(1:lopara(7))
   if(ier_num/=0) return
   ref_dif(:,2) = opara           ! Copy all DIFFEV details
   if(.not. (lpresent(O_LAMBDA)                        )) then
@@ -4176,6 +4184,21 @@ if(l_diffev) then     ! Interpret the diffev parameters
      ref_dif(O_SYMBOL, 2) = ' '
   else
      call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, opara(O_LAMBDA), ref_dif, 2)
+  endif
+  if(lpresent(O_FREE)) then
+    l_free_lattice   = index(opara(O_FREE),'latt') >0
+    l_free_adp       = index(opara(O_FREE),'adp') >0
+    l_free_position  = index(opara(O_FREE),'posit') >0
+    l_free_profile   = index(opara(O_FREE),'profile') >0
+    l_free_preferred = index(opara(O_FREE),'preferred') >0
+    l_free_asym      = index(opara(O_FREE),'asym') >0
+  else
+    l_free_lattice   = .false.
+    l_free_adp       = .false.
+    l_free_position  = .false.
+    l_free_profile   = .false.
+    l_free_preferred = .false.
+    l_free_asym      = .false.
   endif
 endif
 !
@@ -4279,7 +4302,7 @@ do iscat=1, ntyp
             ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
          uij_l(1, iscat,j) = (uij_l(1, iscat,j)+uij_l(2, iscat,j)+uij_l(3, iscat,j))/3.0_PREC_DP
          l = 1
-         call write_diffev_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'fixed')
+         call write_diffev_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, l_free_adp) !'free')
          endif
       endif
 !
@@ -4346,8 +4369,8 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
          ref_dif(O_STYLE,2)=='powder' .or.          & ! POWDER
          ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
          call write_diffev_single_part3(&
-           content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, &
-           'fixed')
+           content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, l_free_position)  !&
+!          'free')
       endif
    endif
 !

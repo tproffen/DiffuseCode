@@ -24,7 +24,8 @@ integer, parameter :: IDI_MA  = 36    ! DISCUS_MAIN MACRO PART
 integer, parameter :: IRE_MA  = 37    ! REFINE_MAIN PART
 integer, parameter :: IDF_MA  = 38    ! DIFFEV_MAIN PART
 integer, parameter :: IDI_PO  = 39    ! DISCUS_POWDER
-integer, parameter :: IDF_FX  = 40    ! DIFFEV_FIX_FREE
+integer, parameter :: IDF_NP  = 40    ! DIFFEV_NEWPARA
+integer, parameter :: IRE_NP  = 41    ! DIFFEV_NEWPARA
 integer, parameter :: IDF_SI  = 42    ! DIFFEV_SINGLE
 integer, parameter :: IDF_PO  = 43    ! DIFFEV_POWDER
 integer, parameter :: IDF_BS  = 44    ! diffev_best main
@@ -78,6 +79,7 @@ else
    endif
 endif
 open(unit=IDI_MA, file=discus_file, status='unknown')
+open(unit=IRE_NP, file='newpara.mac', status='unknown')
 !
 write(IDI_MA,'(a )') 'branch discus'
 write(IDI_MA,'(a )') '#'
@@ -103,7 +105,11 @@ else                           !NO hkl fikel assume an h5 file will be used
    write(IRE_MA,'(a )') 'rese'
    write(IRE_MA,'(3a)') 'data h5, DATA/',hkl_file(1:len_trim(hkl_file)-4), '.h5'
 endif
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_scale, value:', fv_1 , ', points:3, shift:0.001, status:free'
+write(IRE_MA,'(a        )') '#'
+write(IRE_MA,'(a        )') '@newpara.mac'
+write(IRE_MA,'(a        )') '#'
+!
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_scale, value:', fv_1 , ', points:3, shift:0.001, status:free'
 !
 end subroutine write_refine_single_part1
 !
@@ -134,14 +140,14 @@ integer :: m, k
 !
 if(l==1) then
    write(IDI_MA,'(a,i3,4a)') 'anis type:', jj,', values:[', 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1]'
-   write(IRE_MA,'(4a,g15.8e3,2a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1', &
+   write(IRE_NP,'(4a,g15.8e3,2a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1', &
                  ', value:', uij_l(1,iscat, j), ', points:3, shift:0.001, status:', c_flag 
 elseif(l==6) then
    write(IDI_MA,'(a,i3,a,5(3a,i1.1,a2),3a)') 'anis type:', jj,', values:[', &
         ('U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',k,', ',k=1,5), &
          'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_6]'
    do m=1,6
-      write(IRE_MA,'(3a,i1.1,a,g15.8e3,2a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m, &
+      write(IRE_NP,'(3a,i1.1,a,g15.8e3,2a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m, &
                 ', value:', uij_l(m,iscat, j), ', points:3, shift:0.001, status:', c_flag 
    enddo
 endif
@@ -205,7 +211,7 @@ loop_xyz: do j=1, 3         ! Loop over x, y, z
       write(IDI_MA, '(a)') string(1:len_trim(string))
    else                                                ! Free coordinate
       write(IDI_MA,'(2a,i3,3a)') xyz_name(j),'[',iatom, '] = P_',line(1:i), xyz_appe(j)
-      write(IRE_MA,'(4a,f12.8,2a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))), &
+      write(IRE_NP,'(4a,f12.8,2a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))), &
          xyz_appe(j),', value:',                                                        &
          posit(j, iatom), ', points:3, shift:0.001, status:', c_flag
    endif
@@ -269,9 +275,9 @@ close(IDI_MA)
 call single_k_inter_macro(IDI_MA, .true., substance)
 !
 if(P_exti> 0.00001) then
-   write(IRE_MA,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:free'
 else
-   write(IRE_MA,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:fixed'
+   write(IRE_NP,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:fixed'
 endif
 write(IRE_MA,'(a,i5 )') 'set cycle, ', P_ncycle
 write(IRE_MA,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10, pshift:2.0, conf:1.0, lambda:65000.'
@@ -306,6 +312,7 @@ write(IRE_MA,'( a)') 'exit'
 write(IRE_MA,'(3a)') 'export cif, ', substance(1:i), '.cif, spcgr:original'
 write(IRE_MA,'( a)') 'exit  ! back to REFINE'
 close(IRE_MA)
+close(IRE_NP)
 !
 call write_prepare_hkl_full(substance, ilist, hkl_max, rlambda, slambda)
 !
@@ -646,6 +653,7 @@ elseif(c_style=='pdf') then
 endif
 open(unit=IDI_MA, file=discus_file, status='unknown')
 open(unit=IRE_MA, file=refine_file, status='unknown')
+open(unit=IRE_NP, file='newpara.mac', status='unknown')
 !
 i= len_trim(substance)
 write(IDI_MA,'(a )') 'branch discus'
@@ -656,61 +664,65 @@ write(IDI_MA,'(3a)') '  stru CELL/', substance(1:i), '.cell'
 write(IRE_MA,'(a )') 'refine'
 write(IRE_MA,'(a )') 'rese'
 write(IRE_MA,'(2a)') 'data xy, DATA/',hkl_file(1:len_trim(hkl_file))
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_scale, value:', P_scale , ', points:3, shift:0.001, status:free'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_zero , value:', 0.00000 , ', points:3, shift:0.001, status:free'
-write(IRE_MA,'(a )') '#'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_eta  , value:', 0.50000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_eta_l, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_eta_q, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_u    , value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_v    , value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_w    , value:', 0.00700 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a )') '#'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_as1_c, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_as2_c, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_as1_i, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_as2_i, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_as1_l, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_as2_l, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_as1_q, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_as2_q, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_MA,'(a )') '#'
+write(IRE_MA,'(a        )') '#'
+write(IRE_MA,'(a )') '@newpara.mac'
+write(IRE_MA,'(a        )') '#'
+!
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_scale, value:', P_scale , ', points:3, shift:0.001, status:free'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_zero , value:', 0.00000 , ', points:3, shift:0.001, status:free'
+write(IRE_NP,'(a )') '#'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta  , value:', 0.50000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta_l, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta_q, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_u    , value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_v    , value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_w    , value:', 0.00700 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a )') '#'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_c, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_c, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_i, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_i, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_l, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_l, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_q, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_q, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a )') '#'
 !
 if(spcgr_syst==1) then         ! Triclinic
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_blat , value:', lattice_para(2) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alpha, value:', lattice_para(4) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_beta , value:', lattice_para(5) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_gamma, value:', lattice_para(6) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_blat , value:', lattice_para(2) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alpha, value:', lattice_para(4) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_beta , value:', lattice_para(5) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_gamma, value:', lattice_para(6) , ', points:3, shift:0.001, status:free'
 elseif(spcgr_syst==2) then         ! Monoclinic-B
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_blat , value:', lattice_para(2) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_beta , value:', lattice_para(5) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_blat , value:', lattice_para(2) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_beta , value:', lattice_para(5) , ', points:3, shift:0.001, status:free'
 elseif(spcgr_syst==3) then         ! Monoclinic-C
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_blat , value:', lattice_para(2) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_gamma, value:', lattice_para(5) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_blat , value:', lattice_para(2) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_gamma, value:', lattice_para(5) , ', points:3, shift:0.001, status:free'
 elseif(spcgr_syst==4) then         ! Orthorhombic
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_blat , value:', lattice_para(2) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_blat , value:', lattice_para(2) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
 elseif(spcgr_syst==5) then         ! tetragonal  
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
 elseif(spcgr_syst==6) then         ! trigonal  
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
 elseif(spcgr_syst==7) then         ! trigonal  
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alpha, value:', lattice_para(4) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alpha, value:', lattice_para(4) , ', points:3, shift:0.001, status:free'
 elseif(spcgr_syst==8) then         ! hexagonal  
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_clat , value:', lattice_para(3) , ', points:3, shift:0.001, status:free'
 elseif(spcgr_syst==9) then         ! cubic      
-   write(IRE_MA,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_alat , value:', lattice_para(1) , ', points:3, shift:0.001, status:free'
 endif
 !
 end subroutine write_refine_powder_part1
@@ -854,6 +866,7 @@ write(IRE_MA,'( a)') 'exit'
 write(IRE_MA,'(3a)') 'export cif, ', substance(1:i), '.cif, spcgr:original'
 write(IRE_MA,'( a)') 'exit  ! back to REFINE'
 close(IRE_MA)
+close(IRE_NP)
 !
 !  Interpret "aspher.json"
 !
@@ -1000,9 +1013,9 @@ write(IDI_PO,'(a )') 'plot'
 write(IDI_PO,'(a )') 'exit '
 close(IDI_PO)
 !
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_diam_a , value:30.0000, points:3, shift:0.050, status:free'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_diam_b , value:40.0000, points:3, shift:0.050, status:free'
-write(IRE_MA,'(a,f9.4,a )') 'newpara P_diam_c , value:50.0000, points:3, shift:0.050, status:free'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_diam_a , value:30.0000, points:3, shift:0.050, status:free'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_diam_b , value:40.0000, points:3, shift:0.050, status:free'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_diam_c , value:50.0000, points:3, shift:0.050, status:free'
 write(IRE_MA,'(a )') 'set cycle,   5'
 write(IRE_MA,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10, pshift:2.0, conf:1.0, lambda:65000.'
 write(IRE_MA,'(a )') 'set relax, start:0.25'
@@ -1015,6 +1028,7 @@ write(IRE_MA,'(a )') '@final_cell_cif.mac'
 write(IRE_MA,'(a )') '#'
 write(IRE_MA,'(a )') 'exit  ! Back to SUITE'
 close(IRE_MA)
+close(IRE_NP)
 !
 open(IRE_MA, file='final_cell_cif.mac', status='unknown')
 write(IRE_MA,'( a)') 'branch discus'
@@ -1159,6 +1173,7 @@ endif
 !
 outfile = 'diffev_main_' // substance(1:len_trim(substance)) // '.mac'
 open(IDF_SI, file=outfile, status='unknown')
+open(IDF_NP, file='newpara.mac', status='unknown')
 write(IDF_SI, '(a)') 'variable integer, diff_counter'
 write(IDF_SI, '(a)') 'diffev'
 write(IDF_SI, '(a)') '  reset'
@@ -1362,21 +1377,23 @@ write(IDF_MA, '(a)') '#'
 write(IDF_MA, '(a)') '#  For each parameter to be refined we define:'
 write(IDF_MA, '(a)') '#     name, minimum/maximum allowed values , minimum/maximum for start range'
 write(IDF_MA, '(a)') '#'
-write(IDF_MA, '(a)') '#  '
-write(IDF_MA, '(a)') 'newpara  P_scale  ,  0.001,  20.000,  0.9000, 1.100'
+write(IDF_MA, '(a)') '#'
+write(IDF_MA, '(a)') '@newpara.mac'
+write(IDF_MA, '(a)') '#'
+write(IDF_NP, '(a)') 'newpara  P_scale  ,  range:[0.001,  20.000], value:[ 0.9000, 1.100], status:free'
 !
 if(c_style/='single') then
-   write(IDF_MA, '(a)') 'newpara  P_zero   ,  0.000,   0.000,  0.0000, 0.000   ! fixed'
+   write(IDF_NP, '(a)') 'newpara  P_zero   ,  range:[0.000,   0.000], value:[ 0.0000, 0.000], status:fixed'
 endif
 !
 !
 ! Create a 'diffev_fix_free macro
 !
-outfile = 'diffev_fix_free.mac'
-open(IDF_FX, file=outfile, status='unknown')
-write(IDF_FX, '(a)') '#  '
-write(IDF_FX, '(a)') 'refine none  '
-write(IDF_FX, '(a)') 'refine P_scale  '
+!outfile = 'diffev_fix_free.mac'
+!open(IDF_FX, file=outfile, status='unknown')
+!write(IDF_FX, '(a)') '#  '
+!write(IDF_FX, '(a)') 'refine none  '
+!write(IDF_FX, '(a)') 'refine P_scale  '
 !
 ! Start the 'diffev_best macro
 !
@@ -1765,10 +1782,10 @@ real(kind=PREC_DP) :: l_hig
 !
 l_low = real((int(100*lp*0.99)   )*0.010D0, kind=PREC_DP)
 l_hig = real((int(100*lp*0.99)+10)*0.010D0, kind=PREC_DP)
-write(IDF_MA,'(a9, a7,4(a,f9.4)  )') 'newpara  ', p_name,      &
-   ', ', l_low,    ', ', l_hig, ', ', lp*0.995, ', ', lp*1.00
+write(IDF_NP,'(a9, a7,4(a,f9.4),a)') 'newpara  ', p_name,      &
+   ', range:[', l_low,    ', ', l_hig, '], value:[', lp*0.995, ', ', lp*1.00,'], status:free'
 !
-write(IDF_FX, '(2a)') 'refine ', p_name
+!write(IDF_FX, '(2a)') 'refine ', p_name
 !
 write(IDF_BS, '(2a)') 'variable real, ', p_name
 diffev_dimension = diffev_dimension + 1
@@ -1781,7 +1798,7 @@ end subroutine write_diffev_lattice
 !
 !*****7**************************************************************** 
 !
-subroutine write_diffev_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, c_flag)
+subroutine write_diffev_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, l_flag)
 !
 !  Write main discus macro; single crystal PART 2
 !  Writes Uij or Ueqv
@@ -1800,41 +1817,69 @@ integer            , intent(in) :: lcontent
 integer            , intent(in) :: natoms
 character(len=4), dimension(lcontent), intent(in)  :: c_atom    ! Atom types 
 real(kind=PREC_DP), dimension(6,natoms, natoms), intent(in) :: uij_l
-character(len=*)   , intent(in) :: c_flag
+logical            , intent(in) :: l_flag
+!character(len=*)   , intent(in) :: c_flag
 !
 character(len=PREC_STRING) :: line 
+character(len=5          ) :: c_flag 
 integer :: m, k
+integer :: ref_n
+real(kind=PREC_DP), dimension(4,2) :: ref_window
+real(kind=PREC_DP), dimension(4,2) :: ref_min
 !
-if(c_flag=='fixed') then
+ref_window(:,1) = 0.00_PREC_DP
+ref_window(1,2) = 0.10_PREC_DP
+ref_window(2,2) = 0.10_PREC_DP
+ref_window(3,2) = 0.05_PREC_DP
+ref_window(4,2) = 0.05_PREC_DP
+!
+ref_min   (:,1) = 0.00000_PREC_DP
+ref_min   (1,2) = 0.00010_PREC_DP
+ref_min   (2,2) = 0.00010_PREC_DP
+ref_min   (3,2) = 0.00005_PREC_DP
+ref_min   (4,2) = 0.00005_PREC_DP
+
+!
+!if(c_flag=='fixed') then
+if(l_flag         ) then
+  ref_n = 2
+  c_flag = 'free'
+else
+  ref_n = 1
+  c_flag = 'fixed '
+endif
 if(l==1) then
    write(IDF_PO,'(a,i3,4a)') 'anis type:', jj,', values:[', 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1]'
-   write(IDF_MA,'(3a,4(a2,g15.8e3))') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1' &
-        , ', ', uij_l(1,iscat, j)*1.000 &
-        , ', ', uij_l(1,iscat, j)*1.000 &
-        , ', ', uij_l(1,iscat, j)*1.000 &
-        , ', ', uij_l(1,iscat, j)*1.000  
+   write(IDF_NP,'(3a,4(a,g15.8e3), 2a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1' &
+        , ', range:[', uij_l(1,iscat, j)-max(ref_window(1,ref_n)*uij_l(1,iscat, j), ref_min(1,ref_n)) &
+        , ', ', uij_l(1,iscat, j)+max(ref_window(2,ref_n)*uij_l(1,iscat, j), ref_min(2,ref_n)) &
+        , '], value:[', uij_l(1,iscat, j)-max(ref_window(3,ref_n)*uij_l(1,iscat, j), ref_min(3,ref_n)) &
+        , ', ', uij_l(1,iscat, j)+max(ref_window(4,ref_n)*uij_l(1,iscat, j), ref_min(4,ref_n))   &
+        , '], status:',c_flag
    write(IDF_BS, '(4a)') 'variable real, ', 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1'
    line = '                 = '
    write(line(1:16), '(3a)') 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1'
    write(IDF_BS2,'(a19, G18.10E3)') line(1:19), uij_l(1,iscat, j)
    diffev_dimension = diffev_dimension + 1
+!  if(l_flag) write(IDF_FX , '(3a,i1.1)') 'refine U',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',1
 elseif(l==6) then
    write(IDF_PO,'(a,i3,a,5(3a,i1.1,a2),3a)') 'anis type:', jj,', values:[', &
         ('U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',k,', ',k=1,5), &
          'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_6]'
    do m=1,6
-      write(IDF_MA,'(3a,i1.1,4(a2,g15.8e3))') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m &
-        , ', ', uij_l(m,iscat, j)*1.000 &
-        , ', ', uij_l(m,iscat, j)*1.000 &
-        , ', ', uij_l(m,iscat, j)*1.000 &
-        , ', ', uij_l(m,iscat, j)*1.000  
+      write(IDF_NP,'(3a,i1.1,4(a,g15.8e3),2a)') 'newpara U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m &
+        , ', range:[', uij_l(m,iscat, j)-max(ref_window(1,ref_n)*uij_l(1,iscat, j), ref_min(1,ref_n)) &
+        , ', ', uij_l(m,iscat, j)+max(ref_window(2,ref_n)*uij_l(1,iscat, j), ref_min(2,ref_n)) &
+        , '], value:[', uij_l(m,iscat, j)-max(ref_window(3,ref_n)*uij_l(1,iscat, j), ref_min(3,ref_n)) &
+        , ', ', uij_l(m,iscat, j)+max(ref_window(4,ref_n)*uij_l(1,iscat, j), ref_min(4,ref_n))         &
+        , '], status:', c_flag
       write(IDF_BS, '(4a, i1.1)') 'variable real, ', 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m
       line = '                 = '
       write(line(1:16), '(3a,i1.1)') 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m
       write(IDF_BS2,'(a19, G18.10E3)') line(1:19), uij_l(m,iscat, j)
       diffev_dimension = diffev_dimension + 1
+!     if(l_flag) write(IDF_FX , '(3a,i1.1)') 'refine U',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_',m
    enddo
-endif
 endif
 !
 end subroutine write_diffev_single_part2
@@ -1843,7 +1888,7 @@ end subroutine write_diffev_single_part2
 !
 subroutine write_diffev_single_part3(&
    inline       , iatom, iscat, lcontent, natoms, c_atom, posit, &
-   c_flag)
+   l_flag)
 !
 !  Write main discus macro; single crystal PART 3
 !  can be used for SINGLE and POWDER
@@ -1861,8 +1906,9 @@ integer            , intent(in) :: lcontent
 integer            , intent(in) :: natoms
 character(len=4), dimension(lcontent), intent(in)  :: c_atom    ! Atom types 
 real(kind=PREC_DP), dimension(3,natoms), intent(in) :: posit
-character(len=*)   , intent(in) :: c_flag
+logical            , intent(in) :: l_flag
 !
+!character(len=5          ) :: c_flag 
 character(len=1), dimension(3), parameter :: xyz_name = (/ 'x', 'y', 'z'/)
 character(len=2), dimension(3), parameter :: xyz_appe = (/ '_x', '_y', '_z'/)
 integer, parameter :: mode = 0
@@ -1871,6 +1917,12 @@ character(len=PREC_STRING) :: line
 character(len=PREC_STRING) :: string
 integer :: i, j, k, l
 real(kind=PREC_DP), dimension(3) :: coordinates
+!
+!if(l_flag         ) then
+!  c_flag = 'fixed'
+!else
+!  c_flag = 'free '
+!endif
 !
 coordinates = posit(:, iatom)
 call get_wyckoff(coordinates, loutput, mode)
@@ -1900,17 +1952,19 @@ loop_xyz: do j=1, 3         ! Loop over x, y, z
 !
       write(IDF_PO,'(2a1,i3,3a)') xyz_name(j),'[',iatom, '] = P_',inline(1:i), xyz_appe(j)
 !
-      if(c_flag=='fixed') then                        ! Powder diffraction, initially fix the positions
-         write(IDF_MA,'(3a,4(a2,f12.8)  )') 'newpara P_', &
+      if(.not.l_flag) then                        ! Powder diffraction, initially fix the positions
+         write(IDF_NP,'(3a,4(a,f12.8),a)') 'newpara P_', &
          c_atom(iscat)(1:len_trim(c_atom(iscat))),xyz_appe(j), &
-         ', ', posit(j, iatom)     , ', ', posit(j, iatom)     , &
-         ', ', posit(j, iatom)     , ', ', posit(j, iatom)     
+          ', range:[', posit(j, iatom)     , ', ', posit(j, iatom)     , &
+         '], value:[', posit(j, iatom)     , ', ', posit(j, iatom)     , &
+         '], status:fixed'   
       else                                            ! Single crystal, free atom coordinates
-         write(IDF_MA,'(3a,4(a2,f12.8)  )') 'newpara P_', &
+         write(IDF_NP,'(3a,4(a,f12.8),a)') 'newpara P_', &
          c_atom(iscat)(1:len_trim(c_atom(iscat))),xyz_appe(j), &
-         ', ', posit(j, iatom)-0.02, ', ', posit(j, iatom)+0.02, &
-         ', ', posit(j, iatom)-0.01, ', ', posit(j, iatom)+0.01
-         write(IDF_FX, '(3a)') 'refine P_', c_atom(iscat)(1:len_trim(c_atom(iscat))),xyz_appe(j)
+          ', range:[', posit(j, iatom)-0.02, ', ', posit(j, iatom)+0.02, &
+         '], value:[', posit(j, iatom)-0.01, ', ', posit(j, iatom)+0.01, &
+         '], status:free'   
+!        write(IDF_FX, '(3a)') 'refine P_', c_atom(iscat)(1:len_trim(c_atom(iscat))),xyz_appe(j)
       endif
 !
 !     Positions and variables in diffev_best*.mac
@@ -1970,13 +2024,13 @@ call single_main_part4(IDF_PO, .false., substance, c_form, rlambda, slambda, P_e
 close(IDF_PO)
 !
 if(P_exti> 0.00001) then
-   write(IDF_MA,'(a,3(f8.5,a2), f8.5)') 'newpara P_exti, ', &
-                 P_exti*0.90, ', ', P_exti*1.10, ', ',      &
-                 P_exti*0.95, ', ', P_exti*1.05
+   write(IDF_NP,'(a,3(f8.5,a), f8.5, a)') 'newpara P_exti, range:[', &
+                 P_exti*0.90, ', ', P_exti*1.10, '], value:[',      &
+                 P_exti*0.95, ', ', P_exti*1.05, '], status:free'
 else
-   write(IDF_MA,'(a,3(f8.5,a2), f8.5)') 'newpara P_exti, ', &
-                 P_exti     , ', ', P_exti     ,', ',       &
-                 P_exti     , ', ', P_exti     
+   write(IDF_NP,'(a,3(f8.5,a), f8.5,a)') 'newpara P_exti, range:[', &
+                 P_exti     , ', ', P_exti     ,'], value:[',       &
+                 P_exti     , ', ', P_exti     ,'], status:fixed'   
 endif
 write(IDF_MA,'(a )') '#'
 !
@@ -2042,7 +2096,7 @@ close(IDF_BS)
 close(IDF_BS2)
 close(IDF_PO)
 close(IDF_MA)
-close(IDF_FX)
+close(IDF_NP)
 !
 call write_kup_diffev_mac_hkl(substance, compute, c_style)
 call single_k_inter_macro(IRE_MA, .false., substance)          ! Write "ksingle.mac"
@@ -2107,7 +2161,7 @@ call diffev_best2_powder_mac
 !
 close(IDF_PO)
 close(IDF_MA)
-close(IDF_FX)
+close(IDF_NP)
 close(IDF_BS)
 close(IDF_BS2)
 !
@@ -2181,9 +2235,9 @@ write(IDF_PO, '(a)') 'exit'
 !
 !   PDF Additional parameters P_diam_a, P_diam_b, P_diam_c
 !
-write(IDF_MA, '(a)') 'newpara  P_diam_a , 20.0000, 100.0000,  20.0000,   30.0000     ! Diameter  a'
-write(IDF_MA, '(a)') 'newpara  P_diam_b , 20.0000, 100.0000,  30.0000,   40.0000     ! Diameter  b'
-write(IDF_MA, '(a)') 'newpara  P_diam_c , 20.0000, 100.0000,  50.0000,   60.0000     ! Diameter  c'
+write(IDF_NP, '(a)') 'newpara  P_diam_a , range:[20.0000, 100.0000], value:[ 20.0000,   30.0000], status:free     ! Diameter  a'
+write(IDF_NP, '(a)') 'newpara  P_diam_b , range:[20.0000, 100.0000], value:[ 30.0000,   40.0000], status:free     ! Diameter  b'
+write(IDF_NP, '(a)') 'newpara  P_diam_c , range:[20.0000, 100.0000], value:[ 50.0000,   60.0000], status:free     ! Diameter  c'
 !
 write(IDF_BS, '(a)') 'variable real, P_diam_a'
 write(IDF_BS, '(a)') 'variable real, P_diam_b'
@@ -2193,9 +2247,9 @@ write(IDF_BS2, '(a)') 'P_diam_a         =   25.0000'
 write(IDF_BS2, '(a)') 'P_diam_b         =   35.0000'
 write(IDF_BS2, '(a)') 'P_diam_c         =   55.0000'
 !
-write(IDF_FX , '(a)') 'refine P_diam_a'
-write(IDF_FX , '(a)') 'refine P_diam_b'
-write(IDF_FX , '(a)') 'refine P_diam_c'
+!write(IDF_FX , '(a)') 'refine P_diam_a'
+!write(IDF_FX , '(a)') 'refine P_diam_b'
+!write(IDF_FX , '(a)') 'refine P_diam_c'
 !
 diffev_dimension = diffev_dimension + 3
 !
@@ -2208,7 +2262,7 @@ call diffev_best2_powder_mac
 !
 close(IDF_PO)
 close(IDF_MA)
-close(IDF_FX)
+close(IDF_NP)
 close(IDF_BS)
 close(IDF_BS2)
 !
@@ -2434,24 +2488,24 @@ implicit none
 !
 logical, intent(in) :: is_powder
 !
-write(IDF_MA, '(a)') 'newpara  P_eta    ,  0.5000,   0.5000,   0.5000,    0.5000     ! Profile eta'
-write(IDF_MA, '(a)') 'newpara  P_eta_l  ,  0.0000,   0.0000,   0.0000,    0.0000     ! Profile eta_linear'
-write(IDF_MA, '(a)') 'newpara  P_eta_q  ,  0.0000,   0.0000,   0.0000,    0.0000     ! Profile eta_quad'
-write(IDF_MA, '(a)') 'newpara  P_u      ,  0.0000,   0.0000,   0.0000,    0.0000     ! Profile u'
-write(IDF_MA, '(a)') 'newpara  P_v      ,  0.0000,   0.0000,   0.0000,    0.0000     ! Profile v'
-write(IDF_MA, '(a)') 'newpara  P_w      ,  0.0005,   0.0005,   0.0005,    0.0005     ! Profile w'
-write(IDF_MA, '(a)') 'newpara  P_as1_c  ,  0.0000,   0.0000,   0.0000,    0.0000     ! Asymmetry const 1'
-write(IDF_MA, '(a)') 'newpara  P_as2_c  ,  0.0000,   0.0000,   0.0000,    0.0000     ! Asymmetry const 2'
-write(IDF_MA, '(a)') 'newpara  P_as1_i  ,  0.0000,   0.0000,   0.0000,    0.0000     ! Asymmetry inv   1'
-write(IDF_MA, '(a)') 'newpara  P_as2_i  ,  0.0000,   0.0000,   0.0000,    0.0000     ! Asymmetry inv   2'
-write(IDF_MA, '(a)') 'newpara  P_as1_l  ,  0.0000,   0.0000,   0.0000,    0.0000     ! Asymmetry lin   1'
-write(IDF_MA, '(a)') 'newpara  P_as2_l  ,  0.0000,   0.0000,   0.0000,    0.0000     ! Asymmetry lin   2'
-write(IDF_MA, '(a)') 'newpara  P_as1_q  ,  0.0000,   0.0000,   0.0000,    0.0000     ! Asymmetry quad  1'
-write(IDF_MA, '(a)') 'newpara  P_as2_q  ,  0.0000,   0.0000,   0.0000,    0.0000     ! Asymmetry quad  2'
+write(IDF_NP, '(a)') 'newpara  P_eta    ,  range:[0.5000,   0.5000], value:[  0.5000,    0.5000], status:fixed     ! Profile eta'
+write(IDF_NP, '(a)') 'newpara  P_eta_l  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Profile eta_linear'
+write(IDF_NP, '(a)') 'newpara  P_eta_q  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Profile eta_quad'
+write(IDF_NP, '(a)') 'newpara  P_u      ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Profile u'
+write(IDF_NP, '(a)') 'newpara  P_v      ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Profile v'
+write(IDF_NP, '(a)') 'newpara  P_w      ,  range:[0.0005,   0.0005], value:[  0.0005,    0.0005], status:fixed     ! Profile w'
+write(IDF_NP, '(a)') 'newpara  P_as1_c  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry const 1'
+write(IDF_NP, '(a)') 'newpara  P_as2_c  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry const 2'
+write(IDF_NP, '(a)') 'newpara  P_as1_i  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry inv   1'
+write(IDF_NP, '(a)') 'newpara  P_as2_i  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry inv   2'
+write(IDF_NP, '(a)') 'newpara  P_as1_l  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry lin   1'
+write(IDF_NP, '(a)') 'newpara  P_as2_l  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry lin   2'
+write(IDF_NP, '(a)') 'newpara  P_as1_q  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry quad  1'
+write(IDF_NP, '(a)') 'newpara  P_as2_q  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry quad  2'
 if(is_powder) then
-   write(IDF_MA, '(a)') '#'
-   write(IDF_MA, '(a)') '#newpara  P_portion,  1.000,   1.0000,   1.000,    1.000     ! fixed '
-   write(IDF_MA, '(a)') '#newpara  P_damping,  0.000,   0.0000,   0.000,    0.000     ! fixed '
+   write(IDF_NP, '(a)') '#'
+   write(IDF_NP, '(a)') '#newpara  P_portion,  range:[1.000,   1.0000], value:[  1.000,    1.000], status:fixed     ! fixed '
+   write(IDF_NP, '(a)') '#newpara  P_damping,  range:[0.000,   0.0000], value:[  0.000,    0.000], status:fixed     ! fixed '
 endif
 !
 end subroutine diffev_main_powder_mac
@@ -2465,7 +2519,7 @@ subroutine diffev_setup_last
 implicit none
 !
 write(IDF_MA, '(a)') '#'
-write(IDF_MA, '(a)') '@diffev_fix_free.mac         ! ''refine none'' etc '
+!write(IDF_MA, '(a)') '@diffev_fix_free.mac         ! ''refine none'' etc '
 write(IDF_MA, '(a)') '#'
 write(IDF_MA, '(a)') 'diff_cr[1]  = 0.9            ! Cross over probability !'
 write(IDF_MA, '(a)') 'diff_f[1]   = 0.81           ! Scale vfactor for the difference vector '
