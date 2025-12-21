@@ -3,6 +3,10 @@ MODULE add_param_mod
 CONTAINS
 !
 SUBROUTINE add_param(zeile, length)
+!-
+!  Get a new parameter
+!  newparam P_name, range:[low,high], value:[start_low, start_high], status:free
+!+
 !
 USE compare
 USE diffev_allocate_appl
@@ -28,9 +32,13 @@ INTEGER         , INTENT(INOUT) :: length
 !
 LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE.
 INTEGER, PARAMETER :: MAXW = 6
+INTEGER, PARAMETER :: MAXWW = 2
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW) :: cpara
-INTEGER            , DIMENSION(1:MAXW) :: lpara
-REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
+CHARACTER(LEN=PREC_STRING)                                    :: ccpara
+INTEGER            , DIMENSION(1:MAXW)  :: lpara
+INTEGER                                 :: llpara
+REAL(KIND=PREC_DP) , DIMENSION(1:MAXW)  :: werte
+REAL(KIND=PREC_DP) , DIMENSION(1:MAXWW) :: wwerte
 !
 CHARACTER(LEN=LEN(pop_name) )   :: pname
 INTEGER                         :: lpname
@@ -38,13 +46,23 @@ CHARACTER(LEN=9+LEN(pop_name) ) :: line
 CHARACTER(LEN=8)                :: string
 INTEGER                         :: laenge
 INTEGER                         :: ianz
+INTEGER                         :: iianz
 INTEGER                         :: i
 INTEGER                         :: par_number
 LOGICAL                         :: lexist
 LOGICAL                         :: linit
 LOGICAL                         :: lreal
-INTEGER, PARAMETER :: NOPTIONAL = 2
-CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+LOGICAL                         :: l_free
+INTEGER, PARAMETER :: NOPTIONAL = 7
+INTEGER, PARAMETER :: O_INIT    = 1
+INTEGER, PARAMETER :: O_TYPE    = 2
+INTEGER, PARAMETER :: O_SHIFT   = 3
+INTEGER, PARAMETER :: O_NDERIV  = 4
+INTEGER, PARAMETER :: O_VALUE   = 5
+INTEGER, PARAMETER :: O_STATUS  = 6
+INTEGER, PARAMETER :: O_RANGE   = 7
+!
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -53,11 +71,11 @@ REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 !
-DATA oname  / 'init', 'type' /
-DATA loname /  4    ,  4     /
-opara  =   (/ 'keep', 'real' /)   ! Always provide fresh default values
-lopara =   (/  4    ,  4     /)
-owerte =   (/  0.0  ,  0.0   /)
+DATA oname  / 'init'    , 'type'    , 'shift'   , 'points'  ,  'value ' , 'status'  ,  'range' /
+DATA loname /  4        ,  4        ,  5        ,  6        ,   5       ,  6        ,   5      /
+opara  =   (/ 'keep    ', 'real    ', '0.001000', '3.000000', '-1.00000', 'free    ',  '0.000000' /)   ! Always provide fresh default values
+lopara =   (/  4        ,  4        ,  8        ,  8        ,  8        ,  8        ,   8 /)
+owerte =   (/  0.0      ,  0.0      ,  0.00300  ,  3.0      ,  -1.0     ,  0.0      ,   0.0  /)
 !
 CALL get_params (zeile, ianz, cpara, lpara, MAXW, length)
 IF(ier_num /= 0) THEN
@@ -68,8 +86,8 @@ CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 IF(ier_num/=0) RETURN
 linit = .FALSE.
-linit =      str_comp(opara(1), 'init',    2, lpara(1), 4)
-lreal = .NOT.str_comp(opara(2), 'integer', 3, lpara(2), 7)
+linit =      str_comp(opara(O_INIT), 'init',    2, lpara(1), 4)
+lreal = .NOT.str_comp(opara(O_TYPE), 'integer', 3, lpara(2), 7)
 !
 !
 IF(lpara(1)>LEN(pop_name)) THEN
@@ -86,7 +104,76 @@ lpara(1) = 1
 CALL check_param_name(pname, lpname)
 IF(ier_num /= 0) RETURN
 !
-CALL ber_params (ianz, cpara, lpara, werte,MAXW)
+werte = 0.0_PREC_DP
+!
+!
+if(lpresent(O_VALUE)) then ! .and. lpresent(O_RANGE) ) then  !.and. lpresent(O_STATUS)) then   ! REFINE FORMAT 
+!
+   l_free = .false.                   ! Assume fixed parameter
+   if(lpresent(O_STATUS)) then        
+      if(str_comp(opara(O_STATUS), 'free', 3, lopara(O_STATUS), 4)) then
+         l_free = .true.
+      elseif(str_comp(opara(O_STATUS), 'fixed', 3, lopara(O_STATUS), 5)) then
+         l_free = .false.
+      endif
+   endif
+!                                      ! Starting window
+   i=1
+   if(opara(O_VALUE)(1:1)=='[') then
+     ccpara    =  opara(O_VALUE)         ! value:[] for starting window
+     llpara    = lopara(O_VALUE)
+     i = 2
+   else                                ! Format as in refine, add a window if free
+     ccpara    =  '[' // opara(O_VALUE)(1:lopara(O_VALUE)) // ','  &
+                      // opara(O_VALUE)(1:lopara(O_VALUE)) // ']'         ! value:[] for starting window
+     llpara    = len_trim(ccpara)
+     i = 1
+   endif
+   call get_optional_multi(MAXWW, ccpara, llpara, wwerte, iianz)
+   if(ier_num /= 0) then
+      return
+   endif
+!
+   if(l_free) then                 ! Free parameter
+      if(i==2) then
+         werte(4) = wwerte(1)      ! value:[LOW,HIGH]
+         werte(5) = wwerte(2)
+      else                         ! value:average   was used as in REFINE
+         werte(5) = wwerte(1) + max(abs(wwerte(1))*0.10, 0.0001)
+         werte(4) = wwerte(1) - max(abs(wwerte(1))*0.10, 0.0001)
+      endif
+   else                            ! Fixed parameter
+      werte(4) = wwerte(1)
+      werte(5) = wwerte(1)
+   endif
+!
+   if(lpresent(O_RANGE)) then          ! range:[] is present
+     call get_range_multi(lpresent(O_RANGE), opara(O_RANGE), lopara(O_RANGE), iianz, werte(2), werte(3), .false.)
+      if(ier_num/=0) return
+!
+   else                                ! range is absent
+      werte(2) = werte(4)              ! Use range from starting window
+      werte(3) = werte(5)
+   endif
+!
+   if(.not.lpresent(O_STATUS)) then         !  No status was given
+      if(werte(2) < werte(3) .and. werte(4) < werte(5)) then
+         l_free = .true.
+      else
+         l_free = .false.
+      endif
+   endif
+else                                                                          ! DIFFEV FORMAT (old)
+   ier_num = -20
+   ier_typ = ER_COMM
+   ier_msg(1) = '''newparam'' has been changed '
+   ier_msg(2) = 'use ''newpara with optional params:'
+   ier_msg(3) = ' value:[low,high], range:[low,high]'
+   ier_msg(4) = ' status:free or status:fixed       '
+   return
+!
+!
+endif
 IF(ier_num /= 0) THEN
    RETURN
 ENDIF
@@ -166,6 +253,11 @@ IF(lreal) THEN
 ELSE
    pop_type(par_number) = POP_INTEGER
 ENDIF
+!
+pop_refine(par_number) = l_free
+if(.not. pop_refine(par_number)) then   ! Fixed parameter
+   pop_smax(par_number) = pop_smin(par_number)
+endif
 !
 IF(pop_gen>0) THEN
    CALL write_genfile                ! Write the "GENERATION" file

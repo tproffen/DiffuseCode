@@ -13,11 +13,12 @@ USE lib_errlist_func
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU=-37,IO=1)
+      PARAMETER    (IU=-38,IO=1)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
       DATA ERROR ( IU:-21) /                                            &
+     &  'Could not identify parameter ',                                & !-38  ! diffev
      &  'Error reading partial Rvlaues',                                & !-37  ! diffev
      &  'Generation number exceeds current value',                      & !-36  ! diffev
      &  'GENERATION file does not exist',                               & !-35  ! diffev

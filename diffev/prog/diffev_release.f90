@@ -7,6 +7,7 @@ CONTAINS
 SUBROUTINE do_release(zeile, length)
 !
 USE compare
+use ident_param_mod
 USE initialise
 USE population
 !
@@ -24,6 +25,7 @@ INTEGER          , INTENT(INOUT) :: length
 INTEGER, PARAMETER :: maxw = 6
 !
 CHARACTER (LEN=    PREC_STRING            ), DIMENSION(MAXW) :: cpara   = ' '
+character(len=16)                     ::pname
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
 REAL(KIND=PREC_DP)  , DIMENSION(MAXW) :: werte = 0.0
 !
@@ -155,11 +157,10 @@ IF (ier_num == 0) THEN
             EXIT ident
          ENDIF
       ENDDO ident
-      ianz = 1
-      CALL ber_params (ianz, cpara, lpara, werte, maxw)
+!
+      call ident_param(cpara(1), POP_DIMX, pop_name, pname, lb)
       IF (ier_num.eq.0) THEN
          owerte(O_RANGE) = ABS(owerte(O_RANGE))      ! Ensure positive value for the range
-         lb = nint(werte(1))
          IF ( 0<lb .and. lb<=pop_dimx) THEN
             set_value = child(lb,pop_best)           ! Default for value
             IF(owerte(O_VALUE) /= -9999.0) THEN      ! 'value' was provided

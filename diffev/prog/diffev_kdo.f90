@@ -887,64 +887,62 @@ ELSE
 !     -- define the refine status of each gene                    
 !                                                                 
    ELSEIF (str_comp (befehl, 'refine', 3, lbef, 6) ) THEN 
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) THEN 
-         IF (ianz.ge.1) THEN 
-            IF (str_comp (cpara(1),'all',1, lpara (1) , 3) ) THEN
-               DO i = 1, MAXDIMX 
-               pop_refine (i) = .true. 
-               ENDDO 
-            ELSEIF (str_comp (cpara(1),'none',1,lpara(1),3) ) THEN
-               DO i = 1, MAXDIMX 
-               pop_refine (i) = .false. 
-               ENDDO 
-            ELSE 
-!              Check if parameter names were provided
-               DO i = 1, ianz
-                  DO k=1,pop_dimx
-                     IF(cpara(i)==pop_name(k)) THEN
-                        WRITE(cpara(i),'(I4)') k
-                        lpara(i) = 4
-                     ENDIF
-                  ENDDO
-               ENDDO
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) THEN 
-                  DO i = 1, ianz 
-                  j = nint (werte (i) ) 
-                  IF(j==0 .or. j>pop_dimx .or. j>MAXDIMX) THEN
-                    ier_num = -14
-                    ier_typ = ER_APPL
-                    RETURN
-                  ENDIF
-                  IF (j.gt.0) THEN 
-                     pop_refine (j) = .true. 
-                  ELSEIF (j.lt.0) THEN 
-                     pop_refine (abs (j) ) = .false. 
-                  ENDIF 
-                  ENDDO 
-               ENDIF 
-            ENDIF 
-         ENDIF 
-      ELSE
-         IF(ier_num == -17) THEN  ! too many numbers in this line
-            ier_msg(1) = 'The refine command can only take 20 values.'
-            ier_msg(2) = 'Please use several refine command lines for'
-            ier_msg(3) = 'all these parameters.'
-         ENDIF
-      ENDIF 
+      ier_num = +1
+      ier_typ = ER_COMM
+      ier_msg(1) = '''refine'' is obsolete'
+      ier_msg(2) = 'use ''newpara with optional params:'
+      ier_msg(3) = ' value:[low,high], range:[low,high]'
+      ier_msg(4) = ' status:free or status:fixed       '
+!      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+!      IF (ier_num.eq.0) THEN 
+!         IF (ianz.ge.1) THEN 
+!            IF (str_comp (cpara(1),'all',1, lpara (1) , 3) ) THEN
+!               DO i = 1, MAXDIMX 
+!               pop_refine (i) = .true. 
+!               ENDDO 
+!            ELSEIF (str_comp (cpara(1),'none',1,lpara(1),3) ) THEN
+!               DO i = 1, MAXDIMX 
+!               pop_refine (i) = .false. 
+!               ENDDO 
+!            ELSE 
+!!              Check if parameter names were provided
+!               DO i = 1, ianz
+!                  DO k=1,pop_dimx
+!                     IF(cpara(i)==pop_name(k)) THEN
+!                        WRITE(cpara(i),'(I4)') k
+!                        lpara(i) = 4
+!                     ENDIF
+!                  ENDDO
+!               ENDDO
+!               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+!               IF (ier_num.eq.0) THEN 
+!                  DO i = 1, ianz 
+!                  j = nint (werte (i) ) 
+!                  IF(j==0 .or. j>pop_dimx .or. j>MAXDIMX) THEN
+!                    ier_num = -14
+!                    ier_typ = ER_APPL
+!                    RETURN
+!                  ENDIF
+!                  IF (j.gt.0) THEN 
+!                     pop_refine (j) = .true. 
+!                  ELSEIF (j.lt.0) THEN 
+!                     pop_refine (abs (j) ) = .false. 
+!                  ENDIF 
+!                  ENDDO 
+!               ENDIF 
+!            ENDIF 
+!         ENDIF 
+!      ELSE
+!         IF(ier_num == -17) THEN  ! too many numbers in this line
+!            ier_msg(1) = 'The refine command can only take 20 values.'
+!            ier_msg(2) = 'Please use several refine command lines for'
+!            ier_msg(3) = 'all these parameters.'
+!         ENDIF
+!      ENDIF 
 !
 !     -- Release a previously fixed parameter 'release'          
 !
    ELSEIF (str_comp (befehl, 'release', 3, lbef, 7) ) THEN 
-      IF (pop_gen <= 0 ) THEN
-         ier_num = -20
-         ier_typ = ER_APPL
-         ier_msg(1) = 'A single parameter can only be '
-         ier_msg(2) = 'released in generations > 0 '
-         ier_msg(3) = 'Run at least one compare       '
-         RETURN
-      ENDIF
       CALL do_release(zeile, length)
 !                                                                 
 !     -- set the selection mode 'selection'                       
