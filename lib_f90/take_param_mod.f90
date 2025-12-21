@@ -276,4 +276,108 @@ END SUBROUTINE sep_optional_multi
 !
 !*******************************************************************************
 !
+subroutine get_range_multi(lpresent, opara, lopara, iianz, range_low, range_high, LREFINE)
+!-
+! Set parameter ranges, if "range:" was given
+!+
+!
+use errlist_mod
+use ber_params_mod
+use get_params_mod
+use lib_errlist_func
+use precision_mod
+!
+implicit none
+!
+logical           , intent(in)  :: lpresent
+character(len=*)  , intent(in)  :: opara
+integer           , intent(in)  :: lopara
+integer           , intent(out) :: iianz
+real(kind=PREC_DP), intent(out) :: range_low
+real(kind=PREC_DP), intent(out) :: range_high
+logical           , intent(in)  :: LREFINE
+!
+integer, parameter :: MAXF = 2
+character(len=PREC_STRING), dimension(2) :: ccpara
+character(len=PREC_STRING)               :: string
+integer                   , dimension(2) :: llpara
+integer :: length
+logical, dimension(2) :: lrange
+real(kind=PREC_DP)        , dimension(2) :: wwerte
+
+range_low  = +1.0
+range_high = -1.0
+IF(lpresent) THEN
+   IF(opara(1:1) == '[' .AND. opara(lopara:lopara) == ']' .AND. &
+      INDEX(opara(2:lopara-1),',')>0) THEN
+      string = ' '
+      string(1:lopara-2) = opara(2:lopara-1)
+      length = lopara-2
+      ccpara(:) = ' '
+      llpara(:) = 0
+      wwerte(:) = 0.0
+      CALL get_params (string, iianz, ccpara, llpara, MAXF, length)
+      lrange = .TRUE.
+      IF(llpara(1)==0 .AND. ier_num==-2 .AND. ier_typ==ER_COMM) THEN
+         lrange(1) = .FALSE.
+         CALL no_error
+         ccpara(1) = '0'
+         llpara(1) = 1
+         iianz = 2
+      ELSEIF(llpara(2)==0 .AND. ier_num==-2 .AND. ier_typ==ER_COMM) THEN
+         lrange(2) = .FALSE.
+         CALL no_error
+         ccpara(2) = '0'
+         llpara(2) = 1
+         iianz = 2
+      ELSEIf(ier_num/=0) THEN
+!     IF(ier_num /= 0) THEN
+         ier_msg(1) = 'Incorrect ''range:[]'' parameter'
+         RETURN
+      ENDIF
+      CALL ber_params (iianz, ccpara, llpara, wwerte, MAXF)
+      IF(ier_num /= 0) THEN
+         ier_msg(1) = 'Incorrect ''range:[]'' parameter'
+!        ier_msg(2) = 'Variables can only be arrays with'
+!        ier_msg(3) = 'one or two dimensions '
+         RETURN
+      ENDIF
+      IF(iianz==2) THEN
+         range_low  = wwerte(1)
+         range_high = wwerte(2)
+         IF(.NOT.lrange(1)) range_low  = -HUGE(0.0)
+         IF(.NOT.lrange(2)) range_high =  HUGE(0.0)
+         if(LREFINE) then                  ! Limits for REFINE
+            IF(range_low>=range_high) THEN
+               ier_num = -6
+               ier_typ = ER_FORT
+               ier_msg(1) = 'Incorrect ''range:[]'' parameter'
+               ier_msg(2) = 'Low > = High    '
+               RETURN
+            ENDIF
+         else                              ! Limits for DIFFEV
+            IF(range_low>range_high) THEN
+               ier_num = -6
+               ier_typ = ER_FORT
+               ier_msg(1) = 'Incorrect ''range:[]'' parameter'
+               ier_msg(2) = 'Low > High    '
+               RETURN
+            ENDIF
+         ENDIF
+      ELSE
+         ier_num = -6
+         ier_typ = ER_FORT
+         ier_msg(1) = 'Incorrect ''range:[]'' parameter'
+         RETURN
+      ENDIF
+   ELSE
+      ier_msg(1) = 'Incorrect ''range:[]'' parameter'
+      RETURN
+   ENDIF
+ENDIF
+!
+end subroutine get_range_multi
+!
+!*******************************************************************************
+!
 END MODULE take_param_mod
