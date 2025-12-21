@@ -1134,6 +1134,7 @@ cr_anis_full(6, ianis) = uij(1,2)
          cr_anis_full(j,ianis) = 0.0D0
       endif
    enddo
+cr_dw(ianis) = ((cr_prin(4,1,ianis) + cr_prin(4,2,ianis) + cr_prin(4,3,ianis))/3.0_PREC_DP)
 !
 end subroutine do_anis
 !
