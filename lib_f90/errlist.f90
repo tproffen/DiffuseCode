@@ -224,12 +224,13 @@ character(len=11) :: color   ! Use this color
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -19
+       INTEGER, PARAMETER :: iu = -20
        INTEGER, PARAMETER :: io =   1
 !
        CHARACTER(LEN=45)  error(IU:IO)
 !
        DATA ERROR ( iu:-01) /                         &
+     &  'Command has changed',                      & !-20  ! command
      &  'Failed to get new version number',         & !-19  ! command
      &  'Number of threads must be >= 1',           & !-18  ! command
      &  'Too many parameters',                      & !-17  ! command
