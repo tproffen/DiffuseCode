@@ -802,10 +802,10 @@ IF (sav_w_adp) THEN
       do i=1,look_anis(j,0)
          itype = itype + 1
          ianis = look_anis(j,i)
-         is = 6 + (itype-1)*15
-         ie = is + 15
-         write(scat_string(is:ie),'(f10.6,a1)') cr_dw(j),','
-         if(itype==7) then
+         is = 6 + (itype-1)*16
+         ie = is + 16
+         write(scat_string(is:ie),'(f13.9,a1)') cr_dw(j),','
+         if(itype==6) then
             write(ist, '(a)') scat_string(1:len_trim(scat_string)-1)
             scat_string    = 'adp  '
             itype = 0
@@ -851,9 +851,9 @@ IF (sav_w_adp) THEN
        if(abs(cr_prin(4,1,ianis              )-cr_prin(4,2,ianis              ))>TOL  .or.  &
           abs(cr_prin(4,1,ianis              )-cr_prin(4,3,ianis              ))>TOL  .or.  &
           maxval(abs(cr_prin(:,:,ianis)))<TOL                                             ) then
-          write(ist, '(a,i2.2,a,5(f10.6,'',''),f10.6,a)') 'anis type:', itype, ', values:[', cr_anis_full(:,ianis),']'
+          write(ist, '(a,i2.2,a,5(f13.9,'',''),f13.9,a)') 'anis type:', itype, ', values:[', cr_anis_full(:,ianis),']'
        else
-          write(ist, '(a,i2.2,a,f10.6,a)')  'anis type:', itype, ', values:[', cr_prin(4,1,    ianis         ),']'
+          write(ist, '(a,i2.2,a,f13.9,a)')  'anis type:', itype, ', values:[', cr_prin(4,1,    ianis         ),']'
        endif
       enddo
    enddo
