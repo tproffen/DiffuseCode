@@ -162,6 +162,7 @@ INTEGER :: k,iscat
 INTEGER :: npkt
 !REAL( KIND=PREC_DP)            :: signum
 !character(len=1024) :: ofile
+!real(kind=PREC_DP) :: q
 !
 npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
 stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking fault mode
@@ -416,7 +417,7 @@ pow_sq   = 0.0
 !open(87,file='POWDER/multi_average.conv0', status='unknown')
 !do k= 0, ubound(pow_conv,1) !npkt
 !q = ((k)*xdel + xmin)
-!write(87,'(5(f16.6,2x))') q,      pha_powder(k,1), pha_powder(k,2), pow_conv(k), pow_sq(k) 
+!write(87,'(5(f16.6,2x))') q,      pha_powder(k,1), pha_powder(k,1), pow_conv(k), pow_sq(k) 
 !enddo
 l_all_complete = .TRUE.
 l_all_debye    = .TRUE.
