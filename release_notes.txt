@@ -1,4 +1,12 @@
-6.20.00  DRAFT
+6.20.01  DRAFT
+
+DIFFEV
+  newparam     Changed style to be identical with REFINE
+  release      BUG FIX, did not work without reading the GENERATION file, 
+               did not work for Parameter names
+DISCUS
+  save         Improved storage of anisotropic values to avoid rounding errors
+6.20.00  RELEASE 2025_12_15
 GENERAL
                Changed warnings into blue color
                Variables i[] and r[] can be used with a range of indices as in
