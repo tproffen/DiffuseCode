@@ -937,17 +937,24 @@
    the second the R-value and all further columns the respective parameter 
    values.
 2  newparam
-!p newparam <name>, <xmin>, <xmax>,<smin>, <smax>  
-            [,init:{"keep"|"initialize"}
-            [,type:{"real"|"integer"}
+!p newparam <name>, range:[<xmin>, <xmax>],value:[<smin>, <smax>]
+!p          [, status:{"free"|"fixed"}
+!p          [,init:{"keep"|"initialize"}
+!p          [,type:{"real"|"integer"}
+
+   WARNING, non backward compatible change in 6.21.00 
 
    This command defines a new parameter name or changes the setting for 
    an existing parameter name. 
-   <xmin>, <xmax> are the absolute lower and upper windows for the
+   range:[<xmin>, <xmax>] are the absolute lower and upper windows for the
                   parameter. DIFFEV restricts the refinement to this 
                   interval.
-   <smin>, <smax> are the lower and upper limit of the starting 
+   value:[<smin>, <smax>] are the lower and upper limit of the starting 
                   window that is used when a parameter is initialized.
+
+   status:free    This variable shall be refined
+   status:fixed   This variable shall be kept fixed. DIFFEV will
+                  fixe the range and the value to the lower limit
 
    The optional parameter "init" defines if the current parameter
    values for the population are kept at their current values or if 
@@ -1001,13 +1008,10 @@
 !p refine {"all"|"none"|<number> [,<number>...]}
 !p refine {"all"|"none"|<par_name> [,<par_name>...]}
 
-   This command allows you to set, which of the variables are refined.
-   If you give the parameter number as negative number, the corresponding
-   parameter is not refined.
+   The refine command is obsolete, you will get a warning message if
+   the command is used.
+   Check the 'newpara' command for the new style to fix/free a parameter.
 
-   Currently you can only specify up to 20 variable numbers on 
-   one "refine" command line. If you need to specify the behavior
-   for more than 20 variables, please use several "refine" commands.
 2  release
 !p release {<par_name>| <number>} , range:<sigma>
 !p   [value:<setpoint>]
