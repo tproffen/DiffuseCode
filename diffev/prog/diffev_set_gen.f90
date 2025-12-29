@@ -561,7 +561,7 @@ INTEGER, PARAMETER :: IWR = 18
 character(len=PREC_STRING) ::  line
 character(len=PREC_STRING) ::  infile
 character(len=PREC_STRING) :: outfile
-integer :: i, j, k
+integer :: i, j, k, igen
 !integer :: o_gen
 !real(kind=PREC_DP) :: p_ave
 !real(kind=PREC_DP) :: p_min
@@ -575,12 +575,15 @@ do i=0, dimensions
    open(unit=IWR,file=outfile, status='unknown')
 !
    read(IRD,'(a)') line
+   write(IWR,'(a)') line(1:len_trim(line))
    do j=1, gen*(member+2)     ! Skip "old" generations
      read(IRD,'(a)') line
    enddo
+   igen = 0
    do j=gen, generation - 1   ! Copy remaining generations
+      igen = igen + 1
       read(IRD,'(a)') line
-      write(line(4:10), '(i6)') generation - 1 - gen
+      write(line(4:10), '(i6)') igen !generation - 1 - gen
       write(IWR,'(a)') line(1:len_trim(line))
       do k=0,member               ! Copy remaining lines
          read(IRD,'(a)') line
