@@ -379,7 +379,8 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
            temp_num_atom, temp_len, temp_off, temp_type, temp_char,    &
            temp_file, temp_dens, temp_biso, temp_clin, temp_cqua,    &
            temp_fuzz, temp_cont)
-!write(*,*) ' GOT_MOLECULES ', ier_num, ier_typ, temp_num_mole
+!write(*,*) ' GOT ATOMS     ', ier_num, ier_typ, natoms
+!write(*,*) ' GOT_MOLECULES ', ier_num, ier_typ, temp_num_mole, temp_num_type, temp_num_atom
 !
 !  Build lookup table for original molecules
 !
@@ -390,6 +391,7 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
          temp_look(ia) = i            !atom(iatom) is in molecule i
       ENDDO
    ENDDO
+!write(*,*) ' TEMP_LOOK     ', temp_look(:)
 ELSE
 !
 !  Get header
@@ -518,7 +520,7 @@ main: do ia = 1, natoms
 !  else
       cr_mole (cr_natoms) = 0                     ! set the molecule number
       temp_inmole(cr_natoms) = iin_mole(1,2)
-!write(*,*) ' AT ATOM ', ia, cr_natoms, iin_mole(1,1), iin_mole(1,2)
+!write(*,'(a,30i3)') ' AT ATOM ', ia, cr_natoms, temp_inmole(cr_natoms), iin_mole(1,1), iin_mole(1,2)
       cr_mole (cr_natoms) = iin_mole(1,1)         ! set the molecule number
 !  endif
    cr_surf(:,cr_natoms) = isurface               ! set the property flag
@@ -530,6 +532,7 @@ main: do ia = 1, natoms
    CALL symmetry
    cr_mole(i+1:cr_natoms) = -cr_mole(i)
    temp_inmole(i+1:cr_natoms) = -temp_inmole(i)
+!write(*,'(a,30i3)') ' at atom ', ia, i, cr_natoms, temp_inmole(1:cr_natoms)
    if(mole_num_mole>j) then                    ! New molecules were generated update lookup
       do k=(temp_look(ia))+1, temp_num_mole
          temp_upd(k) = temp_upd(k) + mole_num_mole - j
@@ -566,9 +569,11 @@ DO i = 1, cr_natoms
    ENDDO 
 !write(*,'(a, 5i4)') ' ATOM, mol ', i, cr_iscat(1,i), cr_mole(i), temp_inmole(i), cr_iscat(2,i)
 ENDDO 
+!write(*,*) ' ATOMS         ', natoms
+!write(*,'(a,30i3)') ' temp_inmole   ', temp_inmole(1:cr_natoms)
 !write(*,*) ' Do  build mole', ier_num, ier_typ, mole_num_mole, mole_num_type, mole_num_atom
 call do_build_molecule(cr_natoms, cr_iscat, cr_pos, cr_mole,                    &
-     ubound(temp_inmole,1), temp_inmole, SPC_MAX, spc_table)
+     ubound(temp_inmole,1), temp_inmole, SPC_MAX, spc_n, spc_table)
 !write(*,*) ' DID build mole', ier_num, ier_typ, mole_num_mole, mole_num_type, mole_num_atom
 !
 !  move first unit cell into lower left corner of crystal          
