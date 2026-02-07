@@ -1358,7 +1358,7 @@ cond_main: IF (ftyp.eq.SHELXL.and. (.not.patt_rsym) ) then
          CALL set_patt_value_s (a_b, inverse_type, rho_type, zz1, zz2,  &
          zz4)                                                           
          a_b = a_b * patt_scale * vr 
-         CALL calc_patters (a_b, y) 
+         CALL calc_patters (a_b, h) 
    enddo loop_shelxl
    20    CONTINUE 
 ELSEIF (ftyp.eq.SHELXL.and.patt_rsym) then  cond_main
@@ -1766,6 +1766,12 @@ REAL(kind=PREC_DP), dimension(3), intent(in) :: h (3)
       CALL four_cexpt 
       ii = max (5, rho_inc (2) / 10) 
 !                                                                       
+!write(*,*) ' hkl          ' , h
+!write(*,*) ' RHO_ECK ll 1 ', rho_eck(:, 1)
+!write(*,*) ' RHO_ECK lr 1 ', rho_eck(:, 2)
+!write(*,*) ' RHO_ECK ul 1 ', rho_eck(:, 3)
+!write(*,*) ' RHO_vi     1 ', rho_vi (:, 1)
+!write(*,*) ' RHO_vi     2 ', rho_vi (:, 2)
 xarg0 = rho_eck(1, 1) * h (1) + rho_eck(2, 1) * h (2) + rho_eck(3, 1) * h (3)                                                    
 xincu = rho_vi (1, 1) * h (1) + rho_vi (2, 1) * h (2) + rho_vi (3, 1) * h (3)                                                        
 xincv = rho_vi (1, 2) * h (1) + rho_vi (2, 2) * h (2) + rho_vi (3, 2) * h (3)                                                        
@@ -1776,6 +1782,8 @@ iincv = nint (64 * I2PI * (xincv - int (xincv) + 0.0d0) )
 !                                                                       
 iarg0 = patt_sign * iarg0 
 iarg = iarg0 
+!write(*,*) iarg0, iincu, iincv, patt_sign
+!write(*,*) xarg0, xincu, xincv
 !                                                                       
 ii = 0                                                                                 ! Initialize the ii counter 
 !                                                                       
