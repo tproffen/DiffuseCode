@@ -1,4 +1,8 @@
-6.20.01  DRAFT
+6.21.01  DRAFT
+
+DISCUS
+  read         BUG FIX Molecule recognition was faulty
+6.21.00  RELEASE 2025_12_15
 
 DIFFEV
   newparam     Changed style to be identical with REFINE
