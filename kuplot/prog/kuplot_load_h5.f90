@@ -103,7 +103,7 @@ use lib_data_struc_h5
 IMPLICIT NONE
 !
 CHARACTER(LEN=1024)                      , INTENT(INOUT) :: infile
-INTEGER                                  , INTENT(IN) :: length
+INTEGER                                  , INTENT(INOUT) :: length
 INTEGER                                  , INTENT(IN) :: O_LAYER
 INTEGER                                  , INTENT(IN) :: O_TRANS
 INTEGER                                  , INTENT(IN) :: NOPTIONAL
@@ -134,7 +134,7 @@ integer, dimension(3) :: dims  = 1
 dataname = ' '
 !
 
-call nx_read_scattering_place(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
+call nx_read_scattering_common(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
                      node_number,ndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
