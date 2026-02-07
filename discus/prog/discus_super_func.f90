@@ -813,7 +813,7 @@ xxmin(1) = 1.0D0
 xxmin(2) = 1.0D0
 xxstep(1) = 1D0
 xxstep(2) = 1D0
-call tofile(cr_icc(1:2), 'value_field.ni', value_field, xxmin, xxstep)
+!call tofile(cr_icc(1:2), 'value_field.ni', value_field, xxmin, xxstep)
 !
 deallocate(rep_ampl)
 deallocate(rd_at_lis)
