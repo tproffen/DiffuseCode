@@ -11,6 +11,7 @@ use precision_mod
 private
 public hdf5_read     ! Read the pure Yell/discus file format
 public nx_read_scattering_place   ! Read the DiffuseDevelopers format via FORPY
+public nx_read_scattering_common  ! Read the DiffuseDevelopers scattering format via H5FORTRAN
                                   ! and place into global data structure
 !
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -664,6 +665,202 @@ if(ier_num==0) return
 !QQif(allocated(h5_dz)) deallocate(h5_dz)
 !
 END SUBROUTINE hdf5_read
+!
+!*******************************************************************************
+!
+subroutine nx_read_scattering_common(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
+                     lpresent, owerte,               &
+                     node_number, nndims, dims, &
+                     ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+!-
+! Read a NEXUS HDF5 file in the Diffuse Developers common file format via FORPY
+!+
+!
+use unified_read_mod
+!
+!use lib_nx_read_mod
+!
+!use lib_forpython_mod
+!use forpy_mod
+!
+use iso_fortran_env, only: real64
+use iso_c_binding, only:C_CHAR
+!
+implicit none
+!
+character(LEN=1024), intent(inout) :: infile
+integer            , intent(inout) :: length
+integer            , intent(in) :: O_LAYER    ! Number optional parameter "layer:"
+integer            , intent(in) :: O_TRANS    ! Number optional parameter "trans:"
+integer            , intent(in) :: NOPTIONAL
+character(LEN=*)   , dimension(NOPTIONAL), intent(in) :: opara
+integer            , dimension(NOPTIONAL), intent(in) :: lopara
+LOGICAL            , dimension(NOPTIONAL), intent(in) :: lpresent
+real(KinD=PREC_DP) , dimension(NOPTIONAL), intent(in) :: owerte
+!
+integer, intent(out) :: node_number
+integer, intent(out) :: nndims
+integer, dimension(3), intent(out) :: dims
+integer,                            intent(out)   :: ier_num
+integer,                            intent(out)   :: ier_typ
+integer,                            intent(in )   :: idims
+character(LEN=*), dimension(idims), intent(inout) :: ier_msg    ! Error message
+integer,                            intent(in )   :: ER_APPL
+integer,                            intent(in )   :: ER_IO
+integer, intent(in)    :: output_io   ! KUPLOT array size
+!
+!   Interface data:
+!
+real(kind=PREC_DP)        , dimension(3)                  :: unit_cell_lengths  ! Unit cell parameters a, b, c
+real(kind=PREC_DP)        , dimension(3)                  :: unit_cell_angles   ! Unit cell angles alpha, beta, gammy
+character(len=32)                                         :: symmetry_H_M       ! Hermann-Mauguin Symbol
+integer                                                   :: symmetry_origin    ! Space group origin 1 / 2
+character(len=3)                                          :: symmetry_abc       ! Permutation for orthorhombic space groups
+integer                                                   :: symmetry_n_mat     ! Number of symmetry elements
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat       ! Actual Symmetry matrices
+!
+character(len=32)                                         :: data_type_experiment ! Experimental = 0, Calculated = 1
+character(len=32)                                         :: data_type_style      ! 'powder', 'powder_pdf', 'single_diffraction', 'single_pdf' ...
+character(len=32)                                         :: data_type_content    ! 'intensity', '3d-delta-pdf', 'amplitide', 'density' ...
+character(len=32)                                         :: data_type_reciprocal ! 'reciprocal', 'patterson', 'direct'
+character(len=32)                                         :: data_type_with_bragg ! With Bragg   = 0, No Bragg   = 1
+character(len=32)                                         :: data_type_symmetrized! No = 0; Point=1; Laue=2; Space=3;SymElem=4
+character(len=32)                                         :: data_rad_radiation   ! Xray=1; Neutron=2; Electron=3
+character(len=16)                                         :: data_rad_symbol      ! CU, CUA1, CU12
+real(kind=PREC_DP)        , dimension(3)                  :: data_rad_length      ! Numerical value
+integer                   , dimension(3)                  :: data_dimension   ! Data have dimensions along (HKL) / (UVW)
+integer                                                   :: data_abs_is_hkl      ! Abscissa is 1=h 2=k 3=l
+integer                                                   :: data_ord_is_hkl      ! Ordinate is 1=h 2=k 3=l
+integer                                                   :: data_top_is_hkl      ! top-axis is 1=h 2=k 3=l
+real(kind=PREC_DP)        , dimension(3   )               :: data_corner          ! Lower left bottom corner in fractional coordinates
+real(kind=PREC_DP)        , dimension(3, 3)               :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: data_values  ! Actual data array
+
+!
+integer                                                   :: NMSG                 ! Dimension of ier_msg
+!
+!logical                   , dimension(8)                 , intent(in)  :: optional_intended     ! These optional flags should be present
+!
+character(len=PREC_STRING), dimension(  5)                :: crystal_meta       ! Metadata, see "c_meta"
+!
+integer :: i   ! Dummy loop index
+!
+NMSG = idims                ! Dimensions ier_msg
+h5_infile = infile
+!
+write(*,*) ' IN nx_read_scattering_common ', infile(1:len_trim(infile))
+!
+call unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
+                             symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                             symmetry_mat,                                                &
+                             data_type_experiment, &
+                             data_type_style     , &
+                             data_type_content   , &
+                             data_type_reciprocal, &
+                             data_type_with_bragg, &
+                             data_type_symmetrized, &
+                             data_rad_radiation , data_rad_symbol, data_rad_length, &
+                             data_dimension  , &
+                             data_abs_is_hkl     , &
+                             data_ord_is_hkl     , &
+                             data_top_is_hkl     , &
+                             data_corner     , &
+                             data_vector     , &
+                             data_values     , &
+                             NMSG, ier_num, ier_msg,                                      &
+                                            crystal_meta                   &
+                            )
+!
+write(*,'(a, 3f11.6)') ' Unit cell length ', unit_cell_lengths
+write(*,'(a, 3f11.6)') ' Unit cell angles ', unit_cell_angles
+write(*,'(a, a     )') ' Symmetry H_M     ', symmetry_H_M
+write(*,'(a, i5    )') ' Symmetry Origin  ', symmetry_origin
+write(*,'(a, a     )') ' Symmetry abc     ', symmetry_abc
+write(*,'(a, i5    )') ' Symmetry n MAT   ', symmetry_n_mat
+write(*,'(a, 4f11.6)') ' Symmetry 1 fst   ', symmetry_mat(1,:,1)
+write(*,'(a, 4f11.6)') ' Symmetry 1 scnd  ', symmetry_mat(2,:,1)
+write(*,'(a, 4f11.6)') ' Symmetry 1 lst   ', symmetry_mat(3,:,1)
+write(*,'(a, 4f11.6)') ' Symmetry 44fst   ', symmetry_mat(1,:,44)
+write(*,'(a, 4f11.6)') ' Symmetry 44scnd  ', symmetry_mat(2,:,44)
+write(*,'(a, 4f11.6)') ' Symmetry 44lst   ', symmetry_mat(3,:,44)
+write(*,'(a, 4f11.6)') ' Symmetry N fst   ', symmetry_mat(1,:,symmetry_n_mat)
+write(*,'(a, 4f11.6)') ' Symmetry N scnd  ', symmetry_mat(2,:,symmetry_n_mat)
+write(*,'(a, 4f11.6)') ' Symmetry N lst   ', symmetry_mat(3,:,symmetry_n_mat)
+write(*,*)
+write(*,'(a, a     )') ' Data experiment  ', data_type_experiment
+write(*,'(a, a     )') ' Data with  bragg ', data_type_with_bragg
+write(*,'(a, a     )') ' Data symmetrized ', data_type_symmetrized
+write(*,'(a, a     )') ' Data radiation   ', data_rad_radiation
+write(*,'(a, 3i5   )') ' Data dimensions  ', data_dimension
+write(*,'(a, 3i5   )') ' Data abs,ord,top ', data_abs_is_hkl, data_ord_is_hkl, data_top_is_hkl
+write(*,'(a, a     )') ' Data style       ', data_type_style
+write(*,'(a, a     )') ' Data content     ', data_type_content
+write(*,'(a, a     )') ' Data symbol      ', data_rad_symbol
+write(*,'(a, 3f11.6)') ' Data length      ', data_rad_length
+write(*,*)
+write(*,'(a, 3f11.6)') ' Data corner      ', data_corner(:)
+write(*,*)
+write(*,'(a, 3f11.6)') ' Data abscissa    ', data_vector(:,1)
+write(*,'(a, 3f11.6)') ' Data ordinate    ', data_vector(:,2)
+write(*,'(a, 3f11.6)') ' Data top_axis    ', data_vector(:,3)
+write(*,*)
+write(*,*) ' DATA_VALUES', data_values(1:2,1,1)
+write(*,*) ' DATA_MINMAX', minval(data_values), maxval(data_values)
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Copy into H5 storage ! Room for streamlining ?
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+h5_unit(1:3) = unit_cell_lengths
+h5_unit(4:6) = unit_cell_angles
+nndims = 0
+do i=1, 3
+  if(data_dimension(i)>1) nndims = nndims + 1
+enddo
+d5_dims(1) = data_dimension(1)
+d5_dims(2) = data_dimension(2)
+d5_dims(3) = data_dimension(3)
+h5_is_grid  = .true.
+h5_has_dxyz = .false.
+h5_has_dval = .false.
+if(data_type_style=='single_diffraction' .or. data_type_style=='powder_diffraction') then
+  h5_direct = .false.    ! Reciprocal space
+elseif(data_type_style=='single_pdf') then
+  h5_direct = .true.    ! Reciprocal space
+endif
+!
+allocate(d5_data(d5_dims(1), d5_dims(2), d5_dims(3)))
+d5_data = 0.0_PREC_DP
+d5_data = data_values
+!
+h5_steps_full   = data_vector
+h5_steps(1)     = h5_steps_full(1,1)
+h5_steps(2)     = h5_steps_full(2,2)
+h5_steps(3)     = h5_steps_full(3,3)
+h5_vectors      = data_vector
+h5_llims(:)     = data_corner
+h5_corners(:,1) = data_corner                                         ! Lower left
+h5_corners(:,2) = h5_corners(:,1) + (d5_dims(1)-1)* h5_vectors(:,1)   ! Lower right
+h5_corners(:,3) = h5_corners(:,1) + (d5_dims(2)-1)* h5_vectors(:,2)   ! Upper left
+h5_corners(:,4) = h5_corners(:,1) + (d5_dims(3)-1)* h5_vectors(:,3)   ! Top left
+write(*,*)
+write(*,'(a, 3f11.6)') ' Lower left  bottom',   h5_corners(:,1)
+write(*,'(a, 3f11.6)') ' Lower right bottom',   h5_corners(:,2)
+write(*,'(a, 3f11.6)') ' Upper left  bottom',   h5_corners(:,3)
+write(*,'(a, 3f11.6)') ' Lower left  top   ',   h5_corners(:,4)
+!
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+length = len_trim(infile)
+write(*,*) 'DONE COPY INTO H5 Storage ', infile(1:len_trim(infile)), length
+call hdf5_trans_store &
+                    (infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
+                     lpresent, owerte,               &
+                     node_number, nndims, dims, &
+                     ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+write(*,*) ' DID NEW ROUTINE ', ier_num, ier_typ
+if(ier_num==0) return
+!
+end subroutine nx_read_scattering_common
 !
 !*******************************************************************************
 !
