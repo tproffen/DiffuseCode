@@ -283,6 +283,10 @@ CALL H5Fclose_f(file_id , hdferr)
 !
 CALL h5close_f(hdferr)
 DEALLOCATE(values)
+!
+! To avoid h5fortrn library issue with h5_open, reset these to zero
+H5F_ACC_RDONLY_F  = 0
+H5F_ACC_TRUNC_F   = 0
 !call gen_hdf5_show(outfile, uc_hdf, out_vi)
 !
 END SUBROUTINE gen_hdf5_write

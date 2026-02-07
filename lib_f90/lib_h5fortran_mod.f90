@@ -5,9 +5,10 @@ module lib_h5fortran_mod
 ! checks available in the library to gracefully return to the calling program.
 !
 use precision_mod
-use hdf5, only : HSIZE_T
+use hdf5, only : HSIZE_T, H5F_ACC_RDONLY_F, H5F_ACC_TRUNC_F
 !
 private
+public h5f_reset
 public h5f_open
 public h5f_read
 public h5f_write
@@ -45,6 +46,19 @@ contains
 !
 !*******************************************************************************
 !
+subroutine h5f_reset
+!-
+! Reset two HDF5 flags to zero to avoid issues in h5fortran libraries with multiple open
+!-
+!
+! To avoid h5fortran library issue with h5_open, reset these to zero
+H5F_ACC_RDONLY_F  = 0
+H5F_ACC_TRUNC_F   = 0
+!
+end subroutine h5f_reset
+!
+!*******************************************************************************
+!
 subroutine h5f_open(h5f, infile, read_write, NMSG, ier_num, ier_msg)
 !-
 !  Check for existence and open infile
@@ -64,6 +78,8 @@ character(len=*)  , dimension(NMSG)  , intent(out)   :: ier_msg
 integer, parameter :: IRD =65
 character(len=16) :: line
 logical :: lexist
+logical :: debug = .true.
+logical :: ok    = .true.
 !
 if(read_write=='r') then
    inquire(file=infile, exist=lexist)
@@ -80,7 +96,7 @@ if(read_write=='r') then
    endif
 endif
 if(lexist.or. read_write=='w') then         ! Input file exists or write
-   call h5f%open(infile, action=read_write)
+   call h5f%open(infile, action=read_write) !, debug=debug, ok=ok)
 else
    ier_num = -1
    ier_msg(1) = infile
