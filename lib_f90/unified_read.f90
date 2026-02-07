@@ -4,6 +4,7 @@ module unified_read_mod
 !
 private
 public unified_read_structure
+public unified_read_data
 !
 contains
 !
@@ -78,6 +79,7 @@ character(len=256) :: string
 integer, dimension(3) :: cdim
 logical :: lexist
 !
+call h5f_reset
 call h5f_open(h5f, infile, 'r', NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 !
@@ -310,8 +312,184 @@ if(lexist) then
 endif
 !
 call h5f%close()
+call h5f_reset
 !
 end subroutine unified_read_structure
+!
+!*******************************************************************************
+!
+subroutine unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
+                             symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                             symmetry_mat,                                                &
+                             data_type_experiment, &
+                             data_type_style     , &
+                             data_type_content   , &
+                             data_type_reciprocal, &
+                             data_type_with_bragg, &
+                             data_type_symmetrized, &
+                             data_rad_radiation , data_rad_symbol, data_rad_length, &
+                             data_dimension  , &
+                             data_abs_is_hkl     , &
+                             data_ord_is_hkl     , &
+                             data_top_is_hkl     , &
+                             data_corner     , &
+                             data_vector     , &
+                             data_values     , &
+                             NMSG, ier_num, ier_msg,                                      &
+                                            crystal_meta                   &
+                            )
+!-
+!  Read the Diffuse Developers common file format for diffraction data
+!+
+!
+!
+use lib_h5fortran_mod
+use lib_nx_transfer_mod
+use lib_unified_chars_mod
+use precision_mod
+!
+use h5fortran, only: hdf5_file
+!
+implicit none
+!
+character(len=*)                                         , intent(in)  :: infile
+real(kind=PREC_DP)        , dimension(3)                 , intent(out) :: unit_cell_lengths  ! Unit cell parameters a, b, c
+real(kind=PREC_DP)        , dimension(3)                 , intent(out) :: unit_cell_angles   ! Unit cell angles alpha, beta, gammy
+character(len=32)                                        , intent(out) :: symmetry_H_M       ! Hermann-Mauguin Symbol
+integer                                                  , intent(out) :: symmetry_origin    ! Space group origin 1 / 2
+character(len=3)                                         , intent(out) :: symmetry_abc       ! Permutation for orthorhombic space groups
+integer                                                  , intent(out) :: symmetry_n_mat     ! Number of symmetry elements
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable, intent(out) :: symmetry_mat       ! Actual Symmetry matrices
+!
+character(len=*)                                         , intent(out) :: data_type_experiment ! Experimental = 0, Calculated = 1
+character(len=*)                                         , intent(out) :: data_type_style      ! 'powder', 'powder_pdf', 'single_diffraction', 'single_pdf' ...
+character(len=*)                                         , intent(out) :: data_type_content    ! 'intensity', '3d-delta-pdf', 'amplitide', 'density' ...
+character(len=*)                                         , intent(out) :: data_type_reciprocal ! 'reciprocal', 'patterson', 'direct'
+character(len=*)                                         , intent(out) :: data_type_with_bragg ! With Bragg   = 0, No Bragg   = 1
+character(len=*)                                         , intent(out) :: data_type_symmetrized! No = 0; Point=1; Laue=2; Space=3;SymElem=4
+character(len=*)                                         , intent(out) :: data_rad_radiation   ! Xray=1; Neutron=2; Electron=3
+character(len=*)                                         , intent(out) :: data_rad_symbol      ! CU, CUA1, CU12
+real(kind=PREC_DP)        , dimension(3)                 , intent(out) :: data_rad_length      ! Numerical value
+integer                   , dimension(3)                 , intent(out) :: data_dimension   ! Data have dimensions along (HKL) / (UVW)
+integer                                                  , intent(out) :: data_abs_is_hkl      ! Abscissa is 1=h 2=k 3=l
+integer                                                  , intent(out) :: data_ord_is_hkl      ! Ordinate is 1=h 2=k 3=l
+integer                                                  , intent(out) :: data_top_is_hkl      ! top-axis is 1=h 2=k 3=l
+real(kind=PREC_DP)        , dimension(3   )              , intent(out) :: data_corner          ! Lower left bottom corner in fractional coordinates
+real(kind=PREC_DP)        , dimension(3, 3)              , intent(out) :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable, intent(out) :: data_values  ! Actual data array
+
+!
+integer                                                  , intent(in ) :: NMSG               ! Dimension of ier_msg
+integer                                                  , intent(out) :: ier_num            ! an error =0 if all is OK
+character(len=*)          , dimension(NMSG)              , intent(out) :: ier_msg            ! Error messages
+!
+!logical                   , dimension(8)                 , intent(in)  :: optional_intended     ! These optional flags should be present
+!
+character(len=PREC_STRING), dimension(  5)               , intent(in ), optional :: crystal_meta       ! Metadata, see "c_meta"
+!
+type(hdf5_file) :: h5f
+integer, dimension(3) :: cdim
+integer, dimension(11):: data_info
+!
+call h5f_reset
+call h5f_open(h5f, infile, 'r', NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+! Unit cell parameters
+!
+cdim(1) = ubound(unit_cell_lengths,1)
+call h5f_read(h5f, 'unit_cell_lengths', cdim(1), unit_cell_lengths, NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+call h5f_read(h5f, 'unit_cell_angles' , cdim(1), unit_cell_angles , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+! Symmetry information
+call h5f_read(h5f, 'symmetry_space_group_name_H-M' , symmetry_H_M , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+call h5f_read(h5f, 'space_group_origin'            , symmetry_origin, NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+call h5f_read(h5f, 'symmetry_space_group_abc'      , symmetry_abc   , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+call h5f_read(h5f, 'space_group_symop_number'      , symmetry_n_mat , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+!Symmetry matrices / transposed read
+allocate(symmetry_mat(3,4,symmetry_n_mat))
+cdim(1) = 3
+cdim(2) = 4
+cdim(3) = symmetry_n_mat
+call h5f_read(h5f, 'space_group_symop_operation_mat' , cdim, symmetry_mat, NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+!cdim(1) = 11
+!call h5f_read(h5f, 'data_info'                     , cdim(1), data_info , NMSG, ier_num, ier_msg)
+!if(ier_num/=0) return
+!!data_dim_number       = data_info( 1) ! Data dimension 0,1,2,3
+!data_type_experiment  = data_info( 2) ! Experimental = 0, Calculated = 1
+!data_type_with_bragg  = data_info( 3) ! With Bragg   = 0, No Bragg   = 1
+!data_type_symmetrized = data_info( 4) ! No = 0; Point=1; Laue=2; Space=3;SymElem=4
+!data_rad_radiation    = data_info( 5) ! Xray=0; Neutron=1; Electron=2
+!data_dimension(1)     = data_info( 6) ! Data have these dimensions along (HKL) / (UVW) abscissa
+!data_dimension(2)     = data_info( 7) ! Data have these dimensions along (HKL) / (UVW) ordinate
+!data_dimension(3)     = data_info( 8) ! Data have these dimensions along (HKL) / (UVW) top_axis
+!
+call h5f_read(h5f, 'data_type_experiment' , data_type_experiment , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+call h5f_read(h5f, 'data_type_style' , data_type_style , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+call h5f_read(h5f, 'data_type_content' , data_type_content , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+call h5f_read(h5f, 'data_type_reciprocal' , data_type_reciprocal , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+call h5f_read(h5f, 'data_type_with_bragg' , data_type_with_bragg , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+call h5f_read(h5f, 'data_type_symmetrized' , data_type_symmetrized , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+call h5f_read(h5f, 'data_radiation' , data_rad_radiation , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+call h5f_read(h5f, 'data_rad_symbol' , data_rad_symbol , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+cdim(1) = 3
+call h5f_read(h5f, 'data_rad_length' , cdim(1), data_rad_length , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+cdim(1) = 3
+call h5f_read(h5f, 'data_dimension' , cdim(1), data_dimension , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+cdim(1) =  3
+call h5f_read(h5f, 'data_axes' , cdim(1), data_info , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+data_abs_is_hkl       = data_info( 1) ! Abscissa is 1=h 2=k 3=l
+data_ord_is_hkl       = data_info( 2) ! Ordinate is 1=h 2=k 3=l
+data_top_is_hkl       = data_info( 3) ! top-axis is 1=h 2=k 3=l
+!
+cdim(1) = 3
+call h5f_read(h5f, 'data_corner' , cdim(1), data_corner , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+cdim(:) = 3
+call h5f_read(h5f, 'data_increment_vector' , cdim   , data_vector , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+allocate(data_values(data_dimension(1), data_dimension(2), data_dimension(3)))
+cdim    = data_dimension
+call h5f_read(h5f, 'data_values' , cdim   , data_values , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+
+!
+call h5f%close()
+call h5f_reset
+!
+end subroutine unified_read_data
 !
 !*******************************************************************************
 !
