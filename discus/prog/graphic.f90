@@ -81,6 +81,8 @@ INTEGER, DIMENSION(MAXP) :: lpara  !(maxp)
 INTEGER :: ix, iy, ianz, value, lp, length, lbef 
 integer :: i,j,k,l, ii     ! Dummy indices
 integer :: pdf3d_mode  !  3D-PDF mode "normal" / "sharp"
+integer :: data_style  ! 1=powder, 2=powder_pdf 3=single_diffraction, 4=single_pdf, 5=single_HKL
+!
 INTEGER :: indxg 
 LOGICAL :: laver, lread
 LOGICAL :: l_val_limited=.FALSE.    ! for 3D PDF do we limit d-star
@@ -641,42 +643,12 @@ endif
             ELSEIF (ityp.eq.15) THEN
                CALL   grd_write (value, laver, cpatt, spatt, dpatt)
             ELSEIF (ityp.eq.16) THEN                           ! HDF5 output
-               if(allocated(qvalues)) deallocate(qvalues)
-               allocate(qvalues(out_inc(1), out_inc(2), out_inc(3)))
-               l = 0                                                       ! Copy proper "value"
-               DO i = 1, out_inc(1)
-                  DO j = 1, out_inc(2)
-                     DO k = 1, out_inc(3)
-                        l = l + 1
-                        qvalues(i,j,k) = qval(i,j,k, value, i, j, laver)
-                     ENDDO
-                  ENDDO
-               ENDDO
-               qvalues = qvalues*out_scale
-               CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) THEN 
-               CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
-                                 oname, loname, opara, lopara, lpresent, owerte)
-               if(lpresent(O_TRANS) .and.                                       &
-                  str_comp(opara(O_TRANS), 'yes', 3, lopara(O_trans),3)) then
-
-                  call lib_trans_menu(-1, value, laver, outfile, out_inc, out_eck, out_vi,            &
-                       cr_a0, cr_win, qvalues,VAL_PDF, VAL_3DPDF,       &
-                       new_outfile, new_inc, new_eck, new_vi, new_qvalues)
-!
+               if(value==15 .or. value==16) then 
+                  data_style = 4
                else
-                  i = 0
-                  if(four_symm) i = 1
-!                 call nx_write_scattering(outfile, program_version, author,    &
-!                         out_inc, out_eck, out_vi,                             &
-!                         out_extr_abs, out_extr_ord, out_extr_top,             &
-!                         cr_a0, cr_win, qvalues, cvalue(value), cspace(value), &
-!                         cradiation(diff_radiation),                           &
-!                         cr_spcgr, i, spc_n, spc_mat(1:3,1:4,1:spc_n),         &
-!                         ier_num)
+                  data_style = 3
                endif
-               endif
-               deallocate(qvalues)
+               call write_unified_data(outfile, zeile, out_eck, out_vi, out_inc, out_scale, value, laver, data_style)
             ELSE 
                ier_num = - 9 
                ier_typ = ER_APPL 
@@ -2452,6 +2424,230 @@ DEALLOCATE( in_pattern)
 DEALLOCATE(out_pattern)
 !
 END SUBROUTINE out_prep_3dpdf_3d
+!
+!
+!*******************************************************************************
+!
+subroutine write_unified_data(datafile, zeile, out_eck, out_vi, out_inc,  &
+           out_scale, value, laver, data_style)
+!-
+!  Write the data in the Diffuse Developers unified data file format
+!+
+!
+use crystal_mod
+use diffuse_mod
+use wyckoff_mod
+use qval_mod
+!
+use envir_mod
+use errlist_mod
+use get_params_mod
+use precision_mod
+use str_comp_mod
+use string_convert_mod
+use take_param_mod
+use unified_write_mod
+!
+implicit none
+!
+character(len=*)                  , intent(in)    :: datafile
+character(len=*)                  , intent(inout) :: zeile
+real(kind=PREC_DP), dimension(3,4), intent(in)    :: out_eck
+real(kind=PREC_DP), dimension(3,3), intent(in)    :: out_vi 
+integer           , dimension(3)  , intent(in)    :: out_inc
+real(kind=PREC_DP)                , intent(in)    :: out_scale
+integer                           , intent(in)    :: value
+logical                           , intent(in)    :: laver
+integer                           , intent(in)    :: data_style
+!
+character(len=8)   :: date
+character(len=PREC_STRING), dimension(  5)      :: crystal_meta     ! Dictionary type, version, date, creation_program, author
+!
+integer           , parameter :: MAXP=4
+real(kind=PREC_DP), parameter :: EPS = 1.0D-5
+integer           , parameter :: NMSG = ubound(ier_msg,1)
+integer :: i,j,k,l
+integer :: ianz
+integer :: length
+character(len=32)                                         :: symmetry_H_M       ! Hermann-Mauguin Symbol
+integer                                                   :: symmetry_origin    ! Space group origin 1 / 2
+character(len=3)                                          :: symmetry_abc       ! Permutation for orthorhombic space groups
+integer                                                   :: symmetry_n_mat     ! Number of symmetry elements
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat       ! Actual Symmetry matrices
+!
+character(len=32)                                         :: data_type_experiment ! 'experimental', 'calculated'
+character(len=32)                                         :: data_type_style      ! 'powder', 'powder_pdf', 'single_diffraction', 'single_pdf' ...
+character(len=32)                                         :: data_type_content    ! 'intensity', '3d-delta-pdf', 'amplitide', 'density' ...
+character(len=32)                                         :: data_type_reciprocal ! 'reciprocal', 'patterson', 'direct'
+character(len=32)                                         :: data_type_with_bragg ! With Bragg   = 0, No Bragg   = 1
+character(len=32)                                         :: data_type_symmetrized! No = 0; Point=1; Laue=2; Space=3;SymElem=4
+character(len=32)                                         :: data_rad_radiation   ! Xray=0; Neutron=1; Electron=2
+character(len=16)                                         :: data_rad_symbol      ! CU, CUA1, CU12 ...
+real(kind=PREC_DP)        , dimension(3)                  :: data_rad_length      ! CU, CUA1, CU12 ...
+integer                                                   :: data_abs_is_hkl      ! Abscissa is 1=h 2=k 3=l
+integer                                                   :: data_ord_is_hkl      ! Ordinate is 1=h 2=k 3=l
+integer                                                   :: data_top_is_hkl      ! top-axis is 1=h 2=k 3=l
+integer                   , dimension(3   )               :: data_dimension       ! Data have dimensions along (HKL) / (UVW)
+real(kind=PREC_DP)        , dimension(3   )               :: data_corner          ! Lower left bottom corner in fractional coordinates
+real(kind=PREC_DP)        , dimension(3, 3)               :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
+!
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: data_values     ! The data
+!
+character(len=PREC_STRING), dimension(MAXP) :: cpara
+integer                   , dimension(MAXP) :: lpara
+! 
+INTEGER, PARAMETER :: NOPTIONAL = 11
+INTEGER, PARAMETER :: O_SCALE   = 1                  ! Scale factor for output values
+INTEGER, PARAMETER :: O_MAXVAL  = 2                  ! Current SCALE for maxvalue
+INTEGER, PARAMETER :: O_DSMAX   = 3                  ! Maximum d-star
+INTEGER, PARAMETER :: O_QMAX    = 4                  ! Maximum Q
+INTEGER, PARAMETER :: O_HKLMAX  = 5                  ! Maximum hkl vector
+INTEGER, PARAMETER :: O_PATT    = 6                  ! Optional Patteron overlay for Vesta
+INTEGER, PARAMETER :: O_SPATT   = 7                  ! Optional Patteron overlay for Vesta
+INTEGER, PARAMETER :: O_DPATT   = 8                  ! Optional Patteron overlay for Vesta
+INTEGER, PARAMETER :: O_MODE    = 9                  ! Mode if written into KUPLOT
+INTEGER, PARAMETER :: O_SHARP   =10                  ! 3D-PDF type normal/sharpened
+INTEGER, PARAMETER :: O_TRANS   = 11                 ! Transform 3D data into different orientation
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+character(len=8)                          :: cpatt   ! Optional patterson overlay
+character(len=PREC_STRING)                :: spatt   ! Atoms selected for Patterson overlay
+character(len=PREC_STRING)                :: dpatt   ! Atoms deselected for Patterson overlay
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate
+!
+character(len=32), dimension(0:5) :: c_style
+character(len=32), dimension(0:3) :: c_radiation
+data c_style /'unknown                         ', &
+              'powder_diffraction              ', &
+              'powder_pdf                      ', &
+              'single_diffraction              ', &
+              'single_pdf                      ', &
+              'single_hkl                      '  &
+             / 
+data c_radiation /'unknown ', &
+                  'xray    ', &
+                  'neutron ', &
+                  'electron'  &
+                 /
+call date_and_time(date=date)
+crystal_meta(1) = 'Disorder unified data'
+crystal_meta(2) = '0.0.0'
+crystal_meta(3) = date(1:4) // '-' // date(5:6) // '-' // date(7:8)
+crystal_meta(4) = version_discus
+crystal_meta(5) = author
+!
+symmetry_H_M = cr_spcgr
+symmetry_origin = 1
+symmetry_abc    = cr_set
+symmetry_n_mat  = spc_n
+allocate(symmetry_mat(3,4,symmetry_n_mat))
+symmetry_mat(1:3, 1:4, 1:symmetry_n_mat)   = spc_mat(1:3, 1:4, 1:spc_n)
+!
+data_type_experiment = 'calculated'         ! Calculated data
+data_type_reciprocal = 'reciprocal'         ! Reciprocal space
+data_type_style      = c_style(data_style)  ! Data style 'powder', 'powder_pdf', 'single_diffraction', 'single_pdf' ...
+!write(*,*) ' Data style ', data_type_style, data_style
+!
+if(value==14 .or. value==15 .or. value==16) data_type_reciprocal = 'patterson'   ! Patterson space
+data_type_content    = cvalue(value)        ! Data content 'Intensity etc'
+call do_low(data_type_content)              ! Into lower case
+data_type_symmetrized = 'none'              ! No symmetry average
+if(four_symm) data_type_symmetrized = 'laue'     ! Data symmetrized with Laue Group
+!
+data_type_with_bragg  = 'bragg_present'     ! With Bragg reflections
+if(fave>EPS) data_type_with_bragg  = 'bragg_subtracted'      ! With Bragg reflections subtracted
+data_rad_radiation   = c_radiation(diff_radiation)       ! Xray, neutron, electron
+data_rad_symbol      = lambda
+data_rad_length(1)   = rlambda
+data_rad_length(2)   = rlambda
+data_rad_length(3)   = 0.0_PREC_DP
+!
+data_corner(:) = out_eck(:,1)
+data_vector    = out_vi
+data_dimension = out_inc
+!
+data_abs_is_hkl = 1
+data_ord_is_hkl = 2
+data_top_is_hkl = 3
+do i=1,3
+  j = mod(i  ,3) + 1
+  k = mod(i+1,3) + 1
+  if(abs(data_vector(i,1))>EPS .and. &
+     abs(data_vector(j,1))<EPS .and. &
+     abs(data_vector(j,1))<EPS      ) data_abs_is_hkl = i
+  if(abs(data_vector(i,2))>EPS .and. &
+     abs(data_vector(j,2))<EPS .and. &
+     abs(data_vector(j,2))<EPS      ) data_ord_is_hkl = i
+  if(abs(data_vector(i,3))>EPS .and. &
+     abs(data_vector(j,3))<EPS .and. &
+     abs(data_vector(j,3))<EPS      ) data_top_is_hkl = i
+enddo
+!
+if(allocated(data_values)) deallocate(data_values)
+allocate(data_values(out_inc(1), out_inc(2), out_inc(3)))
+l = 0                                                       ! Copy proper "value"
+DO i = 1, out_inc(1)
+   DO j = 1, out_inc(2)
+      DO k = 1, out_inc(3)
+         l = l + 1
+         data_values(i,j,k) = qval(i,j,k, value, i, j, laver)
+      ENDDO
+   ENDDO
+ENDDO
+data_values = data_values*out_scale
+write(*,*) ' DATA_VALUES', data_values(1:2,1,1)
+!
+CALL get_params (zeile, ianz, cpara, lpara, maxp, length) 
+IF (ier_num.eq.0) THEN 
+CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+if(lpresent(O_TRANS) .and.                                       &
+   str_comp(opara(O_TRANS), 'yes', 3, lopara(O_trans),3)) then
+
+!  call lib_trans_menu(-1, value, laver, outfile, out_inc, out_eck, out_vi,            &
+!       cr_a0, cr_win, data_values,VAL_PDF, VAL_3DPDF,       &
+!       new_outfile, new_inc, new_eck, new_vi, new_data_values)
+!
+else
+   i = 0
+   if(four_symm) i = 1
+   call unified_write_data(datafile, cr_a0, cr_win,               &
+                           symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                           symmetry_mat,                                                &
+                           data_type_experiment, &
+                           data_type_style     , &
+                           data_type_content   , &
+                           data_type_reciprocal, &
+                           data_type_with_bragg, &
+                           data_type_symmetrized, &
+                           data_rad_radiation , data_rad_symbol, data_rad_length, &
+                           data_dimension  , &
+                           data_abs_is_hkl     , &
+                           data_ord_is_hkl     , &
+                           data_top_is_hkl     , &
+                           data_corner     , &
+                           data_vector     , &
+                           data_values     , &
+                           NMSG, ier_num, ier_msg,                                      &
+                                          crystal_meta                   &
+                           )
+!                 call nx_write_scattering(outfile, program_version, author,    &
+!                         out_inc, out_eck, out_vi,                             &
+!                         out_extr_abs, out_extr_ord, out_extr_top,             &
+!                         cr_a0, cr_win, data_values, cvalue(value), cspace(value), &
+!                         cradiation(diff_radiation),                           &
+!                         cr_spcgr, i, spc_n, spc_mat(1:3,1:4,1:spc_n),         &
+!                         ier_num)
+   endif
+endif
+deallocate(data_values)
+deallocate(symmetry_mat)
+!
+end subroutine write_unified_data
 !
 !*******************************************************************************
 !
