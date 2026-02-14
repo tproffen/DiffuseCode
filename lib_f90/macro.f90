@@ -36,6 +36,7 @@ INTEGER, PARAMETER :: imc   = 63
 !
 CHARACTER (LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE  :: content
 CHARACTER (LEN=PREC_STRING)  :: macrofile
+character (LEN=PREC_STRING)  ::  userfile
 INTEGER               :: length, file_length
 INTEGER               :: iline
 INTEGER               :: iseof
@@ -52,6 +53,7 @@ IF(macro_level==0 .AND. .NOT.lmakro) THEN
 ENDIF
 macro_level = macro_level + 1
 CALL build_macro_name(line, ilen, filename, MAXW, ianz, cpara, lpara, werte)
+userfile = filename
 !
 !  Copy filename, if no '/' within prepend with current directory
 !
@@ -151,10 +153,12 @@ ELSE           ! No internal storage yet, make new storage, and add
       macro_root%macros%lmacro       = .false.
    ELSE              ! File does not exist
 !              MACRO not found
+      CALL macro_close(-1)
       ier_num = - 12
       ier_typ = ER_MAC
       oprompt = prompt
-      CALL macro_close(-1)
+      ier_msg(1) = 'Missing macro file'
+      ier_msg(2) =  userfile
       IF(lblock) THEN                ! If inside do/if terminate the block
          lblock_dbg = .false.
          lblock = .false.
@@ -196,10 +200,12 @@ is_new: IF(.NOT. is_stored ) THEN             ! This is a new macro
       DEALLOCATE(content)
    ELSE file_exist
 !       MACRO not found
+      CALL macro_close(-1)
       ier_num = - 12
       ier_typ = ER_MAC
       oprompt = prompt
-      CALL macro_close(-1)
+      ier_msg(1) = 'Missing macro file'
+      ier_msg(2) =  userfile
       IF(lblock) THEN                ! If inside do/if terminate the block
          lblock_dbg = .false.
          lblock = .false.
