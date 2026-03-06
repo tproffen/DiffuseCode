@@ -1,7 +1,7 @@
 # Toplevel for Diffuse Project
 
 cmake_minimum_required(VERSION 3.12.0)
-#cmake_minimum_required(VERSION 2.8.4)
+#
 project(DIFFUSE)
 enable_language(Fortran)
 
@@ -39,7 +39,6 @@ endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 #set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set (CMAKE_MODULE_PATH "${DIFFUSE_SOURCE_DIR}/cmake")
 
-#set (h5fortran_DIR "${DIFFUSE_SOURCE_DIR}/cmake")
 link_directories(${DIFFUSE_BINARY_DIR}/h5fortran)
 include_directories (${DIFFUSE_BINARY_DIR}/h5fortran)
 
@@ -47,12 +46,16 @@ set (DIFFUSE_VERSION_MAJOR 6)
 set (DIFFUSE_VERSION_MINOR 21)
 set (DIFFUSE_VERSION_PATCH 01)
 
+option(DIFFUSE_GRAPHICS "Switch off for pure calculation mode at HPC " ON)
+
 # Readline required for all programs
 
 find_package(Readline REQUIRED)
-find_package(X11 REQUIRED)
-find_package(PNG REQUIRED)
-find_package(ZLIB REQUIRED)
+if(DIFFUSE_GRAPHICS)
+  find_package(X11 REQUIRED)
+  find_package(PNG REQUIRED)
+  find_package(ZLIB REQUIRED)
+endif(DIFFUSE_GRAPHICS)
 find_package(FFTW REQUIRED)
 #find_package(PythonExtensions REQUIRED)
 
