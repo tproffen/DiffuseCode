@@ -10,6 +10,7 @@ SUBROUTINE kuplot_do_exit
 !                                                                       
 USE kuplot_config 
 USE kuplot_mod 
+use kuplot_select_device_mod
 !
 USE errlist_mod 
 USE exit_mod
@@ -23,7 +24,7 @@ CALL exit_all
 !                                                                       
 !------ close PGPLOT devices                                            
 !                                                                       
-CALL PGEND 
+call kuplot_pgend
 !                                                                       
 END SUBROUTINE kuplot_do_exit                        
 !

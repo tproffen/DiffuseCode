@@ -26,6 +26,7 @@ use kuplot_reset_mod
 use kuplot_save_mod
 use kuplot_show_mod
 USE kuplot_toglobal
+use kuplot_select_device_mod
 !
 USE ber_params_mod
 USE blanks_mod
@@ -212,8 +213,7 @@ owerte = (/ 1.0D0 /)
                      i = NINT(werte(j))
                      IF(j<=MAXWIN) THEN
                         IF(dev_id(i,x11)>0) THEN
-                           CALL PGSLCT (dev_id (i, x11) )
-                           CALL PGCLOS
+                           call kuplot_select_device(dev_id(i, x11))
                            dev_id(i,x11) = -1
                         ENDIF
                      ELSE
@@ -225,8 +225,7 @@ owerte = (/ 1.0D0 /)
             ELSE
                DO i=1, MAXWIN
                   IF(dev_id(i,x11)>0) THEN
-                     CALL PGSLCT (dev_id (i, x11) )
-                     CALL PGCLOS
+                     call kuplot_select_device(dev_id(i, x11))
                      dev_id(i,x11) = -1
                   ENDIF
                ENDDO

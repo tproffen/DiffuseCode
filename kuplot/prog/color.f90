@@ -14,6 +14,7 @@ SUBROUTINE set_color (zeile, lp)
 USE kuplot_config 
 USE kuplot_mod 
 use kuplot_show_mod
+use kuplot_color_low_mod
 !
 USE ber_params_mod
 USE errlist_mod 
@@ -91,7 +92,7 @@ elseif(lpresent(O_CMAP)) then
 !
    string = ' '
    string = opara(O_CMAP)(1:lopara(O_CMAP))
-   call PGQCOL(i1, i2)          ! Inquire color index range
+   call inquire_color_index(i1, i2) ! Inquire color index range
    if(i2==0) then
       i1 = 0
       i2 = 99
