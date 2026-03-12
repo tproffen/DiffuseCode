@@ -70,8 +70,44 @@ real(kind=PREC_DP)  ::   wyc_mat(4,4,1:WYC_MAX)   ! The matrices
 real(kind=PREC_DP)  ::   wyc_det (1:WYC_MAX)      ! Determinants of symmetry elements
 real(kind=PREC_DP)  ::   wyc_spur(1:WYC_MAX)      ! Trace of symmetry elements
 real(kind=PREC_DP)  ::   wyc_axis(3,1:WYC_MAX)    ! Rotation axis or normal to mirror plane
+logical           , dimension(WYC_MAX) :: wyc_extra  ! This is an "extra" symmetry operation
 logical           , dimension(3) :: wyc_fix          ! Coordinate is fixed
 character(len=16) , dimension(3) :: wyc_fix_pos      ! Coordinate is fixed to these position
 integer           , dimension(4,4) :: wyc_fix_mat   ! matrix for:  MAT*(x,y,z)
+!
+!*******************************************************************************
+!
+contains
+!
+!*******************************************************************************
+!
+subroutine wyc_get_matrix(k, matrix)
+!-
+! Read a copy of the wyckoff matrix k
+!+
+!
+!use precision_mod
+!
+implicit none
+!
+integer , intent(in) :: k   ! Matrix number
+real(kind=PREC_DP), dimension(4, 4), intent(out) :: matrix
+!
+matrix = wyc_mat(:,:,k)
+!
+end subroutine wyc_get_matrix
+!
+!*******************************************************************************
+!
+logical function wyc_is_extra(k)
+!-
+! tests is wyc_extra(k) is true!+
+!
+integer, intent(in) :: k
+!
+wyc_is_extra = wyc_extra(k)
+!
+end function wyc_is_extra
+!*******************************************************************************
 !
 end module wyckoff_mod
