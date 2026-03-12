@@ -1541,7 +1541,7 @@ REAL(KIND=PREC_DP), dimension(MAXW) :: werte !(maxw)
             ier_typ = ER_COMM 
             RETURN 
          ENDIF 
-         CALL get_wyckoff (werte, loutput, mode) 
+         CALL get_wyckoff (werte, loutput, mode, .true. )
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -1551,7 +1551,7 @@ END SUBROUTINE wyckoff_main
 !
 !********************************************************************** 
 !
-SUBROUTINE get_wyckoff (vec, loutput, mode) 
+SUBROUTINE get_wyckoff (vec, loutput, mode, lfirst) 
 !-                                                                      
 !     Determines the local symmetry of position xyz within the unit cell
 !+                                                                      
@@ -1560,16 +1560,21 @@ USE crystal_mod
 USE wyckoff_mod 
 USE unitcell_mod 
 !
+use lib_functions_mod
 use matrix_mod
 USE prompt_mod
 USE param_mod
 USE precision_mod
+use terminal_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
 REAL(KIND=PREC_DP), intent(inout) ::  vec(3) 
 LOGICAL           , intent(in) :: loutput 
 INTEGER           , intent(in) :: mode 
+logical           , intent(in) :: lfirst      ! Move position into first unit cell
+!
+character(len=11) :: color_text     ! Will be red is an extra symmetry operation
 !                                                                       
 !     INTEGER FULL, SYMBOL, XYZ, MATRIX 
 integer,      PARAMETER :: FULL   = 0
@@ -1626,10 +1631,11 @@ IF (loutput) then
 ENDIF 
 !                                                                       
 wyc_n = 0 
+wyc_extra = .false.
 !                                                                       
 !     move position into first unit cell,ia                             
 !                                                                       
-CALL firstcell(vec, 3) 
+if(lfirst) CALL firstcell(vec, 3) 
 !     DO i = 1, 3 
 !     orig (i) = vec (i) 
 !     ENDDO 
@@ -1654,17 +1660,29 @@ DO is = 1, spc_n
 !  ENDDO 
 !  wyc_mat(:,:,1) = spc_mat(:,:, is)
    copy = matmul(spc_mat(:,:,is), orig)
+!write(*,'(i3, 3(2x,3(f10.6)),2x, l2, 3x, 3l2)') is, orig(1:3), copy(1:3), orig(1:3)-copy(1:3) ,  &
+!                  all(    abs(orig(1:3) - copy(1:3) )      .lt.eps),  &
+!                    (frac(abs(orig(1  ) - copy(1  ) )    ) .lt.eps),  &
+!                    (frac(abs(orig(2  ) - copy(2  ) )    ) .lt.eps),  &
+!                    (frac(abs(orig(3  ) - copy(3  ) )    ) .lt.eps)
 !  CALL firstcell (copy, 4) 
    lident = .true. 
    trans = 0.0_PREC_DP
    DO i = 1, 3 
       l_is_ident(i) =(    abs(orig(i) - copy(i) )      .lt.eps .OR.   &
-                      abs(abs(orig(i) - copy(i) )-1.0) .lt.eps)
+                     frac(abs(orig(i) - copy(i) )    ) .lt.eps)
       lident = lident.and. l_is_ident(i)
       trans(i) = orig(i) - copy(i)
    ENDDO 
    IF (lident) then 
       wyc_n = wyc_n + 1 
+      if(any(abs(trans(1:3))>EPS)) then
+         wyc_extra(wyc_n) = .true.
+         color_text = COLOR_FG_RED
+      else
+         wyc_extra(wyc_n) = .false.
+         color_text = COLOR_FG_BLACK
+      endif
       wyc_list(wyc_n) = is 
       wyc_mat(:,:, wyc_n) = spc_mat(:,:, is)
       wyc_mat(:,4, wyc_n) = wyc_mat(:,4, wyc_n) + trans
@@ -1680,17 +1698,17 @@ DO is = 1, spc_n
 !           spc_char (is), (spc_mat (2, j, is), j = 1, 4), (spc_mat (&
 !           3, j, is), j = 1, 4), spc_xyz (is)                       
          IF (mode.eq.FULL) then 
-            WRITE(output_io, 1000) is, igroup 
-            WRITE(output_io, 1100) (wyc_mat(1, j, wyc_n), j = 1, 4),  &
+            WRITE(output_io, 1000) trim(color_text),is, igroup , trim(COLOR_FG_BLACK)
+            WRITE(output_io, 1100) trim(color_text),(wyc_mat(1, j, wyc_n), j = 1, 4),  &
                wyc_char(wyc_n), (wyc_mat(2, j, wyc_n), j = 1, 4),         &
-              (wyc_mat(3, j, wyc_n), j = 1, 4), wyc_xyz(wyc_n)                       
+              (wyc_mat(3, j, wyc_n), j = 1, 4), wyc_xyz(wyc_n) , trim(COLOR_FG_BLACK)                      
          ELSEIF (mode.eq.SYMBOL) then 
-            WRITE(output_io, 3200) is, igroup, wyc_char(wyc_n) 
+            WRITE(output_io, 3200) trim(color_text), is, igroup, wyc_char(wyc_n) , trim(COLOR_FG_BLACK)
          ELSEIF (mode.eq.XYZ) then 
-            WRITE(output_io, 4200) is, igroup, wyc_xyz(wyc_n) 
+            WRITE(output_io, 4200) trim(color_text), is, igroup, wyc_xyz(wyc_n) , trim(COLOR_FG_BLACK)
          ELSEIF (mode.eq.MATRIX) then 
-            WRITE(output_io, 5200) is, igroup, (wyc_mat(1, j, wyc_n), j = 1, 4), &
-               (wyc_mat(2, j, wyc_n), j = 1, 4), (wyc_mat(3, j, wyc_n), j = 1, 4)                                        
+            WRITE(output_io, 5200) trim(color_text), is, igroup, (wyc_mat(1, j, wyc_n), j = 1, 4), &
+               (wyc_mat(2, j, wyc_n), j = 1, 4), (wyc_mat(3, j, wyc_n), j = 1, 4), trim(COLOR_FG_BLACK)
          ENDIF 
 !write(*,'(a,3(2x,f10.4))') ' WYC AXIS ', wyc_axis(:,wyc_n)
 !write(*,'( a)') '>>123456789 123456789 123456789 123456789 123456789 123456789 123456789 <<'
@@ -1726,16 +1744,16 @@ res_para(2) = REAL(        wyc_n, kind=PREC_DP)
 res_para(3) = REAL(spc_n        , kind=PREC_DP)
 !                                                                       
   900 FORMAT    (/,' Wyckoff symmetry for position ',3f12.6,/) 
- 1000 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')') 
- 1100 FORMAT    (  ' ( ',3(f4.1,', '),f8.5,' )','  ',a65,/,             &
+ 1000 FORMAT    ('Symmetry No.     ',a,'[',i3,']  (',i3,')',a) 
+ 1100 FORMAT    (a,' ( ',3(f4.1,', '),f8.5,' )','  ',a65,/,             &
      &                    ' ( ',3(f4.1,', '),f8.5,' )',/,               &
-     &                    ' ( ',3(f4.1,', '),f8.5,' )','  ',a87,/)      
- 3200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')  ',a65) 
- 4200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')  ',a87) 
- 5200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')  ',              &
+     &                    ' ( ',3(f4.1,', '),f8.5,' )','  ',a87,a,/)      
+ 3200 FORMAT    ('Symmetry No.      ',a,'[',i3,']  (',i3,')  ',a65,a) 
+ 4200 FORMAT    ('Symmetry No.      ',a,'[',i3,']  (',i3,')  ',a87,a) 
+ 5200 FORMAT    ('Symmetry No.      ',a,'[',i3,']  (',i3,')  ',         &
      &                    ' ( ',3(f4.1,', '),f8.5,' )',/,               &
      &                32x,' ( ',3(f4.1,', '),f8.5,' )',/,               &
-     &                32x,' ( ',3(f4.1,', '),f8.5,' )'   )              
+     &                32x,' ( ',3(f4.1,', '),f8.5,' )',a   )              
  6000 FORMAT    (/,' Multiplicity;   No of Sym. Op. in Wyckoff group; ',&
      &  '    Highest Multiplicity',/,i8,20x,i8,20x,i8)                  
 !                                                                       
@@ -2863,7 +2881,7 @@ DATA eps / 0.00001 /
             first (2) = cr_pos (2, ifirst) 
             first (3) = cr_pos (3, ifirst) 
 !                                                                       
-            CALL get_wyckoff (first, .false., 0) 
+            CALL get_wyckoff (first, .false., 0, .true.) 
 !                                                                       
 !     ----Create copies of this atom with all Wyckoff symmetry operators
 !     ----1.st Wyckoff Symmetry is always identity, thus we             
