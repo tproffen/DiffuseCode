@@ -504,7 +504,7 @@ CALL no_error
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'menv') THEN 
             IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)
-               IF (0.le.kpara.and.kpara.le.MAXPAR_RES) THEN 
+               IF (0.le.kpara.and.kpara.le.MAXPAR_RES .and. kpara<=mole_env(0)) THEN 
                WRITE (zeile (ikl - 4:ikl + PREC_WIDTH-2) , PREC_F_INTE) mole_env (kpara) 
                ELSE 
                   ier_num = - 8 
@@ -543,7 +543,7 @@ CALL no_error
          IF (string (ikl - 3:ikl - 1) .eq.'env') THEN 
             IF (ianz.eq.1) THEN 
                IF(ikl.gt.lcomm + 1) zeile(1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)
-               IF (0.le.kpara.and.kpara.le.MAXPAR_RES) THEN 
+               IF (0.le.kpara.and.kpara.le.MAXPAR_RES .and. kpara<=atom_env(0)) THEN 
                   WRITE (zeile (ikl - 3:ikl + PREC_WIDTH-2) , PREC_F_INTE) atom_env (kpara)
                ELSE 
                   ier_num = - 8 
