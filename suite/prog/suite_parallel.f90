@@ -9,6 +9,7 @@ SUBROUTINE suite_do_parallel ( zeile, length)
 USE appl_env_mod
 USE ber_params_mod
 USE errlist_mod
+use envir_mod
 USE get_params_mod
 USE operating_mod
 USE precision_mod
@@ -43,7 +44,8 @@ CHARACTER(LEN=PREC_STRING) :: discus_path = ' '
 CHARACTER(LEN=PREC_STRING) :: discus_name = ' '
 !
 CALL get_mpi_path(mpi_path)
-IF(mpi_path==' ') THEN
+!IF(mpi_path==' ') THEN
+if(operating/='Linux_WSL') then
    ier_num = -8
    ier_typ = ER_COMM
    ier_msg(1) = 'The parallel command is not avaialable for '
