@@ -18,6 +18,7 @@ contains
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use lib_data_struc_h5
 USE precision_mod
 USE str_comp_mod
 !                                                                       
@@ -113,6 +114,8 @@ integer, intent(inout) :: lp
          ELSEIF (str_comp (cpara (1) , 'font', 2, lpara (1) , 4) ) then 
             CALL show_font 
 !                                                                       
+         ELSEIF (str_comp (cpara (1) , 'node', 2, lpara (1) , 4) ) then 
+            call dgl5_show_nodes(-1)
          ELSE 
             CALL do_show_generic (cpara, lpara, maxw) 
          ENDIF 
