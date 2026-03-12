@@ -4505,7 +4505,7 @@ implicit none
 integer                                   , intent(in)    :: NOPTIONAL ! number of optional
 integer                                   , intent(in)    :: O_LAMBDA  ! Entry numerical
 integer                                   , intent(in)    :: O_SYMBOL  ! Entry symbol
-character(len=4)                          , intent(in)    :: lambda    ! Input string or number
+character(len=*)                          , intent(in)    :: lambda    ! Input string or number
 character(len=*), dimension(NOPTIONAL, 2) , intent(inout) :: ref_dif   ! Actual values
 integer                                   , intent(in)    :: iprog     ! REFINE=1  or DIFFEV=2
 !
