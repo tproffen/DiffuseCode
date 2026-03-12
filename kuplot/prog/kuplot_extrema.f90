@@ -44,6 +44,7 @@ use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
+real(kind=PREC_SP), parameter :: EPSI = 1.0E-7
 integer, intent(in) :: i
 REAL(kind=PREC_DP), intent(out) :: ymi
 REAL(kind=PREC_DP), intent(out) :: yma 
@@ -53,8 +54,8 @@ INTEGER :: ip
 yma = - 1e38 
 ymi = 1e38 
 DO ip = 1, lenc(i) 
-   IF (x (offxy (i - 1) + ip) .ge.ex (iwin, iframe, 1) .and.x (offxy &
-      (i - 1) + ip) .le.ex (iwin, iframe, 2) ) then                     
+   IF (x (offxy (i - 1) + ip) .ge.(ex (iwin, iframe, 1)-EPSI) .and.&
+       x (offxy (i - 1) + ip) .le.(ex (iwin, iframe, 2)+EPSI) ) then                     
       yma = max (yma, real(y (offxy (i - 1) + ip), kind=PREC_DP) ) 
       ymi = min (ymi, real(y (offxy (i - 1) + ip), kind=PREC_DP) ) 
    ENDIF 
