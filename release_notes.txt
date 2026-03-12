@@ -1,8 +1,18 @@
-6.21.01  DRAFT
+6.20.02  DRAFT
 
+SUITE
+  parallel     BUG FIX Parallel command at Windows did not work
 DISCUS
-  read         BUG FIX Molecule recognition was faulty
-6.21.00  RELEASE 2025_12_15
+  GENERAL      Revised internal calculation to recognize molecules at read
+               Moleculs far from the origin were not detected properly
+  import       Corrected lambda and qmin in refine/diffev setup
+  wyckoff      Improved output to signal is the position is on a 
+               secondary symmetry operation like a mirror plane at x=1/2
+
+REFINE
+  newpara      Added a 'move' parameter to the 'newpara' command to calculate
+               derivatives via an additive parameter change.
+6.20.01  DRAFT
 
 DIFFEV
   newparam     Changed style to be identical with REFINE
