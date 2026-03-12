@@ -153,6 +153,44 @@ END SUBROUTINE get_optional
 !
 !*******************************************************************************
 !
+SUBROUTINE purge_optional(line, NOPTIONAL, oname, loname, opara, lopara, lpresent)
+!-
+! purges the line of optional parameters and their initial value strings
+!+
+!
+implicit none
+!
+character(len=*)                      , intent(inout) :: line
+integer                               , intent(in)    :: NOPTIONAL
+character(len=*), dimension(NOPTIONAL), intent(in)    :: oname     ! Lookup table
+integer,          dimension(NOPTIONAL), intent(in)    :: loname    ! lookup table length
+character(len=*), dimension(NOPTIONAL), intent(in)    :: opara     ! with default values
+integer,          dimension(NOPTIONAL), intent(in)    :: lopara    ! length of results
+logical,          dimension(NOPTIONAL), intent(in)    :: lpresent  ! Is param present ?
+!
+integer :: i, j, iopt, istart, iend
+integer :: length
+!
+length = len_trim(line)
+!
+loop_main: do i=1, NOPTIONAL
+   if(lpresent(i)) then            ! Optional parameter is present
+      iopt = index(line, oname(i)(1:loname(i)))
+      istart = max(1, index(line(1:iopt), ',', .true.))
+      j = index(line(iopt+loname(i)+lopara(i)+1:length), ',')
+      if(j==0) then
+         iend = length
+      else
+         iend = iopt+loname(i)+lopara(i)+j-1
+      endif
+      line(istart:iend) = ' '
+   endif
+enddo loop_main
+!
+end SUBROUTINE purge_optional
+!
+!*******************************************************************************
+!
 SUBROUTINE get_optional_multi(MAXW, opara, lopara, werte, ianz)
 !-
 ! Calculate multiple values for the optional parameters as for "dim:[3,3]"
