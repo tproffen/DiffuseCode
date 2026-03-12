@@ -7,10 +7,11 @@ public h5_data_struc
 !
 type :: h5_data_struc
    integer                                               :: data_num       ! Current data set number
+   logical                                               :: is_temp=.true. ! Data set is considered temporary
    character(len=PREC_STRING)                            :: infile         ! input file
    integer                                               :: data_type      ! Descriptor for content
    integer                                               :: layer=1        ! Current layer in data set
-   LOGICAL                                               :: is_direct      ! Direct space == TRUE
+   logical                                               :: is_direct      ! Direct space == TRUE
    integer                                               :: ndims          ! Number of dimensions
    integer              , dimension(3)                   :: dims           ! Actual dimensions
    logical                                               :: is_grid        ! Data have grid like coordinates

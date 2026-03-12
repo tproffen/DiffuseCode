@@ -13,6 +13,7 @@ implicit none
 !
 private
 public dgl5_new_node
+public dgl5_show_nodes
 public dgl5_set_node
 public dgl5_get_node
 public dgl5_set_pointer
@@ -51,6 +52,8 @@ public dgl5_set_map
 public dgl5_set_x
 public dgl5_set_y
 public dgl5_set_z
+public dgl5_set_temp
+public dgl5_clear_temp
 public data2local
 public local2data
 public fft2data
@@ -125,9 +128,38 @@ nullify(h5_temp%after)
 h5_temp%data_num = h5_number + 1                         ! Increment the data number
 h5_number = h5_number + 1                                   ! Increment the global data number
 !
-!write(*,*) ' ROOT NW', associated(h5_root), ASSOCIATED(h5_temp), h5_temp%data_num, h5_root%data_num, h5_number
+!write(*,*) ' ROOT NW', associated(h5_root), ASSOCIATED(h5_temp), associated(h5_temp%after), h5_temp%data_num, h5_root%data_num, h5_number
 !
 end subroutine dgl5_new_node
+!
+!*******************************************************************************
+!
+subroutine dgl5_show_nodes(inode)
+!-
+!  Shows nodes
+!+
+use prompt_mod
+!
+integer, intent(in)  :: inode
+!
+if(associated(h5_root)) then                                ! A root node exists
+   h5_temp => h5_root                                       ! Point to current node
+   write(output_io, '(a,i8)') 'Node : ',h5_temp%data_num
+   write(output_io, '(a,a )') 'Name : ',h5_temp%infile(1:len_trim(h5_temp%infile))
+   write(output_io, '(a,3i8 )') 'Dim  : ',h5_temp%dims
+   write(output_io, '(a,l1  )') 'Temp : ',h5_temp%is_temp
+   find_node: do while(associated(h5_temp%after))           ! Does next node exist?
+      h5_temp => h5_temp%after                              ! Next node exists, point to this next node
+      write(output_io, '(a,i8)') 'Node : ',h5_temp%data_num
+      write(output_io, '(a,a )') 'Name : ',h5_temp%infile(1:len_trim(h5_temp%infile))
+      write(output_io, '(a,3i8 )') 'Dim  : ',h5_temp%dims
+      write(output_io, '(a,l1  )') 'Temp : ',h5_temp%is_temp
+   enddo find_node
+else
+   write(output_io,'(a)') 'Global data structure is empty'
+endif
+!
+end subroutine dgl5_show_nodes
 !
 !*******************************************************************************
 !
@@ -954,6 +986,40 @@ end subroutine dgl5_set_map
 !
 !*******************************************************************************
 !
+subroutine dgl5_set_temp(status)
+!
+! Sets the is_temp status to TRUE / FALSE
+!
+implicit none
+!
+logical, intent(in)  :: status
+!
+h5_temp%is_temp = status
+!
+end subroutine dgl5_set_temp
+!
+!*******************************************************************************
+!
+subroutine dgl5_clear_temp
+!
+! Sets the is_temp status to TRUE / FALSE
+!
+implicit none
+!
+!
+if(associated(h5_root)) then
+   h5_temp => h5_root
+   h5_temp%is_temp = .true.
+   do while(associated(h5_temp%after))
+      h5_temp => h5_temp%after
+      h5_temp%is_temp = .true.
+   enddo
+endif
+!
+end subroutine dgl5_clear_temp
+!
+!*******************************************************************************
+!
 subroutine data2local(ik, ier_num, ier_typ, node_number,                        &
                       infile, data_type, layer, is_direct, ndims, dims,         &
                       is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors, a0, win,   &
@@ -1253,6 +1319,70 @@ end subroutine   fft2data
 subroutine dgl5_reset
 !
 type(h5_data_struc), pointer :: h5_current => NULL()
+type(h5_data_struc), pointer :: h5_keep    => NULL()
+!
+nullify(h5_current)
+nullify(h5_keep)
+!
+if(associated(h5_root)) then       ! A storage does exist
+   h5_temp => h5_root
+!  if(allocated(h5_temp%datamap)) deallocate(h5_temp%datamap)
+   find_node: do 
+      if(associated(h5_temp%after)) then   ! A next node exists
+         h5_current => h5_temp             ! Point to current
+         h5_temp    => h5_temp%after       ! Point to next node
+!write(*,*) ' At node ', h5_current%data_num, h5_current%is_temp, h5_temp%data_num
+         if(h5_current%is_temp) then       ! Current node is temporary
+            if(allocated(h5_current%x )) deallocate(h5_current%x)
+            if(allocated(h5_current%y )) deallocate(h5_current%y)
+            if(allocated(h5_current%z )) deallocate(h5_current%z)
+            if(allocated(h5_current%dx)) deallocate(h5_current%dx)
+            if(allocated(h5_current%dy)) deallocate(h5_current%dy)
+            if(allocated(h5_current%dz)) deallocate(h5_current%dz)
+            if(allocated(h5_current%datamap )) deallocate(h5_current%datamap)
+            if(allocated(h5_current%sigma )) deallocate(h5_current%sigma)
+            deallocate(h5_current)            ! Clean up current node
+            if(associated(h5_keep)) then      ! The last keep node has no follow up node (yet)
+               nullify(h5_keep%after)
+            endif
+         else
+            if(associated(h5_keep)) then
+               h5_keep%after => h5_current      ! Previous permanent mode points to current node
+            else
+               h5_root => h5_current            ! This is the first permanent node reassign root
+            endif
+            h5_keep => h5_current
+         endif
+      else
+         h5_current => h5_temp             ! Point to current
+!write(*,*) ' At node ', h5_current%data_num, h5_current%is_temp
+         if(h5_current%is_temp) then       ! Current node is temporary
+            if(associated(h5_keep)) then      ! The last keep node has no follow up node (yet)
+               nullify(h5_keep%after)
+            endif
+            deallocate(h5_current)            ! Clean up current node
+         else
+            nullify(h5_current%after)
+         endif
+         exit find_node                    ! We are done
+      endif
+   enddo find_node
+endif
+nullify(h5_temp)
+if(.not.associated(h5_keep)) then     ! No permanent nodes exist
+   nullify(h5_root)
+   h5_number   = 0
+   h5_h5_is_ku = 0
+   h5_ku_is_h5 = 0
+endif
+!
+end subroutine dgl5_reset
+!
+!*******************************************************************************
+!
+subroutine dgl5_reset_orig
+!
+type(h5_data_struc), pointer :: h5_current => NULL()
 !
 if(associated(h5_root)) then       ! A storage does exist
    h5_temp => h5_root
@@ -1262,7 +1392,7 @@ if(associated(h5_root)) then       ! A storage does exist
          h5_current => h5_temp             ! Point to current
          h5_temp    => h5_temp%after       ! Point to next node
          if(allocated(h5_temp%x )) deallocate(h5_temp%x)
-         if(allocated(h5_temp%y ))  deallocate(h5_temp%y)
+         if(allocated(h5_temp%y )) deallocate(h5_temp%y)
          if(allocated(h5_temp%z )) deallocate(h5_temp%z)
          if(allocated(h5_temp%dx)) deallocate(h5_temp%dx)
          if(allocated(h5_temp%dy)) deallocate(h5_temp%dy)
@@ -1283,7 +1413,7 @@ h5_number   = 0
 h5_h5_is_ku = 0
 h5_ku_is_h5 = 0
 !
-end subroutine dgl5_reset
+end subroutine dgl5_reset_orig
 !
 !*******************************************************************************
 !
