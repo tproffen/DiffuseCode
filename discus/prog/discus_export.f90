@@ -765,7 +765,7 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: vec
       endif
    ENDDO loop_stype
    vec(:) = cr_pos(:,i)
-   CALL get_wyckoff(vec,.FALSE.,1)
+   CALL get_wyckoff(vec,.FALSE.,1, .true.)
    occup = 10.000 + REAL(res_para(1)/res_para(3))*cr_occ(cr_iscat(1,i))
    biso = cr_dw(cr_iscat(1,i))/8./REAL(pi**2)
 if(abs(cr_prin(4,1,cr_iscat(3,i))-cr_prin(4,2,cr_iscat(3,i)))>TOL  .or.  &

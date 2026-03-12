@@ -187,7 +187,7 @@ integer :: i, j, k, l
 real(kind=PREC_DP), dimension(3) :: coordinates
 !
 coordinates = posit(:, iatom)
-call get_wyckoff(coordinates, loutput, mode)
+call get_wyckoff(coordinates, loutput, mode, .true.)
 !
 !     line = content(jc)(1:4)
 i = len_trim(line)
@@ -213,7 +213,7 @@ loop_xyz: do j=1, 3         ! Loop over x, y, z
       write(IDI_MA,'(2a,i3,3a)') xyz_name(j),'[',iatom, '] = P_',line(1:i), xyz_appe(j)
       write(IRE_NP,'(4a,f12.8,2a)') 'newpara P_',c_atom(iscat)(1:len_trim(c_atom(iscat))), &
          xyz_appe(j),', value:',                                                        &
-         posit(j, iatom), ', points:3, shift:0.001, status:', c_flag
+         posit(j, iatom), ', points:3,  move:0.001, status:', c_flag
    endif
 !
 enddo loop_xyz
@@ -686,24 +686,24 @@ write(IRE_MA,'(a        )') '#'
 write(IRE_MA,'(a )') '@newpara.mac'
 write(IRE_MA,'(a        )') '#'
 !
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_scale, value:', P_scale , ', points:3, shift:0.001, status:free'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_zero , value:', 0.00000 , ', points:3, shift:0.001, status:free'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_scale, value:', P_scale , ', points:3, shift:0.100, status:free'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_zero , value:', 0.00000 , ', points:3,  move:0.001, status:free'
 write(IRE_NP,'(a )') '#'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta  , value:', 0.50000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta_l, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta_q, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_u    , value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_v    , value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_w    , value:', 0.00700 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta  , value:', 0.50000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta_l, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta_q, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_u    , value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_v    , value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_w    , value:', 0.00700 , ', points:3, shift:0.100, status:fixed'
 write(IRE_NP,'(a )') '#'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_c, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_c, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_i, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_i, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_l, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_l, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_q, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_q, value:', 0.00000 , ', points:3, shift:0.001, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_c, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_i, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_l, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as1_q, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_c, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_i, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_l, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_as2_q, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
 write(IRE_NP,'(a )') '#'
 !
 if(spcgr_syst==1) then         ! Triclinic
@@ -1864,7 +1864,7 @@ if(l_flag         ) then
   c_flag = 'free'
 else
   ref_n = 1
-  c_flag = 'fixed '
+  c_flag = 'fixed'
 endif
 if(l==1) then
    write(IDF_PO,'(a,i3,4a)') 'anis type:', jj,', values:[', 'U_',c_atom(iscat)(1:len_trim(c_atom(iscat))),'_1]'
@@ -1943,7 +1943,7 @@ real(kind=PREC_DP), dimension(3) :: coordinates
 !endif
 !
 coordinates = posit(:, iatom)
-call get_wyckoff(coordinates, loutput, mode)
+call get_wyckoff(coordinates, loutput, mode, .true.)
 !
 i = len_trim(inline)
 loop_xyz: do j=1, 3         ! Loop over x, y, z
@@ -2513,12 +2513,12 @@ write(IDF_NP, '(a)') 'newpara  P_u      ,  range:[0.0000,   0.0000], value:[  0.
 write(IDF_NP, '(a)') 'newpara  P_v      ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Profile v'
 write(IDF_NP, '(a)') 'newpara  P_w      ,  range:[0.0005,   0.0005], value:[  0.0005,    0.0005], status:fixed     ! Profile w'
 write(IDF_NP, '(a)') 'newpara  P_as1_c  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry const 1'
-write(IDF_NP, '(a)') 'newpara  P_as2_c  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry const 2'
 write(IDF_NP, '(a)') 'newpara  P_as1_i  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry inv   1'
-write(IDF_NP, '(a)') 'newpara  P_as2_i  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry inv   2'
 write(IDF_NP, '(a)') 'newpara  P_as1_l  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry lin   1'
-write(IDF_NP, '(a)') 'newpara  P_as2_l  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry lin   2'
 write(IDF_NP, '(a)') 'newpara  P_as1_q  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry quad  1'
+write(IDF_NP, '(a)') 'newpara  P_as2_c  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry const 2'
+write(IDF_NP, '(a)') 'newpara  P_as2_i  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry inv   2'
+write(IDF_NP, '(a)') 'newpara  P_as2_l  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry lin   2'
 write(IDF_NP, '(a)') 'newpara  P_as2_q  ,  range:[0.0000,   0.0000], value:[  0.0000,    0.0000], status:fixed     ! Asymmetry quad  2'
 if(is_powder) then
    write(IDF_NP, '(a)') '#'
@@ -2654,12 +2654,12 @@ write(IDF_BS, '(a)') 'variable real, P_u'
 write(IDF_BS, '(a)') 'variable real, P_v'
 write(IDF_BS, '(a)') 'variable real, P_w'
 write(IDF_BS, '(a)') 'variable real, P_as1_c'
-write(IDF_BS, '(a)') 'variable real, P_as2_c'
 write(IDF_BS, '(a)') 'variable real, P_as1_i'
-write(IDF_BS, '(a)') 'variable real, P_as2_i'
 write(IDF_BS, '(a)') 'variable real, P_as1_l'
-write(IDF_BS, '(a)') 'variable real, P_as2_l'
 write(IDF_BS, '(a)') 'variable real, P_as1_q'
+write(IDF_BS, '(a)') 'variable real, P_as2_c'
+write(IDF_BS, '(a)') 'variable real, P_as2_i'
+write(IDF_BS, '(a)') 'variable real, P_as2_l'
 write(IDF_BS, '(a)') 'variable real, P_as2_q'
 !
 if(is_powder) then
@@ -2724,12 +2724,12 @@ write(IDF_BS2, '(a)') 'P_u              =    0.0000'
 write(IDF_BS2, '(a)') 'P_v              =    0.0000'
 write(IDF_BS2, '(a)') 'P_w              =    0.0005'
 write(IDF_BS2, '(a)') 'P_as1_c          =    0.0000'
-write(IDF_BS2, '(a)') 'P_as2_c          =    0.0000'
 write(IDF_BS2, '(a)') 'P_as1_i          =    0.0000'
-write(IDF_BS2, '(a)') 'P_as2_i          =    0.0000'
 write(IDF_BS2, '(a)') 'P_as1_l          =    0.0000'
-write(IDF_BS2, '(a)') 'P_as2_l          =    0.0000'
 write(IDF_BS2, '(a)') 'P_as1_q          =    0.0000'
+write(IDF_BS2, '(a)') 'P_as2_c          =    0.0000'
+write(IDF_BS2, '(a)') 'P_as2_i          =    0.0000'
+write(IDF_BS2, '(a)') 'P_as2_l          =    0.0000'
 write(IDF_BS2, '(a)') 'P_as2_q          =    0.0000'
 write(IDF_BS2, '(a)') '#P_portion       =    0.0000'
 write(IDF_BS2, '(a)') '#P_damping       =    0.0000'
@@ -2773,8 +2773,8 @@ else
    write(IDI,'(a )') '  set axis, q'
    write(IDI,'(a )') '  set calc, complete'
 endif
-write(IDI,'(a,f7.5,a )') '  set qmin, 4.*PI*sind(F_XMIN*0.5)/ rlambda -0.2'
-write(IDI,'(a,f7.5,a )') '  set qmax, 4.*PI*sind(F_XMAX*0.5)/ rlambda +0.05'
+write(IDI,'(a,f7.5,a )') '  set qmin, max(F_XSTP, 4.*PI*sind(F_XMIN*0.5)/ rlambda -0.2)'
+write(IDI,'(a,f7.5,a )') '  set qmax,             4.*PI*sind(F_XMAX*0.5)/ rlambda + 0.05'
 write(IDI, '(a)') '  set dq  , 0.00025'
 write(IDI,'(a )') '  set dh  , 1.0'
 write(IDI,'(a )') '  set dk  , 1.0'

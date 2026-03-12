@@ -964,7 +964,7 @@ integer :: i
 real(kind=PREC_DP), dimension(3,3) :: mat   ! Wyckoff symmetry without translation
 real(kind=PREC_DP), dimension(3,3) :: new   ! Transformed xx
 !
-call get_wyckoff(vec, .FALSE., 0)
+call get_wyckoff(vec, .FALSE., 0, .true.)
 !
 is_invar = .TRUE.
 !write(*,*) ' POSIT    ', vec, is_invar
@@ -1197,7 +1197,7 @@ ar_inv(3) = 1./cr_ar(3)
 !
 vec = wwerte(1:3)
 prin = 0.0_PREC_DP
-call get_wyckoff (vec, .false., 0)
+call get_wyckoff (vec, .false., 0, .true.)
 !
 ! Build a "random" displacement matrix
 xxp     = 0.0000000_PREC_DP
