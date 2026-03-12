@@ -151,27 +151,27 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
 !write(*,*) ' LOADED DATA ', ik1_data_type==H5_BRAGG_I
       if(ik1_data_type==H5_BRAGG_I) then
 !
-         ref_dim(1) = 2*(max(abs(nint(ik1_x(1))),abs(nint(ik1_x(ik1_dims(1)))))) + 1
-         ref_dim(2) = 2*(max(abs(nint(ik1_y(1))),abs(nint(ik1_y(ik1_dims(2)))))) + 1
-         ref_dim(3) = 2*(max(abs(nint(ik1_z(1))),abs(nint(ik1_z(ik1_dims(3)))))) + 1
-         ref_dim    = ik1_dims
-         ALLOCATE(ref_data  (ref_dim(1),ref_dim(2),ref_dim(3)))
-         ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2),ref_dim(3)))
-         ALLOCATE(ref_x     (ref_dim(1)))
-         ALLOCATE(ref_y     (ref_dim(2)))
-         ALLOCATE(ref_z     (ref_dim(3)))
+         ref_dim(1,1) = 2*(max(abs(nint(ik1_x(1))),abs(nint(ik1_x(ik1_dims(1)))))) + 1
+         ref_dim(2,1) = 2*(max(abs(nint(ik1_y(1))),abs(nint(ik1_y(ik1_dims(2)))))) + 1
+         ref_dim(3,1) = 2*(max(abs(nint(ik1_z(1))),abs(nint(ik1_z(ik1_dims(3)))))) + 1
+         ref_dim(:,1)    = ik1_dims
+         ALLOCATE(ref_data  (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+         ALLOCATE(ref_sigma (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+         ALLOCATE(ref_x     (ref_dim(1,1),1))
+         ALLOCATE(ref_y     (ref_dim(2,1),1))
+         ALLOCATE(ref_z     (ref_dim(3,1),1))
          ref_data  =  0.0D0
          ref_sigma = -10000.0D0     ! Flags a missing data point
-         i1 =  (ref_dim(1)-1)/2 + nint(ik1_x(1)) + 1
-         j1 =  (ref_dim(2)-1)/2 + nint(ik1_y(1)) + 1
-         k1 =  (ref_dim(3)-1)/2 + nint(ik1_z(1)) + 1
+         i1 =  (ref_dim(1,1)-1)/2 + nint(ik1_x(1)) + 1
+         j1 =  (ref_dim(2,1)-1)/2 + nint(ik1_y(1)) + 1
+         k1 =  (ref_dim(3,1)-1)/2 + nint(ik1_z(1)) + 1
          i2 = i1 + ik1_dims(1) - 1
          j2 = j1 + ik1_dims(2) - 1
          k2 = k1 + ik1_dims(3) - 1
 !        ref_data (i1:i2, j1:j2, k1:k2) = ik1_data
 !        ref_sigma(i1:i2, j1:j2, k1:k2) = ik1_sigma
-         ref_data                       = ik1_data
-         ref_sigma                      = ik1_sigma
+         ref_data (:,:,:,1)            = ik1_data
+         ref_sigma(:,:,:,1)            = ik1_sigma
          where(ref_sigma<=0.0D0 .and. ref_sigma>-1000.0D0) 
             ref_sigma = 9D19
          end where
@@ -184,40 +184,40 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
 !        do iix=1,ref_dim(3)
 !           ref_z(iix) = -(ref_dim(3)-1)/2 + iix - 1
 !        enddo
-         ref_x = ik1_x
-         ref_y = ik1_y
-         ref_z = ik1_z
+         ref_x(:,1) = ik1_x
+         ref_y(:,1) = ik1_y
+         ref_z(:,1) = ik1_z
 !
       else
 !
-         ref_dim    = ik1_dims
-         ALLOCATE(ref_data  (ref_dim(1),ref_dim(2),ref_dim(3)))
-         ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2),ref_dim(3)))
-         ALLOCATE(ref_x     (ref_dim(1)))
-         ALLOCATE(ref_y     (ref_dim(2)))
-         ALLOCATE(ref_z     (ref_dim(3)))
-         ref_data = ik1_data
+         ref_dim(:,1)    = ik1_dims
+         ALLOCATE(ref_data  (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+         ALLOCATE(ref_sigma (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+         ALLOCATE(ref_x     (ref_dim(1,1),1))
+         ALLOCATE(ref_y     (ref_dim(2,1),1))
+         ALLOCATE(ref_z     (ref_dim(3,1),1))
+         ref_data(:,:,:,1) = ik1_data
          if(ik1_has_dval) then
-            ref_sigma = ik1_sigma
+            ref_sigma(:,:,:,1) = ik1_sigma
          else
             ref_sigma = 1.0D0
          endif
-         ref_x = ik1_x
-         ref_y = ik1_y
-         ref_z = ik1_z
+         ref_x(:,1) = ik1_x
+         ref_y(:,1) = ik1_y
+         ref_z(:,1) = ik1_z
       endif
       ref_type = ik1_data_type
-      CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2)), IS_DIFFEV)
-      CALL def_set_variable('real', 'F_ZMIN', ref_z(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_ZMAX', ref_z(ref_dim(3)), IS_DIFFEV)
-      step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(ref_dim(1)-1)
+      CALL def_set_variable('real', 'F_XMIN', ref_x(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1,1),1), IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMIN', ref_y(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2,1),1), IS_DIFFEV)
+      CALL def_set_variable('real', 'F_ZMIN', ref_z(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_ZMAX', ref_z(ref_dim(3,1),1), IS_DIFFEV)
+      step = (ref_x(ref_dim(1,1),1)-ref_x(1,1))/FLOAT(ref_dim(1,1)-1)
       CALL def_set_variable('real', 'F_XSTP', step             , IS_DIFFEV)
-      step = (ref_y(ref_dim(2))-ref_y(1))/FLOAT(ref_dim(2)-1)
+      step = (ref_y(ref_dim(2,1),1)-ref_y(1,1))/FLOAT(ref_dim(2,1)-1)
       CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
-      step = (ref_z(ref_dim(3))-ref_z(1))/FLOAT(ref_dim(3)-1)
+      step = (ref_z(ref_dim(3,1),1)-ref_z(1,1))/FLOAT(ref_dim(3,1)-1)
       CALL def_set_variable('real', 'F_ZSTP', step             , IS_DIFFEV)
 
    else cond_data3                     ! This is sigma
@@ -227,14 +227,14 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
          exit cond_data3
       ENDIF
 !
-      IF(ref_dim(1) /= ik1_dims(1) .OR. ref_dim(2) /= ik1_dims(2) .or. &
-         ref_dim(3) /= ik1_dims(3) ) THEN
+      IF(ref_dim(1,1) /= ik1_dims(1) .OR. ref_dim(2,1) /= ik1_dims(2) .or. &
+         ref_dim(3,1) /= ik1_dims(3) ) THEN
          ier_num = -6
          ier_typ = ER_FORT
          ier_msg(1) = 'SIGMA and DATA set differ in size'
          exit cond_data3
       ENDIF
-      ref_sigma = ik1_data    ! copy these data as sigma
+      ref_sigma(:,:,:,1) = ik1_data    ! copy these data as sigma
 !
       deallocate(ik1_data)
       if(allocated(ik1_sigma)) deallocate(ik1_sigma)
@@ -254,34 +254,34 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
 !
 elseif(ku_ndims(ndata)==2) THEN         ! 2D data set
    IF(LDATA) THEN                      ! This is the data set
-      ref_dim(1) = nx(ndata )
-      ref_dim(2) = ny(ndata )
-      ref_dim(3) = 1
-      ALLOCATE(ref_data  (ref_dim(1),ref_dim(2),ref_dim(3)))
-      ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2),ref_dim(3)))
-      ALLOCATE(ref_x     (ref_dim(1)))
-      ALLOCATE(ref_y     (ref_dim(2)))
-      ALLOCATE(ref_z     (ref_dim(3)))
+      ref_dim(1,1) = nx(ndata )
+      ref_dim(2,1) = ny(ndata )
+      ref_dim(3,1) = 1
+      ALLOCATE(ref_data  (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+      ALLOCATE(ref_sigma (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+      ALLOCATE(ref_x     (ref_dim(1,1),1))
+      ALLOCATE(ref_y     (ref_dim(2,1),1))
+      ALLOCATE(ref_z     (ref_dim(3,1),1))
 !
-      DO iiy=1,ref_dim(2)
-         DO iix=1,ref_dim(1)
-            ref_data(iix,iiy, 1)  = z (offz(ndata - 1) + (iix - 1)*ny(ndata) + iiy)
-            ref_sigma (iix,iiy, 1) = 1.0000D0  ! dz(offxy(iz - 1) + iix) TEMPORARY unit weights
+      DO iiy=1,ref_dim(2,1)
+         DO iix=1,ref_dim(1,1)
+            ref_data(iix,iiy, 1,1)  = z (offz(ndata - 1) + (iix - 1)*ny(ndata) + iiy)
+            ref_sigma (iix,iiy, 1,1) = 1.0000D0  ! dz(offxy(iz - 1) + iix) TEMPORARY unit weights
          ENDDO
-         ref_y(iiy)      = y(offxy(ndata - 1) + iiy)
+         ref_y(iiy,1)      = y(offxy(ndata - 1) + iiy)
       ENDDO
-      DO iix=1,ref_dim(1)
-         ref_x(iix)      = x(offxy(ndata - 1) + iix)
+      DO iix=1,ref_dim(1,1)
+         ref_x(iix,1)      = x(offxy(ndata - 1) + iix)
       ENDDO
       ref_z = 1.0
       ref_type = H5_2D_GEN
-      CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2)), IS_DIFFEV)
-      step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(ref_dim(1)-1)
+      CALL def_set_variable('real', 'F_XMIN', ref_x(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1,1),1), IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMIN', ref_y(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2,1),1), IS_DIFFEV)
+      step = (ref_x(ref_dim(1,1),1)-ref_x(1,1))/FLOAT(ref_dim(1,1)-1)
       CALL def_set_variable('real', 'F_XSTP', step             , IS_DIFFEV)
-      step = (ref_y(ref_dim(2))-ref_y(1))/FLOAT(ref_dim(2)-1)
+      step = (ref_y(ref_dim(2,1),1)-ref_y(1,1))/FLOAT(ref_dim(2,1)-1)
       CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
    ELSE
       IF(.NOT.ALLOCATED(ref_sigma )) THEN 
@@ -290,46 +290,46 @@ elseif(ku_ndims(ndata)==2) THEN         ! 2D data set
          RETURN
       ENDIF
 !
-      IF(ref_dim(1) /= nx(ndata) .OR. ref_dim(2) /= ny(ndata)) THEN
+      IF(ref_dim(1,1) /= nx(ndata) .OR. ref_dim(2,1) /= ny(ndata)) THEN
          ier_num = -6
          ier_typ = ER_FORT
          ier_msg(1) = 'SIGMA and DATA set differ in size'
          RETURN
       ENDIF
-      DO iiy=1,ref_dim(2)
-         DO iix=1,ref_dim(1)
-            ref_sigma (iix,iiy,iiz) = z (offz(ndata - 1) + (iix - 1)*ny(ndata) + iiy)
+      DO iiy=1,ref_dim(2,1)
+         DO iix=1,ref_dim(1,1)
+            ref_sigma (iix,iiy,iiz,1) = z (offz(ndata - 1) + (iix - 1)*ny(ndata) + iiy)
          ENDDO
       ENDDO
    ENDIF
 ELSEif(ku_ndims(ndata)==1) then          ! 1D data set
    IF(LDATA) THEN                      ! This is the data set
-      ref_dim(1) = lenc(ndata )
-      ref_dim(2) = 1
-      ref_dim(3) = 1
+      ref_dim(1,1) = lenc(ndata )
+      ref_dim(2,1) = 1
+      ref_dim(3,1) = 1
       ref_type = H5_1D_GEN
-      ALLOCATE(ref_data  (ref_dim(1),ref_dim(2), ref_dim(3)))
-      ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2), ref_dim(3)))
-      ALLOCATE(ref_x     (ref_dim(1)))
-      ALLOCATE(ref_y     (1         ))
-      ALLOCATE(ref_z     (1         ))
-      DO iix=1,ref_dim(1)
-         ref_data(iix,1, 1)   = y(offxy(ndata - 1) + iix)
-         ref_sigma (iix,1, 1) = ABS(dy(offxy(ndata - 1) + iix))
-         ref_x(iix)        = x(offxy(ndata - 1) + iix)
+      ALLOCATE(ref_data  (ref_dim(1,1),ref_dim(2,1), ref_dim(3,1),1))
+      ALLOCATE(ref_sigma (ref_dim(1,1),ref_dim(2,1), ref_dim(3,1),1))
+      ALLOCATE(ref_x     (ref_dim(1,1),1))
+      ALLOCATE(ref_y     (1           ,1))
+      ALLOCATE(ref_z     (1           ,1))
+      DO iix=1,ref_dim(1,1)
+         ref_data(iix,1, 1,1)   = y(offxy(ndata - 1) + iix)
+         ref_sigma (iix,1, 1,1) = ABS(dy(offxy(ndata - 1) + iix))
+         ref_x(iix,1)        = x(offxy(ndata - 1) + iix)
       ENDDO
-      IF(MINVAL(ref_sigma (:,1,1))==0.0) THEN
+      IF(MINVAL(ref_sigma (:,1,1,1))==0.0) THEN
          ier_num = -7
          ier_typ = ER_APPL
          ier_msg(1) = ' Check data and define non-zero sigma'
          RETURN
       ENDIF
-      ref_y(1) = 1.0
-      CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2)), IS_DIFFEV)
-      step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(ref_dim(1)-1)
+      ref_y(1,1) = 1.0
+      CALL def_set_variable('real', 'F_XMIN', ref_x(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1,1),1), IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMIN', ref_y(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2,1),1), IS_DIFFEV)
+      step = (ref_x(ref_dim(1,1),1)-ref_x(1,1))/FLOAT(ref_dim(1,1)-1)
       CALL def_set_variable('real', 'F_XSTP', step             , IS_DIFFEV)
       step = 1.0
       CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
@@ -340,15 +340,15 @@ ELSEif(ku_ndims(ndata)==1) then          ! 1D data set
          RETURN
       ENDIF
 !
-      IF(ref_dim(1) /= nx(ndata)) THEN
+      IF(ref_dim(1,1) /= nx(ndata)) THEN
          ier_num = -6
          ier_typ = ER_FORT
          ier_msg(1) = 'SIGMA data set differs in size'
          RETURN
       ENDIF
 !
-      DO iix=1,ref_dim(1)
-         ref_sigma (iix,1,1) = y (offxy(ndata - 1) + iix)
+      DO iix=1,ref_dim(1,1)
+         ref_sigma (iix,1,1,1) = y (offxy(ndata - 1) + iix)
       ENDDO
    ENDIF
 ENDIF
