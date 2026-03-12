@@ -37,7 +37,36 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 !
 INTEGER                              :: ianz
+INTEGER                              :: idata   ! Current data set
 INTEGER                              :: ndata 
+!
+integer, parameter :: NOPTIONAL = 1
+integer, parameter :: O_DATASET = 1
+character(len=   7), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(len=max(PREC_STRING,len(line))), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent  !opt. para present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 1 ! Number of values to calculate 
+!
+DATA oname  / 'dataset' /
+DATA loname /  7        /
+opara  =  (/ '1     '   /)   ! Always provide fresh default values
+lopara =  (/  1         /)
+owerte =  (/   1.0      /)
+!
+string = line
+length = len_trim(string)
+write(*,*) 'LINE  ', line(1:length)
+call get_params(line, ianz, cpara, lpara, MAXW, length)
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL, ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+idata = nint(owerte(O_DATASET))
+write(*,*) 'LINE  ', line(1:length)
+write(*,*) 'OPARA ', opara(O_DATASET)(1:lopara(O_DATASET)), ' <>', lopara(O_DATASET)
+write(*,*) ' IER ', ier_num, ier_typ
+call purge_optional(line, NOPTIONAL, oname, loname, opara, lopara, lpresent)
 !
 string = line
 !
@@ -59,8 +88,8 @@ IF(line(1:6) == 'kuplot') THEN
       ref_csigma_u = string
    ENDIF
 ELSE                               ! Presume a "data xy, filename "
-   call dgl5_reset            ! Queitly reset global data storage
-   iz = 1                     ! Quiety clear all KUPLOT arrays
+   if(ref_ndata == 0) call dgl5_reset   ! Quietly reset global data storage
+   iz = 1                               ! Quiety clear all KUPLOT arrays
    lni = .false.
    lh5 = .false.
    ikfirst = .true.
@@ -69,12 +98,14 @@ ELSE                               ! Presume a "data xy, filename "
       ref_load = line
       ref_kload = 0
       ref_load_u = string
+      ref_ndata = ref_ndata + 1
    ELSE
       ref_csigma = line
       ref_ksigma = 0
       ref_csigma_u = string
    ENDIF
    CALL do_load(line, length,.TRUE.)
+write(*,*) ' IER ', ier_num, ier_typ
    IF(ier_num/= 0) RETURN
    ndata = -1                 ! Will be updated to correct value in refine_load_kuplot
 ENDIF
@@ -111,6 +142,7 @@ INTEGER, INTENT(INOUT) :: ndata   ! no of data set to be transfered from KUPLOT
 LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE. ! Prevents user from deleting variables
 INTEGER :: iix, iiy, iiz                 ! Dummy loop variables
 integer :: i1, i2, j1, j2, k1, k2        ! Dummy loop variables
+integer :: i, j                          ! Dummy loop variables
 REAL(kind=PREC_DP)    :: step
 !
 iiz = 1
@@ -146,27 +178,27 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
 !write(*,*) ' LOADED DATA ', ik1_data_type==H5_BRAGG_I
       if(ik1_data_type==H5_BRAGG_I) then
 !
-         ref_dim(1) = 2*(max(abs(nint(ik1_x(1))),abs(nint(ik1_x(ik1_dims(1)))))) + 1
-         ref_dim(2) = 2*(max(abs(nint(ik1_y(1))),abs(nint(ik1_y(ik1_dims(2)))))) + 1
-         ref_dim(3) = 2*(max(abs(nint(ik1_z(1))),abs(nint(ik1_z(ik1_dims(3)))))) + 1
-         ref_dim    = ik1_dims
-         ALLOCATE(ref_data  (ref_dim(1),ref_dim(2),ref_dim(3)))
-         ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2),ref_dim(3)))
-         ALLOCATE(ref_x     (ref_dim(1)))
-         ALLOCATE(ref_y     (ref_dim(2)))
-         ALLOCATE(ref_z     (ref_dim(3)))
+         ref_dim(1,1) = 2*(max(abs(nint(ik1_x(1))),abs(nint(ik1_x(ik1_dims(1)))))) + 1
+         ref_dim(2,1) = 2*(max(abs(nint(ik1_y(1))),abs(nint(ik1_y(ik1_dims(2)))))) + 1
+         ref_dim(3,1) = 2*(max(abs(nint(ik1_z(1))),abs(nint(ik1_z(ik1_dims(3)))))) + 1
+         ref_dim(:,1)    = ik1_dims
+         ALLOCATE(ref_data  (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+         ALLOCATE(ref_sigma (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+         ALLOCATE(ref_x     (ref_dim(1,1),1))
+         ALLOCATE(ref_y     (ref_dim(2,1),1))
+         ALLOCATE(ref_z     (ref_dim(3,1),1))
          ref_data  =  0.0D0
          ref_sigma = -10000.0D0     ! Flags a missing data point
-         i1 =  (ref_dim(1)-1)/2 + nint(ik1_x(1)) + 1
-         j1 =  (ref_dim(2)-1)/2 + nint(ik1_y(1)) + 1
-         k1 =  (ref_dim(3)-1)/2 + nint(ik1_z(1)) + 1
+         i1 =  (ref_dim(1,1)-1)/2 + nint(ik1_x(1)) + 1
+         j1 =  (ref_dim(2,1)-1)/2 + nint(ik1_y(1)) + 1
+         k1 =  (ref_dim(3,1)-1)/2 + nint(ik1_z(1)) + 1
          i2 = i1 + ik1_dims(1) - 1
          j2 = j1 + ik1_dims(2) - 1
          k2 = k1 + ik1_dims(3) - 1
 !        ref_data (i1:i2, j1:j2, k1:k2) = ik1_data
 !        ref_sigma(i1:i2, j1:j2, k1:k2) = ik1_sigma
-         ref_data                       = ik1_data
-         ref_sigma                      = ik1_sigma
+         ref_data (:,:,:,1)             = ik1_data
+         ref_sigma(:,:,:,1)             = ik1_sigma
          where(ref_sigma<=0.0D0 .and. ref_sigma>-1000.0D0) 
             ref_sigma = 9D19
          end where
@@ -179,40 +211,40 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
 !        do iix=1,ref_dim(3)
 !           ref_z(iix) = -(ref_dim(3)-1)/2 + iix - 1
 !        enddo
-         ref_x = ik1_x
-         ref_y = ik1_y
-         ref_z = ik1_z
+         ref_x(:,1) = ik1_x
+         ref_y(:,1) = ik1_y
+         ref_z(:,1) = ik1_z
 !
       else
 !
-         ref_dim    = ik1_dims
-         ALLOCATE(ref_data  (ref_dim(1),ref_dim(2),ref_dim(3)))
-         ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2),ref_dim(3)))
-         ALLOCATE(ref_x     (ref_dim(1)))
-         ALLOCATE(ref_y     (ref_dim(2)))
-         ALLOCATE(ref_z     (ref_dim(3)))
-         ref_data = ik1_data
+         ref_dim(:,1)    = ik1_dims
+         ALLOCATE(ref_data  (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+         ALLOCATE(ref_sigma (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+         ALLOCATE(ref_x     (ref_dim(1,1),1))
+         ALLOCATE(ref_y     (ref_dim(2,1),1))
+         ALLOCATE(ref_z     (ref_dim(3,1),1))
+         ref_data(:,:,:,1) = ik1_data
          if(ik1_has_dval) then
-            ref_sigma = ik1_sigma
+            ref_sigma(:,:,:,1) = ik1_sigma
          else
-            ref_sigma = 1.0D0
+            ref_sigma(:,:,:,1) = 1.0D0
          endif
-         ref_x = ik1_x
-         ref_y = ik1_y
-         ref_z = ik1_z
+         ref_x(:,1) = ik1_x
+         ref_y(:,1) = ik1_y
+         ref_z(:,1) = ik1_z
       endif
       ref_type = ik1_data_type
-      CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2)), IS_DIFFEV)
-      CALL def_set_variable('real', 'F_ZMIN', ref_z(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_ZMAX', ref_z(ref_dim(3)), IS_DIFFEV)
-      step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(ref_dim(1)-1)
+      CALL def_set_variable('real', 'F_XMIN', ref_x(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1,1),1), IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMIN', ref_y(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2,1),1), IS_DIFFEV)
+      CALL def_set_variable('real', 'F_ZMIN', ref_z(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_ZMAX', ref_z(ref_dim(3,1),1), IS_DIFFEV)
+      step = (ref_x(ref_dim(1,1),1)-ref_x(1,1))/FLOAT(ref_dim(1,1)-1)
       CALL def_set_variable('real', 'F_XSTP', step             , IS_DIFFEV)
-      step = (ref_y(ref_dim(2))-ref_y(1))/FLOAT(ref_dim(2)-1)
+      step = (ref_y(ref_dim(2,1),1)-ref_y(1,1))/FLOAT(ref_dim(2,1)-1)
       CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
-      step = (ref_z(ref_dim(3))-ref_z(1))/FLOAT(ref_dim(3)-1)
+      step = (ref_z(ref_dim(3,1),1)-ref_z(1,1))/FLOAT(ref_dim(3,1)-1)
       CALL def_set_variable('real', 'F_ZSTP', step             , IS_DIFFEV)
 
    else cond_data3                     ! This is sigma
@@ -222,14 +254,14 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
          exit cond_data3
       ENDIF
 !
-      IF(ref_dim(1) /= ik1_dims(1) .OR. ref_dim(2) /= ik1_dims(2) .or. &
-         ref_dim(3) /= ik1_dims(3) ) THEN
+      IF(ref_dim(1,1) /= ik1_dims(1) .OR. ref_dim(2,1) /= ik1_dims(2) .or. &
+         ref_dim(3,1) /= ik1_dims(3) ) THEN
          ier_num = -6
          ier_typ = ER_FORT
          ier_msg(1) = 'SIGMA and DATA set differ in size'
          exit cond_data3
       ENDIF
-      ref_sigma = ik1_data    ! copy these data as sigma
+      ref_sigma(:,:,:,1) = ik1_data    ! copy these data as sigma
 !
       deallocate(ik1_data)
       if(allocated(ik1_sigma)) deallocate(ik1_sigma)
@@ -249,34 +281,34 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
 !
 elseif(ku_ndims(ndata)==2) THEN         ! 2D data set
    IF(LDATA) THEN                      ! This is the data set
-      ref_dim(1) = nx(ndata )
-      ref_dim(2) = ny(ndata )
-      ref_dim(3) = 1
-      ALLOCATE(ref_data  (ref_dim(1),ref_dim(2),ref_dim(3)))
-      ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2),ref_dim(3)))
-      ALLOCATE(ref_x     (ref_dim(1)))
-      ALLOCATE(ref_y     (ref_dim(2)))
-      ALLOCATE(ref_z     (ref_dim(3)))
+      ref_dim(1,1) = nx(ndata )
+      ref_dim(2,1) = ny(ndata )
+      ref_dim(3,1) = 1
+      ALLOCATE(ref_data  (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+      ALLOCATE(ref_sigma (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
+      ALLOCATE(ref_x     (ref_dim(1,1),1))
+      ALLOCATE(ref_y     (ref_dim(2,1),1))
+      ALLOCATE(ref_z     (ref_dim(3,1),1))
 !
-      DO iiy=1,ref_dim(2)
-         DO iix=1,ref_dim(1)
-            ref_data(iix,iiy, 1)  = z (offz(ndata - 1) + (iix - 1)*ny(ndata) + iiy)
-            ref_sigma (iix,iiy, 1) = 1.0000D0  ! dz(offxy(iz - 1) + iix) TEMPORARY unit weights
+      DO iiy=1,ref_dim(2,1)
+         DO iix=1,ref_dim(1,1)
+            ref_data(iix,iiy, 1,1)  = z (offz(ndata - 1) + (iix - 1)*ny(ndata) + iiy)
+            ref_sigma (iix,iiy, 1,1) = 1.0000D0  ! dz(offxy(iz - 1) + iix) TEMPORARY unit weights
          ENDDO
-         ref_y(iiy)      = y(offxy(ndata - 1) + iiy)
+         ref_y(iiy,1)      = y(offxy(ndata - 1) + iiy)
       ENDDO
-      DO iix=1,ref_dim(1)
-         ref_x(iix)      = x(offxy(ndata - 1) + iix)
+      DO iix=1,ref_dim(1,1)
+         ref_x(iix,1)      = x(offxy(ndata - 1) + iix)
       ENDDO
       ref_z = 1.0
       ref_type = H5_2D_GEN
-      CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2)), IS_DIFFEV)
-      step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(ref_dim(1)-1)
+      CALL def_set_variable('real', 'F_XMIN', ref_x(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1,1),1), IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMIN', ref_y(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2,1),1), IS_DIFFEV)
+      step = (ref_x(ref_dim(1,1),1)-ref_x(1,1))/FLOAT(ref_dim(1,1)-1)
       CALL def_set_variable('real', 'F_XSTP', step             , IS_DIFFEV)
-      step = (ref_y(ref_dim(2))-ref_y(1))/FLOAT(ref_dim(2)-1)
+      step = (ref_y(ref_dim(2,1),1)-ref_y(1,1))/FLOAT(ref_dim(2,1)-1)
       CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
    ELSE
       IF(.NOT.ALLOCATED(ref_sigma )) THEN 
@@ -285,46 +317,46 @@ elseif(ku_ndims(ndata)==2) THEN         ! 2D data set
          RETURN
       ENDIF
 !
-      IF(ref_dim(1) /= nx(ndata) .OR. ref_dim(2) /= ny(ndata)) THEN
+      IF(ref_dim(1,1) /= nx(ndata) .OR. ref_dim(2,1) /= ny(ndata)) THEN
          ier_num = -6
          ier_typ = ER_FORT
          ier_msg(1) = 'SIGMA and DATA set differ in size'
          RETURN
       ENDIF
-      DO iiy=1,ref_dim(2)
-         DO iix=1,ref_dim(1)
-            ref_sigma (iix,iiy,iiz) = z (offz(ndata - 1) + (iix - 1)*ny(ndata) + iiy)
+      DO iiy=1,ref_dim(2,1)
+         DO iix=1,ref_dim(1,1)
+            ref_sigma (iix,iiy,iiz,1) = z (offz(ndata - 1) + (iix - 1)*ny(ndata) + iiy)
          ENDDO
       ENDDO
    ENDIF
 ELSEif(ku_ndims(ndata)==1) then          ! 1D data set
    IF(LDATA) THEN                      ! This is the data set
-      ref_dim(1) = lenc(ndata )
-      ref_dim(2) = 1
-      ref_dim(3) = 1
+      ref_dim(1,1) = lenc(ndata )
+      ref_dim(2,1) = 1
+      ref_dim(3,1) = 1
       ref_type = H5_1D_GEN
-      ALLOCATE(ref_data  (ref_dim(1),ref_dim(2), ref_dim(3)))
-      ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2), ref_dim(3)))
-      ALLOCATE(ref_x     (ref_dim(1)))
-      ALLOCATE(ref_y     (1         ))
-      ALLOCATE(ref_z     (1         ))
-      DO iix=1,ref_dim(1)
-         ref_data(iix,1, 1)   = y(offxy(ndata - 1) + iix)
-         ref_sigma (iix,1, 1) = ABS(dy(offxy(ndata - 1) + iix))
-         ref_x(iix)        = x(offxy(ndata - 1) + iix)
+      ALLOCATE(ref_data  (ref_dim(1,1),ref_dim(2,1), ref_dim(3,1),1))
+      ALLOCATE(ref_sigma (ref_dim(1,1),ref_dim(2,1), ref_dim(3,1),1))
+      ALLOCATE(ref_x     (ref_dim(1,1),1))
+      ALLOCATE(ref_y     (1           ,1))
+      ALLOCATE(ref_z     (1           ,1))
+      DO iix=1,ref_dim(1,1)
+         ref_data(iix,1, 1,1)   = y(offxy(ndata - 1) + iix)
+         ref_sigma (iix,1, 1,1) = ABS(dy(offxy(ndata - 1) + iix))
+         ref_x(iix,1)        = x(offxy(ndata - 1) + iix)
       ENDDO
-      IF(MINVAL(ref_sigma (:,1,1))==0.0) THEN
+      IF(MINVAL(ref_sigma (:,1,1,1))==0.0) THEN
          ier_num = -7
          ier_typ = ER_APPL
          ier_msg(1) = ' Check data and define non-zero sigma'
          RETURN
       ENDIF
-      ref_y(1) = 1.0
-      CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
-      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2)), IS_DIFFEV)
-      step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(ref_dim(1)-1)
+      ref_y(1,1) = 1.0
+      CALL def_set_variable('real', 'F_XMIN', ref_x(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1,1),1), IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMIN', ref_y(1,1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2,1),1), IS_DIFFEV)
+      step = (ref_x(ref_dim(1,1),1)-ref_x(1,1))/FLOAT(ref_dim(1,1)-1)
       CALL def_set_variable('real', 'F_XSTP', step             , IS_DIFFEV)
       step = 1.0
       CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
@@ -335,18 +367,130 @@ ELSEif(ku_ndims(ndata)==1) then          ! 1D data set
          RETURN
       ENDIF
 !
-      IF(ref_dim(1) /= nx(ndata)) THEN
+      IF(ref_dim(1,1) /= nx(ndata)) THEN
          ier_num = -6
          ier_typ = ER_FORT
          ier_msg(1) = 'SIGMA data set differs in size'
          RETURN
       ENDIF
 !
-      DO iix=1,ref_dim(1)
-         ref_sigma (iix,1,1) = y (offxy(ndata - 1) + iix)
+      DO iix=1,ref_dim(1,1)
+         ref_sigma (iix,1,1,1) = y (offxy(ndata - 1) + iix)
       ENDDO
    ENDIF
 ENDIF
+!
+!  Add to data_struc
+if(ku_ndims(ndata)==3) then
+   write(*,*) ' Node Number ', ik1_node_number
+   call dgl5_set_temp(.false.)                    ! Turn temporary status off
+   return
+endif
+!
+call dgl5_new_node
+ik1_node_number = dgl5_get_number()
+write(*,*) ' added node ', ik1_node_number
+!
+! Copy data into data_struc
+!
+if(ku_ndims(ndata)==2) then          ! 2D data set
+   ik1_infile = fname(ndata)
+   ref_dim(1,1) = nx(ndata)
+   ref_dim(2,1) = ny(ndata)
+   ref_dim(3,1) = 1
+   if(allocated(ik1_x)) deallocate(ik1_x)
+   if(allocated(ik1_y)) deallocate(ik1_y)
+   if(allocated(ik1_z)) deallocate(ik1_z)
+   if(allocated(ik1_dx)) deallocate(ik1_dx)
+   if(allocated(ik1_dy)) deallocate(ik1_dy)
+   if(allocated(ik1_dz)) deallocate(ik1_dz)
+   if(allocated(ik1_data))  deallocate(ik1_data)
+   if(allocated(ik1_sigma)) deallocate(ik1_sigma)
+   allocate(ik1_x(1:ref_dim(1,1)))
+   allocate(ik1_y(1:ref_dim(2,1)))
+   allocate(ik1_z(1:1))
+   allocate(ik1_dx(1:1))
+   allocate(ik1_dy(1:1))
+   allocate(ik1_dz(1:1))
+   allocate(ik1_data(1:ref_dim(1,1), 1:ref_dim(2,1), 1:ref_dim(3,1)))
+   allocate(ik1_sigma(1,1,1))
+   ik1_data_type = H5_2D_GEN
+   ik1_nlayer    = 1
+   ik1_is_direct = .true.
+   ik1_is_grid   = .true.
+   ik1_has_dxyz  = .false.
+   ik1_has_dval  = .false.
+   ik1_calc_coor = .false.
+   ik1_use_coor  = 1
+   ik1_corners   = 0.0_PREC_DP
+   ik1_vectors   = 0.0_PREC_DP
+   ik1_x   (1:ref_dim(1,1))     = x(offxy(ndata-1)+1:offxy(ndata-1)+lenc(ndata))
+   ik1_y   (1:ref_dim(1,1))     = y(offxy(ndata-1)+1:offxy(ndata-1)+lenc(ndata))
+   do i=1, nx(ndata)
+      do j=1,ny(ndata)
+         ik1_data(i,j,1) = z(offz(ndata-1) + (i - 1) * ny (ndata) + j)
+      enddo
+   enddo
+   ik1_sigma     = 0.0_PREC_DP
+   ik1_llims     = 0.0_PREC_DP
+   ik1_steps     = 0.0_PREC_DP
+   ik1_steps_full= 0.0_PREC_DP
+!
+   call dgl5_set_node(ik1_infile, ik1_data_type, ik1_nlayer, ik1_is_direct, ku_ndims(ndata), ref_dim ,         &
+                   ik1_is_grid, ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, &
+                   ik1_corners, ik1_vectors,&
+                   ik1_a0(1:3), ik1_win(1:3), ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy,  &
+                   ik1_dz,     ik1_data               ,ik1_sigma, ik1_llims,      &
+                   ik1_steps, ik1_steps_full)
+   call dgl5_set_temp(.false.)                    ! Turn temporary status off
+elseif(ku_ndims(ndata)==1) then          ! 1D data set
+   ik1_infile = fname(ndata)
+   ref_dim(1,1) = lenc(ndata)
+   ref_dim(2,1) = 1
+   ref_dim(3,1) = 1
+   if(allocated(ik1_x)) deallocate(ik1_x)
+   if(allocated(ik1_y)) deallocate(ik1_y)
+   if(allocated(ik1_z)) deallocate(ik1_z)
+   if(allocated(ik1_dx)) deallocate(ik1_dx)
+   if(allocated(ik1_dy)) deallocate(ik1_dy)
+   if(allocated(ik1_dz)) deallocate(ik1_dz)
+   if(allocated(ik1_data))  deallocate(ik1_data)
+   if(allocated(ik1_sigma)) deallocate(ik1_sigma)
+   allocate(ik1_x(1:ref_dim(1,1)))
+   allocate(ik1_y(1:1))
+   allocate(ik1_z(1:1))
+   allocate(ik1_dx(1:1))
+   allocate(ik1_dy(1:1))
+   allocate(ik1_dz(1:1))
+   allocate(ik1_data(1:ref_dim(1,1), 1:ref_dim(2,1), 1:ref_dim(3,1)))
+   allocate(ik1_sigma(1,1,1))
+   ik1_data_type = H5_1D_GEN
+   ik1_nlayer    = 1
+   ik1_is_direct = .true.
+   ik1_is_grid   = .true.
+   ik1_has_dxyz  = .false.
+   ik1_has_dval  = .false.
+   ik1_calc_coor = .false.
+   ik1_use_coor  = 1
+   ik1_corners   = 0.0_PREC_DP
+   ik1_vectors   = 0.0_PREC_DP
+   ik1_x   (1:ref_dim(1,1))     = x(offxy(ndata-1)+1:offxy(ndata-1)+lenc(ndata))
+   ik1_y         = 0.0_PREC_DP
+   ik1_z         = 0.0_PREC_DP
+   ik1_data(1:ref_dim(1,1),1,1) = y(offxy(ndata-1)+1:offxy(ndata-1)+lenc(ndata))
+   ik1_sigma     = 0.0_PREC_DP
+   ik1_llims     = 0.0_PREC_DP
+   ik1_steps     = 0.0_PREC_DP
+   ik1_steps_full= 0.0_PREC_DP
+!
+   call dgl5_set_node(ik1_infile, ik1_data_type, ik1_nlayer, ik1_is_direct, ku_ndims(ndata), ref_dim ,         &
+                   ik1_is_grid, ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, &
+                   ik1_corners, ik1_vectors,&
+                   ik1_a0(1:3), ik1_win(1:3), ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy,  &
+                   ik1_dz,     ik1_data               ,ik1_sigma, ik1_llims,      &
+                   ik1_steps, ik1_steps_full)
+   call dgl5_set_temp(.false.)                    ! Turn temporary status off
+endif
 !
 ! Scratch all KUPLOT data beyond current data set
 !

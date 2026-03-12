@@ -141,7 +141,7 @@ ENDIF
 !
 CALL show_fit_erg(iounit, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n,   &
            refine_fix_n, &
-           ref_dim(1)*ref_dim(2),      &
+           ref_dim(1,1)*ref_dim(2,1),      &
            refine_mac, refine_mac_l,   &
            ref_load, ref_kload, ref_csigma, ref_ksigma, lcovar,           &
            refine_chisqr, refine_conf, &

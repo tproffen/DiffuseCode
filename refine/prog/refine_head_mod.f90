@@ -30,10 +30,22 @@ subroutine accumulate_header(line)
 !-
 !  Copy the line into the header, expand if needed
 !+
+!
+use blanks_mod
+!
 implicit none
 !
 character(len=*), intent(in) :: line
 character(len=PREC_STRING), dimension(:), allocatable :: tmp ! Actual header lines
+!
+character(len=PREC_STRING) :: string
+integer                    :: length
+!
+string = line
+length = len_trim(string)
+call rem_leading_bl(string, length)
+!
+if(line(1:8)=='@newpara' .or. line(1:7)=='newpara') return   ! Ignore 'newpara*'
 !
 if(refine_head_i) then                ! Initialize header
    if(allocated(refine_header)) deallocate(refine_header)

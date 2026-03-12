@@ -62,12 +62,13 @@ INTEGER            , DIMENSION(MAXF) :: llpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXF) :: wwerte
 REAL(KIND=PREC_DP) :: temp_val     ! temporary value from value: statement
 !
-INTEGER, PARAMETER :: NOPTIONAL = 7
+INTEGER, PARAMETER :: NOPTIONAL = 8
 INTEGER, PARAMETER :: OSHIFT    = 1
-INTEGER, PARAMETER :: ONDERIV   = 2
-INTEGER, PARAMETER :: OVALUE    = 3
-INTEGER, PARAMETER :: OSTATUS   = 4
-INTEGER, PARAMETER :: ORANGE    = 5
+INTEGER, PARAMETER :: OMOVE     = 2
+INTEGER, PARAMETER :: ONDERIV   = 3
+INTEGER, PARAMETER :: OVALUE    = 4
+INTEGER, PARAMETER :: OSTATUS   = 5
+INTEGER, PARAMETER :: ORANGE    = 6
 !                     Last two parameters are for compatibility with DIFFEV
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
@@ -75,13 +76,13 @@ INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate
+INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to calculate
 !
-DATA oname  / 'shift'  , 'points' ,  'value ' , 'status'  ,  'range' , 'init  ', 'type  ' /
-DATA loname /  5       ,  6       ,   5       ,  6        ,   5      ,  4      ,  4       /
-opara  =  (/ '0.001000', '3.000000', '-1.00000', 'free    ',  '0.000000', 'no      ', 'real    '/)   ! Always provide fresh default values
-lopara =  (/  8        ,  8        ,  8        ,  8        ,   8        ,  2        ,  4        /)
-owerte =  (/  0.00300  ,  3.0      ,  -1.0     ,  0.0      ,   0.0      ,  0.0      ,  0.0      /)
+DATA oname  / 'shift'  , 'move'   ,  'points' ,  'value ' , 'status'  ,  'range' , 'init  ', 'type  ' /
+DATA loname /  5       ,  4       ,   6       ,   5       ,  6        ,   5      ,  4      ,  4       /
+opara  =  (/ '0.010000', '0.001000', '3.000000', '-1.00000', 'free    ',  '0.000000', 'no      ', 'real    '/)   ! Always provide fresh default values
+lopara =  (/  8        ,  8        ,  8        ,  8        ,  8        ,   8        ,  2        ,  4        /)
+owerte =  (/  0.01000  ,  0.001000 ,  3.0      ,  -1.0     ,  0.0      ,   0.0      ,  0.0      ,  0.0      /)
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 IF(ier_num/=0) RETURN
@@ -112,11 +113,11 @@ ENDIF
 !
 ! Check shift for special parameter names
 !
-if_shift: if(.not.lpresent(OSHIFT)) then                            ! User did not specify shift:
+if_shift: if(.not.lpresent(OSHIFT).and. .not.lpresent(OMOVE) ) then                            ! User did not specify shift:
    do i=1,REF_MAXPARAM_SPC                                ! Compare to special parameters
       if(pname             (1:len_trim(refine_spc_name(i))) ==                  &
          refine_spc_name(i)(1:len_trim(refine_spc_name(i)))) then
-         owerte(OSHIFT) = refine_spc_shift(i)             ! Take default value for special parameter
+         owerte(OSHIFT) = abs(refine_spc_shift(i))             ! Take default value for special parameter
          exit if_shift
       endif
    enddo
@@ -271,7 +272,11 @@ IF(lrefine) THEN
    ENDIF
    refine_range(ipar,1) = range_low
    refine_range(ipar,2) = range_high
-   refine_shift(ipar)   = owerte(OSHIFT)
+   if(lpresent(OMOVE)) then
+      refine_shift(ipar)   = -abs(owerte(OMOVE))
+   else
+      refine_shift(ipar)   =  abs(owerte(OSHIFT))
+   endif
    refine_nderiv(ipar)  = nint(owerte(ONDERIV))
    IF(opara(OVALUE)/='current') THEN                      ! User did not specify "current"
 !      READ(opara(OVALUE)(1:lopara(OVALUE)), *) refine_p(ipar)
@@ -285,7 +290,11 @@ IF(lrefine) THEN
          IF(i==refine_fix_n) THEN              ! This is the last parameter
             refine_fixed(i) = ' '
             refine_f    (i) = 1.0D0
-            refine_shift_fix(i) = owerte(OSHIFT)
+            if(lpresent(OMOVE)) then
+               refine_shift_fix(i) = -abs(owerte(OSHIFT))
+            else
+               refine_shift_fix(i) =  abs(owerte(OSHIFT))
+            endif
             refine_nderiv_fix(i) = nint(owerte(ONDERIV))
             refine_range_fix(ipar,1) = range_low
             refine_range_fix(ipar,2) = range_high
@@ -325,7 +334,11 @@ ELSE
       refine_fix_n = refine_fix_n + 1
       refine_fixed(refine_fix_n) = pname
       refine_f(refine_fix_n)     = temp_val
-      refine_shift_fix(refine_fix_n) = owerte(OSHIFT)
+      if(lpresent(OMOVE)) then
+        refine_shift_fix(refine_fix_n) =  -abs(owerte(OSHIFT))
+      else
+        refine_shift_fix(refine_fix_n) =   abs(owerte(OSHIFT))
+      endif
       refine_nderiv_fix(refine_fix_n) = nint(owerte(ONDERIV))
       refine_range_fix(refine_fix_n,1)= range_low
       refine_range_fix(refine_fix_n,2)= range_high

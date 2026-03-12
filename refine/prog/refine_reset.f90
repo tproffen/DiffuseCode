@@ -16,6 +16,8 @@ use refine_head_mod
 use refine_log_mod
 USE refine_params_mod
 USE do_variable_mod
+!
+use lib_data_struc_h5
 USE precision_mod
 !
 IMPLICIT NONE
@@ -23,6 +25,12 @@ IMPLICIT NONE
 CHARACTER (LEN=PREC_STRING)                   :: zeile
 !
 INTEGER              :: lcomm
+!
+! Clear dgl5 data structure
+!
+if(ref_ndata>0) then      ! We have data clear all is_temp flags, purge
+   call dgl5_clear_temp
+endif
 !
 ! Remove all parameter names from the variable entry
 !
@@ -73,6 +81,7 @@ ref_load_u  = ' '  ! Load string data
 ref_csigma_u= ' '  ! Load string Sigma's
 ref_load    = ' '  ! Load string data
 ref_csigma  = ' '  ! Load string Sigma's
+ref_ndata   = 0    ! Number of data sets in REFINE
 ref_kload   = 0    ! Data set within KUPLOT
 ref_ksigma  = 0    ! Sigma set within KUPLOT
 ref_kupl    = 0    ! Data set within KUPLOT that needs to be kept

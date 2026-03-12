@@ -152,7 +152,7 @@ DO i=1,refine_par_n
 ENDDO
       
 IF(refine_fwhm(0)) THEN        ! Eta and Pu,v,w are used
-   IF(.NOT.refine_constrain_test_fwhm(r_u,r_v,r_w, EPS, ref_x(1), ref_x(ref_dim(1)))) THEN
+   IF(.NOT.refine_constrain_test_fwhm(r_u,r_v,r_w, EPS, ref_x(1,1), ref_x(ref_dim(1,1),1))) THEN
 !     WRITE(output_io, 2000) 'P_eta',r_eta
       WRITE(output_io, 2100) 'u,v,w', r_u, r_v, r_w
       ier_num = -10

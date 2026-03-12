@@ -32,6 +32,8 @@ REAL(kind=PREC_DP),DIMENSION(:,:), ALLOCATABLE :: refine_alpha        ! temporar
 REAL(kind=PREC_DP),DIMENSION(:  ), ALLOCATABLE :: refine_beta         ! temporary parameter shift
 REAL(kind=PREC_DP),DIMENSION(:)  , ALLOCATABLE :: refine_shift        ! P*shift gives shift to calc derivative
 REAL(kind=PREC_DP),DIMENSION(:)  , ALLOCATABLE :: refine_shift_fix    ! P*shift gives shift to calc derivative, fixed param
+!REAL(kind=PREC_DP),DIMENSION(:)  , ALLOCATABLE :: refine_move         ! P+move  gives shift to calc derivative
+!REAL(kind=PREC_DP),DIMENSION(:)  , ALLOCATABLE :: refine_move_fix     ! P+move  gives shift to calc derivative, fixed param
 INTEGER          , DIMENSION(:)  , ALLOCATABLE :: refine_nderiv       ! Number of p+n*DELTA to calc derivative
 INTEGER          , DIMENSION(:)  , ALLOCATABLE :: refine_nderiv_fix   ! Number of p+n*DELTA to calc derivative, fixed param
 INTEGER          , DIMENSION(:)  , ALLOCATABLE :: refine_kderiv       ! KUPLOT data set that has derivative
@@ -58,24 +60,24 @@ data refine_spc_delta /   &      ! Default shifts if Parameter value is zero
      1.0D-5,   &   ! P_v
      1.0D-5 /      ! P_w
 data refine_spc_shift /   &      ! Default relative shifts if "shift:" is omitted
-     3.0D-4,   &   ! P_eta_l
-     3.0D-5,   &   ! P_eta_q
+     1.0D-2,   &   ! P_eta_l
+     1.0D-5,   &   ! P_eta_q
      1.0D-3,   &   ! P_biso
      1.0D-3,   &   ! P_lat
      1.0D-1,   &   ! P_dia
-     1.0D-3,   &   ! P_eta
-     1.0D-3,   &   ! P_u
-     1.0D-3,   &   ! P_v
-     1.0D-3 /      ! P_w
+     1.0D-2,   &   ! P_eta
+     1.0D-2,   &   ! P_u
+     1.0D-2,   &   ! P_v
+     1.0D-2 /      ! P_w
 data refine_spc_nderiv /   &      ! Default derivative points if "points:" is omitted
      3     ,   &   ! P_eta_l
      3     ,   &   ! P_eta_q
      3     ,   &   ! P_biso
      3     ,   &   ! P_lat
-     5     ,   &   ! P_dia
+     3     ,   &   ! P_dia
      3     ,   &   ! P_eta
-     5     ,   &   ! P_u
-     5     ,   &   ! P_v
-     5      /      ! P_w
+     3     ,   &   ! P_u
+     3     ,   &   ! P_v
+     3      /      ! P_w
 !
 END MODULE refine_params_mod

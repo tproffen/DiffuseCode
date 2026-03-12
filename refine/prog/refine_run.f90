@@ -124,9 +124,9 @@ IF(opara(OPLOT) /= ' ') THEN
   refine_plot_mac       = opara(OPLOT)
 ENDIF
 !
-ALLOCATE(refine_calc  (ref_dim(1), ref_dim(2), ref_dim(3)))
-ALLOCATE(refine_temp  (ref_dim(1), ref_dim(2), ref_dim(3)))
-ALLOCATE(refine_derivs(ref_dim(1), ref_dim(2), ref_dim(3), refine_par_n))
+ALLOCATE(refine_calc  (ref_dim(1,1), ref_dim(2,1), ref_dim(3,1)))
+ALLOCATE(refine_temp  (ref_dim(1,1), ref_dim(2,1), ref_dim(3,1)))
+ALLOCATE(refine_derivs(ref_dim(1,1), ref_dim(2,1), ref_dim(3,1), refine_par_n))
 IF(linit) THEN
   IF(ALLOCATED(refine_cl)) DEALLOCATE(refine_cl)
   ALLOCATE(refine_cl(refine_par_n, refine_par_n))
@@ -144,16 +144,16 @@ ENDIF
 !
 CALL gl_set_use(.TRUE.)          ! Turn usage of global data on
 CALL gl_set_npara(refine_par_n)  ! Define number of parameters
-dimen(1) = ref_dim(1)
-dimen(2) = ref_dim(2)
-dimen(3) = ref_dim(3)
+dimen(1) = ref_dim(1,1)
+dimen(2) = ref_dim(2,1)
+dimen(3) = ref_dim(3,1)
 dimen(4) = refine_par_n
 CALL gl_alloc(dimen)             ! Turn usage of global data on
-call gl_set_data(dimen(1),dimen(2), dimen(3), -2, ref_data( :,:,:))
-call gl_set_data(dimen(1),dimen(2), dimen(3), -3, ref_sigma(:,:,:))
-call gl_set_x(dimen(1), ref_x)
-call gl_set_y(dimen(2), ref_y)
-call gl_set_z(dimen(3), ref_z)
+call gl_set_data(dimen(1),dimen(2), dimen(3), -2, ref_data( :,:,:,1))
+call gl_set_data(dimen(1),dimen(2), dimen(3), -3, ref_sigma(:,:,:,1))
+call gl_set_x(dimen(1), ref_x(:,1))
+call gl_set_y(dimen(2), ref_y(:,1))
+call gl_set_z(dimen(3), ref_z(:,1))
 !
 !
 diffev_l_get_random_state = l_get_random_state
@@ -218,7 +218,7 @@ main:IF(ier_num==0) THEN
       IF(ier_num/=0) EXIT main
       refine_f(i) = werte(1)
    ENDDO
-   ndata = ref_dim(1)*ref_dim(2)
+   ndata = ref_dim(1,1)*ref_dim(2,1)
    CALL show_fit_erg(output_io, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n,   &
                      ndata, refine_mac, refine_mac_l, ref_load, ref_kload,         &
                      ref_csigma, ref_ksigma, .FALSE., refine_chisqr, refine_conf,  &
@@ -287,7 +287,7 @@ CHARACTER(LEN=*)  , DIMENSION(MAXP)                  , INTENT(IN)  :: par_names 
 REAL(kind=PREC_DP), DIMENSION(MAXP, 2               ), INTENT(IN)  :: prange      ! Allowed parameter range
 REAL(kind=PREC_DP), DIMENSION(MAXP )                 , INTENT(IN)  :: p_shift   ! Parameter shift for deriv
 INTEGER           , DIMENSION(MAXP )                 , INTENT(IN)  :: p_nderiv  ! Number of points for derivative
-INTEGER           , DIMENSION(3)                     , INTENT(IN)  :: data_dim     ! Data array dimensions
+INTEGER           , DIMENSION(3,1)                     , INTENT(IN)  :: data_dim     ! Data array dimensions
 INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
 REAL(kind=PREC_DP)                                                 , INTENT(OUT) :: f       ! Function value at (ix,iy)
 REAL(kind=PREC_DP), DIMENSION(NPARA)                 , INTENT(OUT) :: df      ! Function derivatives at (ix,iy)
@@ -340,8 +340,8 @@ initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user 
    CALL refine_save_seeds             ! Save current random number seeds
    CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
                      data_dim, refine_calc)
-   CALL gl_set_data(data_dim(1), data_dim(2), data_dim(3), -1,  &
-        refine_calc(1:data_dim(1),1:data_dim(2),1:data_dim(3)))
+   CALL gl_set_data(data_dim(1,1), data_dim(2,1), data_dim(3,1), -1,  &
+        refine_calc(1:data_dim(1,1),1:data_dim(2,1),1:data_dim(3,1)))
 !
    IF(ier_num /= 0) RETURN
 !
@@ -460,7 +460,7 @@ implicit none
 integer , intent(in) :: NPARA    ! Total number of parameter
 integer , intent(in) :: MAXP     ! Max  number of parameters
 integer , intent(in) :: REF_MAXPARAM_SPC     ! Max  number of special parameters
-integer, dimension(3)    , intent(in) :: data_dim         ! Data dimensions
+integer, dimension(3,1)    , intent(in) :: data_dim         ! Data dimensions
 integer , intent(in) :: k        ! Current derivative number
 real(kind=PREC_DP)        , dimension(MAXP)            , intent(in) :: p                ! Parameter values
 character(len=*)          , dimension(MAXP)            , intent(in)  :: par_names    ! Parameter names
@@ -475,7 +475,7 @@ integer                                                , intent(inout) :: refine
 integer                                                , intent(in) :: kupl_last     
 !logical           , dimension(NPARA), intent(in) :: gl_is_der        ! Derivative has been calculated analytically
 !real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3))  , intent(inout) :: refine_temp           ! caclulated value
-real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3),NPARA) , intent(out) :: refine_derivs         ! caclulated derivatives
+real(kind=PREC_DP)        , dimension(data_dim(1,1), data_dim(2,1), data_dim(3,1),NPARA) , intent(out) :: refine_derivs         ! caclulated derivatives
 !integer                                , intent(out) :: l_ier_num     
 !integer                                , intent(out) :: l_ier_typ     
 !character         , dimension(7)       , intent(out) :: l_ier_msg     
@@ -494,19 +494,23 @@ real(kind=PREC_DP), dimension(3,3)  :: imat   ! Inverse of xmax
 real(kind=PREC_DP), dimension(3)    :: avec   ! Inverse of xmax
 real(kind=PREC_DP), dimension(3)    :: yvec   ! Inverse of xmax
 !
-ALLOCATE(refine_temp(1:data_dim(1), 1:data_dim(2), 1:data_dim(3)))
+ALLOCATE(refine_temp(1:data_dim(1,1), 1:data_dim(2,1), 1:data_dim(3,1)))
 !
 is_deriv: IF(gl_is_der(k)) THEN
-   CALL gl_get_data(k,  data_dim(1),   data_dim(2),   data_dim(3), &
-        refine_derivs(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), k))
+   CALL gl_get_data(k,  data_dim(1,1),   data_dim(2,1),   data_dim(3,1), &
+        refine_derivs(1:data_dim(1,1), 1:data_dim(2,1), 1:data_dim(3,1), k))
 ELSE is_deriv
-   ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), -2:2))
+   ALLOCATE(refine_tttt(1:data_dim(1,1), 1:data_dim(2,1), 1:data_dim(3,1), -2:2))
          nder = 1                     ! First point is at P(k)
          dvec(:) = 0.0
          lvec(:) = .FALSE.
          dvec(0) = p(k)               ! Store parameter value
          if_delta: IF(p(k)/=0.0) THEN
-            delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+            if(p_shift(k)<0.0D0) then     ! An additive variation is requested
+               delta = ABS(     p_shift(k))  ! An additive shift is requested
+            else
+               delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+            endif
          ELSE if_delta
             do i=1, REF_MAXPARAM_SPC      ! Check for special names
                if(refine_params  (k)(1:len_trim(refine_spc_name(i)))==          &
@@ -515,7 +519,11 @@ ELSE is_deriv
                   exit if_delta
                endif
             enddo
-            delta = 1.0D-4                ! Default delta for unknown variables
+            if(p_shift(k)<0.0D0) then     ! An additive variation is requested
+               delta = ABS(     p_shift(k))  ! An additive shift is requested
+            else
+               delta = 1.0D-4                ! Default delta for unknown variables
+            endif
          ENDIF if_delta
 !
 !                                     ! Test at P + DELTA
@@ -588,9 +596,9 @@ ELSE is_deriv
                DEALLOCATE(refine_tttt)
                exit is_deriv
             ENDIF
-            do iiz = 1, data_dim(3)
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
+            do iiz = 1, data_dim(3,1)
+            DO iiy=1, data_dim(2,1)
+               DO iix=1, data_dim(1,1)
                   refine_tttt(iix,iiy,iiz,l) =  refine_temp(iix,iiy,iiz)
                ENDDO
             ENDDO
@@ -611,9 +619,9 @@ call refine_rvalue_tttt(data_dim, refine_tttt, dvec)
          CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
 !
          IF(nder==5) THEN             ! Got all five  points for derivative
-            do iiz=1, data_dim(3)
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
+            do iiz=1, data_dim(3,1)
+            DO iiy=1, data_dim(2,1)
+               DO iix=1, data_dim(1,1)
                   refine_derivs(iix, iiy, iiz, k) = (-1.0*refine_tttt(iix,iiy,iiz, 2)   &
                                                      +8.0*refine_tttt(iix,iiy,iiz, 1)   &
                                                      -8.0*refine_tttt(iix,iiy,iiz,-1)   &
@@ -650,9 +658,9 @@ call refine_rvalue_tttt(data_dim, refine_tttt, dvec)
                write(ier_msg(2), '(a,i3)') 'At derivative ',k
                exit is_deriv
             endif
-            do iiz=1, data_dim(3)
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
+            do iiz=1, data_dim(3,1)
+            DO iiy=1, data_dim(2,1)
+               DO iix=1, data_dim(1,1)
 !
 !              Derivative is calculated as a fit of a parabola at P, P+delta, P-delta
                   yvec(1) = refine_calc  (iix, iiy, iiz)
@@ -719,7 +727,7 @@ implicit none
 integer , intent(in) :: NPARA    ! Total number of parameter
 integer , intent(in) :: MAXP     ! Max  number of parameters
 integer , intent(in) :: REF_MAXPARAM_SPC     ! Max  number of special parameters
-integer, dimension(3)    , intent(in) :: data_dim         ! Data dimensions
+integer, dimension(3,1)    , intent(in) :: data_dim         ! Data dimensions
 integer , intent(in) :: k        ! Current derivative number
 real(kind=PREC_DP)        , dimension(MAXP)            , intent(in) :: p                ! Parameter values
 character(len=*)          , dimension(MAXP)            , intent(in)  :: par_names    ! Parameter names
@@ -734,7 +742,7 @@ integer                                                , intent(inout) :: refine
 integer                                                , intent(in) :: kupl_last     
 !logical           , dimension(NPARA), intent(in) :: gl_is_der        ! Derivative has been calculated analytically
 !real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3))  , intent(inout) :: refine_temp           ! caclulated value
-real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3)) , intent(out) :: refine_derivs_p         ! caclulated derivatives
+real(kind=PREC_DP)        , dimension(data_dim(1,1), data_dim(2,1), data_dim(3,1)) , intent(out) :: refine_derivs_p         ! caclulated derivatives
 !integer                                , intent(out) :: l_ier_num     
 !integer                                , intent(out) :: l_ier_typ     
 !character         , dimension(7)       , intent(out) :: l_ier_msg     
@@ -753,20 +761,25 @@ real(kind=PREC_DP), dimension(3,3)  :: imat   ! Inverse of xmax
 real(kind=PREC_DP), dimension(3)    :: avec   ! Inverse of xmax
 real(kind=PREC_DP), dimension(3)    :: yvec   ! Inverse of xmax
 !
-ALLOCATE(refine_temp(1:data_dim(1), 1:data_dim(2), 1:data_dim(3)))
+ALLOCATE(refine_temp(1:data_dim(1,1), 1:data_dim(2,1), 1:data_dim(3,1)))
 !
 is_deriv: IF(gl_is_der(k)) THEN
-   CALL gl_get_data(k,  data_dim(1),   data_dim(2),   data_dim(3), &
-        refine_derivs_p(1:data_dim(1), 1:data_dim(2), 1:data_dim(3)))
+   CALL gl_get_data(k,  data_dim(1,1),   data_dim(2,1),   data_dim(3,1), &
+        refine_derivs_p(1:data_dim(1,1), 1:data_dim(2,1), 1:data_dim(3,1)))
 !write(*,*) ' DERIVS Calc ', k, minval(refine_derivs(:,:,:,k)), maxval(refine_derivs(:,:,:,k))
 ELSE is_deriv
-   ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), -2:2))
+   ALLOCATE(refine_tttt(1:data_dim(1,1), 1:data_dim(2,1), 1:data_dim(3,1), -2:2))
          nder = 1                     ! First point is at P(k)
          dvec(:) = 0.0
          lvec(:) = .FALSE.
          dvec(0) = p(k)               ! Store parameter value
          if_delta: IF(p(k)/=0.0) THEN
-            delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+!           delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+            if(p_shift(k)<0.0D0) then     ! An additive variation is requested
+               delta = ABS(     p_shift(k))  ! An additive shift is requested
+            else
+               delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+            endif
          ELSE if_delta
             do i=1, REF_MAXPARAM_SPC      ! Check for special names
                if(refine_params  (k)(1:len_trim(refine_spc_name(i)))==          &
@@ -775,7 +788,12 @@ ELSE is_deriv
                   exit if_delta
                endif
             enddo
-            delta = 1.0D-4                ! Default delta for unknown variables
+            if(p_shift(k)<0.0D0) then     ! An additive variation is requested
+               delta = ABS(     p_shift(k))  ! An additive shift is requested
+            else
+!              delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+               delta = 1.0D-4                ! Default delta for unknown variables
+            endif
          ENDIF if_delta
 !
 !                                     ! Test at P + DELTA
@@ -848,9 +866,9 @@ ELSE is_deriv
                DEALLOCATE(refine_tttt)
                exit is_deriv
             ENDIF
-            do iiz = 1, data_dim(3)
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
+            do iiz = 1, data_dim(3,1)
+            DO iiy=1, data_dim(2,1)
+               DO iix=1, data_dim(1,1)
                   refine_tttt(iix,iiy,iiz,l) =  refine_temp(iix,iiy,iiz)
                ENDDO
             ENDDO
@@ -871,9 +889,9 @@ call refine_rvalue_tttt(data_dim, refine_tttt, dvec)
          CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
 !
          IF(nder==5) THEN             ! Got all five  points for derivative
-            do iiz=1, data_dim(3)
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
+            do iiz=1, data_dim(3,1)
+            DO iiy=1, data_dim(2,1)
+               DO iix=1, data_dim(1,1)
                   refine_derivs_p(iix, iiy, iiz   ) = (-1.0*refine_tttt(iix,iiy,iiz, 2)   &
                                                      +8.0*refine_tttt(iix,iiy,iiz, 1)   &
                                                      -8.0*refine_tttt(iix,iiy,iiz,-1)   &
@@ -910,9 +928,9 @@ call refine_rvalue_tttt(data_dim, refine_tttt, dvec)
                write(ier_msg(2), '(a,i3)') 'At derivative ',k
                exit is_deriv
             endif
-            do iiz=1, data_dim(3)
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
+            do iiz=1, data_dim(3,1)
+            DO iiy=1, data_dim(2,1)
+               DO iix=1, data_dim(1,1)
 !
 !              Derivative is calculated as a fit of a parabola at P, P+delta, P-delta
                   yvec(1) = refine_calc  (iix, iiy, iiz)
@@ -987,7 +1005,7 @@ implicit none
 integer , intent(in) :: NPARA    ! Total number of parameter
 integer , intent(in) :: MAXP     ! Max  number of parameters
 integer , intent(in) :: REF_MAXPARAM_SPC     ! Max  number of special parameters
-integer, dimension(3)    , intent(in) :: data_dim         ! Data dimensions
+integer, dimension(3,1)    , intent(in) :: data_dim         ! Data dimensions
 real(kind=PREC_DP)        , dimension(MAXP)            , intent(in) :: p                ! Parameter values
 character(len=*)          , dimension(MAXP)            , intent(in)  :: par_names    ! Parameter names
 character(len=PREC_STRING), dimension(MAXP)            , intent(in) :: refine_params    ! Parameter names
@@ -1001,7 +1019,7 @@ integer                                                , intent(inout) :: refine
 integer                                                , intent(in) :: kupl_last     
 !logical           , dimension(NPARA), intent(in) :: gl_is_der        ! Derivative has been calculated analytically
 !real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3))  , intent(inout) :: refine_temp           ! caclulated value
-real(kind=PREC_DP)        , dimension(data_dim(1), data_dim(2), data_dim(3),NPARA) , intent(out) :: refine_derivs         ! caclulated derivatives
+real(kind=PREC_DP)        , dimension(data_dim(1,1), data_dim(2,1), data_dim(3,1),NPARA) , intent(out) :: refine_derivs         ! caclulated derivatives
 !integer                                , intent(out) :: l_ier_num     
 !integer                                , intent(out) :: l_ier_typ     
 !character         , dimension(7)       , intent(out) :: l_ier_msg     
@@ -1030,7 +1048,7 @@ kid_is = 0
 allocate(para_has(0:5, NPARA*4))
 para_has = 0
 !
-ALLOCATE(refine_temp(1:data_dim(1), 1:data_dim(2), 1:data_dim(3)))
+ALLOCATE(refine_temp(1:data_dim(1,1), 1:data_dim(2,1), 1:data_dim(3,1)))
 !
 ! Initial loop, populate all values in pop_t  Trial for DIFFEV
 do k=1, NPARA
@@ -1040,15 +1058,20 @@ run_mpi_senddata%children = 0
 !
 loop_npara_init: do k=1, NPARA
    cond_is_deriv: IF(gl_is_der(k)) THEN
-      CALL gl_get_data(k,  data_dim(1),   data_dim(2),   data_dim(3), &
-           refine_derivs(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), k))
+      CALL gl_get_data(k,  data_dim(1,1),   data_dim(2,1),   data_dim(3,1), &
+           refine_derivs(1:data_dim(1,1), 1:data_dim(2,1), 1:data_dim(3,1), k))
       ELSE cond_is_deriv
          nder(k) = 1                     ! First point is at P(k)
          dvec(:,k) = 0.0
          lvec(:,k) = .FALSE.
          dvec(0,k) = p(k)               ! Store parameter value
          cond_if_delta: IF(p(k)/=0.0) THEN
-            delta(k) = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+!           delta(k) = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+            if(p_shift(k)<0.0D0) then     ! An additive variation is requested
+               delta = ABS(     p_shift(k))  ! An additive shift is requested
+            else
+               delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+            endif
          ELSE cond_if_delta
             do i=1, REF_MAXPARAM_SPC      ! Check for special names
                if(refine_params  (k)(1:len_trim(refine_spc_name(i)))==          &
@@ -1057,7 +1080,12 @@ loop_npara_init: do k=1, NPARA
                   exit cond_if_delta
                endif
             enddo
-            delta(k) = 1.0D-4                ! Default delta for unknown variables
+            if(p_shift(k)<0.0D0) then     ! An additive variation is requested
+               delta = ABS(     p_shift(k))  ! An additive shift is requested
+            else
+!              delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
+               delta(k) = 1.0D-4                ! Default delta for unknown variables
+            endif
          ENDIF cond_if_delta
 !
 !                                     ! Test at P + DELTA
@@ -1153,7 +1181,7 @@ run_mpi_senddata%l_get_state=1
 call run_mpi_master
 ier_num = 0
 ier_typ = 0
-ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), 1:data_dim(3), -2:2))
+ALLOCATE(refine_tttt(1:data_dim(1,1), 1:data_dim(2,1), 1:data_dim(3,1), -2:2))
 !
 ! Here we will place call to run_mpi_master
 !
@@ -1169,9 +1197,9 @@ if(1==2) then   ! DUMMY OLD STUFF
 !           exit cond_is_deriv_2
             return
          ENDIF
-         do iiz = 1, data_dim(3)
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
+         do iiz = 1, data_dim(3,1)
+            DO iiy=1, data_dim(2,1)
+               DO iix=1, data_dim(1,1)
                   refine_tttt(iix,iiy,iiz,l) =  refine_temp(iix,iiy,iiz)
                ENDDO
             ENDDO
@@ -1204,9 +1232,9 @@ loop_npara_eval: do k=1, NPARA
    enddo
 !
    IF(nder(k)==5) THEN             ! Got all five  points for derivative
-      do iiz=1, data_dim(3)
-         DO iiy=1, data_dim(2)
-            DO iix=1, data_dim(1)
+      do iiz=1, data_dim(3,1)
+         DO iiy=1, data_dim(2,1)
+            DO iix=1, data_dim(1,1)
                refine_derivs(iix, iiy, iiz, k) = (-1.0*refine_tttt(iix,iiy,iiz, 2)   &
                                                   +8.0*refine_tttt(iix,iiy,iiz, 1)   &
                                                   -8.0*refine_tttt(iix,iiy,iiz,-1)   &
@@ -1238,9 +1266,9 @@ loop_npara_eval: do k=1, NPARA
          write(ier_msg(2), '(a,i3)') 'At derivative ',k
          exit cond_is_deriv_2
       endif
-      do iiz=1, data_dim(3)
-         DO iiy=1, data_dim(2)
-            DO iix=1, data_dim(1)
+      do iiz=1, data_dim(3,1)
+         DO iiy=1, data_dim(2,1)
+            DO iix=1, data_dim(1,1)
 !
 !              Derivative is calculated as a fit of a parabola at P, P+delta, P-delta
                yvec(1) = refine_calc  (iix, iiy, iiz)
@@ -1564,12 +1592,12 @@ INTEGER                                                , INTENT(IN)    :: NPARA 
 INTEGER                                                , INTENT(IN)    :: ncycle      ! maximum cycle number
 INTEGER                                                , INTENT(IN)    :: kupl_last   ! Last KUPLOT DATA that are needed
 CHARACTER(LEN=*)  , DIMENSION(MAXP)                    , INTENT(IN)    :: par_names   ! Parameter names
-INTEGER           , DIMENSION(3)                       , INTENT(IN)    :: data_dim    ! Data array dimensions
-REAL(kind=PREC_DP), DIMENSION(data_dim(1), data_dim(2), data_dim(3)), INTENT(IN)    :: data_data   ! Data array
-REAL(kind=PREC_DP), DIMENSION(data_dim(1), data_dim(2), data_dim(3)), INTENT(IN)    :: data_sigma ! Data sigmas
-REAL(kind=PREC_DP), DIMENSION(data_dim(1))             , INTENT(IN)    :: data_x      ! Data coordinates x
-REAL(kind=PREC_DP), DIMENSION(data_dim(2))             , INTENT(IN)    :: data_y      ! Data coordinates y
-REAL(kind=PREC_DP), DIMENSION(data_dim(3))             , INTENT(IN)    :: data_z      ! Data coordinates y
+INTEGER           , DIMENSION(3,1)                       , INTENT(IN)    :: data_dim    ! Data array dimensions
+REAL(kind=PREC_DP), DIMENSION(data_dim(1,1), data_dim(2,1), data_dim(3,1),1), INTENT(IN)    :: data_data   ! Data array
+REAL(kind=PREC_DP), DIMENSION(data_dim(1,1), data_dim(2,1), data_dim(3,1),1), INTENT(IN)    :: data_sigma ! Data sigmas
+REAL(kind=PREC_DP), DIMENSION(data_dim(1,1),1)             , INTENT(IN)    :: data_x      ! Data coordinates x
+REAL(kind=PREC_DP), DIMENSION(data_dim(2,1),1)             , INTENT(IN)    :: data_y      ! Data coordinates y
+REAL(kind=PREC_DP), DIMENSION(data_dim(3,1),1)             , INTENT(IN)    :: data_z      ! Data coordinates y
 LOGICAL                                                , INTENT(IN)    :: conv_status ! Do convergence test
 REAL(kind=PREC_DP)                                     , INTENT(IN)    :: conv_dp_sig ! Max parameter shift
 REAL(kind=PREC_DP)                                     , INTENT(IN)    :: conv_dchi2  ! Max Chi^2     shift
@@ -1682,10 +1710,10 @@ cycles:DO
          ENDIF
       ENDIF
    ENDDO
-   conf = gammaq((data_dim(1)*data_dim(2)*data_dim(3)-2)*0.5D0, chisq*0.5D0)
-   last_chi( last_i) = chisq/(data_dim(1)*data_dim(2)*data_dim(3)-NPARA)        ! Store Chi^2/(NDATA-NPARA)
+   conf = gammaq((data_dim(1,1)*data_dim(2,1)*data_dim(3,1)-2)*0.5D0, chisq*0.5D0)
+   last_chi( last_i) = chisq/(data_dim(1,1)*data_dim(2,1)*data_dim(3,1)-NPARA)        ! Store Chi^2/(NDATA-NPARA)
    last_conf(last_i) = conf
-   WRITE(*,'(i3,2g13.5e2,i4,f9.4,4x,4g13.5e2)') icyc,chisq/(data_dim(1)*data_dim(2)*data_dim(3)-NPARA), &
+   WRITE(*,'(i3,2g13.5e2,i4,f9.4,4x,4g13.5e2)') icyc,chisq/(data_dim(1,1)*data_dim(2,1)*data_dim(3,1)-NPARA), &
          last_shift(last_i), last_ind, conf, alamda, rval, rexp
 !
 !  CALL refine_rvalue(rval, rexp, NPARA)
@@ -1785,12 +1813,12 @@ use precision_mod
 IMPLICIT NONE
 !
 INTEGER                                               , INTENT(IN)    :: MAXP        ! Array size for parameters
-INTEGER           , DIMENSION(3)                      , INTENT(IN)    :: data_dim    ! no of ata points along x, y
-REAL(kind=PREC_DP), DIMENSION(data_dim(1),data_dim(2),data_dim(3)), INTENT(IN)    :: data_data   ! Data values
-REAL(kind=PREC_DP), DIMENSION(data_dim(1),data_dim(2),data_dim(3)), INTENT(IN)    :: data_sigma ! Data sigmas
-REAL(kind=PREC_DP), DIMENSION(data_dim(1)           ) , INTENT(IN)    :: data_x      ! Actual x-coordinates
-REAL(kind=PREC_DP), DIMENSION(data_dim(2)           ) , INTENT(IN)    :: data_y      ! Actual y-coordinates
-REAL(kind=PREC_DP), DIMENSION(data_dim(3)           ) , INTENT(IN)    :: data_z      ! Actual y-coordinates
+INTEGER           , DIMENSION(3,1)                     , INTENT(IN)    :: data_dim    ! no of ata points along x, y
+REAL(kind=PREC_DP), DIMENSION(data_dim(1,1),data_dim(2,1),data_dim(3,1),1), INTENT(IN)    :: data_data   ! Data values
+REAL(kind=PREC_DP), DIMENSION(data_dim(1,1),data_dim(2,1),data_dim(3,1),1), INTENT(IN)    :: data_sigma ! Data sigmas
+REAL(kind=PREC_DP), DIMENSION(data_dim(1,1)           ,1) , INTENT(IN)    :: data_x      ! Actual x-coordinates
+REAL(kind=PREC_DP), DIMENSION(data_dim(2,1)           ,1) , INTENT(IN)    :: data_y      ! Actual y-coordinates
+REAL(kind=PREC_DP), DIMENSION(data_dim(3,1)           ,1) , INTENT(IN)    :: data_z      ! Actual y-coordinates
 INTEGER                                               , INTENT(IN)    :: NPARA       ! number of parameters
 REAL(kind=PREC_DP), DIMENSION(MAXP, 2              )  , INTENT(IN)    :: prange      ! Allowed parameter range
 REAL(kind=PREC_DP), DIMENSION(MAXP )                  , INTENT(IN)    :: p_shift   ! Parameter shift for deriv
@@ -1904,12 +1932,12 @@ ENDIF
 !icyy = icyy+1
 !write(78,'(i3,14g15.6e3)') icyy,da(1:npara)
 !close(78)
-if(data_dim(2)==1 .and. data_dim(3)==1) then     ! Only for 1D data
-   CALL refine_constrain_fwhm_in(MAXP, NPARA, a, da, data_x(1), data_x(data_dim(1)), ier_num, ier_typ)
+if(data_dim(2,1)==1 .and. data_dim(3,1)==1) then     ! Only for 1D data
+   CALL refine_constrain_fwhm_in(MAXP, NPARA, a, da, data_x(1,1), data_x(data_dim(1,1),1), ier_num, ier_typ)
    IF(ier_num/=0) THEN
       RETURN
    ENDIF
-   CALL refine_constrain_eta_in(MAXP, NPARA, a, da, data_x(1), data_x(data_dim(1)), ier_num, ier_typ)
+   CALL refine_constrain_eta_in(MAXP, NPARA, a, da, data_x(1,1), data_x(data_dim(1,1),1), ier_num, ier_typ)
    IF(ier_num/=0) THEN
       RETURN
    ENDIF
@@ -1993,12 +2021,12 @@ use precision_mod
 IMPLICIT NONE
 !
 INTEGER                                               , INTENT(IN)  :: MAXP        ! Maximum parameter number
-INTEGER           , DIMENSION(3)                      , INTENT(IN)  :: data_dim    ! Data dimensions
-REAL(kind=PREC_DP), DIMENSION(data_dim(1),data_dim(2),data_dim(3)), INTENT(IN)  :: data_data   ! Observables
-REAL(kind=PREC_DP), DIMENSION(data_dim(1),data_dim(2),data_dim(3)), INTENT(IN)  :: data_sigma ! Observables
-REAL(kind=PREC_DP), DIMENSION(data_dim(1)           ) , INTENT(IN)  :: data_x      ! x-coordinates
-REAL(kind=PREC_DP), DIMENSION(data_dim(2)           ) , INTENT(IN)  :: data_y      ! y-coordinates
-REAL(kind=PREC_DP), DIMENSION(data_dim(3)           ) , INTENT(IN)  :: data_z      ! y-coordinates
+INTEGER           , DIMENSION(3,1)                      , INTENT(IN)  :: data_dim    ! Data dimensions
+REAL(kind=PREC_DP), DIMENSION(data_dim(1,1),data_dim(2,1),data_dim(3,1),1), INTENT(IN)  :: data_data   ! Observables
+REAL(kind=PREC_DP), DIMENSION(data_dim(1,1),data_dim(2,1),data_dim(3,1),1), INTENT(IN)  :: data_sigma ! Observables
+REAL(kind=PREC_DP), DIMENSION(data_dim(1,1)           ,1) , INTENT(IN)  :: data_x      ! x-coordinates
+REAL(kind=PREC_DP), DIMENSION(data_dim(2,1)           ,1) , INTENT(IN)  :: data_y      ! y-coordinates
+REAL(kind=PREC_DP), DIMENSION(data_dim(3,1)           ,1) , INTENT(IN)  :: data_z      ! y-coordinates
 INTEGER                                               , INTENT(IN)  :: NPARA       ! Number of refine parameters
 REAL(kind=PREC_DP), DIMENSION(MAXP)                   , INTENT(IN)  :: params      ! Current parameter values
 CHARACTER(LEN=*)  , DIMENSION(MAXP)                   , INTENT(IN)  :: par_names   ! Parameter names
@@ -2030,12 +2058,12 @@ beta(:)    = 0.0
 chisq      = 0.0
 iiz = 1
 !
-loopix: do iix=1, data_dim(1)
-   xx = data_x(iix)
-   loopiy: do iiy=1, data_dim(2)
-      yy = data_y(iiy)
-   loopiz: do iiz=1, data_dim(3)
-      zz = data_z(iiz)
+loopix: do iix=1, data_dim(1,1)
+   xx = data_x(iix,1)
+   loopiy: do iiy=1, data_dim(2,1)
+      yy = data_y(iiy,1)
+   loopiz: do iiz=1, data_dim(3,1)
+      zz = data_z(iiz,1)
 !
       CALL refine_theory(MAXP, iix, iiy, iiz, xx, yy, zz, NPARA, params, par_names,   &
                          prange, p_shift, p_nderiv, &
@@ -2047,15 +2075,15 @@ loopix: do iix=1, data_dim(1)
          RETURN
       ENDIF
 !
-      if(data_sigma(iix,iiy,iiz)>0.0D0) then
-         sig2i =1./(data_sigma(iix,iiy,iiz)*data_sigma(iix,iiy,iiz))
-      elseif(data_sigma(iix,iiy,iiz)<-1000.0D0) then
+      if(data_sigma(iix,iiy,iiz,1)>0.0D0) then
+         sig2i =1./(data_sigma(iix,iiy,iiz,1)*data_sigma(iix,iiy,iiz,1))
+      elseif(data_sigma(iix,iiy,iiz,1)<-1000.0D0) then
          cycle loopiz
       else
          sig2i = 1.0e-9
       endif
 !write(*,'(3f6.1, 2f12.4)') xx,yy,zz, ymod, data_sigma(iix,iiy,iiz)
-      dy = data_data(iix,iiy,iiz) - ymod
+      dy = data_data(iix,iiy,iiz,1) - ymod
       DO j=1, NPARA
          wt = dyda(j)*sig2i
          DO k=1, j
@@ -2119,25 +2147,25 @@ sumn = 0.0
 !else cond_type                     ! All other data sets
 !
 !
-DO iiz = 1, ref_dim(3)
-DO iiy = 1, ref_dim(2)
-   loop_inner: DO iix = 1, ref_dim(1)
-      IF(ref_sigma(iix,iiy,iiz)> 0.0) THEN
-         wght = 1./(ref_sigma(iix,iiy,iiz))**2
-      elseif(ref_sigma(iix,iiy,iiz)<-1000.0) then
+DO iiz = 1, ref_dim(3,1)
+DO iiy = 1, ref_dim(2,1)
+   loop_inner: DO iix = 1, ref_dim(1,1)
+      IF(ref_sigma(iix,iiy,iiz,1)> 0.0) THEN
+         wght = 1./(ref_sigma(iix,iiy,iiz,1))**2
+      elseif(ref_sigma(iix,iiy,iiz,1)<-1000.0) then
          cycle loop_inner
       else
          wght = 1.0
       ENDIF
-      sumz = sumz + wght*(ref_data(iix,iiy, iiz)-refine_calc(iix,iiy, iiz))**2
-      sumn = sumn + wght*(ref_data(iix,iiy, iiz)                     )**2
+      sumz = sumz + wght*(ref_data(iix,iiy, iiz,1)-refine_calc(iix,iiy, iiz))**2
+      sumn = sumn + wght*(ref_data(iix,iiy, iiz,1)                     )**2
    ENDDO loop_inner
 ENDDO
 ENDDO
 !endif cond_type
 IF(sumn/=0.0) THEN
    rval = SQRT(sumz/sumn)
-   rexp = SQRT((ref_dim(1)*ref_dim(2)*ref_dim(3)-npar)/sumn)
+   rexp = SQRT((ref_dim(1,1)*ref_dim(2,1)*ref_dim(3,1)-npar)/sumn)
 ELSE
    rval = -1.0
    rexp = -1.0
@@ -2188,22 +2216,22 @@ sumn = 0.0
 !
 !
 do j=-2, 2
-DO iiz = 1, ref_dim(3)
-DO iiy = 1, ref_dim(2)
-   loop_inner: DO iix = 1, ref_dim(1)
-      IF(ref_sigma(iix,iiy,iiz)> 0.0) THEN
-         wght = 1./(ref_sigma(iix,iiy,iiz))**2
-      elseif(ref_sigma(iix,iiy,iiz)<-1000.0) then
+DO iiz = 1, ref_dim(3,1)
+DO iiy = 1, ref_dim(2,1)
+   loop_inner: DO iix = 1, ref_dim(1,1)
+      IF(ref_sigma(iix,iiy,iiz,1)> 0.0) THEN
+         wght = 1./(ref_sigma(iix,iiy,iiz,1))**2
+      elseif(ref_sigma(iix,iiy,iiz,1)<-1000.0) then
          cycle loop_inner
       else
          wght = 1.0
       ENDIF
 if(j==0) then
-      sumz = sumz + wght*(ref_data(iix,iiy, iiz)-refine_calc(iix,iiy, iiz))**2
+      sumz = sumz + wght*(ref_data(iix,iiy, iiz,1)-refine_calc(iix,iiy, iiz))**2
 else
-      sumz = sumz + wght*(ref_data(iix,iiy, iiz)-refine_tttt(iix,iiy, iiz,j))**2
+      sumz = sumz + wght*(ref_data(iix,iiy, iiz,1)-refine_tttt(iix,iiy, iiz,j))**2
 endif
-      sumn = sumn + wght*(ref_data(iix,iiy, iiz)                     )**2
+      sumn = sumn + wght*(ref_data(iix,iiy, iiz,1)                     )**2
    ENDDO loop_inner
 ENDDO
 ENDDO
@@ -2370,7 +2398,7 @@ INTEGER, PARAMETER :: IWR=11
 INTEGER, PARAMETER :: INP=12
 !
 CHARACTER(LEN=15), PARAMETER :: ofile='refine_best.mac'
-CHARACTER(LEN=15), PARAMETER :: nfile='refine_new.res '
+CHARACTER(LEN=15), PARAMETER :: nfile='refine_new.mac '
 INTEGER             :: i, j
 !
 INTEGER :: MAXW
@@ -2427,13 +2455,13 @@ IF(ABS(rval) >= HUGE(0.0)) rval_w = -1.0
 !
 WRITE(IWR,'(a,G20.8E3)') 'Rvalue           = ', rval_w
 WRITE(IWR,'(a,I15    )') 'F_DATA           = ', ref_kupl
-WRITE(IWR,'(a,G20.8E3)') 'F_XMIN           = ', ref_x(1)
-WRITE(IWR,'(a,G20.8E3)') 'F_XMAX           = ', ref_x(ref_dim(1))
-WRITE(IWR,'(a,G20.8E3)') 'F_YMIN           = ', ref_y(1)
-WRITE(IWR,'(a,G20.8E3)') 'F_YMAX           = ', ref_y(ref_dim(2))
-step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(MAX(1,ref_dim(1)-1))
+WRITE(IWR,'(a,G20.8E3)') 'F_XMIN           = ', ref_x(1,1)
+WRITE(IWR,'(a,G20.8E3)') 'F_XMAX           = ', ref_x(ref_dim(1,1),1)
+WRITE(IWR,'(a,G20.8E3)') 'F_YMIN           = ', ref_y(1,1)
+WRITE(IWR,'(a,G20.8E3)') 'F_YMAX           = ', ref_y(ref_dim(2,1),1)
+step = (ref_x(ref_dim(1,1),1)-ref_x(1,1))/FLOAT(MAX(1,ref_dim(1,1)-1))
 WRITE(IWR,'(a,G20.8E3)') 'F_XSTP           = ', step
-step = (ref_y(ref_dim(2))-ref_y(1))/FLOAT(MAX(1,ref_dim(2)-1))
+step = (ref_y(ref_dim(2,1),1)-ref_y(1,1))/FLOAT(MAX(1,ref_dim(2,1)-1))
 WRITE(IWR,'(a,G20.8E3)') 'F_YSTP           = ', step
 !
 ! Set fixed parameter values
@@ -2520,7 +2548,7 @@ DEALLOCATE(cpara)
 DEALLOCATE(lpara)
 DEALLOCATE(werte)
 !
-! Write a 'refine_new.res' macro
+! Write a 'refine_new.mac' macro
 !
 
 OPEN(UNIT=IWR, FILE=nfile, STATUS='unknown')
@@ -2560,8 +2588,13 @@ do i=1, refine_par_n            ! Write values for all refined parameters
       write(string,'(a,g15.8e3,a,g15.8e3,a)') ', range:[', refine_range(i,1), ',', refine_range(i,2), ']'
    endif
    write(long_line, '(a)') refine_params(i)(1:len_trim(refine_params(i)))
-   write(long_line(j+1:PREC_STRING), '(a8,G16.8E3,(a,i1),(a,g15.8e3),a,a)') ', value:',refine_p(i), &
-   ', points:', refine_nderiv(i), ', shift:',abs(refine_shift(i)), ', status:free', string(1:len_trim(string))
+   if(refine_shift(i)<0) then
+      write(long_line(j+1:PREC_STRING), '(a8,G16.8E3,(a,i1),(a,g15.8e3),a,a)') ', value:',refine_p(i), &
+      ', points:', refine_nderiv(i), ', move: ',-abs(refine_shift(i)), ', status:free', string(1:len_trim(string))
+   else
+      write(long_line(j+1:PREC_STRING), '(a8,G16.8E3,(a,i1),(a,g15.8e3),a,a)') ', value:',refine_p(i), &
+      ', points:', refine_nderiv(i), ', shift:',abs(refine_shift(i)), ', status:free', string(1:len_trim(string))
+   endif
 !  write(long_line, '(2a,G20.8E3,(a,i1),(a,g15.8e3),a,a)') refine_params(i)(1:len_trim(refine_params(i))), ' , value:',refine_p(i), &
 !  ' , points:', refine_nderiv(i), ' , shift:',abs(refine_shift(i)), ' , status:free', string(1:len_trim(string))
    length = len_trim(long_line)
@@ -2599,8 +2632,13 @@ DO i=1, refine_fix_n            ! Make sure each parameter is defined as a varia
    endif
    long_line = ' '
    write(long_line, '(a)') refine_fixed(i)(1:len_trim(refine_fixed(i)))
-   WRITE(long_line(j+1:PREC_STRING), '(a8,G16.8E3,(a,i1),(a,g15.8e3),a,a)') ', value:', werte(i),  &
-   ', points:', refine_nderiv_fix(i), ', shift:',abs(refine_shift_fix(i)), ', status:fixed', string(1:len_trim(string))
+   if(refine_shift_fix(i)<0.0) then
+      WRITE(long_line(j+1:PREC_STRING), '(a8,G16.8E3,(a,i1),(a,g15.8e3),a,a)') ', value:', werte(i),  &
+      ', points:', refine_nderiv_fix(i), ', move: ',-abs(refine_shift_fix(i)), ', status:fixed', string(1:len_trim(string))
+   else
+      WRITE(long_line(j+1:PREC_STRING), '(a8,G16.8E3,(a,i1),(a,g15.8e3),a,a)') ', value:', werte(i),  &
+      ', points:', refine_nderiv_fix(i), ', shift:',abs(refine_shift_fix(i)), ', status:fixed', string(1:len_trim(string))
+   endif
 !  WRITE(long_line, '(a9,G20.8E3,(a,i1),(a,g15.8e3),a,a)') refine_fixed(i)(1:len_trim(refine_fixed(i))), ', value:', werte(i),  &
 !  ' , points:', refine_nderiv_fix(i), ' , shift:',abs(refine_shift_fix(i)), ' , status:fixed', string(1:len_trim(string))
    length = len_trim(long_line)
