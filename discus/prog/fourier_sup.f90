@@ -372,6 +372,7 @@ integer, dimension(:,:), allocatable :: four_list
 !
 integer              , dimension(3)              :: lscales  ! Scaling if iscale > MAXSCALE
 integer              , dimension(3)              :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
+integer              , dimension(3)              :: augment  ! Scaling for dimension 1 and range in hkl > 0
 real(kind=PREC_DP)   , dimension(3)              :: scales  ! Scaling if DELTA (hkl) /= 1/cr_icc
 real(kind=PREC_DP)   , dimension(3)              :: shift   ! Shift atom positions towards Center of mass
 real(KIND=PREC_DP) :: ss                                    ! Timing variable
@@ -389,11 +390,16 @@ ss = seknds (0.0)
 !
 is_dim = 0           ! Assume zero dimensional crystal
 ll_dim = .false.     ! Assume all dimensions to be flat
+augment = 1.0
 do i=1,3
    if((cr_dim(i,2)-cr_dim(i,1)>eps .and. cr_icc(i)>1) .or. abs(vi(i,i))>eps ) then
       is_dim = is_dim + 1                    ! Found a non-flat dimension
       ll_dim(i) = .true.                     ! dimension i is non-flat
    endif
+   if(cr_icc(i) == 1 .and. abs(vi(i,i))>eps) then
+!   write(*,*) ' AUGMENT ', i, eck(i,1+i),eck(i,1), ' | ', (eck(i,1+i)-eck(i,1)), (eck(i,1+i)-eck(i,1))/vi(i,i)+1
+      augment(i) = nint((eck(i,1+i)-eck(i,1))/vi(i,i))+1
+   endif 
 enddo
 !is_dim = 3
 !ll_dim = .true.
@@ -402,11 +408,15 @@ jflat  = 3
 idims   = 1                                               ! Default to 1 data point along each axis in reciprocal space
 iscales = 1                                               ! Default to scale 1
 lscales = 1                                               ! Default to scale 1
-scales(1) = real(int(abs(vi(1,1)*real(cr_dim(1,2)-cr_dim(1,1), kind=PREC_DP))-0.01_PREC_DP)+1, kind=PREC_DP)    ! Currently parallel a*!
-scales(2) = real(int(abs(vi(2,2)*real(cr_dim(2,2)-cr_dim(2,1), kind=PREC_DP))-0.01_PREC_DP)+1, kind=PREC_DP)    ! Currently parallel b*!
-scales(3) = real(int(abs(vi(3,3)*real(cr_dim(3,2)-cr_dim(3,1), kind=PREC_DP))-0.01_PREC_DP)+1, kind=PREC_DP)    ! Currently parallel c*!
+scales(1) = real(int(abs(vi(1,1)*real(cr_dim(1,2)-cr_dim(1,1), kind=PREC_DP)*augment(1))-0.01_PREC_DP)+1, kind=PREC_DP)    ! Currently parallel a*!
+scales(2) = real(int(abs(vi(2,2)*real(cr_dim(2,2)-cr_dim(2,1), kind=PREC_DP)*augment(2))-0.01_PREC_DP)+1, kind=PREC_DP)    ! Currently parallel b*!
+scales(3) = real(int(abs(vi(3,3)*real(cr_dim(3,2)-cr_dim(3,1), kind=PREC_DP)*augment(3))-0.01_PREC_DP)+1, kind=PREC_DP)    ! Currently parallel c*!
 !
-!write(*,*) ' SCALES ', scales
+!write(*,*) ' idims  ', is_dim, ll_dim
+!write(*,*) ' SCALES ', scales, MAXSCALE
+!write(*,*) ' CR_ICC ', cr_icc
+!write(*,*) ' AUGMENT', augment
+!read(*,*) i
 !scales(1) = abs(vi(1,1)*real(cr_icc(1), kind=PREC_DP))    ! Currently parallel a*!
 !scales(2) = abs(vi(2,2)*real(cr_icc(2), kind=PREC_DP))    ! Currently parallel b*!
 !scales(3) = abs(vi(3,3)*real(cr_icc(3), kind=PREC_DP))    ! Currently parallel c*!
@@ -417,7 +427,7 @@ do j=1,3
    if(scales(j)>MAXSCALE) then                            ! Scales must be < MAXSCALE
       ii = nint(scales(j))
       loop_scale: do l=2, ii
-ss = seknds (0.0) 
+!ss = seknds (0.0) 
          if(scales(j)/l<=MAXSCALE .and. (abs(scales(j)/l - int(scales(j)/l))<0.01D0)) then
             lscales(j) = l
             scales(j)  = scales(j)/l
@@ -433,8 +443,8 @@ ss = seknds (0.0)
    endif
    idims(j) = inc(j)
 enddo
-!write(*,*) ' SCALES ', scales
-!write(*,*) 'LSCALES ',lscales
+write(*,*) ' SCALES ', scales
+write(*,*) 'LSCALES ',lscales
 !
 !  Error checks: Scale = cr_icc*vi must be integer
 !                1/vi              must be integer
@@ -500,16 +510,16 @@ dsi(1:num(1),1:num(2),1:num(3))  = 0.0d0
 !
 !------------------------------------------------------------------------------------------------------------------------------------------------------
 !
-shift(1) = -real(int((cr_dim(1,2)+cr_dim(1,1))*0.5D0), kind=PREC_DP)
-shift(2) = -real(int((cr_dim(2,2)+cr_dim(2,1))*0.5D0), kind=PREC_DP)
-shift(3) = -real(int((cr_dim(3,2)+cr_dim(3,1))*0.5D0), kind=PREC_DP)
+shift(1) = -real(int((cr_dim(1,2)+cr_dim(1,1)*augment(1))*0.5D0), kind=PREC_DP)
+shift(2) = -real(int((cr_dim(2,2)+cr_dim(2,1)*augment(2))*0.5D0), kind=PREC_DP)
+shift(3) = -real(int((cr_dim(3,2)+cr_dim(3,1)*augment(3))*0.5D0), kind=PREC_DP)
 !
 !  Check dimensionality of crystal
 !
 jflat = 3
 jlong = 1
 cond_find_dim: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
-   ncells = cr_icc
+   ncells = cr_icc*augment
 elseif(is_dim==2) then cond_find_dim
   ! 
    jflat = findloc(inc   , 1      , 1)      ! Find     flat dimension in reciprocal space
@@ -557,9 +567,9 @@ allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
 ! set up list of anisotropic scattering types
 call four_nanis(cr_natoms, cr_nscat, cr_nanis, ubound(cr_iscat,1), ubound(cr_iscat,2), cr_iscat, four_list)
 !
-allocate(xpos(1:cr_natoms))
-allocate(ypos(1:cr_natoms))
-allocate(zpos(1:cr_natoms))
+allocate(xpos(1:cr_natoms*augment(3)))
+allocate(ypos(1:cr_natoms*augment(3)))
+allocate(zpos(1:cr_natoms*augment(3)))
 !
 loop_scat:do iscat=1,cr_nscat                 ! Loop over all atom types
 !
@@ -570,13 +580,16 @@ loop_scat:do iscat=1,cr_nscat                 ! Loop over all atom types
    loop_ianis: do j=1, four_list(iscat,0)
       ianis = four_list(iscat,j)
       nat = 0
-      call four_getatm_anis_iam(iscat, ianis, ncells, scales, cr_natoms, xpos, ypos, zpos, nat)
+      call four_getatm_anis_iam(iscat, ianis, ncells, scales, cr_natoms, xpos, ypos, zpos, nat, augment)
       if(nat==0) cycle loop_ianis             ! No atoms in this group
 !
       cond_dim: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
-         call four_strucf_3d(cr_natoms, nat, idims, NQXYZ, &
+         call four_strucf_3d(nat, nat, idims, NQXYZ, &
                             xpos(1:nat), ypos(1:nat),     &
                             zpos(1:nat), cr_occ(iscat),iscales, lscales, fcsf)
+!        call four_strucf_3d(cr_natoms, nat, idims, NQXYZ, &
+!                           xpos(1:nat), ypos(1:nat),     &
+!                           zpos(1:nat), cr_occ(iscat),iscales, lscales, fcsf)
       elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 222222222222222222222222
 !
          if(jflat==3) then                               ! x-y crystal
@@ -2126,7 +2139,8 @@ end subroutine four_getatm_anis
 !
 !**********************************************************************
 !
-subroutine four_getatm_anis_iam(iscat, ianis, ncells, scales, natoms, xpos, ypos, zpos, nat)
+subroutine four_getatm_anis_iam(iscat, ianis, ncells, scales, natoms, &
+           xpos, ypos, zpos, nat, augment)
 !-
 !  Determine the positions of all atoms that belong to:
 !  Atom type iscat, anisotropic ianis
@@ -2148,19 +2162,53 @@ real(kind=PREC_DP), dimension(1:natoms), intent(out) :: xpos
 real(kind=PREC_DP), dimension(1:natoms), intent(out) :: ypos
 real(kind=PREC_DP), dimension(1:natoms), intent(out) :: zpos
 integer                                , intent(out) :: nat
+integer           , dimension(3)       , intent(in ) :: augment
 !
 integer :: i
+real(kind=PREC_DP), dimension(3) :: pos_low
+real(kind=PREC_DP), dimension(3) :: pos_high
+real(kind=PREC_DP), dimension(3) :: factor
 !
+factor = zpi*scales/real(ncells, kind=PREC_DP)
+write(*,'(a,3i4, 3f6.2, 3f8.4)') ' ASSEMBLING ATOMS ', ncells, scales, factor
+write(*,*) ' iscat ', iscat, ianis
+pos_low  =  10000.0_PREC_DP
+pos_high = -10000.0_PREC_DP
 nat = 0
+xpos = 0.0_PREC_DP
+ypos = 0.0_PREC_DP
+zpos = 0.0_PREC_DP
 do i = 1, cr_natoms 
    if(cr_iscat(1,i)  == iscat .and. cr_iscat(3,i) == ianis) then 
       nat = nat + 1 
-      xpos(nat) = zpi*cr_pos(1, i) /real(ncells(1),kind=PREC_DP)*scales(1)
-      ypos(nat) = zpi*cr_pos(2, i) /real(ncells(2),kind=PREC_DP)*scales(2)
-      zpos(nat) = zpi*cr_pos(3, i) /real(ncells(3),kind=PREC_DP)*scales(3)
+      xpos(nat) = cr_pos(1, i) * factor(1)
+      ypos(nat) = cr_pos(2, i) * factor(2)
+      zpos(nat) = cr_pos(3, i) * factor(3)
+pos_low  = min(pos_low,  cr_pos(:,i))
+pos_high = max(pos_high, cr_pos(:,i))
+!     xpos(nat) = zpi*cr_pos(1, i) /real(ncells(1),kind=PREC_DP)*scales(1)
+!     ypos(nat) = zpi*cr_pos(2, i) /real(ncells(2),kind=PREC_DP)*scales(2)
+!     zpos(nat) = zpi*cr_pos(3, i) /real(ncells(3),kind=PREC_DP)*scales(3)
    endif 
 enddo 
 !
+!write(*,*) ' MINPOS ', pos_low
+!write(*,*) ' MAXPOS ', pos_high
+!write(*,*) ' ZPOS   ', minval(zpos), maxval(zpos)
+         if(augment(3) >1) then
+            do i=1,augment(3)-1
+            xpos(i*nat+1:(i+1)*nat) = xpos(1:nat)
+            ypos(i*nat+1:(i+1)*nat) = ypos(1:nat)
+            zpos(i*nat+1:(i+1)*nat) = zpos(1:nat) + real(i,kind=PREC_DP)/factor(3)
+!write(*,*) i, real(i,kind=PREC_DP)/factor(3)
+            enddo
+!write(*,*) ' ZPOS   ', minval(zpos), maxval(zpos)
+      zpos = zpos - (maxval(zpos)+minval(zpos))*0.5_PREC_DP
+!write(*,*) ' XPOS   ', minval(xpos), maxval(xpos)
+!write(*,*) ' YPOS   ', minval(ypos), maxval(ypos)
+!write(*,*) ' ZPOS   ', minval(zpos), maxval(zpos)
+            nat = nat * (augment(3) - 1)
+         endif
 end subroutine four_getatm_anis_iam
 !
 !**********************************************************************
@@ -3203,10 +3251,12 @@ INTEGER         , INTENT(IN) :: style
 !
 INTEGER, PARAMETER :: ird = 54
 INTEGER, PARAMETER :: iwr = 55
+INTEGER, PARAMETER :: ils = 56
 INTEGER, PARAMETER :: HKLF4 = 4
 INTEGER, PARAMETER :: CIF   = 1
 real(kind=PREC_DP),  dimension(3), parameter :: NULLV =(/0.0_PREC_DP, 0.0_PREC_DP, 0.0_PREC_DP/)
 !
+character(len=PREC_STRING) :: listfile
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: ccpara
 INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
@@ -3236,13 +3286,22 @@ REAL(kind=PREC_DP)               :: rint, sint, qq
 REAL(kind=PREC_DP), DIMENSION(7) :: values
 REAL(kind=PREC_DP), DIMENSION(3) :: rhkl
 REAL(kind=PREC_DP)               :: ext_cor
+real(kind=PREC_DP)               :: phi       ! Phase calculation 
+real(kind=PREC_DP)               :: c_real, c_imag
 !
 n_qxy    = 1
 n_natoms = 1
 n_nscat  = 1
 !
+listfile = calcfile
+if(listfile(calcfile_l-2:calcfile_l)=='hkl') then
+  listfile(calcfile_l-2:calcfile_l)='fcf'
+else
+  listfile = listfile(1:calcfile_l) // '.fcf'
+endif
 call oeffne(ird, infile(1:infile_l),   'old') 
 call oeffne(iwr, calcfile(1:calcfile_l), 'unknown') 
+call oeffne(ils, listfile(1:len_trim(listfile)), 'unknown') 
 inc(:) = 1
 !
 ih_min  = 0
@@ -3458,15 +3517,20 @@ main:    DO
               / cr_icc(1) / cr_icc(2) / cr_icc(3)
    ext_cor = (1.0_PREC_DP/(1.0_PREC_DP + 0.001_PREC_DP * diff_exti * qq**2*rlambda**3/ &
                       sind(2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., values(1:3), NULLV))))**0.25_PREC_DP)
+   c_real = real(csf(hh,kk,ll), kind=PREC_DP)
+   c_imag = real(imag(csf(hh,kk,ll)), kind=PREC_DP)
+   phi = atan2d(c_imag, c_real)
    qq = (qq * ext_cor)**2 * scale
    sint = SQRT(ABS(qq))
       IF(style==HKLF4) THEN
         WRITE(iwr,1000) ih,ik,il, qq, sint
+        write(ils, 3000) ih,ik,il, sqrt(abs(rint)), sqrt(abs(qq)), phi 
       ELSEIF(style==CIF) THEN
         IF(j_icalc/=0) THEN
           values(j_icalc) = qq
         ENDIF
         WRITE(iwr, 2000) ih,ik,il, (values(j),j=4, nentries-1)
+        write(ils, 3000) ih,ik,il, values(1), sqrt(abs(qq)), phi 
       ENDIF
    ENDIF
 END DO main
@@ -3475,8 +3539,10 @@ IF(ALLOCATED(ccpara))   DEALLOCATE(ccpara)
 IF(ALLOCATED(llpara))   DEALLOCATE(llpara)
 1000  FORMAT(3I4,2F8.2)
 2000  FORMAT(3I4,F12.2,F12.2, F12.2)
+3000  FORMAT(3I4,2F10.2,f7.2)
 CLOSE(ird)
 CLOSE(iwr)
+close(ils)
 !
 END SUBROUTINE calc_hkl
 !
