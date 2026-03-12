@@ -26,7 +26,7 @@ CHARACTER(LEN=PREC_STRING), INTENT(OUT) :: mpi_path
 CHARACTER(LEN=PREC_STRING)  :: mpi_file
 LOGICAL              :: lda
 !
-IF(start_line(1:start_line_l) == 'discus_suite_noparallel') THEN
+!IF(start_line(1:start_line_l) == 'discus_suite_noparallel') THEN
    mpi_file = '/bin/mpiexec'
    INQUIRE(FILE=mpi_file, EXIST=lda)
    IF(lda) THEN
@@ -40,9 +40,9 @@ IF(start_line(1:start_line_l) == 'discus_suite_noparallel') THEN
          mpi_path = ' '
       ENDIF
    ENDIF
-ELSE
-   mpi_path = ' '  ! Turn MPI path empty
-ENDIF
+!ELSE
+!   mpi_path = ' '  ! Turn MPI path empty
+!ENDIF
 !
 END SUBROUTINE get_mpi_path
 !

@@ -18,7 +18,7 @@ IMPLICIT NONE
 !
 CHARACTER(LEN=PREC_STRING), INTENT(OUT) :: mpi_path
 !
-mpi_path = '/bin'
+mpi_path = '/usr/bin/'
 !
 END SUBROUTINE get_mpi_path
 !
