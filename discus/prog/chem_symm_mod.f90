@@ -213,7 +213,8 @@ is_used:          DO i=1, chem_nvec (ic)
    ENDDO old_vectors
 ENDDO symmetry
 !
-WRITE(IWR,'(a)') 'set neig, rese' 
+if(lout) then
+   WRITE(IWR,'(a)') 'set neig, rese' 
 DO ic=1,chem_ncor
    IF(chem_ctyp(ic) == CHEM_VEC) THEN
       WRITE(IWR,'(a,50(a2,i3))') 'set neig, vec', (', ',chem_use_vec(i,ic),i=1, chem_nvec(ic))
@@ -232,6 +233,7 @@ DO ic=1,chem_ncor
    ENDIF
    IF(ic<chem_ncor) WRITE(IWR,'(a)') 'set neig, add'
 ENDDO
+endif
 !
 IF(lout) CLOSE (IWR)
 DEALLOCATE(old_vector)
