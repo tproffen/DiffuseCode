@@ -1240,7 +1240,6 @@ crystal_flags(:,6) = cr_flags(:,6)    ! statement on homogeneity   !NEXUS WORK
 !
 !   ! Optional anisotropic atomic displacement parameters Uij
 !
-write(*,*) ' cr_anis ', cr_nanis, lbound(cr_anis_full), ubound(cr_anis_full)
 if(cr_nanis>0) then                    ! Anisotropic ADPs  (also for Uiso
    anis_n = cr_nanis
    allocate(anisotropic_adp%anisotropic_adp(7, anis_n))
