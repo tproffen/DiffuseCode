@@ -3,7 +3,7 @@ MODULE spcgr_apply
 USE errlist_mod
 use precision_mod
 !
-IMPLICIT NONE
+implicit NONE
 !
 private
 public get_symmetry_matrices, firstcell, symmetry, get_is_sym, spcgr_get_setting
@@ -34,7 +34,7 @@ use berechne_mod
 use lib_functions_mod
 use precision_mod
 !                                                                       
-IMPLICIT none 
+implicit none 
 !                                                                       
 real(kind=PREC_DP), parameter :: TOL=1.0D-6   ! Tolerance for matrix equality
 !                                                                       
@@ -241,7 +241,7 @@ USE crystal_mod
 use errlist_mod
 use precision_mod
 !                                                                       
-IMPLICIT none 
+implicit none 
 !                                                                       
 INTEGER                                       , INTENT(IN) :: SPC_MAX 
 INTEGER                                       , intent(inout) :: spc_n 
@@ -382,7 +382,7 @@ USE spcgr_mod
 !
 USE errlist_mod
 !
-IMPLICIT NONE
+implicit NONE
 !
 cr_iset = 1
 !
@@ -430,7 +430,7 @@ USE crystal_mod
 !
 use precision_mod
 !
-IMPLICIT NONE
+implicit NONE
 !
 REAL(kind=PREC_DP), DIMENSION(4,4), INTENT(INOUT) :: generator
 INTEGER             , INTENT(IN)    :: icase
@@ -527,7 +527,7 @@ SUBROUTINE get_symmetry_type(SPC_MAX, spc_n, spc_mat, spc_spur,  &
 USE blanks_mod
 use precision_mod
 !
-IMPLICIT none 
+implicit none 
 !                                                                       
 INTEGER, intent(in) :: SPC_MAX 
 INTEGER, intent(in) :: spc_n 
@@ -688,7 +688,7 @@ USE crystal_mod
 use matrix_mod
 use precision_mod
 !                                                                       
-IMPLICIT none 
+implicit none 
 !                                                                       
 REAL(kind=PREC_DP), dimension(3, 3), intent(in) :: work ! (3, 3) 
 REAL(kind=PREC_DP), dimension(3)   , intent(in) :: add  ! (3) 
@@ -1386,7 +1386,7 @@ SUBROUTINE get_detail_axis(work, w_char, axis)
 !
 use precision_mod
 !
-IMPLICIT NONE
+implicit NONE
 !
 REAL(kind=PREC_DP), DIMENSION(3,3), INTENT(IN)  :: work
 CHARACTER(LEN=*)                  , INTENT(IN)  :: w_char
@@ -1485,160 +1485,177 @@ END SUBROUTINE get_detail_axis
 !
 !********************************************************************** 
 !
-SUBROUTINE wyckoff_main (zeile, lp) 
+subroutine wyckoff_main (zeile, lp) 
 !-                                                                      
 !     Determines the local symmetry of the position given in the line   
 !+                                                                      
-USE ber_params_mod
-USE get_params_mod
-USE precision_mod
-USE str_comp_mod
+use ber_params_mod
+use get_params_mod
+use precision_mod
+use str_comp_mod
+use take_param_mod
 !                                                                       
-IMPLICIT none 
+implicit none 
 !
-CHARACTER(LEN=PREC_STRING), intent(in) :: zeile 
-INTEGER                   , intent(inout) :: lp 
+character(LEN=PREC_STRING), intent(in) :: zeile 
+integer                   , intent(inout) :: lp 
 !                                                                       
-!INTEGER FULL, SYMBOL, XYZ, MATRIX 
-integer, PARAMETER :: FULL   = 0
-integer, PARAMETER :: SYMBOL = 1
-integer, PARAMETER :: XYZ    = 2
-integer, PARAMETER :: MATRIX = 3
-!                                                                       
-!                                                                       
-INTEGER, PARAMETER :: MAXW = 4 
-!                                                                       
-CHARACTER(LEN=PREC_STRING), dimension(MAXW) :: cpara !(maxw) 
-INTEGER           , dimension(MAXW) :: lpara !(maxw) 
-INTEGER            :: ianz 
-INTEGER            :: iianz 
-INTEGER            :: mode 
-LOGICAL            :: loutput 
-REAL(KIND=PREC_DP), dimension(MAXW) :: werte !(maxw) 
+integer, parameter :: FULL   = 0
+integer, parameter :: SYMBOL = 1
+integer, parameter :: XYZ    = 2
+integer, parameter :: MATRIX = 3
 !                                                                       
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
-      IF (ianz.eq.3.or.ianz.eq.4) then 
-         iianz = 3 
-         CALL ber_params (iianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
+integer, parameter :: MAXW = 4 
 !                                                                       
-         loutput = .true. 
-         IF (ianz.eq.3.or.str_comp (cpara (4) , 'full', 2, lpara (4) ,  &
-         4) ) then                                                      
-            mode = FULL 
-         ELSEIF (str_comp (cpara (4) , 'symbol', 2, lpara (4) , 6) )    &
-         then                                                           
-            mode = SYMBOL 
-         ELSEIF (str_comp (cpara (4) , 'xyz', 2, lpara (4) , 3) ) then 
-            mode = XYZ 
-         ELSEIF (str_comp (cpara (4) , 'matrix', 2, lpara (4) , 6) )    &
-         then                                                           
-            mode = MATRIX 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-            RETURN 
-         ENDIF 
-         CALL get_wyckoff (werte, loutput, mode, .true. )
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-      ENDIF 
+character(LEN=PREC_STRING), dimension(MAXW) :: cpara !(maxw) 
+integer           , dimension(MAXW) :: lpara !(maxw) 
+integer            :: ianz 
+integer            :: iianz 
+integer            :: mode 
+logical            :: loutput 
+logical            :: lfirst
+real(kind=PREC_DP), dimension(MAXW) :: werte !(maxw) 
+!
+integer, parameter :: NOPTIONAL = 1
+integer, parameter :: O_FIRST   = 1
+character(LEN=   5), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
+!
+data oname  / 'first' /
+data loname /  5      /
+opara  =  (/ 'no  ' /)
+lopara =  (/  2     /)
+owerte =  (/  0.0   /)
+!
 !                                                                       
-END SUBROUTINE wyckoff_main                   
+call get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+if (ier_num.ne.0) return 
+if (ianz.eq.3.or.ianz.eq.4) then 
+   iianz = 3 
+   call ber_params (iianz, cpara, lpara, werte, maxw) 
+   IF (ier_num.ne.0) return 
+!                                                                       
+   lfirst = opara(O_FIRST) == 'yes'
+   loutput = .true. 
+   if (ianz.eq.3.or.str_comp (cpara (4) , 'full', 2, lpara (4) , 4) ) then                                                      
+      mode = FULL 
+   elseif (str_comp (cpara (4) , 'symbol', 2, lpara (4) , 6) ) then                                                           
+      mode = SYMBOL 
+   elseif (str_comp (cpara (4) , 'xyz', 2, lpara (4) , 3) ) then 
+      mode = XYZ 
+   elseif (str_comp (cpara (4) , 'matrix', 2, lpara (4) , 6) ) then                                                           
+      mode = MATRIX 
+   else 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+      RETURN 
+   endif 
+   call get_wyckoff (werte, loutput, mode, lfirst )
+else 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+endif 
+!                                                                       
+end subroutine wyckoff_main                   
 !
 !********************************************************************** 
 !
-SUBROUTINE get_wyckoff (vec, loutput, mode, lfirst) 
+subroutine get_wyckoff (vec, loutput, mode, lfirst) 
 !-                                                                      
 !     Determines the local symmetry of position xyz within the unit cell
 !+                                                                      
-USE discus_config_mod 
-USE crystal_mod 
-USE wyckoff_mod 
-USE unitcell_mod 
+use discus_config_mod 
+use crystal_mod 
+use wyckoff_mod 
+use unitcell_mod 
 !
 use lib_functions_mod
 use matrix_mod
-USE prompt_mod
-USE param_mod
-USE precision_mod
+use prompt_mod
+use param_mod
+use precision_mod
 use terminal_mod
 !                                                                       
-IMPLICIT none 
+implicit none 
 !                                                                       
-REAL(KIND=PREC_DP), intent(inout) ::  vec(3) 
-LOGICAL           , intent(in) :: loutput 
-INTEGER           , intent(in) :: mode 
+real(kind=PREC_DP), intent(inout) ::  vec(3) 
+logical           , intent(in) :: loutput 
+integer           , intent(in) :: mode 
 logical           , intent(in) :: lfirst      ! Move position into first unit cell
 !
 character(len=11) :: color_text     ! Will be red is an extra symmetry operation
 !                                                                       
-!     INTEGER FULL, SYMBOL, XYZ, MATRIX 
-integer,      PARAMETER :: FULL   = 0
-integer,      PARAMETER :: SYMBOL = 1
-integer,      PARAMETER :: XYZ    = 2
-integer,      PARAMETER :: MATRIX = 3
+!     integer FULL, SYMBOL, XYZ, MATRIX 
+integer,      parameter :: FULL   = 0
+integer,      parameter :: SYMBOL = 1
+integer,      parameter :: XYZ    = 2
+integer,      parameter :: MATRIX = 3
 !                                                                       
-INTEGER :: i, j 
-INTEGER :: is 
-INTEGER :: n_center 
-INTEGER :: igroup 
-INTEGER :: block = 1
-LOGICAL :: lident 
+integer :: i, j 
+integer :: is 
+integer :: n_center 
+integer :: igroup 
+integer :: block = 1
+logical :: lident 
 logical, dimension(3) :: l_is_ident
-REAL(KIND=PREC_DP), dimension(4) :: trans! (4) 
-REAL(KIND=PREC_DP), dimension(4) :: orig ! (4) 
-REAL(KIND=PREC_DP), dimension(4) :: copy ! (4) 
-REAL(kind=PREC_DP), dimension(3,3):: tmp_mat  ! 
-REAL(kind=PREC_DP) :: eps 
+real(kind=PREC_DP), dimension(4) :: trans! (4) 
+real(kind=PREC_DP), dimension(4) :: orig ! (4) 
+real(kind=PREC_DP), dimension(4) :: copy ! (4) 
+real(kind=PREC_DP), dimension(3,3):: tmp_mat  ! 
+real(kind=PREC_DP) :: eps 
 !
 !integer, parameter :: WYC_MAX = 1
-!REAL(kind=PREC_DP), dimension(4,4, 1:WYC_MAX)  :: wyc_mat  ! (4, 4, 1:SPC_MAX) 
-!REAL(kind=PREC_DP), dimension(     1:WYC_MAX)  :: wyc_spur ! (1:SPC_MAX) 
-!REAL(kind=PREC_DP), dimension(     1:WYC_MAX)  :: wyc_det  ! (1:SPC_MAX) 
+!real(kind=PREC_DP), dimension(4,4, 1:WYC_MAX)  :: wyc_mat  ! (4, 4, 1:SPC_MAX) 
+!real(kind=PREC_DP), dimension(     1:WYC_MAX)  :: wyc_spur ! (1:SPC_MAX) 
+!real(kind=PREC_DP), dimension(     1:WYC_MAX)  :: wyc_det  ! (1:SPC_MAX) 
 !CHARACTER(len=65),  dimension(     1:WYC_MAX)  :: wyc_char ! (1:SPC_MAX) 
 !CHARACTER(len=87),  dimension(     1:WYC_MAX)  :: wyc_xyz  ! (1:SPC_MAX) 
-!REAL(kind=PREC_DP), dimension(3,   1:WYC_MAX)  :: wyc_axis ! (4, 4, 1:SPC_MAX) 
+!real(kind=PREC_DP), dimension(3,   1:WYC_MAX)  :: wyc_axis ! (4, 4, 1:SPC_MAX) 
 !                                                                       
-DATA eps / 0.00002_PREC_DP/
+data eps / 0.00002_PREC_DP/
 !                                                                       
 n_center = 1 
-IF (cr_spcgr (1:1) .eq.'P') then 
+if (cr_spcgr (1:1) .eq.'P') then 
    n_center = 1 
-ELSEIF (cr_spcgr (1:1) .eq.'A') then   ! Normal space group can be used
+elseif (cr_spcgr (1:1) .eq.'A') then   ! Normal space group can be used
    n_center = 2 
-ELSEIF (cr_spcgr (1:1) .eq.'B') then   ! as n_center is identical for
+elseif (cr_spcgr (1:1) .eq.'B') then   ! as n_center is identical for
    n_center = 2 
-ELSEIF (cr_spcgr (1:1) .eq.'C') then   ! A B and C, orthorhombic alternative setting
+elseif (cr_spcgr (1:1) .eq.'C') then   ! A B and C, orthorhombic alternative setting
    n_center = 2 
-ELSEIF (cr_spcgr (1:1) .eq.'I') then 
+elseif (cr_spcgr (1:1) .eq.'I') then 
    n_center = 2 
-ELSEIF (cr_spcgr (1:1) .eq.'F') then 
+elseif (cr_spcgr (1:1) .eq.'F') then 
    n_center = 4 
-ELSEIF (cr_spcgr (1:1) .eq.'R'.and.cr_syst.eq.6) then 
+elseif (cr_spcgr (1:1) .eq.'R'.and.cr_syst.eq.6) then 
    n_center = 3 
-ENDIF 
-IF (gen_sta.eq.GEN_SYMM) then 
+endif 
+if (gen_sta.eq.GEN_SYMM) then 
    block = spc_n / n_center 
-ELSEIF (gen_sta.eq.GEN_CENTER) then 
+elseif (gen_sta.eq.GEN_CENTER) then 
    block = n_center 
-ENDIF 
-IF (loutput) then 
-   WRITE (output_io, 900) vec 
-ENDIF 
+endif 
+if (loutput) then 
+   write (output_io, 900) vec 
+endif 
 !                                                                       
 wyc_n = 0 
 wyc_extra = .false.
 !                                                                       
 !     move position into first unit cell,ia                             
 !                                                                       
-if(lfirst) CALL firstcell(vec, 3) 
+if(lfirst) call firstcell(vec, 3) 
 !     DO i = 1, 3 
 !     orig (i) = vec (i) 
-!     ENDDO 
+!     enddo 
 orig(1:3) = vec(1:3)
 orig(4) = 1.0_PREC_DP
 !                                                                       
@@ -1646,18 +1663,18 @@ orig(4) = 1.0_PREC_DP
 !                                                                       
 res_para(0) = 3    ! 3 fixed output data, symm matrix no's in 4, ...
 wyc_fix     = .false.   ! Assume general position
-DO is = 1, spc_n 
-   IF (gen_sta.eq.GEN_SYMM) then 
+do is = 1, spc_n 
+   if (gen_sta.eq.GEN_SYMM) then 
       igroup = mod (is - 1, block) + 1 
-   ELSEIF (gen_sta.eq.GEN_CENTER) then 
+   elseif (gen_sta.eq.GEN_CENTER) then 
       igroup = (is - 1) / block + 1 
-   ENDIF 
+   endif 
 !  DO i = 1, 4 
 !     copy (i) = 0.0 
 !     DO j = 1, 4 
 !        copy (i) = copy (i) + spc_mat (i, j, is) * orig (j) 
-!     ENDDO 
-!  ENDDO 
+!     enddo 
+!  enddo 
 !  wyc_mat(:,:,1) = spc_mat(:,:, is)
    copy = matmul(spc_mat(:,:,is), orig)
 !write(*,'(i3, 3(2x,3(f10.6)),2x, l2, 3x, 3l2)') is, orig(1:3), copy(1:3), orig(1:3)-copy(1:3) ,  &
@@ -1665,16 +1682,16 @@ DO is = 1, spc_n
 !                    (frac(abs(orig(1  ) - copy(1  ) )    ) .lt.eps),  &
 !                    (frac(abs(orig(2  ) - copy(2  ) )    ) .lt.eps),  &
 !                    (frac(abs(orig(3  ) - copy(3  ) )    ) .lt.eps)
-!  CALL firstcell (copy, 4) 
+!  call firstcell (copy, 4) 
    lident = .true. 
    trans = 0.0_PREC_DP
-   DO i = 1, 3 
+   do i = 1, 3 
       l_is_ident(i) =(    abs(orig(i) - copy(i) )      .lt.eps .OR.   &
                      frac(abs(orig(i) - copy(i) )    ) .lt.eps)
       lident = lident.and. l_is_ident(i)
       trans(i) = orig(i) - copy(i)
-   ENDDO 
-   IF (lident) then 
+   enddo 
+   if (lident) then 
       wyc_n = wyc_n + 1 
       if(any(abs(trans(1:3))>EPS)) then
          wyc_extra(wyc_n) = .true.
@@ -1689,39 +1706,39 @@ DO is = 1, spc_n
       wyc_spur(wyc_n) = wyc_mat(1,1,wyc_n) + wyc_mat(2,2,wyc_n) + wyc_mat(3,3,wyc_n)
       tmp_mat = wyc_mat(1:3,1:3,wyc_n)
       wyc_det(wyc_n)  = determinant(tmp_mat)
-      CALL get_symmetry_type (WYC_MAX, wyc_n    , wyc_mat, wyc_spur,        &
+      call get_symmetry_type (WYC_MAX, wyc_n    , wyc_mat, wyc_spur,        &
       wyc_det, wyc_char, wyc_xyz, wyc_axis)
-      IF (loutput) then 
+      if (loutput) then 
 !        IF (mode.eq.FULL) then 
-!           WRITE (output_io, 1000) is, igroup 
-!           WRITE (output_io, 1100) (spc_mat (1, j, is), j = 1, 4),  &
+!           write (output_io, 1000) is, igroup 
+!           write (output_io, 1100) (spc_mat (1, j, is), j = 1, 4),  &
 !           spc_char (is), (spc_mat (2, j, is), j = 1, 4), (spc_mat (&
 !           3, j, is), j = 1, 4), spc_xyz (is)                       
-         IF (mode.eq.FULL) then 
-            WRITE(output_io, 1000) trim(color_text),is, igroup , trim(COLOR_FG_BLACK)
-            WRITE(output_io, 1100) trim(color_text),(wyc_mat(1, j, wyc_n), j = 1, 4),  &
+         if (mode.eq.FULL) then 
+            write(output_io, 1000) trim(color_text),is, igroup , trim(COLOR_FG_BLACK)
+            write(output_io, 1100) trim(color_text),(wyc_mat(1, j, wyc_n), j = 1, 4),  &
                wyc_char(wyc_n), (wyc_mat(2, j, wyc_n), j = 1, 4),         &
               (wyc_mat(3, j, wyc_n), j = 1, 4), wyc_xyz(wyc_n) , trim(COLOR_FG_BLACK)                      
-         ELSEIF (mode.eq.SYMBOL) then 
-            WRITE(output_io, 3200) trim(color_text), is, igroup, wyc_char(wyc_n) , trim(COLOR_FG_BLACK)
-         ELSEIF (mode.eq.XYZ) then 
-            WRITE(output_io, 4200) trim(color_text), is, igroup, wyc_xyz(wyc_n) , trim(COLOR_FG_BLACK)
-         ELSEIF (mode.eq.MATRIX) then 
-            WRITE(output_io, 5200) trim(color_text), is, igroup, (wyc_mat(1, j, wyc_n), j = 1, 4), &
+         elseif (mode.eq.SYMBOL) then 
+            write(output_io, 3200) trim(color_text), is, igroup, wyc_char(wyc_n) , trim(COLOR_FG_BLACK)
+         elseif (mode.eq.XYZ) then 
+            write(output_io, 4200) trim(color_text), is, igroup, wyc_xyz(wyc_n) , trim(COLOR_FG_BLACK)
+         elseif (mode.eq.MATRIX) then 
+            write(output_io, 5200) trim(color_text), is, igroup, (wyc_mat(1, j, wyc_n), j = 1, 4), &
                (wyc_mat(2, j, wyc_n), j = 1, 4), (wyc_mat(3, j, wyc_n), j = 1, 4), trim(COLOR_FG_BLACK)
-         ENDIF 
+         endif 
 !write(*,'(a,3(2x,f10.4))') ' WYC AXIS ', wyc_axis(:,wyc_n)
 !write(*,'( a)') '>>123456789 123456789 123456789 123456789 123456789 123456789 123456789 <<'
 !write(*,'(3a)') '>>',wyc_char(wyc_n),'<<'
 !write(*,'(7a)') '>> X >',wyc_char(wyc_n)(22:24),'<>',wyc_char(wyc_n)(25:28),'<  >',wyc_char(wyc_n)(48:51),'<>'
 !write(*,'(7a)') '>> Y >',wyc_char(wyc_n)(30:32),'<>',wyc_char(wyc_n)(33:36),'<  >',wyc_char(wyc_n)(53:56),'<>'
 !write(*,'(7a)') '>> Z >',wyc_char(wyc_n)(38:40),'<>',wyc_char(wyc_n)(41:44),'<  >',wyc_char(wyc_n)(58:61),'<>'
-      ENDIF 
+      endif 
       res_para(0) = REAL(NINT(res_para(0)+1), kind=PREC_DP)
       res_para(NINT(res_para(0))) = REAL(is, kind=PREC_DP)
-   ENDIF 
+   endif 
 !                                                                       
-ENDDO 
+enddo 
 !
 call get_wyckoff_name(loutput)
 !
@@ -1729,8 +1746,8 @@ call get_wyckoff_fixed
 call wyc_calc
 !
 !                                                                       
-IF (loutput) then 
-   WRITE (output_io, 6000) spc_n / wyc_n, wyc_n, spc_n 
+if (loutput) then 
+   write (output_io, 6000) spc_n / wyc_n, wyc_n, spc_n 
    if(wyc_n == 1) then
       write(output_io, '(a)') ' General position x; y; z'
    else
@@ -1738,26 +1755,26 @@ IF (loutput) then
       (wyc_fix_pos(i)(1:len_trim(wyc_fix_pos(i))), ' ; ', i=1,2) &
       ,wyc_fix_pos(3)(1:len_trim(wyc_fix_pos(i)))
    endif
-ENDIF 
-res_para(1) = REAL(spc_n / wyc_n, kind=PREC_DP)
-res_para(2) = REAL(        wyc_n, kind=PREC_DP)
-res_para(3) = REAL(spc_n        , kind=PREC_DP)
+endif 
+res_para(1) = real(spc_n / wyc_n, kind=PREC_DP)
+res_para(2) = real(        wyc_n, kind=PREC_DP)
+res_para(3) = real(spc_n        , kind=PREC_DP)
 !                                                                       
-  900 FORMAT    (/,' Wyckoff symmetry for position ',3f12.6,/) 
- 1000 FORMAT    ('Symmetry No.     ',a,'[',i3,']  (',i3,')',a) 
- 1100 FORMAT    (a,' ( ',3(f4.1,', '),f8.5,' )','  ',a65,/,             &
+  900 format    (/,' Wyckoff symmetry for position ',3f12.6,/) 
+ 1000 format    ('Symmetry No.     ',a,'[',i3,']  (',i3,')',a) 
+ 1100 format    (a,' ( ',3(f4.1,', '),f8.5,' )','  ',a65,/,             &
      &                    ' ( ',3(f4.1,', '),f8.5,' )',/,               &
      &                    ' ( ',3(f4.1,', '),f8.5,' )','  ',a87,a,/)      
- 3200 FORMAT    ('Symmetry No.      ',a,'[',i3,']  (',i3,')  ',a65,a) 
- 4200 FORMAT    ('Symmetry No.      ',a,'[',i3,']  (',i3,')  ',a87,a) 
- 5200 FORMAT    ('Symmetry No.      ',a,'[',i3,']  (',i3,')  ',         &
+ 3200 format    ('Symmetry No.      ',a,'[',i3,']  (',i3,')  ',a65,a) 
+ 4200 format    ('Symmetry No.      ',a,'[',i3,']  (',i3,')  ',a87,a) 
+ 5200 format    ('Symmetry No.      ',a,'[',i3,']  (',i3,')  ',         &
      &                    ' ( ',3(f4.1,', '),f8.5,' )',/,               &
      &                32x,' ( ',3(f4.1,', '),f8.5,' )',/,               &
      &                32x,' ( ',3(f4.1,', '),f8.5,' )',a   )              
- 6000 FORMAT    (/,' Multiplicity;   No of Sym. Op. in Wyckoff group; ',&
+ 6000 format    (/,' Multiplicity;   No of Sym. Op. in Wyckoff group; ',&
      &  '    Highest Multiplicity',/,i8,20x,i8,20x,i8)                  
 !                                                                       
-END SUBROUTINE get_wyckoff                    
+end subroutine get_wyckoff                    
 !
 !********************************************************************** 
 !
@@ -2309,7 +2326,7 @@ use wyckoff_mod
 !
 use precision_mod
 !                                                                       
-IMPLICIT none 
+implicit none 
 !                                                                       
 REAL(kind=PREC_DP) :: eps 
 INTEGER :: ii, iii, igs, igg 
@@ -2411,7 +2428,7 @@ SUBROUTINE symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos,    &
 USE molecule_mod 
 USE precision_mod
 !
-IMPLICIT none 
+implicit none 
 !                                                                       
 INTEGER,                       INTENT(IN)     ::  NMAX 
 !
@@ -2686,7 +2703,7 @@ SUBROUTINE symmetry_orbit (NMAX, cr_iset, npos, pos,    &
 !+                                                                      
 USE precision_mod
 !
-IMPLICIT none 
+implicit none 
 !                                                                       
 INTEGER,                       INTENT(IN)     ::  NMAX 
 !
@@ -2812,7 +2829,7 @@ USE molecule_mod
 USE wyckoff_mod 
 USE precision_mod
 !                                                                       
-IMPLICIT none 
+implicit none 
 !                                                                       
 INTEGER :: ii 
 !                                                                       
@@ -2947,7 +2964,7 @@ USE crystal_mod
 USE molecule_mod 
 USE prop_para_mod
 !
-IMPLICIT none 
+implicit none 
 !                                                                       
 INTEGER, INTENT(IN) :: iatom 
 INTEGER, INTENT(IN) :: imole 
@@ -3050,7 +3067,7 @@ USE crystal_mod
 USE molecule_mod 
 USE prop_para_mod
 !                                                                       
-IMPLICIT none 
+implicit none 
 !                                                                       
 INTEGER, INTENT(IN) :: iatom 
 INTEGER, INTENT(IN) :: imole 
@@ -3176,7 +3193,7 @@ USE molecule_mod
 use precision_mod
 USE prompt_mod
 !                                                                       
-IMPLICIT none 
+implicit none 
 !                                                                       
 INTEGER, intent(inout) :: mole_st 
 !
@@ -3323,7 +3340,7 @@ USE molecule_mod
 USE crystal_mod 
 !
 use precision_mod
-IMPLICIT none 
+implicit none 
 !                                                                       
 real(kind=PREC_DP),  PARAMETER :: eps = 1.e-5
 !                                                                       
@@ -3360,7 +3377,7 @@ SUBROUTINE firstcell(y, idim)
 !+                                                                      
 USE precision_mod
 !
-IMPLICIT none 
+implicit none 
 !                                                                       
 INTEGER, intent(in) :: idim
 REAL(KIND=PREC_DP), dimension(idim), intent(inout) :: y (idim) 
@@ -3389,7 +3406,7 @@ SUBROUTINE setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
 USE trafo_mod
 use precision_mod
 !
-IMPLICIT none 
+implicit none 
 !
 real(kind=PREC_DP), dimension(3)    , intent(in)    :: cr_a0
 real(kind=PREC_DP), dimension(3)    , intent(out)   :: cr_ar
@@ -3449,7 +3466,7 @@ USE rmc_symm_mod
 !
 use precision_mod
 !
-IMPLICIT none 
+implicit none 
 !                                                                       
 INTEGER :: i, j, k 
 LOGICAL :: lfriedel_remove 
@@ -3534,7 +3551,7 @@ USE trig_degree_mod
 USE wink_mod
 use precision_mod
 !
-IMPLICIT none 
+implicit none 
 !
 real(kind=PREC_DP), dimension(3)    , intent(in)  :: a0
 real(kind=PREC_DP), dimension(3)    , intent(out) :: ar
@@ -3650,7 +3667,7 @@ SUBROUTINE tensor (ten, vec, win)
 USE trig_degree_mod
 use precision_mod
 !
-IMPLICIT none 
+implicit none 
 !                                                                       
 integer, PARAMETER :: idim = 3 
 !                                                                       
