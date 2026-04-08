@@ -74,7 +74,6 @@ real(kind=PREC_DP), dimension(0:5) :: zeit
 !
 data imat / 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0/
 !
-!write(*,*) ' PREP ', cr_iscat(1,1: natom)
 ar_inv(1) = 1./cr_ar(1)
 ar_inv(2) = 1./cr_ar(2)
 ar_inv(3) = 1./cr_ar(3)
@@ -261,15 +260,21 @@ loop_atoms:do iatom=1,ncheck
    iref = j           ! Reference atom for ADP values
    if(lsuccess) then
 !     cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+      if(lanis) &
       cr_dw(cr_iscat(1,iatom)) = (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
       cycle loop_atoms
    endif
 !  This atom has new UIJ, we need to calculate the principal vectors and Eigenvalues
 !ss = seknds (ss )
    call calc_prin(cr_iscat(3,iatom), cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
+!write(*,*) ' IN PREP '
+!write(*,*) cr_prin(1:4,   1,1)
+!write(*,*) cr_prin(1:4,   2,1)
+!write(*,*) cr_prin(1:4,   3,1)
 !ss = seknds (ss )
 !zeit(4) = zeit(4) + ss
 !  cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+   if(lanis) &
    cr_dw(cr_iscat(1,iatom)) = (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
    if(ier_num/=0) then
       return
@@ -711,12 +716,16 @@ real(kind=PREC_DP), dimension(3,3) :: eigen_car   ! Eigenvectors in cartesian co
 real(kind=PREC_DP), DIMENSION(3,3)          ::      imat     = &
    reshape((/1.0D0,0.0D0,0.0D0, 0.0D0,1.0D0,0.0D0, 0.0D0,0.0D0,1.0D0/),SHAPE(imat))
 !
+!write(*,*) ' CALC_PRIN ', ucij(1,:)
+!write(*,*) ' CALC_PRIN ', ucij(2,:)
+!write(*,*) ' CALC_PRIN ', ucij(3,:)
 call eigen_value(ucij, eigen_val, eigen_car, imat, neigen)
 if(ier_num /=0 ) then
    ier_msg(1) = 'Cartesian UCij matrix has zero det.'
    ier_msg(2) = 'Check anisotropic ADP values '
    return
 endif
+!write(*,*) ' EIGEN ', eigen_val
 prin  (1:3,1, ientry) = (eigen_car(:,1))
 prin  (1:3,2, ientry) = (eigen_car(:,2))
 prin  (1:3,3, ientry) = (eigen_car(:,3))
