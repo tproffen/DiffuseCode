@@ -23,6 +23,7 @@ USE doact_mod
 USE doexec_mod 
 USE do_execute_mod
 USE errlist_mod 
+use lib_errlist_func
 USE lib_macro_func
 USE class_macro_internal 
 !                                                                       
@@ -43,6 +44,11 @@ cond_error: IF(ier_num ==0 )then
    lblock_read = .true. 
    DO WHILE (level.gt. - 1) 
       CALL do_insert_line!(jlevel) ! Moved to separate subroutine
+      if(ier_num/=0) then
+         call errlist
+         ier_num = -60
+         ier_typ = ER_FORT
+      endif
       IF(ier_num /= 0) exit cond_error
    ENDDO 
       lblock_read = .false. 
@@ -52,11 +58,14 @@ cond_error: IF(ier_num ==0 )then
 !-----      execute the block structure                                 
 !                                                                       
    CALL do_execute_block(lend)
+   IF(ier_num /= 0) exit cond_error
 !
 endif cond_error
 !                                                                       
 lblock = .false. 
 IF (ier_num.ne.0) THEN 
+   call errlist
+   
    IF(lmakro .AND. lmacro_close) THEN
       CALL macro_close(-1)
    ENDIF 
@@ -235,6 +244,7 @@ cond_error: if(ier_num==0) then
 !                                                                       
       prom = prompt (1:len_str (prompt) ) //cprom (jlevel (level) ) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      if(ier_num/=0) return
       IF(length==0) THEN
           nlevel (level) = nlevel (level) - 1 
           exit cond_error
