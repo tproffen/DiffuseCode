@@ -138,7 +138,7 @@ ELSE
                cr_nscat = cr_nscat + 1 
                cr_at_lis (cr_nscat) = cpara (2) (1:lpara(2))
 !DBG                   cr_dw(cr_nscat)     = cr_dw(nint(uerte(i)))         
-               cr_dw (cr_nscat) = 0.05D0
+               cr_dw (cr_nscat) = cr_dw(nint(uerte(1)))  ! Use old B-value
                cr_occ(cr_nscat) = 1.00D0
                CALL no_error 
                verte (i) = REAL(cr_nscat) 
