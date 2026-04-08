@@ -175,7 +175,7 @@ length = len_trim(line)
 !
 loop_main: do i=1, NOPTIONAL
    if(lpresent(i)) then            ! Optional parameter is present
-      iopt = index(line, oname(i)(1:loname(i)))
+      iopt = index(line, oname(i)(1:loname(i))//':')
       istart = max(1, index(line(1:iopt), ',', .true.))
       j = index(line(iopt+loname(i)+lopara(i)+1:length), ',')
       if(j==0) then
