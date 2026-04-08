@@ -346,7 +346,14 @@ real(kind=PREC_DP) :: scalef                   ! Scalefactor for small values ma
 real(kind=PREC_QP),parameter :: big=10000000.0_PREC_QP
 data imat / 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0/
 !
-a = real(nint(a_in*big)/big, kind=PREC_DP)     ! Ensure that lower precision bits are zeros
+!write(*,*) ' a_in ', a_in(1,:)
+!write(*,*) ' a_in ', a_in(2,:)
+!write(*,*) ' a_in ', a_in(3,:)
+!a = real(nint(a_in*big)/big, kind=PREC_DP)     ! Ensure that lower precision bits are zeros
+a = a_in
+!write(*,*) ' a    ', a   (1,:)
+!write(*,*) ' a    ', a   (2,:)
+!write(*,*) ' a    ', a   (3,:)
 ier_num = 0
 eigen_val = 0.0D0
 eigen_vec = 0.0D0
@@ -361,6 +368,7 @@ if(maxval(abs(a))<0.001_PREC_DP) then ! .and. minval(abs(a))>0.0000001_PREC_DP) 
    scalef=1000.0_PREC_DP
    a = a*scalef
 endif
+!write(*,*) ' IN EIGEN ', scalef
 det = det3(a)
 if(abs(det)<TOL) then        ! Determinant(A) is zero
    ier_num = -4 
@@ -380,7 +388,7 @@ p = ( b(1,1)**2 + b(1,2)**2 + b(1,3)**2 +    &  ! p = SUM( (A - mI)_ij^2 )
 p_q = p**3 - q**2
 !
 !write(*,*)  ' MPQ       ', m, p, q, abs(q)<TOL
-!write(*,*)  ' p**3-q**2 ', p**3 - q**2
+!write(*,*)  ' p**3-q**2 ', p**3 - q**2, abs(p_q       )>TOL_PQ
 if((p**3 -q**2)<0.0D0) then                     ! Negative root
 !  if(abs(p**3 -q**2)>TOL) then
    if(abs(p_q       )>TOL_PQ) then
@@ -393,6 +401,7 @@ if((p**3 -q**2)<0.0D0) then                     ! Negative root
       p_q = 0.0_PREC_DP
    endif
 endif
+!write(*,*)  ' (sqrt(p_q       )/q) ', (sqrt(p_q       )/q)
 !
 if(abs(q)<TOL       ) then                      ! q == Null phi = PI/6
    phi = pi/2.0D0 / 3.0D0
@@ -407,6 +416,10 @@ else
 endif
 !write(*,*)  ' phi       ', phi
 !write(*,*)  ' c s phi   ', cphi, sphi, cos(phi), sin(phi)
+!write(*,*)  ' c+sqr3*s  ', (cphi + sqrt(3.0D0)*sphi)
+!write(*,*)  ' c-sqr3*s  ', (cphi - sqrt(3.0D0)*sphi)
+!write(*,*)  ' m         ', m
+!write(*,*)  ' sqrt(p)   ', sqrt(p)
 !
 eigen(1) = m + 2.0D0*sqrt(p) * dcos(phi)
 eigen(2) = m - sqrt(p)*(cphi + sqrt(3.0D0)*sphi)
