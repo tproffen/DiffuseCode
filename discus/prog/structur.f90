@@ -3620,6 +3620,7 @@ use save_temp_mod      ! To save the current structure
 !
 use crystal_mod
 use wyckoff_mod
+use read_internal_mod
 !
 USE ber_params_mod
 USE blanks_mod
@@ -3648,6 +3649,7 @@ character(len=*)                    , intent(inout) :: c_diffev! "no" or "yes" f
 character(len=*)                    , intent(in)    :: c_form  ! "waas" or "table" or "discamb" flag for atom form factors
 CHARACTER(LEN=*)                    , INTENT(OUT)   :: ofile   ! Resulting output file
 !                                                                       
+INTEGER , PARAMETER :: MAXMASK =  4
 real(kind=PREC_DP), parameter :: TOL = 0.00005_PREC_DP
 INTEGER, PARAMETER :: NFV = 50 
 integer, parameter :: IRD = 34
@@ -3683,6 +3685,11 @@ integer, dimension(:), allocatable :: nanis   ! Number of ADP's for give chemica
 integer :: iscat      ! Current chemical element
 integer :: ianis      ! Current ADP
 integer :: iatom      ! Current atom
+!
+!variables to refine reading in case of refine/diffev preparation
+logical          :: lfirst_mole
+!logical          :: l_site     = .FALSE.    ! Treat atoms on different sites as different types?
+logical, dimension(0:MAXMASK) :: uni_mask           ! Mask for unique atom types
 !
 real(kind=PREC_DP), dimension(:,:)  , allocatable :: posit   ! List of all Atom positions
 real(kind=PREC_DP), dimension(:,:)  , allocatable :: uij_at  ! Current uij, list as per atom
@@ -3728,6 +3735,7 @@ integer             :: space_number
 integer             :: space_origin   ! Origin choice 1 or 2
 character(len=3)    :: space_setting  ! 'abc' , etc
 logical             :: lspace_group   ! use generators of space group symbol
+logical             :: l_current_saved! An old structure was saved
 !
 !character(len=PREC_STRING) :: string
 logical             :: l_refine       ! refine is not just "no"
@@ -4158,13 +4166,18 @@ l_refine = c_refine /= 'no'
 l_diffev = c_diffev /= 'no'
 !
 if(l_diffev .or. l_refine) then    ! Prepare a refinement
-   save_file = 'current_structure_rbn'
-   call save_temp(save_file)       ! Make a backup copy of the current file to prevent changing it
-   cr_spcgr = space_group(1:min(16, len_trim(space_group)))
-   cr_set   = space_setting
-   cr_iset  = space_origin
-   spc_n    = n_mat
-   spc_mat  = spc_mat_local
+   if(cr_natoms>0) then            ! We do have a current structure
+      l_current_saved = .true.
+      save_file = 'current_structure_rbn'
+      call save_temp(save_file)       ! Make a backup copy of the current file to prevent changing it
+      cr_spcgr = space_group(1:min(16, len_trim(space_group)))
+      cr_set   = space_setting
+      cr_iset  = space_origin
+      spc_n    = n_mat
+      spc_mat  = spc_mat_local
+   else
+      l_current_saved = .false.
+   endif
 endif
 !
 if(l_diffev) then     ! Interpret the diffev parameters
@@ -4176,7 +4189,7 @@ if(l_diffev) then     ! Interpret the diffev parameters
   call get_params (c_diffev, ianz, ccpara, llpara, maxw, length) 
   call get_optional(ianz, MAXW, ccpara, llpara, NOPTIONAL,  ncalc, &
                     oname, loname, opara, lopara, lpresent, owerte)
-  write(*,*) ' FREE ', opara(7)(1:lopara(7))
+!  write(*,*) ' FREE ', opara(7)(1:lopara(7))
   if(ier_num/=0) return
   ref_dif(:,2) = opara           ! Copy all DIFFEV details
   if(.not. (lpresent(O_LAMBDA)                        )) then
@@ -4354,25 +4367,25 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
 !
 !===============================================================================
 !  if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
-   if(l_refine) then
-      if(ref_dif(O_STYLE,1)=='single' ) then
-         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'free')
-!   if(c_refine=='all' .or. c_refine=='powder') then
-      elseif(ref_dif(O_STYLE,1)=='powder' ) then
-         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
-      elseif(ref_dif(O_STYLE,1)=='pdf' ) then
-         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
-      endif
-   endif
-   if(l_diffev) then
-      if(ref_dif(O_STYLE,2)=='single' .or.          & ! SINGLE
-         ref_dif(O_STYLE,2)=='powder' .or.          & ! POWDER
-         ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
-         call write_diffev_single_part3(&
-           content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, l_free_position)  !&
-!          'free')
-      endif
-   endif
+!   if(l_refine) then
+!      if(ref_dif(O_STYLE,1)=='single' ) then
+!         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'free')
+!!   if(c_refine=='all' .or. c_refine=='powder') then
+!      elseif(ref_dif(O_STYLE,1)=='powder' ) then
+!         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
+!      elseif(ref_dif(O_STYLE,1)=='pdf' ) then
+!         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
+!      endif
+!   endif
+!   if(l_diffev) then
+!      if(ref_dif(O_STYLE,2)=='single' .or.          & ! SINGLE
+!         ref_dif(O_STYLE,2)=='powder' .or.          & ! POWDER
+!         ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
+!         call write_diffev_single_part3(&
+!           content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, l_free_position)  !&
+!!          'free')
+!      endif
+!   endif
 !
 !===============================================================================
 !
@@ -4407,6 +4420,79 @@ close(IWR)
 !
 !
 !===============================================================================
+!
+if(l_refine .or. l_diffev) then
+!
+uni_mask(0) = .true.
+call rese_cr
+call read_to_internal(ofile, 'internal_temp.')
+ofile = 'internal_temp.' // ofile(1:len_trim(ofile))
+CALL readstru_internal(MAXMASK, ofile, uni_mask)   ! Read  core file
+!write(*,*) ' READ TEMPORARY internal structure ', ofile(1:len_trim(ofile)), ier_num, ier_typ
+call store_remove_single(ofile, ier_num)
+!write(*,*) ' REMOVE temp file ', ier_num, ier_typ
+!
+if(ref_dif(O_FORM,1)=='discamb' .or. ref_dif(O_FORM,2)=='discamb') then
+   call init_qmsys !(mole_num_mole
+endif
+!
+!  Second loop over atoms, add coordinates to structure, add molecule info 
+!  Repeated for refine/diffev after structure has been read
+!
+lmole = .false.                     ! We are not inside a molecule
+iatom = 0
+iscat = 0
+lfirst_mole = .false.                   ! This is not the first atom of a molecule
+loop_atoms_set_prep: do jc=ifvar +1, ihklf-1
+   if(content(jc)(1:4) == 'MOLE') then  ! Start of a (new) molecule
+      lfirst_mole = .true.              ! The next atom is the first in a molecule
+      lmole = .true.
+      cycle loop_atoms_set_prep
+   endif
+   iatom = iatom + 1
+   line = content(jc)(5:len_trim(content(jc)))
+   call do_cap(line)
+   length = len_trim(line)
+   call get_params_blank(line, iianz, ccpara, llpara, MAXP, length)
+   call ber_params(iianz, ccpara, llpara, wwerte, MAXP) 
+!
+   if(lshelx_names) then
+      iscat = iscat + 1
+      c_atom(iscat) = content(jc)(1:4)
+   else
+      iscat = nint(wwerte(1))
+   endif
+!
+!===============================================================================
+!  if(c_refine=='yes' .or. c_refine=='all' .or. c_refine=='single') then
+   if(l_refine) then
+      if(ref_dif(O_STYLE,1)=='single' ) then
+         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'free')
+!   if(c_refine=='all' .or. c_refine=='powder') then
+      elseif(ref_dif(O_STYLE,1)=='powder' ) then
+         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
+      elseif(ref_dif(O_STYLE,1)=='pdf' ) then
+         call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
+      endif
+   endif
+   if(l_diffev) then
+      if(ref_dif(O_STYLE,2)=='single' .or.          & ! SINGLE
+         ref_dif(O_STYLE,2)=='powder' .or.          & ! POWDER
+         ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
+         call write_diffev_single_part3(&
+           content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, l_free_position)  !&
+!          'free')
+      endif
+   endif
+!
+!===============================================================================
+!
+   lfirst_mole = .false.                   ! The next atom is not the first atom of a molecule
+!
+enddo loop_atoms_set_prep
+endif
+!
+!===============================================================================
 if(l_refine) then
    if(ref_dif(O_STYLE,1)=='single' ) then
       call write_refine_single_part4(substance, &
@@ -4435,7 +4521,12 @@ if(l_diffev) then
    endif
 endif
 if(l_diffev .or. l_refine) then    ! Prepare a refinement
-   call restore_temp(save_file)
+   if(l_current_saved) then
+      call restore_temp(save_file)
+!write(*,*) ' READ   save file ', save_file(1:len_trim(save_file)), ier_num, ier_typ
+      call store_remove_single(save_file, ier_num)
+!write(*,*) ' REMOVE save file ', ier_num, ier_typ
+   endif
 endif
 !===============================================================================
 !
