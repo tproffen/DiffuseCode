@@ -661,6 +661,7 @@ INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
 logical                   , intent(in   ) :: lexpr
 character(len=*)          , intent(inout) :: line_expression
 !
+real(kind=PREC_DP), parameter :: EPS = 1.e-7
 !character(len=PREC_STRING) :: line
 !integer :: length
 integer, dimension(3) :: LOW(3)    ! Lower Dimensions for current variable
@@ -671,6 +672,8 @@ logical :: llimited                ! Parameter value "wert" needs to be limited
 !real(kind=PREC_DP) :: wwert
 real(kind=PREC_DP), dimension(2) :: r_wert_limit     ! Low and high value limit
 integer           , dimension(2) :: i_wert_limit     ! Low and high value limit
+!
+real(kind=PREC_DP), dimension(:), allocatable :: old  ! old values for sanity check
 !
 call lib_upd_para (ctype, lower_limit, upper_limit, maxw, lrange, wert, ianz, &
      cstring, substr, lexpr, line_expression)
@@ -761,18 +764,24 @@ ELSEIF (ctype.eq.'m') THEN
 !
 ELSEIF(ctype == 'b') THEN 
 !
+   allocate(old(lower_limit(1):upper_limit(1)))
+   old(lower_limit(1):upper_limit(1)) = cr_dw(lower_limit(1):upper_limit(1))
    llimited = .true.
    r_wert_limit(1) = 0.0       ! Positive
    if(lib_check_dim_para(ianz, lower_limit, upper_limit, lrange, 0, cr_nscat)) then
       call lib_set_para(0,cr_nscat, cr_dw, MAXW, lower_limit, upper_limit, lrange, lexpr, &
            wert, line_expression, llimited, r_wert_limit)
    else
+      deallocate(old)
       return
    endif
    if(ier_num/=0) return
    do i=lower_limit(1), upper_limit(1)
-      call update_biso(i, cr_dw(i))
+      if(abs(old(i)-cr_dw(i))>EPS) then      ! Significant change, update
+         call update_biso(i, cr_dw(i))
+      endif
    enddo
+   deallocate(old)
 !
 ! Atomic value
 !
