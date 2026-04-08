@@ -19,6 +19,7 @@ public write_diffev_single_part4
 public write_diffev_powder_part4
 public write_diffev_pdf_part1
 public write_diffev_pdf_part4
+public init_qmsys
 !
 integer, parameter :: IDI_MA  = 36    ! DISCUS_MAIN MACRO PART
 integer, parameter :: IRE_MA  = 37    ! REFINE_MAIN PART
@@ -30,6 +31,7 @@ integer, parameter :: IDF_SI  = 42    ! DIFFEV_SINGLE
 integer, parameter :: IDF_PO  = 43    ! DIFFEV_POWDER
 integer, parameter :: IDF_BS  = 44    ! diffev_best main
 integer, parameter :: IDF_BS2 = 45    ! diffev_best part 2
+integer, parameter :: IRE_QM  = 46    ! REFINE qm_sys file
 !
 character(len=PREC_STRING) :: discus_file
 character(len=PREC_STRING) ::    hkl_file
@@ -2292,6 +2294,150 @@ write(line,'(3a)') 'cp ', substance(1:len_trim(substance)),'.cell CELL'
 call execute_command_line(line, wait=.false.)
 !
 end subroutine write_diffev_pdf_part4
+!
+!*****7**************************************************************** 
+!
+subroutine init_qmsys
+!-
+!   Write a "qm_sys" file for DISCAMB
+!+
+!
+use crystal_mod
+use molecule_mod
+use spcgr_apply, only:get_wyckoff
+use wyckoff_mod
+!
+use element_data_mod
+use precision_mod
+!
+implicit none
+!
+logical, parameter :: lfirst  = .false.
+logical, parameter :: loutput = .false.
+integer, parameter :: mode    = 0
+!
+character(len=4) :: at_name
+character(len=4) :: el_name
+character(len=92), dimension(:,:), allocatable :: qmsys_line
+character(len=87), dimension(:,:), allocatable :: sym_xyz       ! Wyckoff copies for all molecules
+integer :: imole
+integer :: maxat
+integer :: iatom
+integer :: natom
+integer :: isym 
+integer :: i, j
+integer :: is_cond
+integer :: charge
+integer :: n_charge
+integer :: n_electron
+integer           , dimension(:)     , allocatable :: sym_n      ! Number of Wyckoff symmetries for each molecue
+integer           , dimension(:)     , allocatable :: qm_length  ! Number of entries for given molecule
+real(kind=PREC_DP),dimension(3)                    :: vec
+real(kind=PREC_DP),dimension(4)                    :: orig
+real(kind=PREC_DP),dimension(:,:,:,:), allocatable :: sym_mat    ! Wyckoff symmetry matrizes for all molecules
+real(kind=PREC_DP),dimension(:,:)    , allocatable :: atom_list  ! List of all atom copies
+logical           ,dimension(:  )    , allocatable :: atom_valid ! List of all valid atom copies
+!
+allocate(sym_mat(4,4,48,mole_num_mole))
+allocate(sym_xyz(48,mole_num_mole))
+allocate(sym_n(mole_num_mole))
+allocate(qm_length(mole_num_mole))
+!
+maxat = 0
+do imole=1,mole_num_mole
+   vec = cr_pos(:, mole_cont(mole_off(imole)+1))
+   call get_wyckoff(vec, loutput, mode, lfirst)          ! Get Wyckoff Symmetry of moecule
+   sym_mat(:,:,1:wyc_n, imole) = wyc_mat(:,:,1:wyc_n)
+   sym_xyz(1:wyc_n, imole) = wyc_xyz(1:wyc_n)
+   sym_n(imole) = wyc_n
+   maxat = max(maxat, wyc_n*mole_len(imole))             ! Determine maximum atom number in any molecule
+enddo
+!
+allocate(qmsys_line(maxat+1,mole_num_mole))
+!
+orig(1:3) = 0.0_PREC_DP
+orig(4)   = 1.0_PREC_DP
+do imole=1,mole_num_mole                       ! For all molecules
+!write(*,*)
+!do i=1, sym_n(imole)
+!write(*,'(a, i3, 1x,a)') 'Mole ', i, sym_xyz(i, imole)(1:len_trim(sym_xyz(i, imole)))
+!enddo
+!write(*,*)
+   do iatom=1, mole_len(imole)                 ! For all atoms in the molecule copy into qmsys
+      qmsys_line(iatom+1, imole) = cr_at_lis(cr_iscat(1,mole_cont(mole_off(imole)+iatom)))
+!write(*,'(3a)') ' LINE >',qmsys_line(iatom+1, imole)(1:len_trim(qmsys_line(iatom+1, imole))),'<<'
+   enddo
+   natom = mole_len(imole)
+!
+   allocate(atom_list(4,mole_len(imole)))
+   allocate(atom_valid( mole_len(imole)))
+   do iatom = 2, mole_len(imole)           ! Loop over atoms 2 and on in the molecule
+      atom_list = 0.0_PREC_DP
+      atom_valid = .true.
+      atom_valid(1) = .false.
+      orig(1:3) = cr_pos(:, mole_cont(mole_off(imole)+iatom))
+      atom_list(:,1) = orig
+!write(*,'(a,3f7.3    )') cr_at_lis(cr_iscat(1,mole_cont(mole_off(imole)+iatom))), atom_list(1:3,1)
+      do isym=2,sym_n(imole)               ! Create all possible copies for this atom
+         atom_list(:,isym) = matmul(sym_mat(:,:,isym, imole), orig)
+!write(*,'(a,3f7.3    )') cr_at_lis(cr_iscat(1,mole_cont(mole_off(imole)+iatom))), atom_list(1:3,isym)
+      enddo
+      do i=sym_n(imole), 1, -1             ! Invalid atom is identical to a previous copy
+         do j=1,i-1
+            if(all(abs(atom_list(1:3,i)-atom_list(1:3,j))<0.00001)) atom_valid(i) = .false.
+         enddo
+      enddo
+      do i=2,sym_n(imole)
+          if(atom_valid(i)) then           ! For valid atoms cop name and sym operation into qmsys
+            natom = natom + 1
+            qmsys_line(natom+1, imole) = cr_at_lis(cr_iscat(1,mole_cont(mole_off(imole)+iatom)))// ' ' // &
+                                       sym_xyz(i, imole)(1:len_trim(sym_xyz(i, imole)))
+!write(*,'(3a)') ' LINE >',qmsys_line(natom+1, imole)(1:len_trim(qmsys_line(natom+1, imole))),'<<'
+         endif
+      enddo
+!
+   enddo
+   qm_length(imole) = natom
+   deallocate(atom_list)
+   deallocate(atom_valid)
+   n_electron = 0
+   n_charge   = 0
+   do iatom=1,natom                        ! Guess Ordinal number and charge for all elements
+      el_name = qmsys_line(iatom+1, imole)(1:4)
+      call guess_element(at_name, is_cond, el_name)
+      charge = 0
+      if(is_cond>0) then
+         charge = get_charge(el_name)
+write(*,*) el_name, at_name, is_cond, get_ordi(at_name), charge
+         n_charge   = n_charge   + charge
+         n_electron = n_electron + get_ordi(at_name) + charge
+      endif
+   enddo
+   if(mod(n_electron, 2)==0) then
+      write(qmsys_line(1, imole),'(a, 2i4)') 'System urea', n_charge, 1
+   else
+      write(qmsys_line(1, imole),'(a, 2i4)') 'System urea', n_charge, 2
+   endif
+enddo
+!
+!  Finally write "qm_sys"
+!
+open(IRE_QM, file='qm_sys', status='unknown')
+do imole=1, mole_num_mole
+   do j=1, qm_length(imole)+1
+      write(IRE_QM, '(a)') qmsys_line(j, imole)(1:len_trim(qmsys_line(j, imole)))
+   enddo
+enddo
+close(IRE_QM)
+
+!
+deallocate(sym_mat)
+deallocate(sym_xyz)
+deallocate(qmsys_line)
+deallocate(qm_length)
+!
+!
+end subroutine init_qmsys
 !
 !*****7**************************************************************** 
 !
