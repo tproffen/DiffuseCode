@@ -920,7 +920,7 @@ IF (ianz == 0) THEN
          if(cdummy=='cancel') then
             return
          else!ifcdummy==' ') then
-            write(*,*) ' cdummy', cdummy
+!            write(*,*) ' cdummy', cdummy
             lmakro = .true.
             lmakro_error = .FALSE.
             lmakro_disp  = .TRUE.    ! Macro display error on
