@@ -140,7 +140,7 @@ IF(.NOT.ALLOCATED(refine_CL)) THEN
 ENDIF
 !
 CALL show_fit_erg(iounit, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n,   &
-           refine_fix_n, &
+           refine_fix_n, ref_ndata, ref_weight,                           &
            ref_dim(1,1)*ref_dim(2,1),      &
            refine_mac, refine_mac_l,   &
            ref_load, ref_kload, ref_csigma, ref_ksigma, lcovar,           &
@@ -157,7 +157,8 @@ END SUBROUTINE refine_do_show
 !
 !*******************************************************************************
 !
-SUBROUTINE show_fit_erg(iounit, MAXP, MAXF, npara, nfixed, ndata, mac, mac_l,   &
+SUBROUTINE show_fit_erg(iounit, MAXP, MAXF, npara, nfixed, n_dataset, weight,   &
+           ndata, mac, mac_l,   &
            load, kload, csigma, ksigma, lcovar, chisq, conf, lamda,             &
            r4, re,                                                              &
            params, pp, dpp, prange, cl, fixed, pf, lconv,                       &
@@ -176,6 +177,8 @@ INTEGER                                   , INTENT(IN) :: MAXP        ! Paramete
 INTEGER                                   , INTENT(IN) :: MAXF        ! Fixed parameter array size
 INTEGER                                   , INTENT(IN) :: npara       ! Number of refined parameters
 INTEGER                                   , INTENT(IN) :: nfixed      ! Number of fixed parameters
+integer                                   , intent(in) :: n_dataset   ! Number of data sets
+real(kind=PREC_DP), dimension(n_dataset)  , intent(in) :: weight      ! Relative weights data sets
 INTEGER                                   , INTENT(IN) :: ndata       ! Number of data points = ref_dim(1)*ref_dim(2)
 CHARACTER(LEN=*)                          , INTENT(IN) :: mac         ! Refinement macro name
 INTEGER                                   , INTENT(IN) :: mac_l       ! Length of macro name
@@ -207,14 +210,15 @@ REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_lambda ! Max lamb
 INTEGER :: i, j 
 LOGICAL :: kor 
 !
+do i=1, n_dataset                  ! Show all dat sets
 IF(load==' ') THEN
    IF(kload>0) THEN
-      WRITE(iounit, 3000) kload
+      WRITE(iounit, 3000) kload, weight(i)
    ELSE
       WRITE(iounit, 3010)
    ENDIF
 ELSE
-   WRITE(iounit, 3020) load(1:LEN_TRIM(load))
+   WRITE(iounit, 3020) load(1:LEN_TRIM(load)), weight(i)
 ENDIF
 !
 IF(csigma==' ') THEN
@@ -226,6 +230,7 @@ IF(csigma==' ') THEN
 ELSE
    WRITE(iounit, 3120) csigma(1:LEN_TRIM(csigma))
 ENDIF
+enddo
 !
 WRITE(iounit, 2000) mac(1:mac_l)
 !
@@ -284,9 +289,9 @@ IF(nfixed>0) THEN
 ENDIF
 WRITE(iounit, * ) ' ' 
 !
-3000 FORMAT(' Data in KUPLOT no. : ',i3)
+3000 FORMAT(' Data in KUPLOT no. : ',i3, f9.5)
 3010 FORMAT(' Data not defined   '   )
-3020 FORMAT(' Data loaded as     : ',a )
+3020 FORMAT(' Data loaded as     : ',a , f9.5)
 3100 FORMAT(' Sigma in KUPLOT no.: ',i3)
 3110 FORMAT(' Sigma not defined  '   )
 3120 FORMAT(' Sigma loaded as    : ',a )

@@ -220,6 +220,7 @@ main:IF(ier_num==0) THEN
    ENDDO
    ndata = ref_dim(1,1)*ref_dim(2,1)
    CALL show_fit_erg(output_io, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n,   &
+                     ref_ndata, ref_weight, &
                      ndata, refine_mac, refine_mac_l, ref_load, ref_kload,         &
                      ref_csigma, ref_ksigma, .FALSE., refine_chisqr, refine_conf,  &
                      refine_lamda, refine_rval, refine_rexp, refine_params,        &

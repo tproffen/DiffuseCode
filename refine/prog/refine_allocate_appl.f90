@@ -21,6 +21,7 @@ PUBLIC  :: refine_do_deallocate_appl
 PUBLIC  :: refine_alloc_default
 PUBLIC  :: alloc_params
 PUBLIC  :: alloc_params_fix
+public  :: alloc_weights
 PUBLIC  :: refine_show_config
 !
 !
@@ -268,6 +269,29 @@ ELSE                                    ! Failure
 END IF
 !!
 END SUBROUTINE alloc_params_fix
+!
+!*******************************************************************************
+!
+subroutine alloc_weights    ( n_data)
+!-
+!     Allocate the weights for the data sets
+!+
+use refine_data_mod
+!
+implicit none
+!!
+integer, intent(in)  :: n_data
+!
+integer              :: all_status
+logical              :: lstat
+!
+lstat = .true.
+CALL alloc_arr ( ref_weight     ,1,n_data , all_status, 1.0D0)
+lstat = lstat .and. all_status >= 0
+!
+end subroutine alloc_weights
+!
+!*******************************************************************************
 !
 !
 SUBROUTINE dealloc_params

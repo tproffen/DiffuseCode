@@ -11,6 +11,8 @@ SUBROUTINE refine_load(LDATA, line, length)
 ! Loads the Data set and/or the Sigmas
 ! Either explicitly or with reference to a KUPLOT data set
 !
+use refine_allocate_appl, only:alloc_weights
+!
 use kuplot_mod
 use kuplot_load_mod
 !
@@ -40,33 +42,36 @@ INTEGER                              :: ianz
 INTEGER                              :: idata   ! Current data set
 INTEGER                              :: ndata 
 !
-integer, parameter :: NOPTIONAL = 1
+integer, parameter :: NOPTIONAL = 2
 integer, parameter :: O_DATASET = 1
+integer, parameter :: O_WEIGHT  = 1
 character(len=   7), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(len=max(PREC_STRING,len(line))), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 logical            , dimension(NOPTIONAL) :: lpresent  !opt. para present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
-integer, parameter                        :: ncalc = 1 ! Number of values to calculate 
+integer, parameter                        :: ncalc = 2 ! Number of values to calculate 
 !
-DATA oname  / 'dataset' /
-DATA loname /  7        /
-opara  =  (/ '1     '   /)   ! Always provide fresh default values
-lopara =  (/  1         /)
-owerte =  (/   1.0      /)
+DATA oname  / 'dataset', 'weight ' /
+DATA loname /  7       ,  6        /
+opara  =  (/ '1     ' , '1.000 ' /)   ! Always provide fresh default values
+lopara =  (/  1       ,  5       /)
+owerte =  (/   1.0D0  ,  1.0D0   /)
 !
 string = line
 length = len_trim(string)
-write(*,*) 'LINE  ', line(1:length)
+!write(*,*) 'LINE  ', line(1:length)
 call get_params(line, ianz, cpara, lpara, MAXW, length)
 call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL, ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 idata = nint(owerte(O_DATASET))
-write(*,*) 'LINE  ', line(1:length)
-write(*,*) 'OPARA ', opara(O_DATASET)(1:lopara(O_DATASET)), ' <>', lopara(O_DATASET)
-write(*,*) ' IER ', ier_num, ier_typ
+!write(*,*) 'LINE  ', line(1:length)
+!write(*,*) 'OPARA ', opara(O_DATASET)(1:lopara(O_DATASET)), ' <>', lopara(O_DATASET)
+!write(*,*) ' IER ', ier_num, ier_typ
 call purge_optional(line, NOPTIONAL, oname, loname, opara, lopara, lpresent)
+!write(*,*) 'LINE  ', line(1:len_trim(line)), len_trim(line), length
+!write(*,*) ' IER ', ier_num, ier_typ
 !
 string = line
 !
@@ -105,13 +110,20 @@ ELSE                               ! Presume a "data xy, filename "
       ref_csigma_u = string
    ENDIF
    CALL do_load(line, length,.TRUE.)
-write(*,*) ' IER ', ier_num, ier_typ
    IF(ier_num/= 0) RETURN
    ndata = -1                 ! Will be updated to correct value in refine_load_kuplot
 ENDIF
 CALL refine_load_kuplot(LDATA, ndata)
 ref_kupl = MAX(ref_kupl, ndata)   ! This is the last KUPLOT data set that needs to be kept
 refine_init = .TRUE.              ! Force initialization, as we have a new data set
+if(.not. allocated(ref_weight)) then
+   call alloc_weights(ref_ndata)
+else
+   if(idata>ubound(ref_weight,1)) then
+      call alloc_weights(max(idata, ref_ndata))
+   endif
+endif
+ref_weight(idata) = owerte(O_WEIGHT)
 !
 END SUBROUTINE refine_load
 !
@@ -382,14 +394,14 @@ ENDIF
 !
 !  Add to data_struc
 if(ku_ndims(ndata)==3) then
-   write(*,*) ' Node Number ', ik1_node_number
+!   write(*,*) ' Node Number ', ik1_node_number
    call dgl5_set_temp(.false.)                    ! Turn temporary status off
    return
 endif
 !
 call dgl5_new_node
 ik1_node_number = dgl5_get_number()
-write(*,*) ' added node ', ik1_node_number
+!write(*,*) ' added node ', ik1_node_number
 !
 ! Copy data into data_struc
 !
