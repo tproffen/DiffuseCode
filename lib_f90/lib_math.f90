@@ -2031,7 +2031,7 @@ if(ik1_ndims==3) then                ! 3-D data sets
    ss = seknds(ss )
 !write(*,*) ' FFT ', ss
    ss = seknds(0.0)
-   ik2_nlayer     = ik2_dims(3)/2
+   ik2_nlayer     = (ik2_dims(3)+1)/2
    ik2_vectors    = ik1_vectors/rscale
    allocate(ik2_x(1:ik2_dims(1)))
    allocate(ik2_y(1:ik2_dims(2)))
@@ -2043,7 +2043,7 @@ if(ik1_ndims==3) then                ! 3-D data sets
    do i=1, ik2_dims(2)
       ik2_y(i) = ik1_y(1) + (i-1) * ik1_steps(2)/rscale
    enddo
-   do i=1, ik2_dims(2)
+   do i=1, ik2_dims(3)
       ik2_z(i) = ik1_z(1) + (i-1) * ik1_steps(3)/rscale
    enddo
    ik2_dy         = ik2_dy

@@ -222,6 +222,7 @@ real(kind=PREC_DP) :: summe
 real(kind=PREC_DP) :: factor
 real(kind=PREC_DP), dimension(:), allocatable :: sinc_table
 !
+
 outfield = 0.0D0
 q = 0.0D0
 hl = nint(-nscale*m-1.0D0)
@@ -302,17 +303,19 @@ lh = nint( nscale*m+1.0D0) + i3
 q(1) = i1/nscale
 q(2) = i2/nscale
 q(3) = i3/nscale
-!!write(*,*) 
+!
 do i3=ll, lh
    g(3) = real(i3,kind=PREC_DP)/nscale
    do i2=kl, kh
       g(2) = real(i2,kind=PREC_DP)/nscale
       do i1=hl, hh
          g(1) = real(i1,kind=PREC_DP)/nscale
-         sinc_table(i1,i2,i3) = wsinc_2d(q, g, rcut)*lqgm_2d(q,g,m)
+         sinc_table(i1,i2,i3) = wsinc_3d(q, g, rcut)*lqgm_3d(q,g,m)
       enddo
    enddo
 enddo
+!
+!
 !write(*,*) ' SINC TABLE ', sum(sinc_table)
 !
 outfield(1:idims(1):nint(nscale), 1:idims(2):nint(nscale), 1:idims(3):nint(nscale)) = &
@@ -400,7 +403,6 @@ subroutine do_lanczos_1d_fft (nscale, rcut, m, inc, infield, idims, outfield, fl
 !+
 !
 use lib_conv_mod
-use lib_write_mod
 use precision_mod
 !
 implicit none
@@ -449,7 +451,6 @@ call do_convolute_1d_real(idims, outfield, sinc_table)
 factor = sum( infield)/sum(outfield)*nscale
 !write(*,*) 'INTEGRAL ', sum(infield), sum(outfield), sum(outfield), factor
 outfield = outfield *factor
-call tofile(idims, 'convolute.data', outfield, -5.0D0, (10.0D0/(idims-1)) )
 !
 deallocate(sinc_table)
 !deallocate(infield_aug)
@@ -469,7 +470,7 @@ implicit none
 real(kind=PREC_DP) :: val
 real(kind=PREC_DP), dimension(3), intent(in) :: q
 real(kind=PREC_DP), dimension(3), intent(in) :: g
-real(kind=PREC_DP) :: rcut
+real(kind=PREC_DP)              , intent(in) :: rcut
 real(kind=PREC_DP), dimension(3) :: x
 !
 val = 1.0D0
@@ -492,7 +493,7 @@ implicit none
 real(kind=PREC_DP) :: val
 real(kind=PREC_DP), dimension(2), intent(in) :: q
 real(kind=PREC_DP), dimension(2), intent(in) :: g
-real(kind=PREC_DP) :: rcut
+real(kind=PREC_DP)              , intent(in) :: rcut
 real(kind=PREC_DP), dimension(2) :: x
 !
 val = 0.0D0

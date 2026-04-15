@@ -185,19 +185,15 @@ INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
 !
 l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
 l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
-!l(dsort(3)) = MOD(dimen(dsort(3))-1,2)
-!DO loop = 1, dimen(1)*dimen(2)*dimen(3)
-!   i = MOD((loop-1)/(dimen(2)*dimen(3)),dimen(1)) + 1            ! Indices: i == H
-!   j = MOD((loop-1)/(         dimen(3)),dimen(2)) + 1            ! Indices: j == K
-!   k = MOD((loop-1)                    ,dimen(3)) + 1            ! Indices: k == L
+!
 DO i=1, dimen(1)
-DO j=1, dimen(2)
-   ientry(dsort(1)) = i                 ! i ==> goes into :dsort(1)
-   ientry(dsort(2)) = j                 ! j ==> goes into :dsort(2)
-   ii = MOD(ientry(1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
-   jj = MOD(ientry(2) + INT(dimen(dsort(2))/2) - l(dsort(2)), dimen(dsort(2))) + 1
-   fftfd(ii,jj    ) = cmplx(linear(i,j  ),0.0D0, kind=PREC_DP)
-ENDDO
+   DO j=1, dimen(2)
+      ientry(dsort(1)) = i                 ! i ==> goes into :dsort(1)
+      ientry(dsort(2)) = j                 ! j ==> goes into :dsort(2)
+      ii = MOD(ientry(1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
+      jj = MOD(ientry(2) + INT(dimen(dsort(2))/2) - l(dsort(2)), dimen(dsort(2))) + 1
+      fftfd(ii,jj    ) = cmplx(linear(i,j  ),0.0D0, kind=PREC_DP)
+   ENDDO
 ENDDO
 !
 END SUBROUTINE maptofftfd_22D_R_C_DP
@@ -228,18 +224,15 @@ INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
 l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
 l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
 !l(dsort(3)) = MOD(dimen(dsort(3))-1,2)
-!DO loop = 1, dimen(1)*dimen(2)*dimen(3)
-!   i = MOD((loop-1)/(dimen(2)*dimen(3)),dimen(1)) + 1            ! Indices: i == H
-!   j = MOD((loop-1)/(         dimen(3)),dimen(2)) + 1            ! Indices: j == K
-!   k = MOD((loop-1)                    ,dimen(3)) + 1            ! Indices: k == L
+!
 DO i=1, dimen(1)
-DO j=1, dimen(2)
-   ientry(dsort(1)) = i                 ! i ==> goes into :dsort(1)
-   ientry(dsort(2)) = j                 ! j ==> goes into :dsort(2)
-   ii = MOD(ientry(1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
-   jj = MOD(ientry(2) + INT(dimen(dsort(2))/2) - l(dsort(2)), dimen(dsort(2))) + 1
-   fftfd(ii,jj    ) =       linear(i,j  )
-ENDDO
+   DO j=1, dimen(2)
+      ientry(dsort(1)) = i                 ! i ==> goes into :dsort(1)
+      ientry(dsort(2)) = j                 ! j ==> goes into :dsort(2)
+      ii = MOD(ientry(1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
+      jj = MOD(ientry(2) + INT(dimen(dsort(2))/2) - l(dsort(2)), dimen(dsort(2))) + 1
+      fftfd(ii,jj    ) =       linear(i,j  )
+   ENDDO
 ENDDO
 !
 END SUBROUTINE maptofftfd_22D_C_C_DP
@@ -431,7 +424,7 @@ COMPLEX(KIND=PREC_DP), DIMENSION(1:dimen(dsort(1)))  , INTENT(IN) :: fftfd
 INTEGER :: loop, ii
 !
 DO ii = 1, dimen(dsort(1))
-   loop =   + mod(ii-1+INT(dimen(dsort(1))/2) , dimen(dsort(1))) + 1
+   loop = dimen(dsort(1)) + 1 - ( + mod(ii-1+INT(dimen(dsort(1))/2) , dimen(dsort(1))) + 1)
    linear(loop ) = REAL(fftfd(ii), KIND=PREC_DP)
 ENDDO
 !
@@ -453,7 +446,7 @@ COMPLEX(KIND=PREC_DP), DIMENSION(1:dimen(dsort(1)))  , INTENT(IN) :: fftfd
 INTEGER :: loop, ii
 !
 DO ii = 1, dimen(dsort(1))
-   loop =   + mod(ii-1+INT(dimen(dsort(1))/2) , dimen(dsort(1))) + 1
+   loop = dimen(dsort(1)) + 1 - ( + mod(ii-1+INT(dimen(dsort(1))/2) , dimen(dsort(1))) + 1)
    linear(loop ) =      fftfd(ii)
 ENDDO
 !
@@ -586,10 +579,8 @@ l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
          ientry(1) = MOD(ii + INT(dimen(dsort(1))/2)- l(dsort(1)) - 1, dimen(dsort(1))) + 1
          ientry(2) = MOD(jj + INT(dimen(dsort(2))/2) -l(dsort(2)) - 1, dimen(dsort(2))) + 1
 !         ientry(3) = MOD(kk + INT(dimen(dsort(3))/2) -l(dsort(3)) - 1, dimen(dsort(3))) + 1
-         i = ientry(dsort(1))                  ! i ==> goes into :dsort(1)
-         j = ientry(dsort(2))                  ! j ==> goes into :dsort(2)
-!         k = ientry(dsort(3))                  ! k ==> goes into :dsort(3)
-!         loop = (i-1)*dimen(2)*dimen(3) + (j-1)*dimen(3) + k
+         i = dimen(dsort(1)) + 1 - ientry(dsort(1))                  ! i ==> goes into :dsort(1)
+         j = dimen(dsort(2)) + 1 - ientry(dsort(2))                  ! j ==> goes into :dsort(2)
          linear(i,j   ) = real(fftfd(ii,jj    ),kind=PREC_DP)
       ENDDO
    ENDDO
@@ -626,8 +617,8 @@ l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
          ientry(1) = MOD(ii + INT(dimen(dsort(1))/2)- l(dsort(1)) - 1, dimen(dsort(1))) + 1
          ientry(2) = MOD(jj + INT(dimen(dsort(2))/2) -l(dsort(2)) - 1, dimen(dsort(2))) + 1
 !         ientry(3) = MOD(kk + INT(dimen(dsort(3))/2) -l(dsort(3)) - 1, dimen(dsort(3))) + 1
-         i = ientry(dsort(1))                  ! i ==> goes into :dsort(1)
-         j = ientry(dsort(2))                  ! j ==> goes into :dsort(2)
+         i = dimen(dsort(1)) + 1 - ientry(dsort(1))                  ! i ==> goes into :dsort(1)
+         j = dimen(dsort(2)) + 1 - ientry(dsort(2))                  ! j ==> goes into :dsort(2)
 !         k = ientry(dsort(3))                  ! k ==> goes into :dsort(3)
 !         loop = (i-1)*dimen(2)*dimen(3) + (j-1)*dimen(3) + k
          linear(i,j   ) =      fftfd(ii,jj    )
@@ -747,9 +738,9 @@ l(3) = MOD(fdimen(3)-1,2)
 DO kk=1, dimen(dsort(3))
    DO jj=1, dimen(dsort(2))
       DO ii = 1, dimen(dsort(1))
-         ll(dsort(1)) = mod(ii + int(fdimen(1)/2) - l(1) -1, fdimen(1)) + 1
-         ll(dsort(2)) = mod(jj + int(fdimen(2)/2) - l(2) -1, fdimen(2)) + 1
-         ll(dsort(3)) = mod(kk + int(fdimen(3)/2) - l(3) -1, fdimen(3)) + 1
+         ll(dsort(1)) = dimen(dsort(1)) + 1 - (mod(ii + int(fdimen(1)/2) - l(1) -1, fdimen(1)) + 1)
+         ll(dsort(2)) = dimen(dsort(2)) + 1 - (mod(jj + int(fdimen(2)/2) - l(2) -1, fdimen(2)) + 1)
+         ll(dsort(3)) = dimen(dsort(3)) + 1 - (mod(kk + int(fdimen(3)/2) - l(3) -1, fdimen(3)) + 1)
          linear(ll((1)),ll((2)),ll((3)) ) = real(fftfd(ii,jj, kk), kind=prec_DP)
       ENDDO
    ENDDO
@@ -787,9 +778,9 @@ l(3) = MOD(fdimen(3)-1,2)
 DO kk=1, fdimen(3)
    DO jj=1, fdimen(2)
       DO ii = 1, fdimen(1)
-         ll(dsort(1)) = mod(ii + int(fdimen(1)/2) - l(1) -1, fdimen(1)) + 1
-         ll(dsort(2)) = mod(jj + int(fdimen(2)/2) - l(2) -1, fdimen(2)) + 1
-         ll(dsort(3)) = mod(kk + int(fdimen(3)/2) - l(3) -1, fdimen(3)) + 1
+         ll(dsort(1)) = dimen(dsort(1)) + 1 - (mod(ii + int(fdimen(1)/2) - l(1) -1, fdimen(1)) + 1)
+         ll(dsort(2)) = dimen(dsort(1)) + 1 - (mod(jj + int(fdimen(2)/2) - l(2) -1, fdimen(2)) + 1)
+         ll(dsort(3)) = dimen(dsort(1)) + 1 - (mod(kk + int(fdimen(3)/2) - l(3) -1, fdimen(3)) + 1)
          linear(ll((1)),ll((2)),ll((3)) ) = fftfd(ii,jj, kk)
       ENDDO
    ENDDO
