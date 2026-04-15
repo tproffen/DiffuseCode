@@ -1282,7 +1282,6 @@ if(mole_num_mole > 0) then
    allocate(molecules%atom_index(j, molecules%number_moles))
    molecules%mole_real       = 0.0_PREC_DP
    do i=1, mole_num_mole
-write(*,*) ' MOLECIULE ', i, mole_type(i), ' >>> ', mole_num_mole, mole_num_type, mole_num_atom
       molecules%mole_int (1,i)  = mole_type(i)
       molecules%mole_int (2,i)  = mole_char(mole_type(i))
       molecules%mole_int (3,i)  = mole_len (i)
