@@ -16,6 +16,7 @@ INTEGER                                                   :: ref_type  = 0    ! 
 INTEGER                   , DIMENSION(3,1)                  :: ref_dim    ! Dimensions of data set
 REAL(kind=PREC_DP)        , DIMENSION(:,:,:,:), ALLOCATABLE :: ref_data   ! the actual data set
 REAL(kind=PREC_DP)        , DIMENSION(:,:,:,:), ALLOCATABLE :: ref_sigma  ! sigma at each data point
+REAL(kind=PREC_DP)        , DIMENSION(      :), ALLOCATABLE :: ref_weight ! Weight for each data set, defaults to 1 
 REAL(kind=PREC_DP)        , DIMENSION(:    ,:), ALLOCATABLE :: ref_x      ! x-values of data set
 REAL(kind=PREC_DP)        , DIMENSION(:    ,:), ALLOCATABLE :: ref_y      ! y-values of data set
 REAL(kind=PREC_DP)        , DIMENSION(:    ,:), ALLOCATABLE :: ref_z      ! z-values of data set
