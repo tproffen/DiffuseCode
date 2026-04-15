@@ -748,7 +748,7 @@ integer :: i   ! Dummy loop index
 NMSG = idims                ! Dimensions ier_msg
 h5_infile = infile
 !
-write(*,*) ' IN nx_read_scattering_common ', infile(1:len_trim(infile))
+!write(*,*) ' IN nx_read_scattering_common ', infile(1:len_trim(infile))
 !
 call unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
@@ -771,41 +771,41 @@ call unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
                                             crystal_meta                   &
                             )
 !
-write(*,'(a, 3f11.6)') ' Unit cell length ', unit_cell_lengths
-write(*,'(a, 3f11.6)') ' Unit cell angles ', unit_cell_angles
-write(*,'(a, a     )') ' Symmetry H_M     ', symmetry_H_M
-write(*,'(a, i5    )') ' Symmetry Origin  ', symmetry_origin
-write(*,'(a, a     )') ' Symmetry abc     ', symmetry_abc
-write(*,'(a, i5    )') ' Symmetry n MAT   ', symmetry_n_mat
-write(*,'(a, 4f11.6)') ' Symmetry 1 fst   ', symmetry_mat(1,:,1)
-write(*,'(a, 4f11.6)') ' Symmetry 1 scnd  ', symmetry_mat(2,:,1)
-write(*,'(a, 4f11.6)') ' Symmetry 1 lst   ', symmetry_mat(3,:,1)
-write(*,'(a, 4f11.6)') ' Symmetry 44fst   ', symmetry_mat(1,:,44)
-write(*,'(a, 4f11.6)') ' Symmetry 44scnd  ', symmetry_mat(2,:,44)
-write(*,'(a, 4f11.6)') ' Symmetry 44lst   ', symmetry_mat(3,:,44)
-write(*,'(a, 4f11.6)') ' Symmetry N fst   ', symmetry_mat(1,:,symmetry_n_mat)
-write(*,'(a, 4f11.6)') ' Symmetry N scnd  ', symmetry_mat(2,:,symmetry_n_mat)
-write(*,'(a, 4f11.6)') ' Symmetry N lst   ', symmetry_mat(3,:,symmetry_n_mat)
-write(*,*)
-write(*,'(a, a     )') ' Data experiment  ', data_type_experiment
-write(*,'(a, a     )') ' Data with  bragg ', data_type_with_bragg
-write(*,'(a, a     )') ' Data symmetrized ', data_type_symmetrized
-write(*,'(a, a     )') ' Data radiation   ', data_rad_radiation
-write(*,'(a, 3i5   )') ' Data dimensions  ', data_dimension
-write(*,'(a, 3i5   )') ' Data abs,ord,top ', data_abs_is_hkl, data_ord_is_hkl, data_top_is_hkl
-write(*,'(a, a     )') ' Data style       ', data_type_style
-write(*,'(a, a     )') ' Data content     ', data_type_content
-write(*,'(a, a     )') ' Data symbol      ', data_rad_symbol
-write(*,'(a, 3f11.6)') ' Data length      ', data_rad_length
-write(*,*)
-write(*,'(a, 3f11.6)') ' Data corner      ', data_corner(:)
-write(*,*)
-write(*,'(a, 3f11.6)') ' Data abscissa    ', data_vector(:,1)
-write(*,'(a, 3f11.6)') ' Data ordinate    ', data_vector(:,2)
-write(*,'(a, 3f11.6)') ' Data top_axis    ', data_vector(:,3)
-write(*,*)
-write(*,*) ' DATA_VALUES', data_values(1:2,1,1)
-write(*,*) ' DATA_MINMAX', minval(data_values), maxval(data_values)
+!write(*,'(a, 3f11.6)') ' Unit cell length ', unit_cell_lengths
+!write(*,'(a, 3f11.6)') ' Unit cell angles ', unit_cell_angles
+!write(*,'(a, a     )') ' Symmetry H_M     ', symmetry_H_M
+!write(*,'(a, i5    )') ' Symmetry Origin  ', symmetry_origin
+!write(*,'(a, a     )') ' Symmetry abc     ', symmetry_abc
+!write(*,'(a, i5    )') ' Symmetry n MAT   ', symmetry_n_mat
+!write(*,'(a, 4f11.6)') ' Symmetry 1 fst   ', symmetry_mat(1,:,1)
+!write(*,'(a, 4f11.6)') ' Symmetry 1 scnd  ', symmetry_mat(2,:,1)
+!write(*,'(a, 4f11.6)') ' Symmetry 1 lst   ', symmetry_mat(3,:,1)
+!write(*,'(a, 4f11.6)') ' Symmetry 44fst   ', symmetry_mat(1,:,44)
+!write(*,'(a, 4f11.6)') ' Symmetry 44scnd  ', symmetry_mat(2,:,44)
+!write(*,'(a, 4f11.6)') ' Symmetry 44lst   ', symmetry_mat(3,:,44)
+!write(*,'(a, 4f11.6)') ' Symmetry N fst   ', symmetry_mat(1,:,symmetry_n_mat)
+!write(*,'(a, 4f11.6)') ' Symmetry N scnd  ', symmetry_mat(2,:,symmetry_n_mat)
+!write(*,'(a, 4f11.6)') ' Symmetry N lst   ', symmetry_mat(3,:,symmetry_n_mat)
+!write(*,*)
+!write(*,'(a, a     )') ' Data experiment  ', data_type_experiment
+!write(*,'(a, a     )') ' Data with  bragg ', data_type_with_bragg
+!write(*,'(a, a     )') ' Data symmetrized ', data_type_symmetrized
+!write(*,'(a, a     )') ' Data radiation   ', data_rad_radiation
+!write(*,'(a, 3i5   )') ' Data dimensions  ', data_dimension
+!write(*,'(a, 3i5   )') ' Data abs,ord,top ', data_abs_is_hkl, data_ord_is_hkl, data_top_is_hkl
+!write(*,'(a, a     )') ' Data style       ', data_type_style
+!write(*,'(a, a     )') ' Data content     ', data_type_content
+!write(*,'(a, a     )') ' Data symbol      ', data_rad_symbol
+!write(*,'(a, 3f11.6)') ' Data length      ', data_rad_length
+!write(*,*)
+!write(*,'(a, 3f11.6)') ' Data corner      ', data_corner(:)
+!write(*,*)
+!write(*,'(a, 3f11.6)') ' Data abscissa    ', data_vector(:,1)
+!write(*,'(a, 3f11.6)') ' Data ordinate    ', data_vector(:,2)
+!write(*,'(a, 3f11.6)') ' Data top_axis    ', data_vector(:,3)
+!write(*,*)
+!write(*,*) ' DATA_VALUES', data_values(1:2,1,1)
+!write(*,*) ' DATA_MINMAX', minval(data_values), maxval(data_values)
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Copy into H5 storage ! Room for streamlining ?
@@ -843,21 +843,21 @@ h5_corners(:,1) = data_corner                                         ! Lower le
 h5_corners(:,2) = h5_corners(:,1) + (d5_dims(1)-1)* h5_vectors(:,1)   ! Lower right
 h5_corners(:,3) = h5_corners(:,1) + (d5_dims(2)-1)* h5_vectors(:,2)   ! Upper left
 h5_corners(:,4) = h5_corners(:,1) + (d5_dims(3)-1)* h5_vectors(:,3)   ! Top left
-write(*,*)
-write(*,'(a, 3f11.6)') ' Lower left  bottom',   h5_corners(:,1)
-write(*,'(a, 3f11.6)') ' Lower right bottom',   h5_corners(:,2)
-write(*,'(a, 3f11.6)') ' Upper left  bottom',   h5_corners(:,3)
-write(*,'(a, 3f11.6)') ' Lower left  top   ',   h5_corners(:,4)
+!write(*,*)
+!write(*,'(a, 3f11.6)') ' Lower left  bottom',   h5_corners(:,1)
+!write(*,'(a, 3f11.6)') ' Lower right bottom',   h5_corners(:,2)
+!write(*,'(a, 3f11.6)') ' Upper left  bottom',   h5_corners(:,3)
+!write(*,'(a, 3f11.6)') ' Lower left  top   ',   h5_corners(:,4)
 !
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 length = len_trim(infile)
-write(*,*) 'DONE COPY INTO H5 Storage ', infile(1:len_trim(infile)), length
+!write(*,*) 'DONE COPY INTO H5 Storage ', infile(1:len_trim(infile)), length
 call hdf5_trans_store &
                     (infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
                      node_number, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
-write(*,*) ' DID NEW ROUTINE ', ier_num, ier_typ
+!write(*,*) ' DID NEW ROUTINE ', ier_num, ier_typ
 if(ier_num==0) return
 !
 end subroutine nx_read_scattering_common
