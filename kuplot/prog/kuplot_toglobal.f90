@@ -33,7 +33,7 @@ IMPLICIT NONE
 !
 CHARACTER(LEN=*) , INTENT(INOUT) :: line         ! Command line
 !
-INTEGER, PARAMETER :: MAXW = 2
+INTEGER, PARAMETER :: MAXW = 3
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara    ! Parameter strings
 INTEGER            , DIMENSION(MAXW) :: lpara    ! length of each parameter strign
@@ -49,6 +49,7 @@ INTEGER :: iianz   ! Number in global data set
 INTEGER :: nnpara   ! Number refined parameters used by refine
 INTEGER :: nnfix    ! Number fixed   parameters used by refine
 INTEGER, DIMENSION(3) :: dimen
+INTEGER, DIMENSION(4) :: dimen_alloc
 REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: ext_data
 !
 integer :: node_number      ! Node in data_struc
@@ -71,6 +72,7 @@ opara  =  (/ '1       ', 'cost    ', 'last    '  /)
 lopara =  (/ 1         , 4         ,  4          /)
 owerte =  (/ 1.000000  , -1.000000 ,  -1.0000000 /)
 !
+!write(*,*) 'IN TO REFINE'
 CALL gl_get_npara(NNPARA, NNFIX)      ! Check number of refined parameters
 !IF(NNPARA==0) RETURN                  ! if zero, silently leave
 !
@@ -79,6 +81,7 @@ CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 IF(ier_num/=0) RETURN
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
+!write(*,*) 'IN TO REFINE', ier_num, ier_typ
 IF(ier_num/=0) RETURN
 !
 idata = nint(owerte(O_DATASET))
@@ -139,6 +142,10 @@ if(ku_ndims(ik)==3) then         ! Data set is 3D
      ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
 !
    dimen = ik1_dims
+   dimen_alloc(1:3) = dimen
+   dimen_alloc(4)   = refine_par_n
+   if(.not. gl_is_allocated()) call gl_alloc(dimen_alloc)
+!
    CALL gl_set_data(dimen(1), dimen(2), dimen(3), ig, ik1_data )
    deallocate(ik1_data)
    if(allocated(ik1_sigma)) deallocate(ik1_sigma)
@@ -155,6 +162,10 @@ elseif(ku_ndims(ik)==2) then     ! Data set is 2D (NIPL)
          ext_data(i,j,1) = z(offz(ik-1) + (i - 1) * ny (ik) + j)
       enddo
    enddo
+   dimen_alloc(1:3) = dimen
+   dimen_alloc(4)   = refine_par_n
+   if(.not. gl_is_allocated()) call gl_alloc(dimen_alloc)
+!
    CALL gl_set_data(dimen(1), dimen(2), ig, ext_data(:,:,1))
    DEALLOCATE(ext_data)
 elseif(ku_ndims(ik)==1) then      ! 1D data set
@@ -163,6 +174,10 @@ elseif(ku_ndims(ik)==1) then      ! 1D data set
    dimen(3) = 1
    ALLOCATE(ext_data(1:lenc(ik), 1, 1))
    ext_data(1:lenc(ik), 1, 1) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
+   dimen_alloc(1:3) = dimen
+   dimen_alloc(4)   = refine_par_n
+   if(.not. gl_is_allocated()) call gl_alloc(dimen_alloc)
+!
    CALL gl_set_data(dimen(1), ig, ext_data(:,1,1))
    DEALLOCATE(ext_data)
 ENDIF
@@ -174,10 +189,10 @@ if(ku_ndims(ik)==3) then
 endif
 !
 call dgl5_new_node
+!write(ik1_infile,'(a,a,i4.4)') opara(O_REFINE)(1:len_trim(opara(O_REFINE))), '.',nint(owerte(O_DATASET))
 node_number = dgl5_get_number()
-write(*,*) ' added node ', node_number
+!write(*,*) ' added node ', node_number
 if(ku_ndims(ik)==2) then      ! 2D data set  (NIPL)
-   ik1_infile = fname(ik)
    dimen(1) = nx(ik)
    dimen(2) = ny(ik)
    dimen(3) = 1
@@ -226,7 +241,6 @@ if(ku_ndims(ik)==2) then      ! 2D data set  (NIPL)
                    ik1_dz,     ik1_data               ,ik1_sigma, ik1_llims,      &
                    ik1_steps, ik1_steps_full)
 elseif(ku_ndims(ik)==1) then     ! Data set is 1D (NIPL)
-   ik1_infile = fname(ik)
    dimen(1) = lenc(ik)
    dimen(2) = 1
    dimen(3) = 1
