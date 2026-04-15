@@ -1,26 +1,34 @@
-6.20.02  DRAFT
+6.21.02  DRAFT
 
+GENERAL
+  do/if        Improved error handling while reading macros inside a loop
 SUITE
   parallel     BUG FIX Parallel command at Windows did not work
 DISCUS
   GENERAL      Revised internal calculation to recognize molecules at read
-               Moleculs far from the origin were not detected properly
+               Molecules far from the origin were not detected properly
+  fourier      Lanczos filter did not work properly for 3D data
   import       Corrected lambda and qmin in refine/diffev setup
   wyckoff      Improved output to signal is the position is on a 
                secondary symmetry operation like a mirror plane at x=1/2
+KUPLOT
+  smooth       Lanczos filter did not work properly for 3D data
 
 REFINE
   newpara      Added a 'move' parameter to the 'newpara' command to calculate
                derivatives via an additive parameter change.
-6.20.01  DRAFT
 
+6.21.01  RELEASE 2025_12_15
+DISCUS
+  read         BUG FIX Molecule recognition was faulty
 DIFFEV
   newparam     Changed style to be identical with REFINE
   release      BUG FIX, did not work without reading the GENERATION file, 
                did not work for Parameter names
 DISCUS
   save         Improved storage of anisotropic values to avoid rounding errors
-6.20.00  RELEASE 2025_12_15
+
+6.21.00  RELEASE 2025_12_15
 GENERAL
                Changed warnings into blue color
                Variables i[] and r[] can be used with a range of indices as in
