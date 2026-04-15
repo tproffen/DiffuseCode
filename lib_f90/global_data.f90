@@ -12,6 +12,7 @@ PUBLIC   gl_alloc           ! Allocate the global array to (dim1,dim2, dim3, NPA
 PUBLIC   gl_set_pnumber     ! Populate the lookup for function 'pnumber()'
 PUBLIC   gl_get_pnumber     ! Evaluate function p_number
 PUBLIC   gl_set_use         ! Turn us of global data on
+PUBLIC   gl_is_allocated    ! Test if global data are allocated
 PUBLIC   gl_is_der          ! Test if derivative was set
 PUBLIC   gl_set_npara       ! Set number of refine parameters
 PUBLIC   gl_get_npara       ! Get number of refine parameters
@@ -51,6 +52,19 @@ CONTAINS
 !
 !*******************************************************************************
 !
+logical function gl_is_allocated()
+!-
+! Test if global array has been allocated
+!+
+!
+implicit none
+!
+gl_is_allocated = allocated(gl_data)
+!
+end function gl_is_allocated
+!
+!*******************************************************************************
+!
 SUBROUTINE gl_alloc(in_dims)
 !-
 !   Allocate the global data sets
@@ -84,6 +98,7 @@ gl_lderiv = .FALSE.
 gl_x = 0.0D0
 gl_y = 0.0D0
 gl_z = 0.0D0
+!write(*,*) ' GLOBAL ALLOCATED TO ', in_dims
 !
 END SUBROUTINE gl_alloc
 !
@@ -297,6 +312,7 @@ INTEGER                            , INTENT(IN) :: idim1
 INTEGER                            , INTENT(IN) :: ipara
 REAL(KIND=PREC_DP), DIMENSION(idim1), INTENT(IN) :: ext_data
 !
+!write(*,*) 'SETTING GL_DATA_ 1D'
 !
 gl_data(1:idim1,1, 1, ipara) = ext_data(1:idim1)
 if(ipara>=0) gl_lderiv(ipara) = .TRUE.
@@ -319,6 +335,7 @@ INTEGER                            , INTENT(IN) :: idim2
 INTEGER                            , INTENT(IN) :: ipara
 REAL(KIND=PREC_DP), DIMENSION(idim1, idim2), INTENT(IN) :: ext_data
 !
+!write(*,*) 'SETTING GL_DATA_ 2D'
 !
 gl_data(1:idim1,1:idim2, 1, ipara) = ext_data(1:idim1, 1:idim2)
 if(ipara>=0) gl_lderiv(ipara) = .TRUE.
@@ -342,6 +359,7 @@ INTEGER                            , INTENT(IN) :: idim3
 INTEGER                            , INTENT(IN) :: ipara
 REAL(KIND=PREC_DP), DIMENSION(idim1, idim2, idim3), INTENT(IN) :: ext_data
 !
+!write(*,*) 'SETTING GL_DATA_ 3D'
 !
 gl_data(1:idim1,1:idim2, 1:idim3, ipara) = ext_data(1:idim1, 1:idim2, 1:idim3)
 if(ipara>=0) gl_lderiv(ipara) = .TRUE.
