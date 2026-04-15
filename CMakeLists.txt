@@ -107,10 +107,10 @@ option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
 #  message (status " HDF5 is OFF ${DIFFUSE_HDF5} ")
 #endif ()
 #
-if (DIFFUSE_PYTHON)
+#if (DIFFUSE_PYTHON)
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
   set (DIFFUSE_LIBS ${Python3_LIBRARIES})
-endif (DIFFUSE_PYTHON)
+#endif (DIFFUSE_PYTHON)
 
 # Set common libraries
 
