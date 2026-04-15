@@ -2599,7 +2599,7 @@ DO i = 1, out_inc(1)
    ENDDO
 ENDDO
 data_values = data_values*out_scale
-write(*,*) ' DATA_VALUES', data_values(1:2,1,1)
+!write(*,*) ' DATA_VALUES', data_values(1:2,1,1)
 !
 CALL get_params (zeile, ianz, cpara, lpara, maxp, length) 
 IF (ier_num.eq.0) THEN 

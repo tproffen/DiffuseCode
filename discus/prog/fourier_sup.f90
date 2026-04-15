@@ -338,7 +338,6 @@ use fourier_lmn_mod
 use fourier_form_generic
 use symmetrize_mod
 !
-use do_lanczos_mod
 use errlist_mod
 use param_mod
 use precision_mod
@@ -443,8 +442,8 @@ do j=1,3
    endif
    idims(j) = inc(j)
 enddo
-write(*,*) ' SCALES ', scales
-write(*,*) 'LSCALES ',lscales
+!write(*,*) ' SCALES ', scales
+!write(*,*) 'LSCALES ',lscales
 !
 !  Error checks: Scale = cr_icc*vi must be integer
 !                1/vi              must be integer
@@ -691,7 +690,6 @@ use fourier_form_generic
 use fourier_lmn_mod
 use symmetrize_mod
 !
-use do_lanczos_mod
 use errlist_mod
 use param_mod
 use precision_mod
@@ -1689,7 +1687,7 @@ if(four_filter==FOUR_FILTER_LANCZOS) then
 !     ii = 0
       do i=1, num(1)
          do j=1, num(2)
-            do k=1, num(2)
+            do k=1, num(3)
 !              ii = ii + 1
                dsi(i,j,k) = outfield_3d(i,j,k) 
             enddo
@@ -2170,8 +2168,8 @@ real(kind=PREC_DP), dimension(3) :: pos_high
 real(kind=PREC_DP), dimension(3) :: factor
 !
 factor = zpi*scales/real(ncells, kind=PREC_DP)
-write(*,'(a,3i4, 3f6.2, 3f8.4)') ' ASSEMBLING ATOMS ', ncells, scales, factor
-write(*,*) ' iscat ', iscat, ianis
+!write(*,'(a,3i4, 3f6.2, 3f8.4)') ' ASSEMBLING ATOMS ', ncells, scales, factor
+!write(*,*) ' iscat ', iscat, ianis
 pos_low  =  10000.0_PREC_DP
 pos_high = -10000.0_PREC_DP
 nat = 0
