@@ -1798,13 +1798,13 @@ else
             infield_2d(i1,i2) = z(offz(ik - 1) + i)
          enddo
       enddo
-      call do_lanczos(rscale, rcut, m, inc(1:2), infield_2d, idims(1:2), outfield_2d)
+      call do_lanczos(rscale, rcut, m, inc(1:2), infield_2d, idims(1:2), outfield_2d, .true.)
       do i=1, idims(1)
          x(offxy(iz-1)+i) = xmin(ik) + real((i-1),kind=PREC_DP)*(xmax(ik)-xmin(ik))/(inc(1)-1)/rscale
         dx(offxy(iz-1)+i) = 0.0d0
       enddo
       do i=1, idims(2)
-         y(offxy(iz-1)+i) = ymin(ik) + real((i-1),kind=PREC_DP)*(ymax(ik)-ymin(ik))/(inc(1)-1)/rscale
+         y(offxy(iz-1)+i) = ymin(ik) + real((i-1),kind=PREC_DP)*(ymax(ik)-ymin(ik))/(inc(2)-1)/rscale
         dy(offxy(iz-1)+i) = 0.0d0
       enddo
       k = 0
@@ -1831,7 +1831,7 @@ else
       idims(1) = (inc(1)-1) * nscale + 1
       allocate(outfield_1d(idims(1)))
       infield_1d = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
-      call do_lanczos(rscale, rcut, m, inc(1), infield_1d, idims(1), outfield_1d)
+      call do_lanczos(rscale, rcut, m, inc(1), infield_1d, idims(1), outfield_1d, .true.)
 !
       lenc(iz) = idims(1)               ! Length of new data set
       do i=1, idims(1)
