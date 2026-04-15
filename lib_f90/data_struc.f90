@@ -1331,7 +1331,7 @@ if(associated(h5_root)) then       ! A storage does exist
       if(associated(h5_temp%after)) then   ! A next node exists
          h5_current => h5_temp             ! Point to current
          h5_temp    => h5_temp%after       ! Point to next node
-!write(*,*) ' At node ', h5_current%data_num, h5_current%is_temp, h5_temp%data_num
+!write(*,*) ' At NODE ', h5_current%data_num, h5_current%is_temp, h5_temp%data_num , 'WITH FOLLOW '
          if(h5_current%is_temp) then       ! Current node is temporary
             if(allocated(h5_current%x )) deallocate(h5_current%x)
             if(allocated(h5_current%y )) deallocate(h5_current%y)
@@ -1355,7 +1355,7 @@ if(associated(h5_root)) then       ! A storage does exist
          endif
       else
          h5_current => h5_temp             ! Point to current
-!write(*,*) ' At node ', h5_current%data_num, h5_current%is_temp
+!write(*,*) ' At node ', h5_current%data_num, h5_current%is_temp, h5_temp%data_num, ' LAST NODE ', associated(h5_keep)
          if(h5_current%is_temp) then       ! Current node is temporary
             if(associated(h5_keep)) then      ! The last keep node has no follow up node (yet)
                nullify(h5_keep%after)
@@ -1363,6 +1363,12 @@ if(associated(h5_root)) then       ! A storage does exist
             deallocate(h5_current)            ! Clean up current node
          else
             nullify(h5_current%after)
+            if(associated(h5_keep)) then
+               h5_keep%after => h5_current      ! Previous permanent mode points to current node
+            else
+               h5_root => h5_current            ! This is the first permanent node reassign root
+            endif
+            h5_keep => h5_current
          endif
          exit find_node                    ! We are done
       endif
