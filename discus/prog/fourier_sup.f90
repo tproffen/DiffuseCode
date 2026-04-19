@@ -343,6 +343,7 @@ use param_mod
 use precision_mod
 use prompt_mod
 use support_mod
+use lib_functions_mod
 use lib_write_mod
 !
 implicit none
@@ -469,6 +470,7 @@ if(fave/=0.0D0) then
          else
             j = 0
          endif
+!        if(abs(frac(eck(i,1)/vi(i,i)))> EPS) then
          if(abs(eck(i,1) + (inc(i)-j)/2*vi(i,i))>EPS) then  
             ier_num = -188
             ier_typ = ER_APPL
