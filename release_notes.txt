@@ -1,4 +1,4 @@
-6.21.02  DRAFT
+6.22.00  DRAFT
 
 GENERAL
   do/if        Improved error handling while reading macros inside a loop
@@ -9,7 +9,7 @@ DISCUS
                Molecules far from the origin were not detected properly
   fourier      Lanczos filter did not work properly for 3D data
   import       Corrected lambda and qmin in refine/diffev setup
-  wyckoff      Improved output to signal is the position is on a 
+  wyckoff      Improved output to signal if the position is on a 
                secondary symmetry operation like a mirror plane at x=1/2
 KUPLOT
   smooth       Lanczos filter did not work properly for 3D data
