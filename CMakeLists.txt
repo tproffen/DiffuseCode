@@ -44,7 +44,7 @@ include_directories (${DIFFUSE_BINARY_DIR}/h5fortran)
 
 set (DIFFUSE_VERSION_MAJOR 6)
 set (DIFFUSE_VERSION_MINOR 21)
-set (DIFFUSE_VERSION_PATCH 01)
+set (DIFFUSE_VERSION_PATCH 02)
 
 option(DIFFUSE_GRAPHICS "Switch off for pure calculation mode at HPC " ON)
 
