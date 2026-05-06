@@ -7,6 +7,7 @@ USE global_data_mod
 !
 PRIVATE
 PUBLIC kuplot_to_global
+public kuplot_to_datastruct_h5
 !
 !*******************************************************************************
 !
@@ -19,6 +20,7 @@ SUBROUTINE kuplot_to_global(line)
 USE kuplot_config
 USE kuplot_mod
 !
+use refine_data_mod
 use refine_params_mod
 !
 USE errlist_mod
@@ -52,7 +54,6 @@ INTEGER, DIMENSION(3) :: dimen
 INTEGER, DIMENSION(4) :: dimen_alloc
 REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: ext_data
 !
-integer :: node_number      ! Node in data_struc
 !
 INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_DATASET = 1
@@ -184,15 +185,44 @@ ENDIF
 endif
 !
 !  Add to data_struc
-if(ku_ndims(ik)==3) then
-   return
-endif
+call kuplot_to_datastruct_h5(ik)
+!
+END SUBROUTINE kuplot_to_global
+!
+!*******************************************************************************
+!
+subroutine kuplot_to_datastruct_h5(ik)
+!
+use kuplot_config
+use kuplot_mod
+!
+use errlist_mod
+use refine_data_mod
+use lib_ik_mod
+use lib_data_struc_h5
+use lib_data_types_mod
+!
+!
+implicit none
+!
+integer, intent(in) :: ik    ! Kuplot data set number
+!
+integer :: i, j
+integer :: node_number
+integer, dimension(3) :: dimen
+!
+!  Add to data_struc
+!write(*,*) ' KU_NDIMS ', ik, ku_ndims(ik), ier_num, ier_typ
+cond_is_h5: if(ku_ndims(ik)==3) then
+   continue
+else cond_is_h5
 !
 call dgl5_new_node
+!write(*,*) ' DID NODE ', ik, ku_ndims(ik), ier_num, ier_typ
 !write(ik1_infile,'(a,a,i4.4)') opara(O_REFINE)(1:len_trim(opara(O_REFINE))), '.',nint(owerte(O_DATASET))
 node_number = dgl5_get_number()
 !write(*,*) ' added node ', node_number
-if(ku_ndims(ik)==2) then      ! 2D data set  (NIPL)
+cond_dimen: if(ku_ndims(ik)==2) then      ! 2D data set  (NIPL)
    dimen(1) = nx(ik)
    dimen(2) = ny(ik)
    dimen(3) = 1
@@ -240,10 +270,11 @@ if(ku_ndims(ik)==2) then      ! 2D data set  (NIPL)
                    ik1_a0(1:3), ik1_win(1:3), ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy,  &
                    ik1_dz,     ik1_data               ,ik1_sigma, ik1_llims,      &
                    ik1_steps, ik1_steps_full)
-elseif(ku_ndims(ik)==1) then     ! Data set is 1D (NIPL)
+elseif(ku_ndims(ik)==1) then  cond_dimen   ! Data set is 1D (NIPL)
    dimen(1) = lenc(ik)
    dimen(2) = 1
    dimen(3) = 1
+!write(*,*) 'DIMEN ', dimen, ' lenc(ik)', lenc(ik), ik, iz
    if(allocated(ik1_x)) deallocate(ik1_x)
    if(allocated(ik1_y)) deallocate(ik1_y)
    if(allocated(ik1_z)) deallocate(ik1_z)
@@ -259,13 +290,13 @@ elseif(ku_ndims(ik)==1) then     ! Data set is 1D (NIPL)
    allocate(ik1_dy(1:1))
    allocate(ik1_dz(1:1))
    allocate(ik1_data(1:dimen(1), 1:dimen(2), 1:dimen(3)))
-   allocate(ik1_sigma(1,1,1))
+   allocate(ik1_sigma(1:dimen(1), 1:dimen(2), 1:dimen(3)))
    ik1_data_type = H5_1D_GEN
    ik1_nlayer    = 1
    ik1_is_direct = .true.
    ik1_is_grid   = .true.
    ik1_has_dxyz  = .false.
-   ik1_has_dval  = .false.
+   ik1_has_dval  = .true.
    ik1_calc_coor = .false.
    ik1_use_coor  = 1
    ik1_corners   = 0.0_PREC_DP
@@ -273,20 +304,37 @@ elseif(ku_ndims(ik)==1) then     ! Data set is 1D (NIPL)
    ik1_x   (1:dimen(1))     = x(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
    ik1_y         = 0.0_PREC_DP
    ik1_z         = 0.0_PREC_DP
-   ik1_data(1:dimen(1),1,1) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
-   ik1_sigma     = 0.0_PREC_DP
+   ik1_data (1:dimen(1),1,1) =  y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
+   ik1_sigma(1:dimen(1),1,1) = dy(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
    ik1_llims     = 0.0_PREC_DP
    ik1_steps     = 0.0_PREC_DP
    ik1_steps_full= 0.0_PREC_DP
 !
+!write(*,*) ' Do   dgl5_set_node ', ier_num, ier_typ, ' *' , ubound(ik1_sigma)
+!write(*,*) ' CHECK ', dimen
+!write(*,*) ' DATA  ', ik1_data(1,1,1), ik1_data(51,1,1)
+!write(*,*) ' DATA  ', ik1_sigma(1,1,1), ik1_sigma(51,1,1)
    call dgl5_set_node(ik1_infile, ik1_data_type, ik1_nlayer, ik1_is_direct, ku_ndims(ik), dimen ,         &
                    ik1_is_grid, ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, &
                    ik1_corners, ik1_vectors,&
                    ik1_a0(1:3), ik1_win(1:3), ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy,  &
                    ik1_dz,     ik1_data               ,ik1_sigma, ik1_llims,      &
                    ik1_steps, ik1_steps_full)
-endif
-END SUBROUTINE kuplot_to_global
+!write(*,*) ' DID  dgl5_set_node ', ier_num, ier_typ
+endif cond_dimen
+endif cond_is_h5
+!
+call gdl5_alloc_pointer(ik)                  ! Ensure the pointer has sufficient members
+lib_h5_data_ptr(ik)%data_ptr => dgl5_get_pointer()
+!write(*,*) ' KUPLOT_TO_GLOBAL '
+!write(*,*) ' CHECK ', lib_h5_data_ptr(1    )%data_ptr%dims
+!write(*,*) ' DATA  ', lib_h5_data_ptr(1    )%data_ptr%datamap(1  ,1  ,1  ), &
+!                      lib_h5_data_ptr(1    )%data_ptr%datamap(51 ,1  ,1  )
+!write(*,*) ' SIGMA ', lib_h5_data_ptr(1    )%data_ptr%sigma(1  ,1  ,1  ), &
+!                      lib_h5_data_ptr(1    )%data_ptr%sigma(51 ,1  ,1  )
+!read(*,*) i
+!
+end subroutine kuplot_to_datastruct_h5
 !
 !*******************************************************************************
 !
