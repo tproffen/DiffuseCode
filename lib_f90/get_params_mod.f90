@@ -5,6 +5,7 @@ private
 public get_params
 public get_params_blank
 public del_params
+public count_params
 !
 CONTAINS
 !
@@ -285,6 +286,28 @@ ELSEIF(ndel==ianz) THEN
 ENDIF 
 !                                                                       
 END SUBROUTINE del_params                     
+!
+!*****7***************************************************************  
+!
+integer function count_params(string)  result(nparams)
+!-
+!  Count the number of comma  delimited parameters
+!+
+implicit none
+!
+character(len=*), intent(in) :: string
+!
+integer :: i       ! Dummy counter
+integer :: length  ! string length
+!
+nparams = 0
+!
+length = len_trim(string)
+do i=1, length
+   if(string(i:i)==',') nparams = nparams + 1
+enddo
+!
+end function count_params
 !
 !*****7***************************************************************  
 !
