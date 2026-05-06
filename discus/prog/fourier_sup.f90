@@ -2158,11 +2158,11 @@ integer                                , intent(in)  :: ianis
 integer           , dimension(3)       , intent(in)  :: ncells
 real(kind=PREC_DP), dimension(3)       , intent(in)  :: scales
 integer                                , intent(in)  :: natoms
-real(kind=PREC_DP), dimension(1:natoms), intent(out) :: xpos
-real(kind=PREC_DP), dimension(1:natoms), intent(out) :: ypos
-real(kind=PREC_DP), dimension(1:natoms), intent(out) :: zpos
-integer                                , intent(out) :: nat
 integer           , dimension(3)       , intent(in ) :: augment
+real(kind=PREC_DP), dimension(1:natoms*augment(3)), intent(out) :: xpos
+real(kind=PREC_DP), dimension(1:natoms*augment(3)), intent(out) :: ypos
+real(kind=PREC_DP), dimension(1:natoms*augment(3)), intent(out) :: zpos
+integer                                , intent(out) :: nat
 !
 integer :: i
 real(kind=PREC_DP), dimension(3) :: pos_low
