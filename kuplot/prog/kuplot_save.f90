@@ -919,9 +919,11 @@ INTEGER :: ninterv  ! number of (points-1)==no of intervals writen to file
 INTEGER :: ispk, ixxx, ikk, ima, nma 
 INTEGER :: nx_min, nx_max, ny_min, ny_max, nx_s, ny_s 
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: qvalues
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: sigma
+logical :: lsigma   ! Data do have a sigma value
 !                                                                       
 if(lh5(ik)) then
-   call do_save_global(ik, filname, form, MAXW, werte)
+   call do_save_global(ik, filname, form, ianz, MAXW, werte)
    return
 endif
 !                                                                       
@@ -1151,7 +1153,7 @@ ELSEIF (form (1:2) .eq.'NI'.and.lni (ik) ) then
       ENDDO 
 elseif(form(1:2)=='H5') then
    if(lh5(ik)) then
-      call do_save_global(ik, filname, form, MAXW, werte)
+      call do_save_global(ik, filname, form, ianz, MAXW, werte)
    else
    hh5_value     = 1              ! regular data
    HH5_VAL_PDF   = 1              ! regular data
@@ -1197,6 +1199,19 @@ elseif(form(1:2)=='H5') then
           qvalues(iix, iiy,1) = (z (offz (ik - 1) + (ix - 1) * ny (ik) + iy))
          enddo
       enddo
+      allocate(sigma(hh5_out_inc(1), hh5_out_inc(2), hh5_out_inc(3)))
+      sigma = 0.0D0
+      lsigma = .false.
+      iiy = 0
+      do iy = ny_min, ny_max
+        iiy = iiy + 1
+        iix = 0
+        do ix = nx_min, nx_max
+           iix = iix + 1
+           sigma(iix, iiy,1) = 1.0D0 !(z (offz (ik - 1) + (ix - 1) * ny (ik) + iy))
+         enddo
+      enddo
+      lsigma = .true.
    else                               ! 1D-      file
 !
       rdx = real(xmax (ik) - xmin (ik), kind=PREC_DP ) / REAL(lenc (ik) - 1, kind=PREC_DP) 
@@ -1224,11 +1239,29 @@ elseif(form(1:2)=='H5') then
          iix = iix + 1
          qvalues(iix,  1, 1) = y(offxy(ik - 1) + ix)
       enddo
+      allocate(sigma(hh5_out_inc(1), hh5_out_inc(2), hh5_out_inc(3)))
+      sigma = 0.0D0
+      lsigma = .false.
+      iix = 0
+      do ix = nx_min, nx_max
+         iix = iix + 1
+         sigma(iix,  1, 1) = dy(offxy(ik - 1) + ix)
+         lsigma = lsigma .or. sigma(iix,  1, 1) > 0.0D0
+      enddo
+!      if(any(abs(sigma(:,1,1))>0.0D0)) lsigma = .true.
    endif
-   call gen_hdf5_write (hh5_value, hh5_laver, filname, hh5_out_inc, hh5_out_eck, hh5_out_vi, &
-                        1, 2, 3, &
-                        hh5_cr_a0, hh5_cr_win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax, &
-                        ier_num, ier_typ, ER_IO, ER_APPL)
+   if(lsigma) then     ! Write with sigma
+      call gen_hdf5_write (hh5_value, hh5_laver, filname, hh5_out_inc, hh5_out_eck, hh5_out_vi, &
+                           1, 2, 3, &
+                           hh5_cr_a0, hh5_cr_win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax, &
+                           ier_num, ier_typ, ER_IO, ER_APPL, sigma=sigma)
+     deallocate(sigma)
+   else
+      call gen_hdf5_write (hh5_value, hh5_laver, filname, hh5_out_inc, hh5_out_eck, hh5_out_vi, &
+                           1, 2, 3, &
+                           hh5_cr_a0, hh5_cr_win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax, &
+                           ier_num, ier_typ, ER_IO, ER_APPL)
+   endif
    deallocate(qvalues)
    endif
 !
@@ -1245,7 +1278,7 @@ END SUBROUTINE do_save
 !
 !*******************************************************************************
 !
-subroutine do_save_global(ik, filname, form, MAXW, werte)
+subroutine do_save_global(ik, filname, form, ianz, MAXW, werte)
 !-
 !  Save a data set from the global storage into an HDF5 File
 !+
@@ -1263,6 +1296,7 @@ implicit none
 integer         , intent(in) :: ik        ! Data set number
 character(len=*), intent(in) :: filname   ! Output file name
 character(len=*), intent(in) :: form      ! Output file format
+integer         , intent(in) :: ianz      ! Number of parameters
 integer         , intent(in) :: MAXW      ! Werte dimension
 real(kind=PREC_DP), dimension(MAXW), intent(in) :: werte
 !
@@ -1279,6 +1313,7 @@ real(kind=PREC_DP), dimension(:)    , allocatable :: c_dx
 real(kind=PREC_DP), dimension(:)    , allocatable :: c_dy
 real(kind=PREC_DP), dimension(:)    , allocatable :: c_dz
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: qvalues
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: q_cropped     ! reduced data
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: sigma
 !
 integer :: i,j,k ! Dummy loop indices
@@ -1292,13 +1327,14 @@ integer                                            :: ndims        ! Number of d
 integer, dimension(3)                              :: dims         ! Dimensions global array
 integer                                            :: nx_min, nx_max  ! min max indices for NIPL File
 integer                                            :: ny_min, ny_max  ! min max indices for NIPL File
+integer                                            :: nz_min, nz_max  ! min max indices for cropped H5 files
 logical                                            :: is_grid      ! date in direct / reciprocal space
 logical                                            :: has_dxyz     ! date in direct / reciprocal space
 logical                                            :: has_dval     ! date in direct / reciprocal space
 logical                                            :: calc_coor    ! Need to calculate coordinates    
 integer, dimension(3)                              :: use_coor     ! Lookup sequence for coordinateLookup sequence for coordinates
-real(kind=PREC_DP)                                 :: wx_min, wy_min ! Lower corners for nipl files
-real(kind=PREC_DP)                                 :: wx_max, wy_max ! Upper corners for nipl files
+real(kind=PREC_DP)                                 :: wx_min, wy_min, wz_min ! Lower corners for nipl files
+real(kind=PREC_DP)                                 :: wx_max, wy_max, wz_max ! Upper corners for nipl files
 REAL(kind=PREC_DP)   , DIMENSION(3,4)              :: corners      ! steps along each axis
 REAL(kind=PREC_DP)   , DIMENSION(3,3)              :: vectors      ! steps along each axis
 REAL(kind=PREC_DP)   , DIMENSION(3)                :: a0           ! Lower limits
@@ -1322,7 +1358,7 @@ if(form/='H5') then
 endif
 !
 cond_choices: if(form=='H5')then
-!
+!nx_min
    if(is_direct) then
       hh5_value     = 1              ! Direct space data
 !     HH5_VAL_PDF   = 1              ! Direct space data
@@ -1337,11 +1373,63 @@ cond_choices: if(form=='H5')then
 !
    hh5_valmax      = 0.0D0
 !
+   if(ianz>0) then                   ! Need to crop data
+      nx_min = max(1, nint((werte(1) - c_x(1))/steps(1))+1)
+      nx_max = min(dims(1), nint((werte(2) - c_x(1))/steps(1))+1)
+      ny_min = max(1, nint((werte(3) - c_y(1))/steps(2))+1)
+      ny_max = min(dims(2), nint((werte(4) - c_y(1))/steps(2))+1)
+      nz_min = max(1, nint((werte(5) - c_z(1))/steps(3))+1)
+      nz_max = min(dims(3), nint((werte(6) - c_z(1))/steps(3))+1)
+      wx_min = c_x(1) + (nx_min - 1)*steps(1)
+      wx_max = c_x(1) + (nx_max - 1)*steps(1)
+      wy_min = c_y(1) + (ny_min - 1)*steps(2)
+      wy_max = c_y(1) + (ny_max - 1)*steps(2)
+      wz_min = c_z(1) + (nz_min - 1)*steps(3)
+      wz_max = c_z(1) + (nz_max - 1)*steps(3)
+      dims(1) = nx_max - nx_min + 1
+      dims(2) = ny_max - ny_min + 1
+      dims(3) = nz_max - nz_min + 1
+      corners(1, 1) = wx_min
+      corners(2, 1) = wy_min
+      corners(3, 1) = wz_min
+!
+      corners(1, 2) = wx_min
+      corners(2, 2) = wy_max
+      corners(3, 2) = wz_min
+!
+      corners(1, 3) = wx_min
+      corners(2, 3) = wy_max
+      corners(3, 3) = wz_min
+!
+      corners(1, 4) = wx_min
+      corners(2, 4) = wy_min
+      corners(3, 4) = wz_max
+!
+!write(*,'(a, 6i8  )') 'New pixels ', nx_min, nx_max, ny_min, ny_max, nz_min, nz_max
+!write(*,'(a, 6f8.2)') 'New limits ', wx_min, wx_max, wy_min, wy_max, wz_min, wz_max
+!write(*,'(a, 6i8  )') 'New dims   ', dims
+!write(*,'(a, 6f8.2)') 'Corner  1  ', corners(1:3,1)
+!write(*,'(a, 6f8.2)') 'Corner  2  ', corners(1:3,2)
+!write(*,'(a, 6f8.2)') 'Corner  3  ', corners(1:3,3)
+!write(*,'(a, 6f8.2)') 'Corner  4  ', corners(1:3,4)
+!write(*,'(a, 6f8.2)') 'Vector  1  ', vectors(1:3,1)
+!write(*,'(a, 6f8.2)') 'Vector  2  ', vectors(1:3,2)
+!write(*,'(a, 6f8.2)') 'Vector  3  ', vectors(1:3,3)
+      allocate(q_cropped(dims(1), dims(2), dims(3)))
+      q_cropped = qvalues(nx_min:nx_max, ny_min:ny_max, nz_min:nz_max)
 !  
-   call gen_hdf5_write(hh5_value, hh5_laver, filname, dims, corners, vectors,      &
-                       1, 2, 3,                                                    &
-                       a0, win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax,   &
-                       ier_num, ier_typ, ER_IO, ER_APPL)
+      call gen_hdf5_write(hh5_value, hh5_laver, filname, dims, corners, vectors,      &
+                          1, 2, 3,                                                    &
+                          a0, win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax,   &
+                          ier_num, ier_typ, ER_IO, ER_APPL)
+      deallocate(q_cropped)
+   else    ! Non cropped copy
+!  
+      call gen_hdf5_write(hh5_value, hh5_laver, filname, dims, corners, vectors,      &
+                          1, 2, 3,                                                    &
+                          a0, win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax,   &
+                          ier_num, ier_typ, ER_IO, ER_APPL)
+   endif
 elseif(form=='NI') then cond_choices
    k = nlayer
 k = 1
