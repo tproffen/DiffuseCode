@@ -70,14 +70,16 @@ call hdf5_read(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,      
                      lpresent, owerte,               &
                      node_number,ndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
-call dgl5_set_h5_is_ku(iz, node_number)
-call dgl5_set_ku_is_h5(node_number, iz)
+call dgl5_set_ku_is_h5(iz, node_number)
+call dgl5_set_h5_is_ku(node_number, iz)
 if(ier_num/=0) return
 !
 ku_ndims(iz) = ndims
 ik = iz 
-call dgl5_set_ku_is_h5(iz, node_number)
-call dgl5_set_h5_is_ku(node_number, iz)
+!call dgl5_set_ku_is_h5(iz, node_number)
+!call dgl5_set_h5_is_ku(node_number, iz)
+!
+!
 !
 call data2kuplot(ik, infile, lout)
 !
@@ -138,8 +140,8 @@ call nx_read_scattering_common(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opar
                      lpresent, owerte,               &
                      node_number,ndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
-call dgl5_set_h5_is_ku(iz, node_number)
-call dgl5_set_ku_is_h5(node_number, iz)
+call dgl5_set_ku_is_h5(iz, node_number)
+call dgl5_set_h5_is_ku(node_number, iz)
 if(ier_num/=0) return
 !
 ku_ndims(iz) = ndims
