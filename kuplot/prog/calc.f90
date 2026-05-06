@@ -62,7 +62,7 @@ IF (ier_num.ne.0) return
 ik = nint (werte (1) ) 
 IF (ik.gt.0.and.ik.lt.iz) then 
    cond_h5: if(lh5(ik)) then                  ! Data in Global HDF5 storage
-      call calc_h5(ik, unt, oper, MAXW, werte, ianz, ndims, dims, nlayer)
+     call calc_h5(ik, unt, oper, MAXW, werte, ianz, ndims, dims, nlayer)
       if(ier_num/=0) return
    else cond_h5
    ilen = lenc (ik) 
@@ -2201,7 +2201,8 @@ ENDIF
 !                                                                       
 IF (ik.gt.0.and.ik.lt.iz.and.il.gt.0.and.il.lt.iz) then       ! Data numbers are in range
    if_hdf5:if(lh5(ik) .and. lh5(il)) then                              ! Both data set are HDF5
-      call rvalue_h5_global(ik, il, iweight, bck_k, rval, wrval, logfile)
+!     call rvalue_h5_global(ik, il, iweight, bck_k, rval, wrval, logfile)
+      call rvalue_h5_global_direct(iweight, bck_k, rval, wrval, logfile, ik1=ik, ik2=il)
          res_para (0) = 2 
          res_para (1) = rval 
          res_para (2) = wrval 
