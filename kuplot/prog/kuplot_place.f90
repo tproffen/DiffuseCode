@@ -134,8 +134,8 @@ IF(lnew) THEN            ! This is a new data set, from 'load' command
    izz = iz
 !  h5_h5_is_ku(h5_number) = izz
 !  h5_ku_is_h5(izz      ) = h5_number
-   call dgl5_set_h5_is_ku(h5_number, izz)
    call dgl5_set_ku_is_h5(izz, h5_number)
+   call dgl5_set_h5_is_ku(h5_number, izz)
    node_number = h5_number
 ELSE                     ! Overwrite current KUPLOT data set
    izz = iz - 1
@@ -199,8 +199,8 @@ lenc(izz) = MAX(nx(izz), ny(izz))
 offxy(izz) = offxy(izz - 1) + lenc(izz)
 offz (izz) = offz (izz - 1) + nx(izz) * ny(izz)
 fname(izz) = h5_infile(1:LEN_TRIM(h5_infile))
+call dgl5_set_ku_is_h5(izz, node_number) ! Kuplot data set izz is stored in H5 number node_number
 call dgl5_set_h5_is_ku(node_number, izz) ! H5 Data set 1 is stored in Kuplot as number izz
-call dgl5_set_h5_is_ku(izz, node_number) ! Kuplot data set izz is stored in H5 number 1
 call dgl5_set_layer(h5_layer)
 IF(lnew) iz = iz + 1
 !
@@ -279,8 +279,8 @@ real(kind=PREC_DP), dimension(3,3) :: h5_steps
 IF(lnew) THEN            ! This is a new data set, from 'load' command
    h5_number = dgl5_get_number()
    izz = iz
-   call dgl5_set_h5_is_ku(h5_number, izz)
    call dgl5_set_ku_is_h5(izz, h5_number)
+   call dgl5_set_h5_is_ku(h5_number, izz)
    node_number = h5_number
 ELSE                     ! Overwrite current KUPLOT data set
    izz = iz - 1
@@ -317,8 +317,8 @@ lni (izz) = .false.
 lh5 (izz) = .true. 
 offxy(izz) = offxy(izz - 1) + lenc(izz)
 fname(izz) = h5_infile(1:LEN_TRIM(h5_infile))
+call dgl5_set_ku_is_h5(izz, node_number) ! Kuplot data set izz is stored in H5 number 1
 call dgl5_set_h5_is_ku(node_number, izz) ! H5 Data set 1 is stored in Kuplot as number izz
-call dgl5_set_h5_is_ku(izz, node_number) ! Kuplot data set izz is stored in H5 number 1
 IF(lnew) iz = iz + 1
 !
 IF(lshow) THEN
