@@ -13,12 +13,13 @@ USE lib_errlist_func
 IMPLICIT      none
 !
 INTEGER       iu,io
-PARAMETER    (IU=-13,IO=0)
+PARAMETER    (IU=-14,IO=0)
 !
 CHARACTER(LEN=45) ERROR(IU:IO)
 !
 !
       DATA ERROR ( IU:  0) /                                       &
+     &  'Dimensions of observed data and sigma differ',            & ! -14 ! refine
      &  'Unknown prameter name, check list of newpara',            & ! -13 ! refine
      &  'COVAR not allocated, run a refinement first ',            & ! -12 ! refine
      &  'Parameter(s) outside range/constrain        ',            & ! -11 ! refine
