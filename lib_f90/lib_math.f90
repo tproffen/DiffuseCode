@@ -92,6 +92,7 @@ public kmath_h5_global
 public rvalue_h5_global
 public do_merge_global
 public lanc_global
+public rvalue_h5_global_direct
 !
 contains
 !
@@ -136,9 +137,14 @@ if(unt=='WX') then
    jdim = 1
    lcoord = .true.
 elseif(unt=='WY') then
-   p2coord => ik1_y
-   jdim = 2
-   lcoord = .true.
+   if(ik1_ndims>2) then
+      p2coord => ik1_y
+      jdim = 2
+      lcoord = .true.
+   else
+      p2coord => ik1_data(:,1,1)
+      lcoord = .false.
+   endif
 elseif(unt=='WZ') then
    p2coord => ik1_z
    jdim = 3
@@ -148,9 +154,14 @@ elseif(unt=='DX') then
    jdim = 1
    lcoord = .false.
 elseif(unt=='DY') then
-   p2coord => ik1_dy
-   jdim = 2
-   lcoord = .false.
+   if(ik1_ndims>2) then
+      p2coord => ik1_dy
+      jdim = 2
+      lcoord = .false.
+   else
+      p2coord => ik1_sigma(:,1,1)
+      lcoord = .false.
+   endif
 elseif(unt=='DZ') then
    p2coord => ik1_dz
    jdim = 3
@@ -1348,26 +1359,43 @@ if(ik1_data_type==H5_BRAGG_I) then
    call rvalue_hklf4_global(iweight, bck_k, sumrz, sumrn, sumwrz, sumwrn, logfile)
 else
 !
-if(ik1_ndims/=ik2_ndims .or. any(ik1_dims/=ik2_dims)) then
-   ier_num = -56
-   ier_typ = ER_FORT
-   call math_clean
-   return
-endif
-!
-do kk=1,ik1_dims(3)
-   do jj=1,ik1_dims(2)
-      do ii=1,ik1_dims(1)
-         a_ik1 = ik1_data(ii,jj,kk)
-         a_ik2 = ik2_data(ii,jj,kk)
-         sumrz = sumrz + abs (a_ik1 -a_ik2)
-         sumrn = sumrn + abs (a_ik1) 
-         wght = r_wichtung (a_ik1  , 1.0, iweight, a_ik2, bck_k) 
-         sumwrz = sumwrz + wght * (a_ik1   - a_ik2   ) **2 
-         sumwrn = sumwrn + wght * (a_ik1   ) **2 
+   if(ik1_ndims/=ik2_ndims .or. any(ik1_dims/=ik2_dims)) then
+      ier_num = -56
+      ier_typ = ER_FORT
+      call math_clean
+      return
+   endif
+   if(allocated(ik1_sigma)) then
+!     Use sigma provided by data ik1
+      do kk=1,ik1_dims(3)
+         do jj=1,ik1_dims(2)
+            do ii=1,ik1_dims(1)
+               a_ik1 = ik1_data(ii,jj,kk)
+               a_ik2 = ik2_data(ii,jj,kk)
+               sumrz = sumrz + abs (a_ik1 -a_ik2)
+               sumrn = sumrn + abs (a_ik1) 
+               wght = r_wichtung (a_ik1  , ik1_sigma(ii,jj,kk), iweight, a_ik2, bck_k) 
+               sumwrz = sumwrz + wght * (a_ik1   - a_ik2   ) **2 
+               sumwrn = sumwrn + wght * (a_ik1   ) **2 
+            enddo
+         enddo
       enddo
-   enddo
-enddo
+   else
+!     Use unit sigma = 1.0
+      do kk=1,ik1_dims(3)
+         do jj=1,ik1_dims(2)
+            do ii=1,ik1_dims(1)
+               a_ik1 = ik1_data(ii,jj,kk)
+               a_ik2 = ik2_data(ii,jj,kk)
+               sumrz = sumrz + abs (a_ik1 -a_ik2)
+               sumrn = sumrn + abs (a_ik1) 
+               wght = r_wichtung (a_ik1  , 1.0, iweight, a_ik2, bck_k) 
+               sumwrz = sumwrz + wght * (a_ik1   - a_ik2   ) **2 
+               sumwrn = sumwrn + wght * (a_ik1   ) **2 
+            enddo
+         enddo
+      enddo
+   endif
 endif
 !
 rval = sumrz / sumrn 
@@ -2187,6 +2215,233 @@ if(allocated(ik2_data )) deallocate(ik2_data )
 if(allocated(ik2_sigma)) deallocate(ik2_sigma)
 !
 end subroutine math_clean
+!
+!*****7*****************************************************************
+! Similar routines as above but work directly on the global data 
+!*****7*****************************************************************
+!
+subroutine rvalue_h5_global_direct(iweight, bck_k, rval, wrval, logfile,        &
+                            ik1, ik2, node_number_1, node_number_2,             &
+                            node_name_1, node_name_2)
+!-
+!  Perform R-value calculations
+!+
+!
+use errlist_mod
+use lib_data_struc_h5
+use lib_data_struc_type_mod
+use lib_data_types_mod
+use lib_weights_mod
+use precision_mod
+!use prompt_mod
+!
+implicit none
+!
+integer           , intent(in)  :: iweight
+real(kind=PREC_DP), intent(out) :: rval 
+real(kind=PREC_DP), intent(out) :: wrval 
+real(kind=PREC_DP), intent(in)  :: bck_k
+character(len=*)  , intent(in)  :: logfile
+integer           , optional, intent(in) :: ik1
+integer           , optional, intent(in) :: ik2
+integer           , optional, intent(in) :: node_number_1
+integer           , optional, intent(in) :: node_number_2
+character(len=*)  , optional, intent(in) :: node_name_1
+character(len=*)  , optional, intent(in) :: node_name_2
+!                                                                       
+integer :: dummy_node_number
+integer :: ii,jj,kk
+real(kind=PREC_DP) :: sumrz, sumrn 
+real(kind=PREC_DP) :: sumwrz, sumwrn 
+real(kind=PREC_DP) :: wght 
+real(kind=PREC_DP) :: a_ik1, a_ik2 
+!
+type(h5_data_struc), pointer :: ptr_1 => NULL()
+type(h5_data_struc), pointer :: ptr_2 => NULL()
+!
+if(present(ik1) .and. present(ik2)) then
+!write(*,*) ' KUPLOT NUMBERS ', ik1, ik2
+   call dgl5_set_pointer(ik1, ier_num, ier_typ, dummy_node_number, ptr_1)
+!write(*,*) ' PTR1 ', ptr_1%infile(1:len_trim(ptr_1%infile)
+   call dgl5_set_pointer(ik2, ier_num, ier_typ, dummy_node_number, ptr_2)
+!write(*,*) ' PTR2 ', ptr_2%infile(1:len_trim(ptr_2%infile)
+elseif(present(node_number_1) .and. present(node_number_2)) then
+   call dgl5_find_node(node_number_1, ier_num, ier_typ, ptr_1)
+   call dgl5_find_node(node_number_2, ier_num, ier_typ, ptr_2)
+elseif(present(node_name_1) .and. present(node_name_2)) then
+   call dgl5_find_node_name(node_name_1, ier_num, ier_typ, ptr_1)
+   call dgl5_find_node_name(node_name_2, ier_num, ier_typ, ptr_2)
+endif
+!
+!call data2local(ik1     , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+!     ik1_data_type,    &
+!     ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
+!     ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+!     ik1_vectors, ik1_a0, ik1_win,  &
+!     ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
+!     ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
+!!
+!call data2local(ik2     , ier_num, ier_typ, ik2_node_number, ik2_infile,   &
+!     ik2_data_type,    &
+!     ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
+!     ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+!     ik2_vectors, ik2_a0, ik2_win,  &
+!     ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
+!     ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
+!
+sumrz  = 0.0D0
+sumrn  = 0.0D0
+sumwrz = 0.0D0
+sumwrn = 0.0D0
+if(ik1_data_type==H5_BRAGG_I) then
+   call rvalue_hklf4_global_direct(ptr_1, ptr_2, iweight, bck_k, sumrz, sumrn, sumwrz, &
+                            sumwrn, logfile)
+else
+!
+   if(ptr_1%ndims/=ptr_1%ndims .or. any(ptr_1%dims/=ptr_1%dims)) then
+      ier_num = -56
+      ier_typ = ER_FORT
+      call math_clean
+      return
+   endif
+!
+   if(allocated(ptr_1%sigma)) then
+!     Use sigma provided for data
+      do kk=1,ptr_1%dims(3)
+         do jj=1,ptr_1%dims(2)
+            do ii=1,ptr_1%dims(1)
+               a_ik1 = ptr_1%datamap(ii,jj,kk)
+               a_ik2 = ptr_2%datamap(ii,jj,kk)
+               sumrz = sumrz + abs (a_ik1 -a_ik2)
+               sumrn = sumrn + abs (a_ik1) 
+               wght = r_wichtung (a_ik1  , ptr_1%sigma(ii,jj,kk), iweight, a_ik2, bck_k) 
+               sumwrz = sumwrz + wght * (a_ik1   - a_ik2   ) **2 
+               sumwrn = sumwrn + wght * (a_ik1   ) **2 
+            enddo
+         enddo
+      enddo
+   else
+      do kk=1,ptr_1%dims(3)
+         do jj=1,ptr_1%dims(2)
+            do ii=1,ptr_1%dims(1)
+               a_ik1 = ptr_1%datamap(ii,jj,kk)
+               a_ik2 = ptr_2%datamap(ii,jj,kk)
+               sumrz = sumrz + abs (a_ik1 -a_ik2)
+               sumrn = sumrn + abs (a_ik1) 
+               wght = r_wichtung (a_ik1  , 1.0, iweight, a_ik2, bck_k) 
+               sumwrz = sumwrz + wght * (a_ik1   - a_ik2   ) **2 
+               sumwrn = sumwrn + wght * (a_ik1   ) **2 
+            enddo
+         enddo
+      enddo
+   endif
+endif
+!
+rval = sumrz / sumrn 
+wrval = sqrt (sumwrz / sumwrn) 
+!                                                                       
+!call math_clean
+!
+end subroutine rvalue_h5_global_direct
+!
+!*****7*****************************************************************
+!
+subroutine rvalue_hklf4_global_direct(ptr_1, ptr_2, iweight, bck_k, sumrz, &
+           sumrn, sumwrz, sumwrn, logfile)
+!-
+!  Calculate the R-value for a Bragg reflection data set
+!+
+use lib_data_struc_type_mod
+use lib_weights_mod
+use precision_mod
+!
+implicit none
+!
+type(h5_data_struc), pointer, intent(in) :: ptr_1
+type(h5_data_struc), pointer, intent(in) :: ptr_2
+integer           , intent(in)  :: iweight
+real(kind=PREC_DP), intent(in)  :: bck_k
+real(kind=PREC_DP), intent(inout) :: sumrz
+real(kind=PREC_DP), intent(inout) :: sumrn
+real(kind=PREC_DP), intent(inout) :: sumwrz
+real(kind=PREC_DP), intent(inout) :: sumwrn
+character(len=*)  , intent(in)  :: logfile
+!
+integer, parameter :: IWR = 99
+integer :: ii,jj,kk, l,m
+integer, dimension(3) :: offs
+logical            :: lout
+real(kind=PREC_DP) :: wght 
+real(kind=PREC_DP) :: a_ik1, a_ik2 
+real(kind=PREC_DP) :: s_ik1
+!
+sumrz  = 0.0D0
+sumrn  = 0.0D0
+sumwrz = 0.0D0
+sumwrn = 0.0D0
+!
+lout = .false.
+!
+offs = nint(ik1_llims - ik2_llims)
+!
+l = 0
+m = 0
+!write(*,*) ' IN RVALUE_SHELXL ', offs
+!write(*,*) ' llims 1 ', ik1_llims
+!write(*,*) ' llims 2 ', ik2_llims
+!write(*,*) ' IK1 IK2 ', ik1_data( 1,  1,  1), ik2_data( 1+offs(1),  1+offs(2),  1+offs(3)) 
+!write(*,*) ' SIGMAS  ', ik1_sigma( 1,  1,  1)!, ik2_sigma( 2,  3,  3)
+!write(*,*) ' HKL 1   ', ik1_x(1 ),         ik1_y( 1),         ik1_z( 1)
+!write(*,*) ' HKL 2   ', ik2_x(1+offs(1) ), ik2_y( 1+offs(2)), ik2_z( 1+offs(3))
+!write(*,*) ' ALLOCATED ', allocated(    ik1_data   ), allocated(    ik1_sigma), ik1_has_dval
+!write(*,*) ' ALLOCATED ', allocated(    ik2_data   ), allocated(    ik2_sigma), ik2_has_dval
+!write(*,*) ' INTENSITY ', minval(ik1_data), maxval(ik1_data)
+!write(*,*) ' INTENSITY ', minval(ik2_data), maxval(ik2_data)
+!write(*,*) ' SIGMA     ', minval(ik1_sigma), maxval(ik1_sigma)
+!!write(*,*) ' SIGMA     ', minval(ik2_sigma), maxval(ik2_sigma)
+!write(*,*) ' BOUND int1', lbound(ik1_data), ubound(ik1_data)
+!write(*,*) ' BOUND int2', lbound(ik2_data), ubound(ik2_data)
+!write(*,*) ' BOUND sig1', lbound(ik1_sigma), ubound(ik1_sigma)
+!!write(*,*) ' BOUND sig2', lbound(ik2_sigma), ubound(ik2_sigma)
+!write(*,*) ' X 1       ', ik1_x(1), ik1_x(ik1_dims(1))
+!write(*,*) ' y 1       ', ik1_y(1), ik1_y(ik1_dims(2))
+!write(*,*) ' z 1       ', ik1_z(1), ik1_z(ik1_dims(3))
+!write(*,*) ' X 2       ', ik2_x(1), ik1_x(ik1_dims(1))
+!write(*,*) ' y 2       ', ik2_y(1), ik1_y(ik1_dims(2))
+!write(*,*) ' z 2       ', ik2_z(1), ik1_z(ik1_dims(3))
+if(logfile/='NONE') then
+   open(unit=IWR,file=logfile, status='unknown')
+   lout = .true.
+endif
+do kk=1,ik1_dims(3)
+   do jj=1,ik1_dims(2)
+      do ii=1,ik1_dims(1)
+         if(ik1_sigma(ii,jj,kk)>0.0D0) then
+            a_ik1 = ptr_1%datamap(ii,jj,kk)
+            a_ik2 = ptr_2%datamap(ii+offs(1),jj+offs(2),kk+offs(3))
+            s_ik1 = ptr_1%sigma(ii,jj,kk)
+            sumrz = sumrz + abs (a_ik1 -a_ik2)
+            sumrn = sumrn + abs (a_ik1) 
+            wght = r_wichtung (a_ik1  , s_ik1, iweight, a_ik2, bck_k) 
+!write(*,'(6i4,2x,4f14.6, i4)') nint(ik1_x(ii)), nint(ik1_y(jj)), nint(ik1_z(kk)),   &
+!          nint(ik2_x(ii+offs(1))), nint(ik2_y(jj+offs(2))), nint(ik2_z(kk+offs(3))),   &
+!          ik1_data(ii        ,jj        ,kk        ), &
+!          ik2_data(ii+offs(1),jj+offs(2),kk+offs(3)), s_ik1, wght, iweight
+!
+            sumwrz = sumwrz + wght * (a_ik1   - a_ik2   ) **2 
+            sumwrn = sumwrn + wght * (a_ik1   ) **2 
+if(lout) write(IWR, fmt='(4(2x,g20.8e3))') a_ik1, a_ik2, 0.0, (a_ik1 - a_ik2)
+ l = l + 1
+         endif
+ m = m + 1
+      enddo
+   enddo
+enddo
+if(lout) close(IWR)
+!write(*,*) ' Reflections ', l, m
+!write(*,*) ' Zaehler     ', sumrz, sumwrz
+!write(*,*) ' Nenner      ', sumrn, sumwrn
+end subroutine rvalue_hklf4_global_direct
 !
 !*******************************************************************************
 !
