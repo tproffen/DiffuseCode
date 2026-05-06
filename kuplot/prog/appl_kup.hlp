@@ -1899,6 +1899,7 @@
 !p  sk    ik                    yes      Cross section along xy of data set ik
 !p  sl    x1,y1,x2,y2,n         yes      Cross section from x1,y1 to x2,y2
 !p                                       with n points
+!p  h5    xmin,xmax,ymin,ymax,zmin,zmax no  Saves a 3D data set as HDF5
 
    For the xy format, the last optional parameter can be the string 
    "four" to explicitly write the default four columns x, y, dx, dy.
