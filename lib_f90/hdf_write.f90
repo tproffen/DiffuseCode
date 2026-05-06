@@ -12,7 +12,8 @@ CONTAINS
 SUBROUTINE gen_hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
                        extr_abs, extr_ord, extr_top,                       &
                        cr_a0, cr_win, qvalues, VAL_PDF, VAL_3DPDF, valmax, &
-                       ier_num, ier_typ, ER_IO, ER_APPL)
+                       ier_num, ier_typ, ER_IO, ER_APPL, &
+                       sigma)
 !
 USE hdf5
 !use diffuse_mod
@@ -42,6 +43,7 @@ INTEGER                , INTENT(OUT) :: ier_num
 INTEGER                , INTENT(OUT) :: ier_typ
 INTEGER                , INTENT(IN) :: ER_IO
 INTEGER                , INTENT(IN) :: ER_APPL
+REAL(kind=PREC_DP)   , DIMENSION(out_inc(1), out_inc(2), out_inc(3)), optional, INTENT(IN) :: sigma
 !
 INTEGER(KIND=HSIZE_T), PARAMETER       :: dim0 = 1        ! Dimension of "Yell 1.0"
 INTEGER(KIND=HSIZE_T), PARAMETER       :: sdim = 8        ! String length of "Yell 1.0"
@@ -51,6 +53,7 @@ INTEGER(KIND=2         ), PARAMETER    :: SHORT_ONE  = 1  ! a 32 bit 1 for "is_d
 !
 CHARACTER(LEN=1024) :: line
 CHARACTER(LEN=4), PARAMETER :: dataset = "data"           ! Dummy name for HDF5
+CHARACTER(LEN=5), PARAMETER :: datasig = "sigma"          ! Dummy name for HDF5
 CHARACTER(LEN=sdim), DIMENSION(1:dim0), TARGET ::  wdata = (/"Yell 1.0"/) ! Write buffer
 character(len=PREC_STRING)             :: message
 integer                                :: exit_msg
@@ -279,12 +282,43 @@ CALL H5Sclose_f(space, hdferr)                       ! Close data set
 CALL H5Tclose_f(filetype, hdferr)                    ! Close C-string space
 CALL H5Tclose_f(memtype, hdferr)                     ! Close F-string space
 !
+if(present(sigma)) then
+!  Write SIGMA
+!
+   CALL H5Screate_simple_f(3, hdims, space, hdferr)            ! Create data set
+!
+   l = 0                                                       ! Copy proper "value"
+   DO i = 1, out_inc(1)
+      DO j = 1, out_inc(2)
+         DO k = 1, out_inc(3)
+            l = l + 1
+            values(k,j,i) = sigma(i,j,k)
+         ENDDO
+      ENDDO
+   ENDDO
+!
+   IF(valmax>0.0D0) THEN
+      max_data = MAXVAL(values)
+      IF(max_data >= 0.0) THEN
+         values = valmax*values/max_data                          ! Normalize data for HDF5
+      ENDIF
+   ENDIF
+!
+   CALL H5Dcreate_f(file_id, datasig, H5T_NATIVE_DOUBLE, space, dset, hdferr)
+   f_ptr = C_LOC(values(1,1,1))
+   CALL H5Dwrite_f(dset, H5T_NATIVE_DOUBLE, f_ptr, hdferr)
+!
+   CALL H5Dclose_f(dset , hdferr)
+   CALL H5Sclose_f(space, hdferr)
+endif
+!
+!
 CALL H5Fclose_f(file_id , hdferr)
 !
 CALL h5close_f(hdferr)
 DEALLOCATE(values)
 !
-! To avoid h5fortrn library issue with h5_open, reset these to zero
+! To avoid h5fortran library issue with h5_open, reset these to zero
 H5F_ACC_RDONLY_F  = 0
 H5F_ACC_TRUNC_F   = 0
 !call gen_hdf5_show(outfile, uc_hdf, out_vi)

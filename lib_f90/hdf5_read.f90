@@ -421,6 +421,24 @@ if(yd_present(YD_STEP_SIZES_TOP)) then
 else
    h5_steps_full(3,3) = h5_steps(3)
 endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! get sigma
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+if(yd_present(YD_sigma)) then
+one_maxdims = 1
+dataname='sigma'
+CALL H5Dopen_f(file_id, dataname, dset_id, hdferr)           ! Open the dataset
+if(hdferr==0) then
+   CALL H5Dget_space_f(dset_id, space_id, hdferr)
+   CALL H5Sget_simple_extent_ndims_f(space_id, ndims, hdferr)   ! Get the number of dimensions in data set
+   CALL H5Sget_simple_extent_dims_f(space_id, h5_dims, one_maxdims, hdferr)   ! Get the dimensions in data set
+   IF(ALLOCATED(h5_sigma)) DEALLOCATE(h5_sigma)
+   ALLOCATE(h5_sigma(h5_dims(1), h5_dims(2), h5_dims(3)))
+   CALL H5Dread_f(dset_id, H5T_NATIVE_REAL, h5_sigma, h5_dims, hdferr)
+   CALL H5Dclose_f(dset_id, hdferr)                             ! Close the dataset file
+endif
+endif
 !
 CALL h5fclose_f(file_id, hdferr)                             ! Close the input file
 !
@@ -480,6 +498,7 @@ if(allocated(h5_sigma)) then
          enddo
       enddo
    enddo
+   h5_has_dval = .true.
 endif
 h5_vectors      = h5_steps_full
 h5_corners(:,1) = h5_llims                                          ! Lower left
@@ -957,6 +976,7 @@ if(allocated(h5_sigma)) then
          enddo
       enddo
    enddo
+   h5_has_dval = .true.
 endif
 !
 h5_vectors      = h5_steps_full

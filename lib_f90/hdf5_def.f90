@@ -5,7 +5,7 @@ module hdf5_def_mod
 !
 implicit none
 !
-integer, parameter :: YD_ND =10        ! Number of data sets
+integer, parameter :: YD_ND =11        ! Number of data sets
 integer, parameter :: YD_PROGRAM        =  1
 integer, parameter :: YD_data           =  2
 integer, parameter :: YD_format         =  3
@@ -16,16 +16,17 @@ integer, parameter :: YD_unit_cell      =  7
 integer, parameter :: YD_step_sizes_abs =  8
 integer, parameter :: YD_step_sizes_ord =  9
 integer, parameter :: YD_step_sizes_top = 10
+integer, parameter :: YD_sigma          = 11
 !                                                                   ! Data set names
 character(len=128), dimension(YD_ND), parameter :: yd_datasets = &
 (/ 'PROGRAM       ', 'data          ', 'format        ', 'is_direct     ',      &
    'lower_limits  ', 'step_sizes    ', 'unit_cell     ', 'step_sizes_abs',      &
-   'step_sizes_ord', 'step_sizes_top'                                           &
+   'step_sizes_ord', 'step_sizes_top', 'sigma         '                         &
 /)
 !                                                                   ! Used in YELL / DISCUS
 integer            , dimension(YD_ND,2), parameter :: yd_req =                  &
-reshape( (/ 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, &
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1 /), (/YD_ND, 2/))
+reshape( (/ 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, &
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 /), (/YD_ND, 2/))
 !                                                                   ! Data set was read
 logical            , dimension(YD_ND)              :: yd_present = .false.
 !
