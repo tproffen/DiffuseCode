@@ -465,6 +465,7 @@ USE kuplot_config
 USE kuplot_mod 
 USE kuplot_load_h5
 use kuplot_load_shelx
+use kuplot_toglobal
 !
 USE ber_params_mod
 use blanks_mod
@@ -481,6 +482,8 @@ USE take_param_mod
 USE str_comp_mod
 USE string_convert_mod
 USE support_mod
+!
+use lib_data_struc_h5
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -607,15 +610,6 @@ IF (ianz.ge.2) then
                            lopara, lpresent, owerte , iz, ku_ndims,               &
                            ier_num, ier_typ, UBOUND(ier_msg,1), ier_msg, ER_APPL, &
                            ER_IO, output_io)
-!           call gen_load_hklf4(cpara(2), lpara(2), node_number)
-!           call dgl5_set_h5_is_ku(iz, node_number)
-!           call dgl5_set_ku_is_h5(node_number, iz)
-!           ku_ndims(iz) = 3
-!           ik = iz
-!           call dgl5_set_ku_is_h5(iz, node_number)
-!           call dgl5_set_h5_is_ku(node_number, iz)
-!
-!           call data2kuplot(ik, cpara(2), .true.)
             return
          elseif(unter=='MRC') then
             call mrc_read_kuplot(cpara(2),lpara(2), node_number, ii)
@@ -800,6 +794,13 @@ IF (ianz.ge.2) then
          ier_num = - 2 
          ier_typ = ER_APPL 
       ENDIF 
+!
+!write(*,*) ' iz ', iz, ier_num, ier_typ
+!write(*,*) ' x  ',  x(1),  x(51)
+!write(*,*) ' y  ',  y(1),  y(51)
+!write(*,*) ' dy ', dy(1), dy(51)
+call kuplot_to_datastruct_h5(iz-1)
+!write(*,*) ' ier ', ier_num, ier_typ
 !                                                                       
       CLOSE (ifil) 
       IF (istr.eq.2) close (iwgb) 
@@ -1231,6 +1232,7 @@ allocate(np(maxarray))
 !                                                                       
 !------ set other parameters                                            
 !                                                                       
+ku_ndims(iz) = 2
       lni (iz) = .true. 
       lh5 (iz) = .FALSE.
       lenc(iz) = max (nx (iz), ny (iz) ) 
@@ -1353,6 +1355,7 @@ REAL(kind=PREC_DP) :: dxx, dyy
 !                                                                       
 !------ set other parameters                                            
 !                                                                       
+ku_ndims(iz) = 2
       lni (iz) = .true. 
       lh5 (iz) = .FALSE.
       lenc(iz) = max (nx (iz), ny (iz) ) 
@@ -1597,12 +1600,12 @@ REAL(kind=PREC_DP) :: dxx, dyy
 !                                                                       
 !------ set remaining parameters                                        
 !                                                                       
+ku_ndims(iz) = 2
       lni (iz) = .true. 
       lh5 (iz) = .FALSE.
       lenc(iz) = max (nx (iz), ny (iz) ) 
       offxy (iz) = offxy (iz - 1) + lenc(iz) 
       offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
-      ku_ndims(iz) = 2
       iz = iz + 1 
 !                                                                       
       CALL show_data (iz - 1) 
@@ -2089,6 +2092,7 @@ INTEGER, DIMENSION(MAXWW) :: llpara
             GOTO 1111 
          ENDIF 
       ENDIF 
+ku_ndims(iz) = 1
 !                                                                       
  1000 FORMAT (' List of scans in file ',a,' :') 
  1100 FORMAT (i7,' pts --> #',a) 
@@ -2571,6 +2575,7 @@ real(kind=PREC_DP), dimension(MAXW), intent(inout) :: werte
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+ku_ndims(iz-1) = 1
 if(allocated(xval)) deallocate(xval)
 if(allocated(yval)) deallocate(yval)
 if(allocated(dyval)) deallocate(dyval)
@@ -3607,6 +3612,7 @@ ENDDO loop_read
 !20 CONTINUE 
 IF(ios==0) THEN  
 !
+ku_ndims(iz) = 1
    lenc(iz) = nr - 1 
    offxy (iz) = offxy (iz - 1) + lenc(iz) 
    offz (iz) = offz (iz - 1) 
@@ -3821,7 +3827,8 @@ ENDDO body
 if(allocated(limits)) deallocate(limits)
 !
 ! Record data set length and show data
-!
+!k
+ku_ndims(iz) = 1
 lenc(iz)   = nr - 1 
 offxy(iz) = offxy(iz - 1) + lenc(iz) 
 offz(iz)  = offz(iz - 1) 
@@ -3883,6 +3890,7 @@ INTEGER, INTENT(in) :: ifil
          ENDIF 
       ENDDO body
 !
+ku_ndims(iz) = 1
       lenc (iz) = nr - 1 
       offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
@@ -4013,6 +4021,7 @@ INTEGER, INTENT(in) :: ifil
       ENDIF 
       GOTO 10 
    20 CONTINUE 
+ku_ndims(iz) = 1
       lenc (iz) = nr - 1 
       offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
@@ -4060,6 +4069,7 @@ REAL(kind=PREC_DP) :: rmsiz, zdummy
       ENDIF 
       GOTO 10 
    20 CONTINUE 
+ku_ndims(iz) = 1
       lenc (iz) = nr - 1 
       offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
@@ -4106,6 +4116,7 @@ INTEGER, INTENT(in) :: ifil
       ENDIF 
       GOTO 10 
    20 CONTINUE 
+ku_ndims(iz) = 1
       lenc (iz) = nr - 1 
       offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
@@ -4365,8 +4376,6 @@ node_number = 0
 call mrc_read(outfile, node_number)
 !
 ndims = 3
-!call dgl5_set_h5_is_ku(iz, node_number)
-!call dgl5_set_ku_is_h5(node_number, iz)
 if(ier_num/=0) return
 !
 ku_ndims(iz) = ndims
