@@ -4,6 +4,8 @@ use precision_mod
 !
 private
 public h5_data_struc
+public lib_h5_data_ptr
+public lib_h5_data_ptr_temp
 !
 type :: h5_data_struc
    integer                                               :: data_num       ! Current data set number
@@ -38,5 +40,13 @@ type :: h5_data_struc
    real(kind=PREC_DP)   , dimension(3,2)                 :: minmaxcoor     ! coordinates extreme values
    type(h5_data_struc), pointer                          :: after
 end type h5_data_struc
+!
+!
+type  lib_h5_ptr
+   type(h5_data_struc), pointer :: data_ptr
+end type  lib_h5_ptr
+!
+type(lib_h5_ptr), dimension(:), allocatable ::  lib_h5_data_ptr
+type(lib_h5_ptr), dimension(:), allocatable ::  lib_h5_data_ptr_temp
 !
 end module lib_data_struc_type_mod

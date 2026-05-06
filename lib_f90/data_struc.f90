@@ -18,6 +18,7 @@ public dgl5_set_node
 public dgl5_get_node
 public dgl5_set_pointer
 public dgl5_find_node
+public dgl5_find_node_name
 public dgl5_copy_node
 public dgl5_get_h5_is_ku
 public dgl5_get_ku_is_h5
@@ -35,6 +36,7 @@ public dgl5_get_steps
 public dgl5_get_minmax
 public dgl5_get_minmaxcoor
 public dgl5_get_map
+public dgl5_get_pointer
 public dgl5_get_tmap
 public dgl5_get_x
 public dgl5_get_y
@@ -59,6 +61,7 @@ public local2data
 public fft2data
 public dgl5_calc_coor
 public dgl5_get_xyz
+public gdl5_alloc_pointer
 public dgl5_reset
 !
 integer, parameter ::  maxkurvtot = 200      ! Relic from KUPLOT
@@ -99,6 +102,7 @@ integer                                               :: h5_number   = 0   ! Cur
 !
 type(h5_data_struc), pointer                          :: h5_root => NULL()
 type(h5_data_struc), pointer                          :: h5_temp => NULL()
+type(h5_data_struc), pointer                          :: h5_send => NULL()
 type(h5_data_struc), pointer                          :: h5_find => NULL()
 !
 !
@@ -148,15 +152,22 @@ if(associated(h5_root)) then                                ! A root node exists
    write(output_io, '(a,a )') 'Name : ',h5_temp%infile(1:len_trim(h5_temp%infile))
    write(output_io, '(a,3i8 )') 'Dim  : ',h5_temp%dims
    write(output_io, '(a,l1  )') 'Temp : ',h5_temp%is_temp
+   write(output_io, '(a,5l1  )') 'Allo : ',allocated(h5_temp%datamap), &
+         allocated(h5_temp%sigma), allocated(h5_temp%x), allocated(h5_temp%y), allocated(h5_temp%z)
+   write(output_io, '(a,5l1  )') 'dval : ',h5_temp%has_dval
    find_node: do while(associated(h5_temp%after))           ! Does next node exist?
       h5_temp => h5_temp%after                              ! Next node exists, point to this next node
       write(output_io, '(a,i8)') 'Node : ',h5_temp%data_num
       write(output_io, '(a,a )') 'Name : ',h5_temp%infile(1:len_trim(h5_temp%infile))
       write(output_io, '(a,3i8 )') 'Dim  : ',h5_temp%dims
       write(output_io, '(a,l1  )') 'Temp : ',h5_temp%is_temp
+      write(output_io, '(a,5l1  )') 'Allo : ',allocated(h5_temp%datamap), &
+         allocated(h5_temp%sigma), allocated(h5_temp%x), allocated(h5_temp%y), allocated(h5_temp%z)
+      write(output_io, '(a,5l1  )') 'dval : ',h5_temp%has_dval
    enddo find_node
 else
    write(output_io,'(a)') 'Global data structure is empty'
+!   write(*        ,'(a)') 'Global data structure is empty'
 endif
 !
 end subroutine dgl5_show_nodes
@@ -248,6 +259,9 @@ real(kind=PREC_DP), dimension(3)        , intent(in) :: l_llims          ! Lower
 real(kind=PREC_DP), dimension(3)        , intent(in) :: l_steps          ! steps in H, K, L
 real(kind=PREC_DP), dimension(3,3)      , intent(in) :: l_steps_full     ! steps in H, K, L
 !
+!write(*,*) ' SET NODE ', l_ndims 
+!write(*,*) ' SET NODE ', l_dims 
+h5_temp%is_temp  = .true.
 h5_temp%infile   = l_infile         ! input file
 h5_temp%data_type= l_data_type      ! Data type
 h5_temp%layer    = l_layer          ! Current layer in data set
@@ -382,6 +396,7 @@ endif
 allocate(l_data(h5_temp%dims(1), h5_temp%dims(2), h5_temp%dims(3)))
 l_data     = h5_temp%datamap        ! Actual diffraction data
 if(h5_temp%has_dval) then
+   allocate(l_sigma(h5_temp%dims(1), h5_temp%dims(2), h5_temp%dims(3)))
    l_sigma    = h5_temp%sigma          ! Actual diffraction data
 endif
 !write(*,*) ' GET_NODE '
@@ -419,7 +434,7 @@ end subroutine dgl5_get_node
 !
 !*******************************************************************************
 !
-subroutine dgl5_set_pointer(izz, ier_num, ier_typ, node_number)
+subroutine dgl5_set_pointer(izz, ier_num, ier_typ, node_number, user_find)
 !-
 !  Find the node associated to kuplot data set number izz
 !+
@@ -427,6 +442,7 @@ integer, intent(in ) :: izz
 integer, intent(out) :: ier_num
 integer, intent(out) :: ier_typ
 integer, intent(out) :: node_number
+type(h5_data_struc), pointer, optional, intent(out) :: user_find
 !
 !write(*,*) ' ROOT ST', associated(h5_root), ASSOCIATED(h5_temp), node_number, h5_number, izz
 if(.NOT. associated(h5_root)) then
@@ -454,18 +470,20 @@ find_node: do            ! Search for node
 enddo find_node
 !write(*,*) ' NODE number ', izz,h5_temp%data_num, h5_temp%infile(1:40)
 !write(*,*) ' NODE minmax ', h5_temp%minmaxval
+if(present(user_find)) user_find => h5_temp
 !
 end subroutine dgl5_set_pointer
 !
 !*******************************************************************************
 !
-subroutine dgl5_find_node(node_number, ier_num, ier_typ)
+subroutine dgl5_find_node(node_number, ier_num, ier_typ, user_find)
 !-
 !  Find the node with node_number
 !+
 integer, intent(in)  :: node_number
 integer, intent(out) :: ier_num
 integer, intent(out) :: ier_typ
+type(h5_data_struc), pointer, optional, intent(out) :: user_find
 !
 if(.NOT. associated(h5_root)) then
    ier_num = -74         ! Root node does not exist !
@@ -488,8 +506,45 @@ find_node: do            ! Search for node
    endif
 enddo find_node
 !write(*,*) 'dgl5_FIND_node ', node_number, h5_find%data_num
+if(present(user_find)) user_find => h5_find
 !
 end subroutine dgl5_find_node
+!
+!*******************************************************************************
+!
+subroutine dgl5_find_node_name(node_name, ier_num, ier_typ, user_find)
+!-
+!  Find the node with node_number
+!+
+character(len=*), intent(in)  :: node_name
+integer         , intent(out) :: ier_num
+integer         , intent(out) :: ier_typ
+type(h5_data_struc), pointer, optional, intent(out) :: user_find
+!
+if(.NOT. associated(h5_root)) then
+   ier_num = -74         ! Root node does not exist !
+   ier_typ =   6         ! ER_APPL
+   return
+endif
+h5_find => h5_root
+find_node: do            ! Search for node
+!write(*,*) 'dgl5_find_node ', node_number, h5_find%data_num
+   if(node_name == h5_find%infile) then
+      exit find_node
+   else
+      if(associated(h5_find%after)) then    ! A next node exists 
+         h5_find => h5_find%after
+      else
+         ier_num = -74         ! Root node does not exist !
+         ier_typ =   6         ! ER_APPL
+         return
+      endif
+   endif
+enddo find_node
+!write(*,*) 'dgl5_FIND_node ', node_number, h5_find%data_num
+if(present(user_find)) user_find => h5_find
+!
+end subroutine dgl5_find_node_name
 !
 !*******************************************************************************
 !
@@ -596,6 +651,18 @@ implicit none
 dgl5_get_height = h5_temp%llims(3) + (h5_temp%layer-1)*h5_temp%steps(3)
 !
 end function dgl5_get_height
+!
+!*******************************************************************************
+!
+function dgl5_get_pointer() result(user_ptr)
+!
+implicit none
+!
+type(h5_data_struc), pointer :: user_ptr
+!
+user_ptr => h5_temp
+!
+end function dgl5_get_pointer
 !
 !*******************************************************************************
 !
@@ -834,6 +901,18 @@ end subroutine dgl5_get_infile
 !
 !*******************************************************************************
 !
+integer function   dgl5_get_has_sigma()
+!
+implicit none
+!
+!logical, intent(in) :: is_grid
+!
+dgl5_get_has_sigma = h5_temp%has_dval 
+!
+end function dgl5_get_has_sigma
+!
+!*******************************************************************************
+!
 subroutine dgl5_set_is_grid(is_grid)
 !
 implicit none
@@ -860,6 +939,8 @@ end subroutine dgl5_set_data_type
 !
 subroutine dgl5_set_ku_is_h5(izz,ku_is_h5)
 !
+!  KUPLOT data set 'izz' is at node 'ku_is_h5'
+!
 implicit none
 !
 integer, intent(in) :: izz
@@ -872,6 +953,8 @@ end subroutine dgl5_set_ku_is_h5
 !*******************************************************************************
 !
 subroutine dgl5_set_h5_is_ku(inumber, h5_is_ku)
+!
+! Node 'inumber' carries Kuplot data set 'h5_is_ku'
 !
 implicit none
 !
@@ -1070,7 +1153,6 @@ real(kind=PREC_DP)       , dimension(2  )               , intent(out)    :: minm
 real(kind=PREC_DP)       , dimension(3,2)               , intent(out)    :: minmaxcoor  ! Increments along axes
 
 call dgl5_set_pointer(ik, ier_num, ier_typ, node_number)
-!write(*,*) ' DGL  ik, node : ', ik, node_number, ier_num, ier_typ
 layer = dgl5_get_layer()
 if(ier_num/=0) return
 !
@@ -1138,9 +1220,7 @@ integer :: i
 !write(*,*) ' OLD NODE_NUMBER ', node_number, ik
 !
 if(node_number>0) then
-!write(*,*) ' FIND NODE ', node_number
    call dgl5_find_node(node_number, ier_num, ier_typ)
-!write(*,*) ' GOT  NODE ', node_number
    if(ier_num/=0) return
    h5_temp => h5_find
 else
@@ -1321,8 +1401,11 @@ subroutine dgl5_reset
 type(h5_data_struc), pointer :: h5_current => NULL()
 type(h5_data_struc), pointer :: h5_keep    => NULL()
 !
+integer :: h5_max                  ! Largest node number of a node to keep
+!
 nullify(h5_current)
 nullify(h5_keep)
+h5_max = 0                         ! No nodes
 !
 if(associated(h5_root)) then       ! A storage does exist
    h5_temp => h5_root
@@ -1346,6 +1429,7 @@ if(associated(h5_root)) then       ! A storage does exist
                nullify(h5_keep%after)
             endif
          else
+            h5_max = max(h5_max,h5_current%data_num)
             if(associated(h5_keep)) then
                h5_keep%after => h5_current      ! Previous permanent mode points to current node
             else
@@ -1362,6 +1446,7 @@ if(associated(h5_root)) then       ! A storage does exist
             endif
             deallocate(h5_current)            ! Clean up current node
          else
+            h5_max = max(h5_max,h5_current%data_num)
             nullify(h5_current%after)
             if(associated(h5_keep)) then
                h5_keep%after => h5_current      ! Previous permanent mode points to current node
@@ -1378,9 +1463,11 @@ nullify(h5_temp)
 if(.not.associated(h5_keep)) then     ! No permanent nodes exist
    nullify(h5_root)
    h5_number   = 0
+else
+   h5_number = h5_max
+endif
    h5_h5_is_ku = 0
    h5_ku_is_h5 = 0
-endif
 !
 end subroutine dgl5_reset
 !
@@ -1420,6 +1507,44 @@ h5_h5_is_ku = 0
 h5_ku_is_h5 = 0
 !
 end subroutine dgl5_reset_orig
+!
+!*******************************************************************************
+!
+subroutine gdl5_alloc_pointer(ndata)
+!-
+!   Allocates the pointer array to the data structure
+!+
+use lib_data_struc_type_mod
+!
+implicit none
+integer, intent(in) :: ndata    ! Number of data sets 
+!
+integer :: i
+integer :: new_size
+integer :: old_size
+!
+if(allocated(lib_h5_data_ptr)) then                ! Pointer structure exists
+   old_size = ubound(lib_h5_data_ptr,1)
+   new_size = old_size + 10
+   if(ndata >  old_size                 ) then     ! size is exceeded
+      allocate(lib_h5_data_ptr_temp(new_size))     ! Allocate ample spaces
+      do i=1, old_size
+         lib_h5_data_ptr_temp(i)%data_ptr => lib_h5_data_ptr(i)%data_ptr  ! Temporarily store old targets
+      enddo
+      deallocate(lib_h5_data_ptr)
+      allocate(lib_h5_data_ptr(new_size))           ! Allocate ample spaces
+      do i=1, old_size
+         lib_h5_data_ptr(i)%data_ptr => lib_h5_data_ptr_temp(i)%data_ptr   ! Recover old targets
+      enddo
+      do i=old_size+1, new_size
+         nullify(lib_h5_data_ptr(i)%data_ptr)
+      enddo
+   endif
+else                                               ! Pointer structure had not yet been used
+   allocate(lib_h5_data_ptr(ndata+10))
+endif
+   
+end subroutine gdl5_alloc_pointer
 !
 !*******************************************************************************
 !
