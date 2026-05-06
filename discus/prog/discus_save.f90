@@ -802,9 +802,9 @@ IF (sav_w_adp) THEN
       do i=1,look_anis(j,0)
          itype = itype + 1
          ianis = look_anis(j,i)
-         is = 6 + (itype-1)*16
-         ie = is + 16
-         write(scat_string(is:ie),'(f13.9,a1)') cr_dw(j),','
+         is = 6 + (itype-1)*18
+         ie = is + 18
+         write(scat_string(is:ie),'(f15.9,a1)') cr_dw(j),','
          if(itype==6) then
             write(ist, '(a)') scat_string(1:len_trim(scat_string)-1)
             scat_string    = 'adp  '
