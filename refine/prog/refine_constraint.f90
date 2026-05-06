@@ -28,6 +28,8 @@ REAL(kind=PREC_DP)    :: r_eta, r_eta_l, r_eta_q
 REAL(kind=PREC_DP)    :: r_u, r_v, r_w
 REAL(kind=PREC_DP), PARAMETER :: EPS=1.0E-5
 !
+real(kind=PREC_DP) :: qmin, qmax
+!
 refine_fwhm(0) = .FALSE.
 refine_eta (0) = .FALSE.
 refine_eta_ind  = 0
@@ -152,12 +154,17 @@ DO i=1,refine_par_n
 ENDDO
       
 IF(refine_fwhm(0)) THEN        ! Eta and Pu,v,w are used
-   IF(.NOT.refine_constrain_test_fwhm(r_u,r_v,r_w, EPS, ref_x(1,1), ref_x(ref_dim(1,1),1))) THEN
+   do i = 1, ref_ndata
+   qmin = ref_data_ptr(i)%data_ptr%x(1)
+   qmax = ref_data_ptr(i)%data_ptr%x(ref_data_ptr(i)%data_ptr%dims(1))
+   IF(.NOT.refine_constrain_test_fwhm(r_u,r_v,r_w, EPS, qmin, qmax) ) THEN
+!  IF(.NOT.refine_constrain_test_fwhm(r_u,r_v,r_w, EPS, ref_x(1,1), ref_x(ref_dim(1,1),1))) THEN
 !     WRITE(output_io, 2000) 'P_eta',r_eta
       WRITE(output_io, 2100) 'u,v,w', r_u, r_v, r_w
       ier_num = -10
       ier_typ = ER_APPL
    ENDIF
+   enddo
 ENDIF
 !2000 FORMAT(' **** Para: ',A16, g15.6E3,4x, '[',g15.6E3,',',g15.6E3,']')
 2100 FORMAT(' **** Para: ',A16, g15.6E3,4x, g15.6E3,4x ,g15.6E3)

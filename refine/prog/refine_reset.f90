@@ -40,6 +40,17 @@ lcomm = 7
 CALL refine_do_allocate_appl(zeile,lcomm)
 CALL refine_initarrays
 !
+if(allocated(ref_data_name   )) deallocate(ref_data_name )
+if(allocated(ref_data_number )) deallocate(ref_data_number )
+if(allocated(ref_data_ptr    )) deallocate(ref_data_ptr  )
+if(allocated(ref_calc_ptr    )) deallocate(ref_calc_ptr  )
+if(allocated(ref_data      )) deallocate(ref_data      )
+if(allocated(ref_sigma     )) deallocate(ref_sigma     )
+if(allocated(ref_weight    )) deallocate(ref_weight    )
+if(allocated(ref_x         )) deallocate(ref_x         )
+if(allocated(ref_y         )) deallocate(ref_y         )
+if(allocated(ref_z         )) deallocate(ref_z         )
+!
 ! refine_params_mod
 !
 refine_autoconstr =.TRUE.   ! Do automatic constraints
