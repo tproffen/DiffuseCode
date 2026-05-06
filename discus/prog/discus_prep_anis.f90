@@ -260,8 +260,13 @@ loop_atoms:do iatom=1,ncheck
    iref = j           ! Reference atom for ADP values
    if(lsuccess) then
 !     cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
-      if(lanis) &
+      if(lanis) then
       cr_dw(cr_iscat(1,iatom)) = (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+   else
+      if(abs(cr_dw(cr_iscat(1,iatom)) - (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi)>TOL) then
+      cr_dw(cr_iscat(1,iatom)) = (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+      endif
+   endif
       cycle loop_atoms
    endif
 !  This atom has new UIJ, we need to calculate the principal vectors and Eigenvalues
@@ -274,8 +279,13 @@ loop_atoms:do iatom=1,ncheck
 !ss = seknds (ss )
 !zeit(4) = zeit(4) + ss
 !  cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
-   if(lanis) &
-   cr_dw(cr_iscat(1,iatom)) = (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+   if(lanis) then
+      cr_dw(cr_iscat(1,iatom)) = (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+   else
+      if(abs(cr_dw(cr_iscat(1,iatom)) - (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi)>TOL) then
+      cr_dw(cr_iscat(1,iatom)) = (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+      endif
+   endif
    if(ier_num/=0) then
       return
    endif
@@ -1015,13 +1025,13 @@ use errlist_mod
 use get_params_mod
 use precision_mod
 use take_param_mod
+use wink_mod
 !
 character(len=*), intent(inout) :: line
 integer         , intent(inout) :: length
 !
 integer, parameter :: MAXW  = 6
 integer, parameter :: MAXWW = 6
-real(kind=PREC_DP), parameter :: TOL=0.00002_PREC_DP
 !
 character(len=PREC_STRING), dimension(MAXW) :: cpara
 integer                   , dimension(MAXW) :: lpara
@@ -1031,6 +1041,8 @@ integer                                  :: llpara
 real(kind=PREC_DP) , dimension(6)        :: wwerte   ! Calculated values
 !
 logical                                  :: loutput  ! Output to screen ?
+logical                                  :: lold     ! Find old value
+logical                                  :: lsuccess  ! True if old UIJ were found
 !
 integer :: ianis, j
 real(kind=PREC_DP)                 :: rlen    ! Vector length
@@ -1059,6 +1071,8 @@ data loname /  4,      6      ,  7       ,  6       ,  4      /
 opara  =  (/ '1.0000       ', '[0.01]       ', '[0.0,0.0,0.0]', 'screen       ', '[0.0,0.0,0.0]' /)   ! Always provide fresh default values
 lopara =  (/  6,                6            ,  13            ,  6             ,  13             /)
 owerte =  (/  0.0           ,   0.0          ,  0.0           ,  0.0           ,  0.0            /)
+!
+lold = .true.
 !
 call get_params (line, ianz, cpara, lpara, MAXW, length)
 if(ier_num /= 0) return
@@ -1130,20 +1144,28 @@ endif
 !
 ianis = nint(owerte(O_TYPE))
 cr_anis(:,ianis) = wwerte(1:6)   ! WORK  
-call calc_prin_3x3(ianis, cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
-cr_anis_full(1, ianis) = uij(1,1)
-cr_anis_full(2, ianis) = uij(2,2)
-cr_anis_full(3, ianis) = uij(3,3)
-cr_anis_full(4, ianis) = uij(2,3)
-cr_anis_full(5, ianis) = uij(1,3)
-cr_anis_full(6, ianis) = uij(1,2)
-   do j=1, 6
-!write(*,*) abs(cr_anis_full(j,ianis)), abs(cr_anis_full(j,ianis))<TOL
-      if(abs(cr_anis_full(j,ianis))<TOL) then
-         cr_anis_full(j,ianis) = 0.0D0
-      endif
-   enddo
-cr_dw(ianis) = ((cr_prin(4,1,ianis) + cr_prin(4,2,ianis) + cr_prin(4,3,ianis))/3.0_PREC_DP)
+!
+! Check if the new UIJ are within the list of the old cr_anis_full
+!
+call lookup_anis(lold, cr_nanis, cr_anis_full, cr_prin, uij, ucij, .TRUE., j, lsuccess)   ! Check if old ADPs are reproduced
+!
+cr_iscat(2, ianis) = j
+cr_dw(ianis) = ((cr_prin(4,1,j) + cr_prin(4,2,j) + cr_prin(4,3,j))/3.0_PREC_DP)*8.0_PREC_DP*PI**2
+
+!call calc_prin_3x3(ianis, cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
+!cr_anis_full(1, ianis) = uij(1,1)
+!cr_anis_full(2, ianis) = uij(2,2)
+!cr_anis_full(3, ianis) = uij(3,3)
+!cr_anis_full(4, ianis) = uij(2,3)
+!cr_anis_full(5, ianis) = uij(1,3)
+!cr_anis_full(6, ianis) = uij(1,2)
+!   do j=1, 6
+!!write(*,*) abs(cr_anis_full(j,ianis)), abs(cr_anis_full(j,ianis))<TOL
+!      if(abs(cr_anis_full(j,ianis))<TOL) then
+!         cr_anis_full(j,ianis) = 0.0D0
+!      endif
+!   enddo
+!cr_dw(ianis) = ((cr_prin(4,1,ianis) + cr_prin(4,2,ianis) + cr_prin(4,3,ianis))/3.0_PREC_DP)*8.0_PREC_DP*PI**2
 !
 end subroutine do_anis
 !
