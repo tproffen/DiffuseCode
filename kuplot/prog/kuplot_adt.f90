@@ -1069,8 +1069,8 @@ call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%data_type, 
      ik2%has_dval, ik2%calc_coor, ik2%use_coor, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
      ik2%z, ik2%dx, ik2%dy, ik2%dz, ik2%datamap, ik2%sigma, ik2%llims, ik2%steps,  &
      ik2%steps_full)
-call dgl5_set_h5_is_ku(iz, ik2%data_num)
-call dgl5_set_ku_is_h5(ik2%data_num, iz)
+call dgl5_set_h5_is_ku(ik2%data_num, iz)
+call dgl5_set_ku_is_h5(iz, ik2%data_num)
 ku_ndims(iz) = ik2%ndims
 call data2kuplot(ikk, string, lout)
 !
@@ -1428,8 +1428,8 @@ call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%data_type, 
      ik2%has_dval, ik2%calc_coor, ik2%use_coor, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
      ik2%z, ik2%dx, ik2%dy, ik2%dz, ik2%datamap, ik2%sigma, ik2%llims, ik2%steps,  &
      ik2%steps_full)
-call dgl5_set_h5_is_ku(iz, ik2%data_num)
-call dgl5_set_ku_is_h5(ik2%data_num, iz)
+call dgl5_set_h5_is_ku(ik2%data_num, iz)
+call dgl5_set_ku_is_h5(iz, ik2%data_num)
 ku_ndims(iz) = ik2%ndims
 call data2kuplot(ikk, string, lout)
 !
@@ -1705,8 +1705,8 @@ call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%data_type, 
      ik2%has_dval, ik2%calc_coor, ik2%use_coor, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
      ik2%z, ik2%dx, ik2%dy, ik2%dz, ik2%datamap, ik2%sigma, ik2%llims, ik2%steps,  &
      ik2%steps_full)
-call dgl5_set_h5_is_ku(iz, ik2%data_num)
-call dgl5_set_ku_is_h5(ik2%data_num, iz)
+call dgl5_set_h5_is_ku(ik2%data_num, iz)
+call dgl5_set_ku_is_h5(iz, ik2%data_num)
 ku_ndims(iz) = ik2%ndims
 call data2kuplot(ikk, string, lout)
 !
