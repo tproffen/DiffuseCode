@@ -40,7 +40,7 @@ integer :: diffev_dimension
 logical :: lexist_hkl_file
 logical :: lexist_fcf_file
 !
-logical :: is_opened
+!logical :: is_opened
 !
 contains
 !
@@ -2408,7 +2408,6 @@ do imole=1,mole_num_mole                       ! For all molecules
       charge = 0
       if(is_cond>0) then
          charge = get_charge(el_name)
-write(*,*) el_name, at_name, is_cond, get_ordi(at_name), charge
          n_charge   = n_charge   + charge
          n_electron = n_electron + get_ordi(at_name) + charge
       endif
