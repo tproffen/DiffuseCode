@@ -43,7 +43,7 @@ logical                      :: lserial    ! serial calculation if TRUE
 LOGICAL                      :: done
 logical                      :: lfinished
 logical                      :: lout
-logical                      :: loop
+!logical                      :: loop
 LOGICAL, DIMENSION(3)        :: old_chem_period     ! Original periodic boundary conditions
 REAL(kind=PREC_DP)                         :: rel_cycl
 real(kind=PREC_DP), dimension(2) :: maxdev = (/ 0.0, 0.0/)
