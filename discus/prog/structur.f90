@@ -2138,7 +2138,7 @@ INTEGER                                  , INTENT(OUT) :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
 !                                                                       
-INTEGER,  PARAMETER :: maxw = 50 
+INTEGER,  PARAMETER :: maxw = 250 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line, cpara (maxw) 
       CHARACTER(LEN=PREC_STRING) :: zeile 
@@ -2201,7 +2201,7 @@ sym_add_n = 0
       befehl = cr_name (1:lbef) 
       lbef = len_str (befehl) 
       befehl = cr_name (1:lbef) 
-      IF (str_comp (befehl, 'title', 1, lbef, 5) ) THEN 
+IF (str_comp (befehl, 'title', 1, lbef, 5) ) THEN 
 !                                                                       
 !     Read new header                                                   
 !                                                                       
@@ -2249,13 +2249,13 @@ sym_add_n = 0
 !     ----Commentary                                                    
 !                                                                       
                                                                         
-         IF (line.eq.' '.or.line (1:1) .eq.'#'.or. line(1:1) == '!' .OR. &
-             line.eq.char (13) ) THEN
+   IF (line.eq.' '.or.line (1:1) .eq.'#'.or. line(1:1) == '!' .OR. &
+       line.eq.char (13) ) THEN
             CONTINUE 
 !                                                                       
 !     ----Space group symbol                                            
 !                                                                       
-         ELSEIF (str_comp (befehl, 'spcgr', 1, lbef, 5) ) THEN 
+   ELSEIF (str_comp (befehl, 'spcgr', 1, lbef, 5) ) THEN 
 !           call rem_bl(zeile, lp)
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ianz.lt.1) THEN 
@@ -2293,7 +2293,7 @@ sym_add_n = 0
 !                                                                       
 !     ----Cell constants                                                
 !                                                                       
-         ELSEIF (str_comp (befehl, 'cell', 1, lbef, 4) ) THEN 
+   ELSEIF (str_comp (befehl, 'cell', 1, lbef, 4) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ier_num.eq.0) THEN 
                IF (ianz.eq.6) THEN 
@@ -2333,7 +2333,7 @@ sym_add_n = 0
 !                                                                       
 !     ----Additional symmetry generators 'generator'                    
 !                                                                       
-         ELSEIF (str_comp (befehl, 'generator', 1, lbef, 9) ) THEN 
+   ELSEIF (str_comp (befehl, 'generator', 1, lbef, 9) ) THEN 
             IF (gen_add_n.lt.GEN_ADD_MAX) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) THEN 
@@ -2387,7 +2387,7 @@ sym_add_n = 0
 !     ----Names of atoms to setup specific sequence of scattering curves
 !                                                               'scat'  
 !                                                                       
-         ELSEIF (str_comp (befehl, 'scat', 2, lbef, 4) ) THEN 
+   ELSEIF (str_comp (befehl, 'scat', 2, lbef, 4) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ier_num.eq.0) THEN 
                IF (xx_nscat + ianz.le.HD_MAXSCAT) THEN 
@@ -2412,7 +2412,7 @@ sym_add_n = 0
 !     ----Displacement parameters to setup specific sequence of         
 !                                    scattering curves 'adp'            
 !                                                                       
-         ELSEIF (str_comp (befehl, 'adp', 2, lbef, 3) ) THEN 
+   ELSEIF (str_comp (befehl, 'adp', 2, lbef, 3) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ier_num.eq.0) THEN 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -2437,7 +2437,7 @@ sym_add_n = 0
 !
 !     ---- Anisotropc displacement paramewters
 !
-        elseif(str_comp (befehl, 'anis', 4, lbef, 4)) then
+   elseif(str_comp (befehl, 'anis', 4, lbef, 4)) then
             call get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             if(ier_num==0) then
                CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
@@ -2464,7 +2464,7 @@ sym_add_n = 0
 !     ----Occupancy parameters to setup specific sequence of         
 !                                    scattering curves 'occ'            
 !                                                                       
-         ELSEIF (str_comp (befehl, 'occ', 2, lbef, 3) ) THEN 
+   ELSEIF (str_comp (befehl, 'occ', 2, lbef, 3) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ier_num.eq.0) THEN 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -2489,7 +2489,7 @@ sym_add_n = 0
 !                                                                       
 !     ----Crystal dimensions and number of atoms per unit cell 'ncell'  
 !                                                                       
-         ELSEIF (str_comp (befehl, 'ncell', 1, lbef, 5) ) THEN 
+   ELSEIF (str_comp (befehl, 'ncell', 1, lbef, 5) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ier_num.eq.0) THEN 
                IF (ianz.eq.4 .or. ianz==5 .OR. ianz==9) THEN    ! allow for number of atoms on ncell command
@@ -2510,7 +2510,7 @@ sym_add_n = 0
 !                                                                       
 !     ----Additional symmetry operations 'symmetry'                     
 !                                                                       
-         ELSEIF (str_comp (befehl, 'symmetry', 2, lbef, 8) ) THEN 
+   ELSEIF (str_comp (befehl, 'symmetry', 2, lbef, 8) ) THEN 
             IF (sym_add_n.lt.SYM_ADD_MAX) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) THEN 
@@ -2543,9 +2543,9 @@ sym_add_n = 0
                RETURN
             ENDIF 
 !                                                                       
-         ELSEIF (str_comp (befehl, 'molecule', 2, lbef, 8) .OR. & 
-                 str_comp (befehl, 'domain',   4, lbef, 6) .OR. &
-                 str_comp (befehl, 'object',   4, lbef, 6)     ) THEN
+   ELSEIF (str_comp (befehl, 'molecule', 2, lbef, 8) .OR. & 
+           str_comp (befehl, 'domain',   4, lbef, 6) .OR. &
+           str_comp (befehl, 'object',   4, lbef, 6)     ) THEN
 !                                                                       
 !     ------Start/End of a molecule                                     
 !                                                                       
@@ -2585,7 +2585,7 @@ sym_add_n = 0
 !         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
          RETURN
       ENDIF
-         ELSEIF (str_comp (befehl, 'atoms', 2, lbef, 5) ) THEN 
+   ELSEIF (str_comp (befehl, 'atoms', 2, lbef, 5) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF(ianz==0)   THEN   ! Pre 5.17.2 style, no params
                at_ianz = 4       ! At least x,y,z,Biso
@@ -2603,15 +2603,15 @@ sym_add_n = 0
                call atom_verify_param
                if(ier_num/=0) return
             ENDIF
-         ELSE 
+   ELSE 
             ier_num = - 89 
             ier_typ = ER_APPL 
             RETURN
-         ENDIF 
+   ENDIF 
          IF (ier_num.ne.0) THEN 
             RETURN
          ENDIF 
-         ENDDO 
+   ENDDO 
 !                                                                       
          CALL no_error 
 !                                                                       
@@ -2649,14 +2649,15 @@ sym_add_n = 0
             CALL spcgr_no (ianz, maxw, werte) 
             IF(ier_num/=0) RETURN
          ENDIF 
-      ENDIF 
+ENDIF 
 !                                                                       
   999 CONTINUE 
 !
 !                                                                       
  2000 FORMAT    (a) 
  2010 FORMAT    (a16) 
-      END SUBROUTINE stru_readheader                
+!
+END SUBROUTINE stru_readheader                
 !
 !********************************************************************** 
 !
@@ -3726,7 +3727,7 @@ INTEGER, PARAMETER                    :: MAXP  = 11 ! Dummy number of parameters
 CHARACTER (LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(MAXP) :: ccpara     ! Parameter needed for SFAC analysis
 INTEGER             , DIMENSION(MAXP) :: llpara
 REAL(KIND=PREC_DP)  , DIMENSION(MAXP) :: wwerte
-real(kind=PREC_DP)                    :: lambda_user
+!real(kind=PREC_DP)                    :: lambda_user
 real(kind=PREC_DP)                    :: energy
 !                                                                       
 integer             :: ispace         ! 'spcgr' line in structure
@@ -4096,6 +4097,7 @@ else
    allocate(posit(3,      natoms))
    allocate(nanis(ntyp))
 endif
+! 
 nanis = 0
 uij_l = 0.0_PREC_DP
 posit = 0.0_PREC_DP
@@ -4164,6 +4166,7 @@ enddo loop_atoms
 !
 l_refine = c_refine /= 'no'
 l_diffev = c_diffev /= 'no'
+l_current_saved = .false.
 !
 if(l_diffev .or. l_refine) then    ! Prepare a refinement
    if(cr_natoms>0) then            ! We do have a current structure
@@ -4280,7 +4283,7 @@ do iscat=1, ntyp
       structure(is)(i+2:i+5) = c_atom(iscat)
       structure(is)(i+6:i+6) = ','
       structure(is+1)(i+1:i+6) = ' 1.00,'
-      write(structure(is+2)(i+1:i+7),'(f5.2,'','')') real(iscat + 0.01_PREC_DP*(j), kind=PREC_DP)
+      write(structure(is+2)(i+1:i+8),'(f6.2,'','')') real(iscat + 0.01_PREC_DP*(j), kind=PREC_DP)
       write(structure(is+2+jj)(6:23),'(a5,i3,a10)') 'type:',jj,', values:['
       l = 1
       if(any(uij_l(2:6,iscat,j)>TOL)) then
@@ -4293,7 +4296,7 @@ do iscat=1, ntyp
       enddo loop_anis1
       k = len_trim(structure(is+2+jj))
       structure(is+2+jj)(k:k) = ']'
-      i = i + 6
+      i = i + 7
 !
 !===============================================================================
       if(l_refine) then
@@ -4324,8 +4327,12 @@ do iscat=1, ntyp
 enddo
 i=len_trim(structure(is))
 if(structure(is  )(i:i)==',') structure(is  )(i:i)=' '
+i=len_trim(structure(is+1))
 if(structure(is+1)(i:i)==',') structure(is+1)(i:i)=' '
+i=len_trim(structure(is+2))
 if(structure(is+2)(i:i)==',') structure(is+2)(i:i)=' '
+!
+!
 is = is + 3 + jj                    ! Set index to last line
 structure(is) = 'format numbers,XYZBPMMOS'
 is = is + 1
@@ -4524,7 +4531,9 @@ if(l_diffev .or. l_refine) then    ! Prepare a refinement
    if(l_current_saved) then
       call restore_temp(save_file)
 !write(*,*) ' READ   save file ', save_file(1:len_trim(save_file)), ier_num, ier_typ
+      save_file = 'internal.' // save_file(1:len_trim(save_file))
       call store_remove_single(save_file, ier_num)
+      if(ier_num /= 0) ier_typ=ER_APPL
 !write(*,*) ' REMOVE save file ', ier_num, ier_typ
    endif
 endif
@@ -7485,7 +7494,7 @@ LOGICAL              , INTENT(IN)    :: l_cell         ! If true this is a 'cell
 integer              , intent(in)    :: MAXMASK
 logical, dimension(0:MAXMASK), intent(in)    :: uni_mask      !  User mask test (name, charge, b, occ)
 !
-INTEGER, PARAMETER                    :: MAXW = 50 
+INTEGER, PARAMETER                    :: MAXW = 250 
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW)  :: cpara (MAXW) 
 INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW) 
