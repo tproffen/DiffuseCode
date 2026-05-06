@@ -4,6 +4,8 @@ private
 !
 public define_variable
 public def_set_variable
+public def_variable
+public set_variable
 !
 CONTAINS
 !
@@ -319,6 +321,69 @@ length = LEN_TRIM(string)
 CALL do_math (string, indxg, length)
 !
 END SUBROUTINE def_set_variable
+!
+!*****7**************************************************************** 
+!
+subroutine def_variable(v_type, v_name, IS_DIFFEV, v_dim)
+!
+!use errlist_mod
+!use lib_errlist_func
+use precision_mod
+!
+implicit none
+!
+character(len=*)  , intent(in) :: v_type
+character(len=*)  , intent(in) :: v_name
+logical           , intent(in) :: IS_DIFFEV
+integer , optional, intent(in) :: v_dim
+!
+character(len=PREC_STRING) :: string
+integer                    :: length
+!
+if(present(v_dim)) then      ! Array 
+   if(v_dim>0) then
+   write(string,'(4a,i3.3,a)') v_type(1:len_trim(v_type)), ', ', v_name(1:len_trim(v_name)), ', dim:[', v_dim, ']'
+   else                         ! Single valued variable
+     write(string,'(3a)'       ) v_type(1:len_trim(v_type)), ', ', v_name(1:len_trim(v_name))
+   endif
+else                         ! Single valued variable
+   write(string,'(3a)'       ) v_type(1:len_trim(v_type)), ', ', v_name(1:len_trim(v_name))
+endif
+length = len_trim(string)
+call define_variable(string, length, IS_DIFFEV)
+!
+end subroutine def_variable
+!
+!*****7**************************************************************** 
+!
+subroutine set_variable(v_name, v_value, v_entry )
+!
+USE calc_expr_mod
+!use errlist_mod
+!use lib_errlist_func
+use precision_mod
+!
+implicit none
+!
+character(len=*)  , intent(in) :: v_name
+real(kind=PREC_DP), intent(in) :: v_value
+integer , optional, intent(in) :: v_entry
+!
+character(len=PREC_STRING) :: string
+integer                    :: length
+integer                    :: indxg
+!
+if(present(v_entry)) then      ! Array  element
+  write(string,'(2a,i3.3,a,g20.8e3)') v_name(1:len_trim(v_name)), &
+                                      '[',v_entry,'] = ', v_value
+else                         ! Single valued variable
+   write(string,'(a,a,g20.8e3)') v_name(1:len_trim(v_name)), ' = ', v_value
+endif
+indxg  = index(string, '=')
+length = len_trim(string)
+calL do_math (string, indxg, length)
+!
+end subroutine set_variable
 !
 !*****7**************************************************************** 
 !
