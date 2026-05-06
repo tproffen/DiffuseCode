@@ -1,4 +1,9 @@
-6.22.00  DRAFT
+6.21.03  DRAFT
+
+KUPLOT
+  ksav         Added option to crop a 3D file
+
+6.21.02  RELEASE 2026_04_19
 
 GENERAL
   do/if        Improved error handling while reading macros inside a loop
