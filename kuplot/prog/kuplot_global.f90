@@ -97,9 +97,10 @@ call data2local(ik, ier_num, ier_typ, node_number, infile, data_type, nlayer, is
 !
 length =     dims(1)
 if(ik<iz) then     ! Old data set to be overwritten, check dimensions
-   if(nx(ik)>=dims(1)) then
+   if(nx(ik)/=dims(1)) then
       ier_num = -73
       ier_typ =  ER_APPL
+      return
    endif
 endif
 !
@@ -112,6 +113,11 @@ if(ier_num == 0) then
       x(offxy(ik-1) +i) = llims(1)   + (i-1)*steps(1)
       y(offxy(ik-1) +i) = odata(i, 1, 1)
    enddo
+   if(allocated(sigma)) then
+      do i =1, dims(1)
+         dy(offxy(ik-1) +i) = sigma(i, 1, 1)
+      enddo
+   endif
 !
    fname(ik) = data_name
    fform(ik) = 'XY'
