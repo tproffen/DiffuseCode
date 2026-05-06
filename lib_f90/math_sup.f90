@@ -343,7 +343,7 @@ real(kind=PREC_DP), dimension(3) :: length     ! a vector length
 real(kind=PREC_DP) :: cphi                     ! cos(phi) length
 real(kind=PREC_DP) :: sphi                     ! sin(phi) length
 real(kind=PREC_DP) :: scalef                   ! Scalefactor for small values matrix
-real(kind=PREC_QP),parameter :: big=10000000.0_PREC_QP
+!real(kind=PREC_QP),parameter :: big=10000000.0_PREC_QP
 data imat / 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0/
 !
 !write(*,*) ' a_in ', a_in(1,:)
