@@ -559,6 +559,14 @@ IF(ier_num == 0) THEN
             WRITE(output_io, 3001) 
          ENDIF
          endif
+         if(istart<0 .or. istart>cr_natoms .or. iend>cr_natoms) then
+            ier_num = -105
+            ier_typ = ER_APPL
+            write(ier_msg(1), '(a,i8)') 'Starting number', istart
+            write(ier_msg(2), '(a,i8)') 'Finish   number', iend
+            write(ier_msg(3), '(a,i8)') 'Atom     number', cr_natoms
+            return
+         endif
          if(opara=='short') then
             DO i = istart, iend 
                at_name_d = at_name(cr_iscat(1,i)) 
