@@ -1,3 +1,62 @@
+module counter
+!
+use precision_mod
+!
+real(kind=prec_dp), dimension(:,:), allocatable :: positions_old
+real(kind=prec_dp), dimension(:,:), allocatable :: positions_new
+!
+integer, dimension(4) :: n_pairs
+integer, dimension(2) :: n_bad
+!
+contains
+!
+subroutine init_counter
+!
+use crystal_mod
+!
+implicit none
+integer :: i, j
+!
+if(allocated(positions_old)) deallocate(positions_old)
+allocate(positions_old(3, cr_natoms))
+if(allocated(positions_new)) deallocate(positions_new)
+allocate(positions_new(3, cr_natoms))
+!
+positions_old(1:3, 1:cr_natoms) = cr_pos(1:3,1:cr_natoms)
+n_pairs = 0
+n_bad   = 0
+!
+do i=1, cr_natoms, 2
+   if(    cr_pos(1,i) - nint(cr_pos(1,i))> 0.0D0 .and. cr_pos(2,i) - nint(cr_pos(2,i))> 0.0D0) then
+      n_pairs(1) = n_pairs(1) + 1
+   elseif(cr_pos(1,i) - nint(cr_pos(1,i))< 0.0D0 .and. cr_pos(2,i) - nint(cr_pos(2,i))< 0.0D0) then
+      n_pairs(2) = n_pairs(2) + 1
+   else
+      write(*,'(a, i6, 3f10.3)') ' Bad atom ', i, cr_pos(:,i)
+      n_bad(1) = n_bad(1) + 1
+   endif
+   j = i + 1
+   if(    cr_pos(1,j) - 0.5D0 - nint(cr_pos(1,j)-0.5D0)> 0.0D0 .and. cr_pos(2,j)-0.5D0 - nint(cr_pos(2,j)-0.5D0)< 0.0D0) then
+      n_pairs(3) = n_pairs(3) + 1
+   elseif(cr_pos(1,j) - 0.5D0 - nint(cr_pos(1,j)-0.5D0)< 0.0D0 .and. cr_pos(2,j)-0.5D0 - nint(cr_pos(2,j)-0.5D0)> 0.0D0) then
+      n_pairs(4) = n_pairs(4) + 1
+   else
+      write(*,'(a, i6, 3f10.3)') ' Bad atom ', j, cr_pos(:,j)
+      n_bad(2) = n_bad(2) + 1
+   endif
+enddo
+write(*,'(a, i8)') ' ++   ', n_pairs(1)
+write(*,'(a, i8)') ' --   ', n_pairs(2)
+write(*,'(a, i8)') ' +-   ', n_pairs(3)
+write(*,'(a, i8)') ' -+   ', n_pairs(4)
+write(*,'(a, i8)') 'bad 1 ', n_bad(1)
+write(*,'(a, i8)') 'bad 2 ', n_bad(2)
+!read(*,*) i
+!
+end subroutine init_counter
+!
+end module counter
+!
 MODULE mmc_menu
 !
 CONTAINS
@@ -555,6 +614,24 @@ IF (mmc_cor_energy (0, MC_DISP) ) THEN
    ENDIF 
 ENDIF 
 !
+IF (mmc_cor_energy (0, MC_HELI) ) THEN 
+   WRITE (output_io, 2250) 
+!  IF (mo_sel_atom) THEN 
+      DO k = 1, chem_ncor 
+         DO i = 0, cr_nscat 
+            DO j = i, cr_nscat 
+               at_name_i = at_name (i) 
+               at_name_j = at_name (j) 
+               IF(mmc_pair        (k, MC_HELI, i, j) /=  0.0) THEN 
+                  WRITE (output_io, 7300) at_name_i, at_name_j, k,         &
+                  mmc_target_corr (k, MC_HELI, i, j),                      &
+                  mmc_depth (k,MC_HELI, i, j)
+               ENDIF 
+            ENDDO 
+         ENDDO 
+      ENDDO 
+endif
+!
 IF(mmc_cor_energy(0, MC_COORDNUM) ) THEN 
    WRITE (output_io, 2400) 
 !                                                                       
@@ -878,6 +955,8 @@ endif
  2120 FORMAT (/,' Desired correlations for Chemical Preferrence:',/,/,  &
      &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
  2200 FORMAT (/,' Desired correlations for Displacement : ',/,/,        &
+     &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
+ 2250 FORMAT (/,' Desired correlations for Helical corr : ',/,/,        &
      &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
  2400 FORMAT (/,' Desired coordination numbers   : ',/,/,               &
      &         12x,'Pairs',10x,'neigh. #',3x,'coordno.',7x,'depth')     
@@ -1492,7 +1571,7 @@ ELSEIF(str_comp(cpara(2), 'group', 2, lpara(2) , 5)) THEN  cond_type ! Group wis
    CALL set_target_group(MAXW, ianz, cpara, lpara, werte, ic)
 ELSEIF(str_comp(cpara(2), 'pref', 2, lpara(2) , 4)) THEN  cond_type ! Group wise preferrences
    CALL set_target_pref(MAXW, ianz, cpara, lpara, werte, ic)
-ELSEIF(str_comp(cpara(2), 'cd', 2, lpara(2), 2) ) THEN     cond_type 
+ELSEIF(str_comp(cpara(2), 'cd', 2, lpara(2), 2) ) THEN     cond_type    ! Displacement correlation
    call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                     oname, loname, opara, lopara, lpresent, owerte)
    if(ier_num/=0) return
@@ -1537,6 +1616,10 @@ ELSEIF(str_comp(cpara(2), 'cd', 2, lpara(2), 2) ) THEN     cond_type
       ENDDO 
    ENDDO 
 !
+   if(ic>ubound(chem_dir,3)) then
+      n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR, ubound(chem_dir,1))
+      call alloc_chem_dir( n_corr)
+   endif
    chem_ldall (ic) = .TRUE. 
    if(lpresent(O_DIR)) then   ! "dir:[u,v,w]' is provided
       if(opara(O_DIR) == '[all]') then
@@ -1617,6 +1700,105 @@ ELSEIF(str_comp(cpara(2), 'cd', 2, lpara(2), 2) ) THEN     cond_type
 !  ENDIF 
    mmc_cor_energy (ic, MC_DISP) = .TRUE. 
    mmc_cor_energy (0, MC_DISP) = .TRUE. 
+ELSEIF(str_comp(cpara(2), 'heli', 4, lpara(2), 4) ) THEN     cond_type    ! Helical Displacement correlation
+   call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                    oname, loname, opara, lopara, lpresent, owerte)
+   if(ier_num/=0) return
+   CALL del_params (2, ianz, cpara, lpara, maxw) 
+   iianz = 1 
+   jjanz = 1 
+   CALL get_iscat(iianz, cpara, lpara, uerte, MAXW, .FALSE.)
+   CALL del_params(1, ianz, cpara, lpara, maxw) 
+   CALL get_iscat (jjanz, cpara, lpara, verte, MAXW, .FALSE.)
+   CALL del_params(1, ianz, cpara, lpara, maxw) 
+   IF (cpara (ianz) (1:2)  == 'CO') THEN 
+      mmc_cfac (ic, MC_HELI) =  5.00 
+      mmc_lfeed(ic, MC_HELI) =  .true.
+      ianz = ianz - 1 
+   ELSEIF (cpara (ianz) (1:2)  == 'EN') THEN 
+      mmc_cfac (ic, MC_HELI) = 0.0 
+      mmc_lfeed(ic, MC_HELI) =  .false.
+      ianz = ianz - 1 
+   ENDIF 
+   CALL ber_params (2, cpara, lpara, werte, maxw) 
+   IF (mmc_cfac (ic, MC_HELI) /= 0.0) THEN 
+      werte(2) = -2._PREC_DP*werte(1)
+   ENDIF
+   DO i = 1, iianz 
+      DO j = 1, jjanz 
+         is = nint(uerte(i)) 
+         js = nint(verte(j)) 
+            IF(is<0 .OR. is>cr_nscat .OR. &
+               js<0 .OR. js>cr_nscat)  THEN
+               ier_num = -97
+               ier_typ = ER_APPL
+               WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+               WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+               ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+               exit cond_type
+            ENDIF
+            mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
+            mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
+         CALL mmc_set_disp(ic, MC_HELI, is, js, werte(1), werte(2) )                                 
+!write(*,*) ' SETTING HELI DEPTH ', werte(1:2), mmc_depth(ic, MC_HELI, is, js)
+!mmc_depth(ic, MC_HELI, is, js) = -0.5
+      ENDDO 
+   ENDDO 
+!
+   if(ic>ubound(chem_dir,3) .or. chem_ncor>ubound(chem_dir,3)) then
+      n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR, ubound(chem_dir,1), chem_ncor)
+      call alloc_chem_dir( n_corr)
+   endif
+   chem_ldall (ic) = .TRUE. 
+   if(lpresent(O_DIR)) then   ! "dir:[u,v,w]' is provided
+!     if(opara(O_DIR) == '[all]') then
+!        chem_ldall (ic) = .TRUE. 
+!     else
+         line = opara(O_DIR)(1:lopara(O_DIR))
+         j    = len_trim(line)
+         if(allocated(cpara1)) deallocate(cpara1)
+         if(allocated(werte1)) deallocate(werte1)
+         allocate(cpara1(6))
+         allocate(werte1(6))
+         ianz1    = 6
+         call eva_optional_multi(line, j, IANZ1, cpara1, werte1, nums, nnames)
+         IF (ier_num /= 0) return 
+         IF (nums == 3) THEN 
+            chem_ldall (ic) = .FALSE. 
+            chem_dir (1, 1, ic) = werte1(1) 
+            chem_dir (2, 1, ic) = werte1(2) 
+            chem_dir (3, 1, ic) = werte1(3) 
+            chem_dir (1, 2, ic) = werte1(1) 
+            chem_dir (2, 2, ic) = werte1(2) 
+            chem_dir (3, 2, ic) = werte1(3) 
+         elseIF (nums == 6) THEN 
+            chem_ldall (ic) = .FALSE. 
+            chem_dir (1, 1, ic) = werte1(1) 
+            chem_dir (2, 1, ic) = werte1(2) 
+            chem_dir (3, 1, ic) = werte1(3) 
+            chem_dir (1, 2, ic) = werte1(4) 
+            chem_dir (2, 2, ic) = werte1(5) 
+            chem_dir (3, 2, ic) = werte1(6) 
+         ELSE 
+            if(allocated(cpara1)) deallocate(cpara1)
+            if(allocated(werte1)) deallocate(werte1)
+            ier_msg(1) = 'The "dir:[u,v,w]" parameter takes '
+            ier_msg(2) = ' 3 or 6 vector components'
+            ier_num = -6 
+            ier_typ = ER_COMM 
+            return
+         ENDIF 
+!     endif
+   else 
+      ier_msg(1) = '"set target, ic, heli" needs "dir:[u,v,w]"'
+      ier_msg(2) = ' to specify displacement vector direction'
+      ier_num = -6 
+      ier_typ = ER_COMM 
+      return
+   endif
+   mmc_cor_energy (ic, MC_HELI) = .TRUE. 
+   mmc_cor_energy (0, MC_HELI) = .TRUE. 
+!
 ELSEIF(str_comp(cpara(2) , 'cn', 2, lpara(2), 2) ) THEN  cond_type  !Coordination number
    CALL del_params (2, ianz, cpara, lpara, maxw) 
 !  Get atom types in the two allowed groups
@@ -3263,6 +3445,8 @@ USE param_mod
 USE precision_mod
 USE prompt_mod 
 USE support_mod
+!HELI_DBG
+!use counter
 !                                                                       
 IMPLICIT none 
 !
@@ -3334,12 +3518,15 @@ DATA c_energy /                    &
      'Unidirectional Corr     ',   &
      'Groupwise correlation   ',   &
      'Preferred groups        ',   &
-     'Phase value correlation '    &
+     'Phase value correlation ',   &
+     'Helical displacement or '    &
     /
 !
 call mmc_initial(old_chem_period, itry, igen, iacc_good, iacc_neut, iacc_bad, & 
            done      )                 ! Perform initialization
 !
+!HELI_DBG
+!call init_counter
 !
 ALLOCATE(patom(3, 0:MAX_ATOM_ENV, MMC_MAX_CENT))
 ALLOCATE(rdi(CHEM_MAX_COR))
@@ -3371,11 +3558,17 @@ DO ic = 1, chem_ncor
       rdi (ic) = skalpro (idir, idir, cr_gten) 
       rdi (ic) = sqrt (rdi (ic) ) 
 !write(*,'(a, i4, 4f8.3)') ' IC, IDIR, RDI ', ic, idir, rdi(ic)
-!read(*,*) i
+   elseIF(mmc_cor_energy (0, MC_HELI) ) THEN 
+      idir = chem_dir(:,1,ic)
+      rdi (ic) = skalpro (idir, idir, cr_gten) 
+      rdi (ic) = sqrt (rdi (ic) ) 
+!write(*,'(a, i4, 4f8.3)') ' IC, IDIR, RDI ', ic, idir, rdi(ic)
+      
    ELSEIF(mmc_cor_energy(ic, MC_OCC)) THEN
       nocc = nocc + 1
    ENDIF 
 ENDDO 
+!read(*,*) i
 IF(nocc>1) THEN
    DO ic = 1, chem_ncor
       IF(mmc_cor_energy(ic, MC_OCC)) THEN
@@ -3387,11 +3580,11 @@ ENDIF
 !                                                                       
 !     Initialize the different energies                                 
 !                                                                       
-lout = .FALSE. 
-lfinished = .FALSE.
-lfeed = .FALSE.
-ldetail = .false.
-CALL mmc_correlations (lout, 0.0D0, done, lfinished, lfeed, ldetail, maxdev) 
+!DOUBLElout = .FALSE. 
+!DOUBLElfinished = .FALSE.
+!DOUBLElfeed = .FALSE.
+!DOUBLEldetail = .false.
+!DOUBLECALL mmc_correlations (lout, 0.0D0, done, lfinished, lfeed, ldetail, maxdev) 
 lfeed = .TRUE.
 IF(ier_num /= 0) RETURN 
 !
@@ -3521,7 +3714,7 @@ IF(nthreads > 1) THEN
             done = .TRUE.
             exit itry_loop
          ENDIF
-            if(mmc_move==MC_MOVE_SWCHEM) then      ! Check selected pairs to exclude previous selections
+            if(mmc_move==MC_MOVE_SWCHEM .or. mmc_move==MC_MOVE_SWDISP) then      ! Check selected pairs to exclude previous selections
                do iex=1, iiii-1
                   if(isel_p(1,iex)==isel_p(1,iiii) .or. isel_p(1,iex)==isel_p(2,iiii) .or. &
                      isel_p(2,iex)==isel_p(1,iiii) .or. isel_p(2,iex)==isel_p(2,iiii)     ) then
@@ -3578,7 +3771,7 @@ IF(nthreads > 1) THEN
    iacc_good = sum(iacc_good_p)
    iacc_neut = sum(iacc_neut_p)
    iacc_bad  = sum(iacc_bad_p )
-   call mmc_run_loop_final(igen, itry*nthreads, imodulus,                       &
+   call mmc_run_loop_final(igen, itry*nthreads, imodulus,nthreads,              &
            iacc_good, iacc_neut, iacc_bad, cr_natoms, mo_cyc,                   &
            rel_cycl,                                                            &
            lout_feed, lfeed, mmc_feed_auto, ldetail, done                       &
@@ -3649,7 +3842,7 @@ IF(nthreads > 1) THEN
                            NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
 !                          iatom, patom, tatom, natom,ncent,                         &
       IF(ier_num/=0 .OR. done) EXIT final_loop
-      call mmc_run_loop_final(igen, itry*nthreads, imodulus,                        &
+      call mmc_run_loop_final(igen, itry*nthreads, imodulus, nthreads,              &
            iacc_good, iacc_neut, iacc_bad, cr_natoms, mo_cyc,                   &
            rel_cycl,                                                            &
            lout_feed, lfeed, mmc_feed_auto, ldetail, done                       &
@@ -3674,7 +3867,7 @@ ELSE     ! Use nonparallel code
                            NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
 !                          iatom, patom, tatom, natom,ncent,                         &
       IF(ier_num/=0 .OR. done) EXIT serial_loop
-      call mmc_run_loop_final(igen, itry*nthreads, imodulus,                        &
+      call mmc_run_loop_final(igen, itry*nthreads, imodulus,  nthreads,             &
            iacc_good, iacc_neut, iacc_bad, cr_natoms, mo_cyc,                   &
            rel_cycl,                                                            &
            lout_feed, lfeed, mmc_feed_auto, ldetail, done                       &
@@ -3693,7 +3886,7 @@ ELSEIF(mmc_algo .EQV. MMC_GROWTH) THEN           !Use the growth MMC algorithm
                               lout_feed, lfeed, imodulus,                               &
                               NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
       IF(ier_num/=0 .OR. done) EXIT serial_grow
-      call mmc_run_loop_final(igen, itry*nthreads, imodulus,                        &
+      call mmc_run_loop_final(igen, itry*nthreads, imodulus,  nthreads,             &
            iacc_good, iacc_neut, iacc_bad, cr_natoms, mo_cyc,                   &
            rel_cycl,                                                            &
            lout_feed, lfeed, mmc_feed_auto, ldetail, done                       &
@@ -3851,7 +4044,12 @@ REAL(KIND=PREC_DP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
 !integer :: i
 logical :: ldetail  ! Print more detailed correlations
 logical :: laccept
+real(kind=PREC_DP) , dimension(3,2) :: original_pos
+real(kind=PREC_DP) , dimension(3,2) :: original_disp
+real(kind=PREC_DP) , dimension(3,2) :: final_pos
+real(kind=PREC_DP) , dimension(3,2) :: final_disp
 !
+integer :: i
 !write(*,*) ' ID ', tid
 ldetail = .false.
 laccept = .false.
@@ -3864,14 +4062,32 @@ IF(done) RETURN                 ! Quickly cycle to end if an error occuredd
 !write(*,*) ' IA=1 ', is(1), ' CELL ', iz(:,1)
 !write(*,*) ' IA=2 ', is(2), ' CELL ', iz(:,2)
 !if(mod(isel(1),2)==1) then
-!write(*,*) ' First Atom at site 1 ' , isel(1), isel(1)+1, ' ISCAT ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1) 
+!write(*,'(a, i6, a,  i3)') ' First Atom at site 1 ' , isel(1), ' ISCAT ', cr_iscat(1,isel(1))
 !else
-!write(*,*) ' First Atom at site 2 ' , isel(1)-1, isel(1), ' ISCAT ', cr_iscat(1,isel(1)-1), cr_iscat(1,isel(1)) 
+!write(*,'(a, i6, a,  i3)') ' First Atom at site 2 ' , isel(1), ' ISCAT ', cr_iscat(1,isel(1))
 !endif
 !if(mod(isel(2),2)==1) then
-!write(*,*) ' Scnd  Atom at site 1 ' , isel(2), isel(2)+1, ' ISCAT ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1) 
+!write(*,'(a, i6, a,  i3)') ' Scnd  Atom at site 1 ' , isel(2), ' ISCAT ', cr_iscat(1,isel(2))
 !else
-!write(*,*) ' Scnd  Atom at site 2 ' , isel(2)-1, isel(2), ' ISCAT ', cr_iscat(1,isel(2)-1), cr_iscat(1,isel(2)) 
+!write(*,'(a, i6, a,  i3)') ' Scnd  Atom at site 2 ' , isel(2), ' ISCAT ', cr_iscat(1,isel(2))
+!endif
+original_pos(:,1) = cr_pos(:, isel(1))
+original_pos(:,2) = cr_pos(:, isel(2))
+if(cr_iscat(1,isel(1)) ==1) then
+   original_disp(:,1) = cr_pos(:, isel(1)) - nint(cr_pos(:, isel(1)))
+   original_disp(:,2) = cr_pos(:, isel(2)) - nint(cr_pos(:, isel(2)))
+else
+   original_disp(:,1) = cr_pos(:, isel(1)) - 0.5D0 - nint(cr_pos(:, isel(1))-0.5D0)
+   original_disp(:,2) = cr_pos(:, isel(2)) - 0.5D0 - nint(cr_pos(:, isel(2))-0.5D0)
+endif
+!write(*,'(a,2i6, a, 2i3)') ' First Atom at site 1 ' , isel(1), isel(1)+1, ' ISCAT ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1) 
+!else
+!write(*,'(a,2i6, a, 2i3)') ' First Atom at site 2 ' , isel(1)-1, isel(1), ' ISCAT ', cr_iscat(1,isel(1)-1), cr_iscat(1,isel(1)) 
+!endif
+!if(mod(isel(2),2)==1) then
+!write(*,'(a,2i6, a, 2i3)') ' Scnd  Atom at site 1 ' , isel(2), isel(2)+1, ' ISCAT ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1) 
+!else
+!write(*,'(a,2i6, a, 2i3)') ' Scnd  Atom at site 2 ' , isel(2)-1, isel(2), ' ISCAT ', cr_iscat(1,isel(2)-1), cr_iscat(1,isel(2)) 
 !endif
 !write(*,*) '  mmc_pair 1 ', mmc_pair(1,MC_COORDNUM, cr_iscat(1,isel(1)),:)
 !write(*,*) '  mmc_pair 2 ', mmc_pair(1,MC_COORDNUM, cr_iscat(1,isel(1)),:)
@@ -3892,18 +4108,19 @@ e_old      = 0.0    ! e_old(:)
 !
 valid_all = .FALSE.
 !write(*,*)
-if(tid==0) &
+!if(tid==0) &
 !write(*,'(a20,i3, f7.3,2(a5, 2i4),i4)') ' CALL ENERGIES OLD', tid, 0.0D0, ' P1: ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1),  &
 !                                      ' P2: ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1), natoms
 CALL mmc_energies(isel, is, iz, natoms, iatom, patom, tatom, natom, ncent, &
                   rdi,      valid_all, e_old, CHEM_MAX_COR,         &
                   MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, .true.)
-!write(*,*) ' Old Energy ', e_old(MC_VALUE), valid_all
+!write(*,*) ' Old Energy ', e_old(MC_HELI), valid_all, ubound(e_old), MC_HELI
 !if(tid==0) &
 !write(*,'(a20,i3, f7.3,2(a5, 2i4),i4)') ' Old Energy ', tid, e_old(MC_OCC ), ' P1: ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1),  &
 !                                           ' P2: ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1), ier_num
 IF(ier_num/=0) THEN             ! Error, cycle to end of loop
    done = .TRUE.
+write(*,*) ' POINT A ', ier_num
    RETURN
 ENDIF
 cond_valid: IF(valid_all) THEN 
@@ -3912,6 +4129,7 @@ cond_valid: IF(valid_all) THEN
 !                                                                       
    CALL mmc_modify(isel, posz(:,tid), posz2(:,tid), disp, MMC_MAX_ATOM_L)
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
+write(*,*) ' POINT B ', ier_num
       done = .TRUE.
       RETURN
    ENDIF
@@ -3929,11 +4147,12 @@ cond_valid: IF(valid_all) THEN
    CALL mmc_energies(isel, is, iz, natoms, iatom, patom, tatom, natom, ncent, &
                      rdi,      valid_all, e_new, CHEM_MAX_COR,         &
                      MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, .false.)
-!write(*,*) ' New Energy ', e_new(MC_VALUE)
+!write(*,*) ' New Energy ', e_new(MC_HELI), valid_all, ubound(e_old), MC_HELI
 !if(tid==0) &
 !write(*,'(a20,i3, f7.3,2(a5, 2i4))') ' New Energy ', tid, e_new(MC_OCC ), ' P1: ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1),  &
 !                                           ' P2: ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1)
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
+write(*,*) ' POINT C ', ier_num
       done = .TRUE.
       RETURN
    ENDIF
@@ -3953,9 +4172,10 @@ cond_valid: IF(valid_all) THEN
       laccept = .FALSE. 
    ENDIF 
 !write(*,*                       ) ' ACCEPT ', tid, laccept, e_new(MC_VALUE), e_old(MC_VALUE), e_new(MC_VALUE)-e_old(MC_VALUE)<0.0!, ier_num, ier_typ
-!write(*,'(a,i3, l3, 2f10.6, l3)') ' ACCEPT ', tid, laccept, e_new(MC_DISP), e_old(MC_DISP), e_new(MC_DISP)-e_old(MC_DISP)<0.0!, ier_num, ier_typ
+!write(*,'(a,i3, l3, 3f10.4, l3)') ' ACCEPT ', tid, laccept, e_new(MC_HELI), e_old(MC_HELI),e_new(MC_HELI)-e_old(MC_HELI), laccept .and.e_new(MC_HELI)-e_old(MC_HELI)>0.0!, ier_num, ier_typ
 !read(*,*) i
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
+write(*,*) ' POINT D ', ier_num
       done = .TRUE.
       RETURN
    ENDIF
@@ -3979,16 +4199,49 @@ cond_valid: IF(valid_all) THEN
 !!read(*,*) kk
 !endif
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
+write(*,*) ' POINT E ', ier_num
       done = .TRUE.
       RETURN
    ENDIF
 ENDIF  cond_valid
+final_pos(:,1) = cr_pos(:, isel(1))
+final_pos(:,2) = cr_pos(:, isel(2))
+if(cr_iscat(1,isel(1)) ==1) then
+   final_disp(:,1) = cr_pos(:, isel(1)) - nint(cr_pos(:, isel(1)))
+   final_disp(:,2) = cr_pos(:, isel(2)) - nint(cr_pos(:, isel(2)))
+else
+   final_disp(:,1) = cr_pos(:, isel(1)) - 0.5D0 - nint(cr_pos(:, isel(1))-0.5D0)
+   final_disp(:,2) = cr_pos(:, isel(2)) - 0.5D0 - nint(cr_pos(:, isel(2))-0.5D0)
+endif
+!if(laccept) then  ! Move accepted, switched displacement ?
+!  if(any(abs(final_disp(:,1)-original_disp(:,2))>1.0D-8)   .or. & 
+!     any(abs(final_disp(:,2)-original_disp(:,1))>1.0D-8)  ) then
+!    write(*,*) ' accepted ', cr_iscat(1, isel(1)), cr_iscat(1, isel(2))
+!    write(*,*) ' ORIGINAL 1 ', original_pos(:,1), ' DISP' , original_disp(:,1)
+!    write(*,*) ' ORIGINAL 2 ', original_pos(:,2), ' DISP' , original_disp(:,2)
+!    write(*,*) '    FINAL 1 ',    final_pos(:,1), ' DISP' ,    final_disp(:,1)
+!    write(*,*) '    FINAL 2 ',    final_pos(:,2), ' DISP' ,    final_disp(:,2)
+!    read(*,*) i
+!  endif
+!else
+!  if(any(abs(final_disp(:,1)-original_disp(:,1))>1.0D-8)   .or. &
+!     any(abs(final_disp(:,2)-original_disp(:,2))>1.0D-8)  ) then
+!    write(*,*) ' rejected ', cr_iscat(1, isel(1)), cr_iscat(1, isel(2))
+!    write(*,*) ' ORIGINAL 1 ', original_pos(:,1), ' DISP' , original_disp(:,1)
+!    write(*,*) ' ORIGINAL 2 ', original_pos(:,2), ' DISP' , original_disp(:,2)
+!    write(*,*) '    FINAL 1 ',    final_pos(:,1), ' DISP' ,    final_disp(:,1)
+!    write(*,*) '    FINAL 2 ',    final_pos(:,2), ' DISP' ,    final_disp(:,2)
+!    read(*,*) i
+!  endif
+!endif
+!write(*,'(a,i3, l3, 3f10.4, l3)') ' ACCEPT ', tid, laccept, e_new(MC_HELI), e_old(MC_HELI),e_new(MC_HELI)-e_old(MC_HELI), laccept .and.e_new(MC_HELI)-e_old(MC_HELI)>0.0
+!read(*,*) i
 !
 END SUBROUTINE mmc_run_loop
 !
 !*******************************************************************************
 !
-subroutine mmc_run_loop_final(igen, itry, imodulus,                        &
+subroutine mmc_run_loop_final(igen, itry, imodulus, nthreads,              &
            iacc_good, iacc_neut, iacc_bad, cr_natoms, mo_cyc,                   &
            rel_cycl,                                                            &
            lout_feed, lfeed, mmc_feed_auto, ldetail, done                       &
@@ -4006,6 +4259,7 @@ implicit none
 integer(kind=PREC_INT_LARGE), intent(in)    :: igen             ! Generated moves
 integer(kind=PREC_INT_LARGE), intent(in)    :: itry             ! Tried moves
 integer(kind=PREC_INT_LARGE), intent(inout) :: imodulus         ! Feedback interval 
+integer(kind=PREC_INT_LARGE), intent(in)    :: nthreads         ! number of parallel threads
 integer           , intent(in)    :: iacc_good        ! Accepted good moves
 integer           , intent(in)    :: iacc_neut        ! Accepted neutral moves 
 integer           , intent(in)    :: iacc_bad         ! Accepted bad  moves
@@ -4022,14 +4276,14 @@ real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 !                                                                       
 !     --End of modification of atoms if a proper "old" energy was found 
 !                                                                       
-if(MOD(igen, imodulus)==0) THEN ! .AND. .NOT.done .AND. loop) THEN
+if(MOD(igen, imodulus*nthreads)==0) THEN ! .AND. .NOT.done .AND. loop) THEN
 !
+   rel_cycl = real(igen)/real(mo_cyc)!*REAL(NTHREADS)
    if(lout_feed) WRITE (output_io, 2000) igen, itry, &
           iacc_good, iacc_neut, iacc_bad , rel_cycl
 !                                                                       
 !     ----New mmc_correlations for all energies                         
 !                                                                       
-   rel_cycl = real(igen)/real(mo_cyc)!*REAL(NTHREADS)
    maxdev = 0.0D0
    call mmc_correlations (lout_feed, rel_cycl, done, .FALSE., lfeed, ldetail, maxdev)
    if(mmc_feed_auto) then
@@ -5480,7 +5734,7 @@ logical                                                 , intent(in)    :: is_ol
 !
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR_L)                           :: rdj
 !
-INTEGER :: i      ! Dummy loop variable
+INTEGER :: i, j   ! Dummy loop variable
 INTEGER :: ia     ! Dummy loop variable for modified atoms
 INTEGER :: ic     ! Dummy loop variable for correlations
 INTEGER :: icent  ! Dummy loop variable for centers
@@ -5595,7 +5849,7 @@ loop_natoms:DO ia = 1, natoms
 !     ------- Displacement correlation                                  
 !                                                                       
             IF(mmc_cor_energy(ic, MC_DISP) ) THEN 
-!write(*,'(a, 6i6)') ' ia, isel(ia), is, iz ', ia, isel(ia) , is((ia)), iz(:, ia )
+!write(*,'(a, 7i6)') ' ic, ia, isel(ia), is, iz ', ic, ia, isel(ia) , is((ia)), iz(:, ia )
                idir = 0.0_PREC_DP
                DO i = 1, 3 
                  v(i) = cr_pos(i, isel(ia) ) - chem_ave_pos(i, is(ia)) &
@@ -5620,20 +5874,25 @@ loop_natoms:DO ia = 1, natoms
                      jdir(i) = chem_dir(i, 2, ic) 
                   ENDDO 
                   delta = skalpro(v, idir, cr_gten) / rdi(ic) 
-                  rdj(ic) = 1.0_PREC_DP
+                  rdj(ic) = sqrt(skalpro (jdir, jdir, cr_gten) )
+!                 rdj(ic) = 1.0_PREC_DP
                ENDIF 
 !if(isel(1)>1 .and. isel(1)<cr_natoms .and. isel(2)>1 .and. isel(2)<cr_natoms) then
-!do i=1, 1
-!write(*,'(11f10.4)') cr_pos(i, isel(ia) ), chem_ave_pos(i, is(ia)),  &
-!              REAL(iz(i, ia) - 1, kind=PREC_DP), cr_dim0(i, 1), v(i) , &
-!              idir, jdir
+j = ia
+!write(*,*) ' ====================================================='
+!do i=1, 3
+!write(*,'(11f10.4)') cr_pos(i, isel(j) ), chem_ave_pos(i, is(j)),  &
+!              REAL(iz(i, j) - 1, kind=PREC_DP), cr_dim0(i, 1), v(i) , &
+!              idir(i), jdir(i)
 !enddo
-!write(*,*) ' DELTA ', delta, chem_ldall(ic)
+                 v    = cr_pos(:, isel(j) ) - chem_ave_pos(:, is(j)) &
+                        -REAL(iz(:, j) - 1, kind=PREC_DP) - cr_dim0(:, 1)                   
+!write(*,*) ' DELTA ', skalpro(v, idir, cr_gten) / rdi(ic) 
 !write(*,'(a,5f10.4)') ' Isel1+1 ', cr_pos(1,isel(1)), cr_pos(1,isel(1)+1), (cr_pos(1,isel(ia))-nint(cr_pos(1,isel(ia)))),(cr_pos(1,isel(ia)+1)-nint(cr_pos(1,isel(ia)+1))) &
 !                                                                         , (cr_pos(1,isel(ia))-nint(cr_pos(1,isel(ia))))*(cr_pos(1,isel(ia)+1)-nint(cr_pos(1,isel(ia)+1)))*100.
 !write(*,'(a,5f10.4)') ' Isel1-1 ', cr_pos(1,isel(1)), cr_pos(1,isel(1)-1), (cr_pos(1,isel(ia))-nint(cr_pos(1,isel(ia)))),(cr_pos(1,isel(ia)-1)-nint(cr_pos(1,isel(ia)-1))) &
 !                                                                         , (cr_pos(1,isel(ia))-nint(cr_pos(1,isel(ia))))*(cr_pos(1,isel(ia)-1)-nint(cr_pos(1,isel(ia)-1)))*100.
-!!rite(*,'(a,5f10.4)') ' Isel2+1 ', cr_pos(1,isel(2)), cr_pos(1,isel(2)+1), (cr_pos(1,isel(2))-nint(cr_pos(1,isel(2)))),(cr_pos(1,isel(2)+1)-nint(cr_pos(1,isel(2)+1))) &
+!rite(*,'(a,5f10.4)') ' Isel2+1 ', cr_pos(1,isel(2)), cr_pos(1,isel(2)+1), (cr_pos(1,isel(2))-nint(cr_pos(1,isel(2)))),(cr_pos(1,isel(2)+1)-nint(cr_pos(1,isel(2)+1))) &
 !!                                                                        , (cr_pos(1,isel(2))-nint(cr_pos(1,isel(2))))*(cr_pos(1,isel(2)+1)-nint(cr_pos(1,isel(2)+1)))*100.
 !!rite(*,'(a,5f10.4)') ' Isel2-1 ', cr_pos(1,isel(2)), cr_pos(1,isel(2)-1), (cr_pos(1,isel(2))-nint(cr_pos(1,isel(2)))),(cr_pos(1,isel(2)-1)-nint(cr_pos(1,isel(2)-1))) &
 !!                                                                        , (cr_pos(1,isel(2))-nint(cr_pos(1,isel(2))))*(cr_pos(1,isel(2)-1)-nint(cr_pos(1,isel(2)-1)))*100.
@@ -5643,9 +5902,24 @@ loop_natoms:DO ia = 1, natoms
                isel, ia, ic, iatom, icent, natom, jdir, delta,&
                rdj, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)                          
                valid_all = valid_all.OR.valid_e 
-               valid_all = .TRUE. 
+!              valid_all = .TRUE. 
 !write(*,*) ' CURR  ', e_cur(MC_DISP)
+!if(ia==2) read(*,*) i
             ENDIF 
+!
+!     ------- Helical displacement energy
+!
+            if(mmc_cor_energy (ic, MC_HELI) ) then
+               idir    = chem_dir(:, 1, ic) 
+               jdir    = chem_dir(:, 2, ic) 
+!              rdi(ic) = sqrt(skalpro (idir, idir, cr_gten) )
+               rdj(ic) = sqrt(skalpro (jdir, jdir, cr_gten) )
+               e_cur (MC_HELI) = e_cur(MC_HELI) + mmc_energy_heli(  &
+               isel, ia, ic, iatom, icent,  natom, patom, idir, jdir, rdi, rdj, valid_e, &
+               MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
+               valid_all = valid_all.OR.valid_e 
+!write(*,*) ' e_cur ', e_cur (MC_HELI), ubound (e_cur)
+            endif
 !                                                                       
 !     ------- Displacement (Hooke's law) '                              
 !                                                                       
@@ -5807,6 +6081,8 @@ ELSEIF (mmc_move == MC_MOVE_SWDISP) THEN
 !                                                                       
 !     ------Modify the central atom                                     
 !                                                                       
+!write(*,'(2(a,3f10.3),i4)') 'Initial 1 ', cr_pos(:,isel(1)), ' Displ ', cr_pos(:, isel(1)) - chem_ave_pos(:, is(1))- REAL(iz1 (:) - 1) - cr_dim0 (:, 1), cr_iscat(1, isel(1))
+!write(*,'(2(a,3f10.3),i4)') 'Initial 2 ', cr_pos(:,isel(2)), ' Displ ', cr_pos(:, isel(2)) - chem_ave_pos(:, is(2))- REAL(iz2 (:) - 1) - cr_dim0 (:, 1), cr_iscat(1, isel(2))
    DO j = 1, 3 
       disp1 = cr_pos(j, isel(1)) - chem_ave_pos(j, is(1))&
                - REAL(iz1 (j) - 1) - cr_dim0 (j, 1)                   
@@ -5819,6 +6095,8 @@ ELSEIF (mmc_move == MC_MOVE_SWDISP) THEN
       posz2(j)           = cr_pos(j, isel(2)) 
       cr_pos(j, isel(2)) = cr_pos(j, isel(2)) + disp(j, 0, 2)
    ENDDO 
+!write(*,'(2(a,3f10.3),i4)') 'Switch  1 ', cr_pos(:,isel(1)), ' Displ ', cr_pos(:, isel(1)) - chem_ave_pos(:, is(1))- REAL(iz1 (:) - 1) - cr_dim0 (:, 1), cr_iscat(1, isel(1))
+!write(*,'(2(a,3f10.3),i4)') 'Switch  2 ', cr_pos(:,isel(2)), ' Displ ', cr_pos(:, isel(2)) - chem_ave_pos(:, is(2))- REAL(iz2 (:) - 1) - cr_dim0 (:, 1), cr_iscat(1, isel(2))
 ELSEIF (mmc_move == MC_MOVE_INVDISP) THEN 
 !                                                                       
 !-----      ------Switch displacement of a selected atom                
@@ -6013,12 +6291,16 @@ IF (mmc_move == MC_MOVE_DISP) THEN
       cr_pos(i, isel(1)) = posz(i)
    ENDDO 
 ELSEIF (mmc_move == MC_MOVE_SWDISP) THEN 
+!write(*,'(2(a,3f10.3),i4)') 'Initial 1 ', cr_pos(:,isel(1))
+!write(*,'(2(a,3f10.3),i4)') 'Initial 2 ', cr_pos(:,isel(2))
    DO i = 1, 3 
       cr_pos(i, isel(1)) = posz(i)
    ENDDO 
    DO i = 1, 3 
       cr_pos(i, isel(2)) = posz2(i)
    ENDDO 
+!write(*,'(2(a,3f10.3),i4)') 'Restore 1 ', cr_pos(:,isel(1))
+!write(*,'(2(a,3f10.3),i4)') 'Restore 2 ', cr_pos(:,isel(2))
 ELSEIF (mmc_move == MC_MOVE_INVDISP) THEN 
    DO i = 1, 3 
       cr_pos(i, isel(1)) = posz(i)
@@ -7068,6 +7350,8 @@ LOGICAL , INTENT(OUT) ::valid_e
 REAL(KIND=PREC_DP), DIMENSION(3), INTENT(IN) :: jdir
 REAL(KIND=PREC_DP),               INTENT(IN) ::  delta 
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(IN) :: rdj
+!
+integer :: j
 !                                                                       
 INTEGER :: i, is, js, in, jjs 
 INTEGER :: in_a, in_e 
@@ -7078,7 +7362,9 @@ REAL(kind=PREC_DP) :: dx
 !                                                                       
 mmc_energy_dis = 0.0 
 valid_e = .FALSE. 
-!write(*,'(a, i4, i10, l2, f10.3)') ' DISPLACEMENT CENTRAL ? ', ia, isel(ia), isel(ia)==iatom(0, icent), rdj(ic)
+!write(*,'(a, 2i4, i10, l2, f10.3, 4i5)') ' DISPLACEMENT CENTRAL ? ', ic, ia, isel(ia), isel(ia)==iatom(0, icent), rdj(ic), iatom(1:natom(icent), icent)
+j = ia
+!write(*,*) ' ====================================================='
 !                                                                       
 IF(chem_ctyp(ic) == CHEM_VEC   .OR.  &
    chem_ctyp(ic) == CHEM_ENVIR .OR.  &
@@ -7112,11 +7398,13 @@ IF(chem_ctyp(ic) == CHEM_VEC   .OR.  &
                         dx = skalpro(u, jdir, cr_gten) / rdj(ic) 
 !                                                                       
 !do i=1, 3
-!write(*,'(11f10.4)') cr_pos(i, iatom(in, icent)), chem_ave_pos(i, site  ),  &
+!write(*,'(i3,1x,i5, 1x, 11f10.4)') in, iatom(in, icent), cr_pos(i, iatom(in, icent)), chem_ave_pos(i, site  ),  &
 !              REAL(cell(i) - 1, kind=PREC_DP), cr_dim0(i, 1), u(i) , &
-!              0.0,0.0,0.0, jdir
+!              jdir(i)
 !enddo
-!write(*,'(a, 4f10.4)') 'DEPTH, delta, DX PROD : ', mmc_depth(ic, MC_DISP, 0,0), delta, dx, mmc_depth(ic, MC_DISP, 0,0) *delta*dx
+!write(*,'(a, 4f10.4)') 'DEPTH, delta, DX PROD : ', mmc_depth(ic, MC_DISP, is,js), delta, dx, mmc_depth(ic, MC_DISP, is,js) *delta*dx
+!write(*,'(a, i4,3(4(1x,f10.4),a))') ' ic, Change ', ic, mmc_depth(ic, MC_DISP, is, js) * delta * dx, mmc_depth(ic, MC_DISP, is,js), delta, dx, &
+!' | ',u(1:2), jdir(1:2), ' > ',rdj(ic)
 !                       mmc_energy_dis = mmc_energy_dis + mmc_depth(ic, MC_DISP, 0, 0) * delta * dx                     
                         mmc_energy_dis = mmc_energy_dis + mmc_depth(ic, MC_DISP, is, js) * delta * dx                     
                         valid_e = .TRUE. 
@@ -7164,6 +7452,190 @@ ENDIF
 !read(*,*) i
 !                                                                       
 END FUNCTION mmc_energy_dis                   
+!
+!*****7*****************************************************************
+!
+real(kind=PREC_DP) function mmc_energy_heli(isel, ia, ic, iatom, icent,  &
+      natom, patom, idir, jdir, rdi, rdj, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L,&
+      MMC_MAX_ATOM_L)                                 
+!+                                                                      
+!     Calculates the energy for helical displacement disorder                       
+!
+!  E = SUM_neig depth * [   sign[(r(neig)-r(center))*axis] 
+!                        *  sign[vprod(disp(neigh)*disp(cent))*axis]
+!                        *  [disp(cent)*disp(neig)]
+!                        - abs( |disp(cent)|-|disp(neig)|)/average(disp)
+!-                                                                      
+USE crystal_mod 
+USE chem_mod 
+USE celltoindex_mod
+USE metric_mod
+USE mc_mod 
+USE mmc_mod 
+USE modify_func_mod
+!
+use lib_metric_mod
+use precision_mod
+use trig_degree_mod
+!
+IMPLICIT none 
+!                                                                       
+INTEGER                          , INTENT(IN) :: MAX_ATOM_ENV_L
+INTEGER                          , INTENT(IN) :: MMC_MAX_CENT_L
+INTEGER                          , INTENT(IN) :: MMC_MAX_ATOM_L
+INTEGER, DIMENSION(MMC_MAX_ATOM_L) , INTENT(IN) :: isel
+INTEGER, INTENT(IN) :: ia
+INTEGER, INTENT(IN) :: ic
+INTEGER, DIMENSION(0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(IN) :: iatom
+INTEGER                                              , INTENT(IN) :: icent 
+INTEGER , DIMENSION(MMC_MAX_CENT_L)                  , INTENT(IN) :: natom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
+
+LOGICAL                                              , INTENT(OUT) ::valid_e 
+REAL(KIND=PREC_DP), DIMENSION(3)                     , INTENT(IN)  :: idir     ! Vector along helical axis
+REAL(KIND=PREC_DP), DIMENSION(3)                     , INTENT(IN)  :: jdir     ! Vector along Correlation axis
+REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR)          , INTENT(IN)  :: rdi      ! Legth of helical axis vector
+REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR)          , INTENT(IN)  :: rdj      ! Legth of correlation vector
+!
+integer :: j
+!                                                                       
+INTEGER :: i, is, js, in, jjs 
+INTEGER :: in_a, in_e 
+INTEGER :: cell (3), site 
+REAL(kind=PREC_DP) :: ener(3)   ! Term in energy
+REAL(kind=PREC_DP) :: u(3)   ! Displacment neighbor
+REAL(kind=PREC_DP) :: v(3)   ! Displacement central
+REAL(kind=PREC_DP) :: c_n(3)   ! central => neighbor
+REAL(kind=PREC_DP) :: ww(3)  ! Vector product v X u
+!                                                                       
+real(kind=PREC_DP) :: disp_c    ! length displacement center
+real(kind=PREC_DP) :: disp_n    ! length displacement neighbor
+real(kind=PREC_DP) :: c_n_l     ! length center => neighbor
+!                                                                       
+mmc_energy_heli = 0.0_PREC_DP
+valid_e = .FALSE. 
+!write(*,'(a, 2i4, i10, l2, f10.3, 4i5)') ' HELICAL      CENTRAL ? ', ic, ia, isel(ia), isel(ia)==iatom(0, icent), rdi(ic), iatom(1:natom(icent), icent)
+j = ia
+!write(*,*) ' ====================================================='
+!                                                                       
+call indextocell(isel(ia), cell, site)   ! Determine site central atom
+!do i=1, 3
+   v    = cr_pos(:, isel(ia)) - chem_ave_pos(:, site) - real(cell(:) - 1, kind=PREC_DP) - cr_dim0(:, 1)
+!enddo
+disp_c = sqrt(abs(skalpro(v,v, cr_gten)))
+!write(*,'(a, i4,3f10.3,a, 3f10.3, a, f10.3, a,3f10.3)') ' HELICAL      CENTRAL ? ', isel(ia), cr_pos(:,isel(ia)),  ' || ', v, ' > ', disp_c, ' AVER ', chem_ave_pos(:,1)
+!write(*,'(a, 3f10.3, a, 3f10.3)') ' HELICAL      CENTRAL ? ', v
+!
+cond_main: IF(chem_ctyp(ic) == CHEM_VEC   .OR.  &
+   chem_ctyp(ic) == CHEM_ENVIR .OR.  &
+   chem_ctyp(ic) == CHEM_RANGE .OR.  &
+   chem_ctyp(ic) == CHEM_DIST  .OR.  &
+   chem_ctyp(ic) == CHEM_CON        ) THEN                                               
+!                                                                       
+!  IF(natom(icent)  /= 0) THEN 
+   IF(natom(icent)  == 0) exit cond_main
+      IF(isel(ia)  == iatom(0, icent) ) THEN 
+!                                                                       
+!     ----The selected atom is the central atom, check all atoms        
+!                                                                       
+         in_a = 1 
+         in_e = natom(icent) 
+         is = cr_iscat(1,iatom(0, icent) ) 
+         loop_scat1:DO jjs = 0, cr_nscat 
+            IF(mmc_pair(ic, MC_HELI, is, jjs) == -1 ) THEN 
+               DO in = in_a, in_e 
+                  js = cr_iscat(1,iatom(in, icent) ) 
+                  IF(is == js.OR.mmc_pair(ic, MC_HELI, is, js) == -1 ) THEN 
+                     IF(check_select_status(iatom(in, icent), .TRUE.,              &
+                                            cr_prop(iatom(in, icent)), cr_sel_prop &
+                                           ) ) THEN
+                        CALL indextocell(iatom(in, icent), cell, site) 
+!                       DO i = 1, 3 
+                           u    = cr_pos(:, iatom(in, icent) )    - &
+                                  chem_ave_pos(:, site)           - &
+                                  REAL(cell(:) - 1, kind=PREC_DP) - &
+                                  cr_dim0(:, 1)                           
+!                       ENDDO 
+                        disp_n = sqrt(abs(skalpro(u,u, cr_gten)))                ! Displacement neighbor
+                        c_n    = patom(:, in, icent) - cr_pos(:,isel(ia))        ! Vector center => neighbor
+                        c_n_l  = sqrt(skalpro(c_n, c_n, cr_gten))                ! length center => neihbor
+                        ener(1) = skalpro(c_n, jdir, cr_gten) / c_n_l / rdj(ic)  ! Scalar product (nn-cc)*axis ; normalized
+                        call lib_vector_product(v, u, ww, cr_eps, cr_rten)       ! displ_cent X displ_neigh clockwise if larger than zero
+                        ener(2) = skalpro(ww, idir, cr_gten)/sqrt(skalpro(ww, ww, cr_gten))/rdi(ic) ! abs(disp_c*disp_n*rdi(ic)*sind(lib_bang(cr_gten,v,u)))
+                        ener(3) = skalpro(v, u, cr_gten) / (disp_c*disp_n) ! parallel displacements
+!                       ener(4) = abs(disp_c - disp_n) / (0.5*(disp_c + disp_n)) ! Equal length displacements
+!write(*,'(a, i4, 3f10.3,a,3f10.3,a,f10.3,a,3f10.3)') ' HELICAL      neighbor? ', iatom(in, icent),  cr_pos(:, iatom(in, icent) ),  ' || ', u, ' > ', disp_n, ' IDIR ', idir
+!write(*,'(a, 4x, 3f10.3, ( a, 2f10.3))') ' c=>n;                  ', c_n, ' || ', c_n_l, rdi(ic)
+!write(*,'(a, 4(4x, 3f10.3))')            ' u, v, ww, idir         ', u, v, ww, idir
+!write(*,'(a,4f10.4, 4x,3f10.4,2i4)') ' ENER ', ener, dx, mmc_depth(ic, MC_HELI, is, js) * dx, mmc_depth(ic, MC_HELI, is, js), is, js
+!write(*,'(a,4f10.4, 4x, f10.4)') ' SSSS ', ssss, ssss(1)*ssss(2)*ssss(3) - ssss(4)
+!                                                                       
+!write(*,'(a, 3f10.3,4( a, 1f10.3))') ' HELICAL      neighbor? ', u, ' s: ',signum, ' scalp: ', skalpro(ww, idir, cr_gten) / rdi(ic), ' dx: ', dx , &
+!' change: ', mmc_depth(ic, MC_HELI, is, js) * dx
+!do i=1, 3
+!write(*,'(i3,1x,i5, 1x, 11f10.4)') in, iatom(in, icent), cr_pos(i, iatom(in, icent)), chem_ave_pos(i, site  ),  &
+!              REAL(cell(i) - 1, kind=PREC_DP), cr_dim0(i, 1), u(i) , &
+!              idir(i)
+!enddo
+!write(*,'(a, 3f10.4)') 'DEPTH, DX PROD : ', mmc_depth(ic, MC_HELI, is,js), dx, mmc_depth(ic, MC_HELI, is,js) *dx
+!write(*,'(a, i4,3(4(1x,f10.4),a))') ' ic, Change ', ic, mmc_depth(ic, MC_HELI, is, js) * dx, mmc_depth(ic, MC_HELI, is,js),  &
+!signum, dx, &
+!' | ',u(1:2), idir(1:2), ' > ',rdi(ic)
+                        mmc_energy_heli = mmc_energy_heli + mmc_depth(ic, MC_HELI, is, js) * &                     
+                             0.50_PREC_DP*(ener(1)*ener(2)*(1.00_PREC_DP + 1.0_PREC_DP*ener(3)))  !
+                        valid_e = .TRUE. 
+                     ENDIF 
+                  ENDIF 
+               ENDDO 
+            ENDIF 
+         ENDDO loop_scat1
+      ELSE 
+!                                                                       
+!     The selected atom is a neighbour, use this atom only              
+!                                                                       
+           in_a = 0 
+           in_e = 0 
+           is = cr_iscat(1,isel(ia) ) 
+           DO jjs = 0, cr_nscat 
+               IF(mmc_pair(ic, MC_HELI, is, jjs) == -1 ) THEN 
+                  in = 0 
+                  js = cr_iscat(1, iatom(in, icent) ) 
+                  IF(is == js.OR.mmc_pair(ic, MC_HELI, is, js) == -1 ) THEN 
+                     IF(check_select_status(iatom(in, icent),           &
+                                            .TRUE.,                     &
+                                            cr_prop(iatom(in, icent) ), &
+                                            cr_sel_prop) ) THEN
+                     CALL indextocell(iatom(in, icent), cell, site) 
+!                    DO i = 1, 3 
+                        u    = cr_pos(:, iatom(in, icent) )    -   &
+                               chem_ave_pos(:, site)           -   &
+                               REAL(cell(:) - 1, kind=PREC_DP) -   &
+                               cr_dim0(:, 1)                           
+!                    ENDDO 
+                        disp_n = sqrt(abs(skalpro(u,u, cr_gten)))                ! Displacement neighbor
+                        c_n = patom(:, in, icent) - cr_pos(:,isel(ia))           ! Vector center => neighbor
+                        c_n_l = sqrt(skalpro(c_n, c_n, cr_gten))                 ! length center => neihbor
+                        ener(1) = skalpro(c_n, jdir, cr_gten) / c_n_l / rdj(ic)  ! Scalar product (nn-cc)*axis ; normalized
+                        call lib_vector_product(v, u, ww, cr_eps, cr_rten)       ! displ_cent X displ_neigh clockwise if larger than zero
+                        ener(2) = skalpro(ww, idir, cr_gten)/skalpro(ww, ww, cr_gten)/rdi(ic) ! abs(disp_c*disp_n*rdi(ic)*sind(lib_bang(cr_gten,v,u)))
+                        ener(3) = skalpro(v, u, cr_gten) / (disp_c*disp_n) ! parallel displacements
+!                       ener(4) = abs(disp_c - disp_n) / (0.5*(disp_c + disp_n)) ! Equal length displacements
+!                                                                       
+                        mmc_energy_heli = mmc_energy_heli + mmc_depth(ic, MC_HELI, 0, 0) *  &
+                             0.50_PREC_DP*(ener(1)*ener(2)*(1.00_PREC_DP + 1.0_PREC_DP*ener(3)))  !
+                        valid_e = .TRUE. 
+!
+                  ENDIF 
+               ENDIF 
+            ENDIF 
+         ENDDO 
+      ENDIF 
+!  ENDIF 
+ENDIF  cond_main
+!write(*,*) ' MC_HELI : ', mmc_energy_heli
+!read(*,*) i
+!                                                                       
+END FUNCTION mmc_energy_heli                   
 !
 !*****7*****************************************************************
 !

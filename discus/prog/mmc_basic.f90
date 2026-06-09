@@ -248,6 +248,7 @@ USE mmc_mod
 USE debug_mod 
 USE errlist_mod 
 use lib_functions_mod
+use lib_metric_mod
 use precision_mod
 use param_mod
 USE prompt_mod 
@@ -311,8 +312,17 @@ real(kind=PREC_DP), dimension(:,:), allocatable :: val !(0:maxscat, 0:maxscat)
 INTEGER           , DIMENSION(:,:), ALLOCATABLE :: xnn !(0:maxscat, 0:maxscat) 
 REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: xij !(0:maxscat, 0:maxscat) 
 REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: xi2 !(0:maxscat, 0:maxscat) 
-REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: xj2 !(0:maxscat, 0:maxscat) 
+REAL(KIND=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE :: xj2 !(0:maxscat, 0:maxscat) 
+!   
+REAL(kind=PREC_DP) :: dx
+REAL(kind=PREC_DP) :: signum    ! Factor sign[(r(neigh)-r(center))*axis]
+real(kind=PREC_DP), dimension(3) ::  ww
+real(kind=PREC_DP), dimension(3) ::  ww1
 !
+real(kind=PREC_DP), dimension(4) :: sss
+real(kind=PREC_DP) :: disi_l
+real(kind=PREC_DP) :: disj_l
+real(kind=PREC_DP) :: ww_l
 !                                                                       
 DATA energy_name / 'none', 'Chemical correlation    ', 'Displacement correlation', &
      'Distance correlation (Hooke)', 'Angular      correlation', &
@@ -320,8 +330,13 @@ DATA energy_name / 'none', 'Chemical correlation    ', 'Displacement correlation
      'Lennard Jones potential ',     'Buckingham    potential ', & 
      'Repulsive     potential ',     'Coordination number     ', &
      'Unidirectional corr     ',     'Groupwise    correlation', &
-     'Preferred groups        ',     'Atom value   correlation'  &
+     'Preferred groups        ',     'Atom value   correlation', &
+     'Helical displacement cor'                                  &
     /         
+!if(mmc_cor_energy (0, MC_HELI)) then
+! write(*,*) ' HELICAL CORRELATION '
+!return
+!endif
 !
 !lout = lout_in .and. mmc_out_feed    ! Combine system and user settings
 !
@@ -380,7 +395,7 @@ ENDIF
 !     IF (mmc_cor_energy (0, MC_DISP)    .OR.mmc_cor_energy (0, MC_SPRING) &
 !     .OR.mmc_cor_energy (0, MC_LENNARD) .OR.mmc_cor_energy (0, MC_BUCKING)&
 !     .OR.mmc_cor_energy (0,MC_REPULSIVE) ) THEN                                                
-IF(     mmc_cor_energy (0, MC_DISP)                                  &
+IF(     mmc_cor_energy (0, MC_DISP) .or. mmc_cor_energy (0, MC_HELI) & 
    .OR. mmc_move_prob(MC_MOVE_SWDISP) > 0                            &
    .OR. mmc_move_prob(MC_MOVE_INVDISP) > 0                           &
    ) THEN
@@ -437,18 +452,35 @@ main_corr: DO ic = 1, chem_ncor
       ba_s2 (i) = 0.0 
       ba_anz (i) = 0 
    ENDDO 
-   IF (mmc_cor_energy (0, MC_DISP) ) THEN 
+   IF (mmc_cor_energy (0, MC_DISP) ) then        ! Displacement correlation 
       DO i = 1, 3 
-         idir (i) = chem_dir (i, 1, ic) 
-         jdir (i) = chem_dir (i, 2, ic) 
+         idir (i) = chem_dir (i, 1, ic)          ! 
+         jdir (i) = chem_dir (i, 2, ic)          ! 
       ENDDO 
 !                                                                       
 !------ calculate correlations                                          
 !                                                                       
-      rdi = skalpro (idir, idir, cr_gten) 
-      rdj = skalpro (jdir, jdir, cr_gten) 
+      rdi = skalpro (idir, idir, cr_gten)
+      rdj = skalpro (jdir, jdir, cr_gten)
       IF (rdi > 0.0) rdi = sqrt (rdi) 
       IF (rdj > 0.0) rdj = sqrt (rdj) 
+   elseIF (mmc_cor_energy (0, MC_HELI)) then         ! Helical Displacement correlation
+      idir = 0.0D0
+!      DO i = 1, 3 
+      idir     = chem_dir (:, 1, ic)         ! helical  vector 
+      jdir     = chem_dir (:, 2, ic)         ! Correlation vector 
+!      ENDDO 
+!idir(1) = 1.0D0
+!idir(2) = 0.0D0
+!idir(3) = 0.0D0
+!                                                                       
+!------ calculate correlations                                          
+!                                                                       
+      rdi = sqrt(skalpro (idir, idir, cr_gten) )
+      rdj = sqrt(skalpro (jdir, jdir, cr_gten) )
+!      IF (rdi > 0.0) rdi = sqrt (rdi) 
+!!     IF (rdj > 0.0) rdj = sqrt (rdj) 
+!      rdj = 1.0_PREC_DP
    ENDIF 
 !                                                                       
 !     -- Loop over all atoms                                            
@@ -460,11 +492,13 @@ main_atoms: DO i = 1, cr_natoms
       IF (ier_num /= 0) THEN
          RETURN 
       ENDIF
+!write(*,*)
+!write(*,'(a, i8, a, 8i8)') ' CENTRAL ', i, ' Neig ', iatom(1:3,1)
 !                                                                       
 !------ ---- In case of Displacement correlation, calculate             
 !            displacement of central atom                                                 
 !                                                                       
-is_mc_disp: IF (mmc_cor_energy (ic, MC_DISP) ) THEN 
+is_mc_disp: IF (mmc_cor_energy (ic, MC_DISP)   ) THEN 
          CALL indextocell (i, icc, is) 
          DO j = 1, 3 
             disi (j) = cr_pos (j, i) - chem_ave_pos (j, is) - &
@@ -487,6 +521,19 @@ is_mc_disp: IF (mmc_cor_energy (ic, MC_DISP) ) THEN
       ENDIF 
    ENDIF is_mc_disp
 !                                                                       
+!------ ---- In case of helical Displacement correlation, calculate             
+!            displacement of central atom                                                 
+!                                                                       
+is_mc_heli: IF (mmc_cor_energy (ic, MC_HELI)   ) THEN 
+         CALL indextocell (i, icc, is) 
+         DO j = 1, 3 
+            disi (j) = cr_pos (j, i) - chem_ave_pos (j, is) - &
+                       REAL(icc (j) - 1) - cr_dim0 (j, 1)                                          
+         ENDDO 
+!                                                                       
+         dpi = skalpro (disi, idir, cr_gten) / rdi 
+ENDIF is_mc_heli
+!                                                                       
 !     ---- Loop over all centers                                        
 !                                                                       
 main_cent: DO icent = 1, ncent 
@@ -500,6 +547,7 @@ is_energy:  IF (mmc_cor_energy (ic, MC_OCC)        .OR. &
                 mmc_cor_energy (ic, MC_GROUP)      .OR. &
                 mmc_cor_energy (ic, MC_PREF)       .OR. &
                 mmc_cor_energy (ic, MC_DISP)       .OR. &
+                mmc_cor_energy (ic, MC_HELI)       .OR. &
                 mmc_cor_energy (ic, MC_SPRING)     .OR. &
                 mmc_cor_energy (ic, MC_LENNARD)    .OR. &
                 mmc_cor_energy (ic, MC_REPULSIVE)  .OR. &
@@ -677,15 +725,61 @@ loop_neig:  DO j = 1, natom (icent)
                ENDIF 
                IF (mmc_cor_energy (ic, MC_DISP) ) THEN 
                   CALL indextocell (iatom (j, icent), jcc, js) 
-                  DO k = 1, 3 
-                     disj (k) = cr_pos (k, iatom (j, icent) ) - chem_ave_pos (&
-                     k, js) - REAL(jcc (k) - 1) - cr_dim0 (k, 1)            
-                  ENDDO 
+!                 DO k = 1, 3 
+!                    disj (k) = cr_pos (k, iatom (j, icent) ) - chem_ave_pos (&
+!                    k, js) - REAL(jcc (k) - 1) - cr_dim0 (k, 1)            
+!                    disj (k) = u(k)                             - chem_ave_pos (&
+!                    k, js) - REAL(jcc (k) - 1) - cr_dim0 (k, 1)            
+!                 ENDDO 
+                  disj(:) = cr_pos(:, iatom(j, icent)) - chem_ave_pos(:, js) - REAL(jcc(:) - 1) - cr_dim0(:, 1)            
+                  disi_l =   lib_blen(cr_gten, disi)
+                  disj_l =   lib_blen(cr_gten, disj)
+!write(*,'(a, 3f8.3, a, 6f8.3)') ' CENT ', cr_pos(:,i), ' Neigh ',  patom (:, j, icent), cr_pos(:,iatom(j,icent))
+!write(*,'(3(a, 3f8.3))') ' cent ', disi    , ' neigh ',  disj, ' LENGTH ', disi_l, disj_l
                   dpj = skalpro (disj, jdir, cr_gten) / rdj 
+!write(*,'(a ,5f8.3)') ' Resul ', dpi, dpj, dpi*dpj, dpi**2, dpj**2
                   xij (is, js) = xij (is, js) + dpi * dpj 
                   xi2 (is, js) = xi2 (is, js) + dpi**2 
                   xj2 (is, js) = xj2 (is, js) + dpj**2 
                   xnn (is, js) = xnn (is, js) + 1 
+               elseIF (mmc_cor_energy (ic, MC_HELI) ) THEN 
+!write(*,'(a, 3f8.3, a, 6f8.3)') ' CENT ', cr_pos(:,i), ' Neigh ',  patom (:, j, icent), cr_pos(:,iatom(j,icent))
+                  CALL indextocell (iatom (j, icent), jcc, js) 
+                  disj(:) = cr_pos(:, iatom(j, icent)) - chem_ave_pos(:, js) - REAL(jcc(:) - 1) - cr_dim0(:, 1)            
+                  idir = 0.5*(disi+disj)                           ! Average displacement
+                  rdi = sqrt(skalpro (idir, idir, cr_gten))        ! Length average displacement
+                  disi_l =   lib_blen(cr_gten, disi)
+                  disj_l =   lib_blen(cr_gten, disj)
+!write(*,'(3(a, 3f8.3))') ' cent ', disi    , ' neigh ',  disj, ' LENGTH ', disi_l, disj_l
+                  ww1  = patom (:, j, icent) - u                   ! center => neighbor
+                  sss(1) = ((skalpro(ww1 , chem_dir(:, 2, ic), cr_gten))  )/ &
+                           lib_blen(cr_gten,ww1)/ &
+                           lib_blen(cr_gten,chem_dir(:, 2, ic)) ! +1 if parallel to axis
+                  call lib_vector_product(disi, disj, ww, cr_eps, cr_rten)    ! displ_cent X displ_neigh
+                  ww_l = abs(lib_blen(cr_gten, ww))
+                  if(ww_l>0.0D0) then
+                  sss(2) = ((skalpro(ww  , chem_dir(:,1,ic), cr_gten))    )/ &
+                           abs(ww_l                                         * &
+                               lib_blen(cr_gten, chem_dir(:,1,ic)) )! multiply with  clockwise
+                  else
+                     sss(2) = 1.0
+                  endif
+                  sss(3) = skalpro(disi, disj, cr_gten)/(disi_l*disj_l    ) ! multiply with  parallel displacments
+!                 sss(4) = abs(disi_l - disj_l)/(0.50_PREC_DP*(disi_l+disj_l))
+sss(4) = 0.0_PREC_DP
+                  signum = 0.50_PREC_DP*(sss(1) * sss(2))*(1.0_PREC_DP + 1.00_PREC_DP * sss(3)) !sss(4)
+!
+                  xij (is, js) = xij (is, js) + signum 
+!                 xij (is, js) = xij (is, js) + dpi * dpj * signum 
+!                 xi2 (is, js) = xi2 (is, js) + dpi**2 
+!                 xj2 (is, js) = xj2 (is, js) + dpj**2 
+                  xnn (is, js) = xnn (is, js) + 1 
+!if(isnan(signum)) then
+!write(*,'(9f9.3, a, 6f9.3, 3f10.3,2x,3f9.3)') &
+!disi(1:3), disj(1:3), idir(1:3),  ' | ', rdi, dpi, dpj, dpi * dpj * signum, dpi**2, dpj**2, sss(1:3), v-u
+!write(*,'(a, 4f10.3, a, f10.3, i5, f10.3)') ' HELI FEED ', sss(1:3), signum , ' || ', xij (is, js), xnn (is, js)
+!read(*,*) k
+!endif
                ENDIF 
                if(mmc_cor_energy(ic, MC_VALUE)) then
                   val(is, js) = val(is, js) + min(abs(frac(cr_valu(i)-cr_valu(iatom (j, icent))      )), &
@@ -844,16 +938,20 @@ ENDIF
 !                                                                       
 !     ----- correlation of displacements                                
 !                                                                       
-!write(*,*) ' DISP FEEDBACK ', xnn(1,1)
+!write(*,*) ' DISP FEEDBACK ', xnn(1,1), xnn(1,2), ' MC ', mmc_pair (ic, MC_DISP, 1,1), mmc_pair (ic, MC_DISP, 1,2)
+!write(*,*) ' DISP FEEDBACK ', xnn(2,1), xnn(2,2), ' MC ', mmc_pair (ic, MC_DISP, 2,1), mmc_pair (ic, MC_DISP, 2,2)
 disp_pair: DO is = 0, cr_nscat 
          DO js = is, cr_nscat 
          IF (mmc_pair (ic, MC_DISP, is, js) == -1 ) THEN 
          je = MC_DISP 
-         xnn (is, js) = xnn (is, js) + xnn (js, is) 
-         xij (is, js) = xij (is, js) + xij (js, is) 
-         xi2 (is, js) = xi2 (is, js) + xi2 (js, is) 
-         xj2 (is, js) = xj2 (is, js) + xj2 (js, is) 
+         if(is/=js) then
+            xnn (is, js) = xnn (is, js) + xnn (js, is) 
+            xij (is, js) = xij (is, js) + xij (js, is) 
+            xi2 (is, js) = xi2 (is, js) + xi2 (js, is) 
+            xj2 (is, js) = xj2 (is, js) + xj2 (js, is) 
+         endif
          IF (xnn (is, js)  /= 0) THEN 
+            nneigh = xnn(is,js)
             xij (is, js) = xij (is, js) / REAL(xnn (is, js) ) 
             xi2 (is, js) = xi2 (is, js) / REAL(xnn (is, js) ) 
             xj2 (is, js) = xj2 (is, js) / REAL(xnn (is, js) ) 
@@ -899,6 +997,67 @@ disp_pair: DO is = 0, cr_nscat
          ENDIF 
          ENDDO 
          ENDDO disp_pair
+!                                                                       
+!     ----- correlation of helical displacements                                
+!                                                                       
+!write(*,*) ' HELI FEEDBACK ', xnn(1:2,1:2)
+!write(*,*) ' HELI FEEDBACK ', xij(1:2,1:2)
+!write(*,*) ' HELI FEEDBACK ', mmc_pair (ic, MC_HELI,1:2, 1:2)
+!write(*,*) ' HELI FEEDBACK ', xnn(1,1), xij(1:2,1:2), xij(1,1)/xnn(1,1)
+heli_pair: DO is = 0, cr_nscat 
+         DO js = is, cr_nscat 
+         IF (mmc_pair (ic, MC_HELI, is, js) == -1 ) THEN 
+         je = MC_HELI 
+         xnn (is, js) = xnn (is, js) + xnn (js, is) 
+         xij (is, js) = xij (is, js) + xij (js, is) 
+!        xi2 (is, js) = xi2 (is, js) + xi2 (js, is) 
+!        xj2 (is, js) = xj2 (is, js) + xj2 (js, is) 
+         IF (xnn (is, js)  /= 0) THEN 
+            xij (is, js) = xij (is, js) / REAL(xnn (is, js) ) 
+!           xi2 (is, js) = xi2 (is, js) / REAL(xnn (is, js) ) 
+!           xj2 (is, js) = xj2 (is, js) / REAL(xnn (is, js) ) 
+!                                                                       
+!write(*,*) ' HELI FEEDBACK ', xnn(1,1), xij(is,js), xi2 (is, js), xj2 (is, js) !, mmc_cfac  (ic, MC_HELI), damp
+!QQ         IF (xi2 (is, js)  /= 0.AND.xj2 (is, js)  /= 0.0) THEN 
+               mmc_ach_corr (ic, je, is, js) = xij (is, js) !/ sqrt (xi2 &
+!               (is, js) * xj2 (is, js) )                                
+               mmc_ach_corr (ic, je, js, is) = mmc_ach_corr (ic, je, is, js)
+!               Feedback mechanism                                      
+               mmc_depth (ic, MC_HELI, is, js) = mmc_depth (ic, MC_HELI, is, js) - &
+               mmc_cfac  (ic, MC_HELI) * (mmc_target_corr (ic, MC_HELI, is, js) - &
+               mmc_ach_corr (ic, MC_HELI, is, js) ) / 2. &
+                    *ABS(mmc_target_corr (ic, MC_HELI, is, js)) &
+                    * damp
+!write(*,*) ' DEPTH         ', mmc_depth (ic, MC_HELI, 0, 0), mmc_depth (ic, MC_HELI, is, js)
+!QQ         ELSE 
+!QQ            mmc_ach_corr (ic, je, is, js) = 0.0 
+!QQ            mmc_ach_corr (ic, je, js, is) = 0.0 
+!QQ          ENDIF 
+         ELSE 
+            mmc_ach_corr (ic, je, is, js) = 0.0 
+            mmc_ach_corr (ic, je, js, is) = 0.0 
+         ENDIF 
+         mmc_h_ctarg = mmc_h_ctarg + 1          ! Increment targets in history
+         mmc_h_diff(mmc_h_ctarg, mmc_h_index) = mmc_target_corr(ic, je, is, js) - mmc_ach_corr(ic, je, is, js)
+            mmc_h_targ(mmc_h_ctarg)              = mmc_target_corr(ic, je, is, js)
+!                                                                       
+         IF (lout) THEN 
+               IF(mmc_target_corr(ic, je, is, js)/=0.0) THEN
+                  divider = mmc_target_corr(ic, je, is, js)
+               ELSE
+                  divider = 1.0
+               ENDIF
+            WRITE (output_io, 3250) ic, cr_at_lis (is), cr_at_lis (js), &
+               mmc_target_corr (ic, je, is, js), mmc_ach_corr(ic, je, is,js), &
+               mmc_target_corr (ic, je, is, js) - mmc_ach_corr (ic, je, is, js), &
+               (mmc_target_corr(ic, je, is, js) - mmc_ach_corr(ic,je, is, js))/divider,&
+               nneigh                                         
+         ENDIF 
+            mmc_ach_pairs(ic, je, is, js) = nneigh
+         ENDIF 
+         ENDDO 
+ENDDO heli_pair
+!read(*,*) is
 !                                                                       
 !                                                                       
 !     -- Loop over all atom pairs to do Hooke potential                 
@@ -1337,6 +1496,7 @@ loop_cor: DO ic = 1, CHEM_MAX_COR
                cond_pair: if(mmc_pair(ic, je, is, js)>-3 .and. mmc_pair(ic, je, is, js)<0 ) then
                   if((je==MC_OCC      .and. js> is  .and. is>=0  .and. lfirst   ) .or. & ! 1 Chemical correlation
                      (je==MC_DISP     .and. js>=is  .and. is>=0                 ) .or. & ! 2 Displacement correlation
+                     (je==MC_HELI     .and. js>=is  .and. is>=0                 ) .or. & !13 Helical Displacement correlation
                      (je==MC_SPRING   .and. mmc_ach_corr(ic, je, is, js)/=0.0D0 ) .or. & ! 3 Hooke
                      (je==MC_LENNARD  .and. mmc_ach_corr(ic, je, is, js)/=0.0D0 ) .or. & ! 7 Lennard Jones
                      (je==MC_BUCKING  .and. mmc_ach_corr(ic, je, is, js)/=0.0D0 ) .or. & ! 8 Buckingham
@@ -1375,6 +1535,7 @@ loop_cor: DO ic = 1, CHEM_MAX_COR
    ENDDO loop_ener
 ENDDO loop_cor
 endif
+!read(*,*) i
 !                                                                       
   410 FORMAT ( 45x,'Correlations/',/                                    &
      &   ' Neig.- Energy-',7x,'Atoms',11x,'Target',2x,'Distance/',4x,   &
@@ -1387,6 +1548,8 @@ endif
  3150 FORMAT (1x,i3,3x,'Coord.No.',a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,f7.3,3x,i8)
  3200 FORMAT (1x,i3,3x,'Disp.Cor.',a5,3x,a5,      8x,2(f7.3,3x),        &
+     &        10x,f7.3,3x,f7.3,3x,i8)                                           
+ 3250 FORMAT (1x,i3,3x,'Heli.Cor.',a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,f7.3,3x,i8)                                           
  3300 FORMAT (1x,i3,3x,'Hooke    ',a5,3x,a5,      8x,5(f7.3,3x)         &
      &             ,i8)                                                 
@@ -1759,6 +1922,11 @@ main_corr: do ic = 1, chem_ncor
 !
    je = MC_DISP 
    call mmc_correlation_write_corr(ic, je, 'Disp.Cor.', .true.)
+!
+!  Helical Displacement correlations
+!
+   je = MC_HELI 
+   call mmc_correlation_write_corr(ic, je, 'Heli.Cor.', .true.)
 !
 !  Angle potentials
 !
