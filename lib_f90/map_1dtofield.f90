@@ -164,7 +164,7 @@ END SUBROUTINE maptofftfd_2D_C_C_DP
 !
 SUBROUTINE maptofftfd_22D_R_C_DP(dimen, dsort, linear, fftfd)
 !-
-!   Map the 2D array onto a 2D complex array. 
+!   Map the 2D real array onto a 2D complex array. 
 !   Shift the center to point (1,1,1)
 !+
 USE precision_mod
@@ -179,22 +179,22 @@ COMPLEX(KIND=KIND(0.0D0)), DIMENSION(1:dimen(dsort(1)),                         
                                      1:dimen(dsort(2))                          &
                                                       ), INTENT(OUT) :: fftfd
 !
-INTEGER :: i,j  , ii,jj    
+INTEGER :: i,j  
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
-INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
+INTEGER, DIMENSION(3) :: ll             ! Target index for i,j
 !
-l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
-l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
+l(1) = mod(dimen(1)-1,2)
+l(2) = mod(dimen(2)-1,2)
+l(3) = mod(dimen(3)-1,2)
 !
 DO i=1, dimen(1)
    DO j=1, dimen(2)
-      ientry(dsort(1)) = i                 ! i ==> goes into :dsort(1)
-      ientry(dsort(2)) = j                 ! j ==> goes into :dsort(2)
-      ii = MOD(ientry(1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
-      jj = MOD(ientry(2) + INT(dimen(dsort(2))/2) - l(dsort(2)), dimen(dsort(2))) + 1
-      fftfd(ii,jj    ) = cmplx(linear(i,j  ),0.0D0, kind=PREC_DP)
+         ll(1) = mod(i + int(dimen(1)/2) - l(1), dimen(1)) + 1
+         ll(2) = mod(j + int(dimen(2)/2) - l(2), dimen(2)) + 1
+         fftfd(ll(dsort(1)),ll(dsort(2))              ) = cmplx(linear(i,j  ), 0.0D0, kind=PREC_DP)
    ENDDO
 ENDDO
+!
 !
 END SUBROUTINE maptofftfd_22D_R_C_DP
 !
@@ -202,7 +202,7 @@ END SUBROUTINE maptofftfd_22D_R_C_DP
 !
 SUBROUTINE maptofftfd_22D_C_C_DP(dimen, dsort, linear, fftfd)
 !-
-!   Map the 3D array onto a 3D complex array. 
+!   Map the 2D complex array onto a 2D complex array. 
 !   Shift the center to point (1,1,1)
 !+
 USE precision_mod
@@ -217,21 +217,19 @@ COMPLEX(KIND=KIND(0.0D0)), DIMENSION(1:dimen(dsort(1)),                         
                                      1:dimen(dsort(2))                          &
                                                       ), INTENT(OUT) :: fftfd
 !
-INTEGER :: i,j  , ii,jj    
+INTEGER :: i,j
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
-INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
+INTEGER, DIMENSION(3) :: ll             ! Target index for i,j
 !
-l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
-l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
-!l(dsort(3)) = MOD(dimen(dsort(3))-1,2)
+l(1) = mod(dimen(1)-1,2)
+l(2) = mod(dimen(2)-1,2)
+l(3) = mod(dimen(3)-1,2)
 !
 DO i=1, dimen(1)
    DO j=1, dimen(2)
-      ientry(dsort(1)) = i                 ! i ==> goes into :dsort(1)
-      ientry(dsort(2)) = j                 ! j ==> goes into :dsort(2)
-      ii = MOD(ientry(1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
-      jj = MOD(ientry(2) + INT(dimen(dsort(2))/2) - l(dsort(2)), dimen(dsort(2))) + 1
-      fftfd(ii,jj    ) =       linear(i,j  )
+         ll(1) = mod(i + int(dimen(1)/2) - l(1), dimen(1)) + 1
+         ll(2) = mod(j + int(dimen(2)/2) - l(2), dimen(2)) + 1
+         fftfd(ll(dsort(1)),ll(dsort(2))              ) =       linear(i,j  )
    ENDDO
 ENDDO
 !
@@ -412,6 +410,7 @@ END SUBROUTINE maptofftfd_33D_C_C_DP
 !
 SUBROUTINE fftfdtoline_1D_C_R_DP(dimen, dsort, linear, fftfd)
 !
+! Reverse 1D complex ==> 1D real
 !
 USE precision_mod
 !
@@ -434,6 +433,7 @@ END SUBROUTINE fftfdtoline_1D_C_R_DP
 !
 SUBROUTINE fftfdtoline_1D_C_C_DP(dimen, dsort, linear, fftfd)
 !
+! Reverse 1D complex ==> 1D complex
 !
 USE precision_mod
 !
@@ -456,6 +456,7 @@ END SUBROUTINE fftfdtoline_1D_C_C_DP
 !
 SUBROUTINE fftfdtoline_2D_C_R_SP(dimen, dsort, linear, fftfd)
 !
+! Reverse 2D complex ==> 1D real
 !
 USE precision_mod
 !
@@ -554,6 +555,7 @@ END SUBROUTINE fftfdtoline_2D_C_C_DP
 !
 SUBROUTINE fftfdtoline_22D_C_R_DP(dimen, dsort, linear, fftfd)
 !
+! Reverse 2D complex ==> 2D real
 !
 USE precision_mod
 !
@@ -565,26 +567,28 @@ COMPLEX(KIND=PREC_DP), DIMENSION(1:dimen(dsort(1)),                             
                                  1:dimen(dsort(2))                               &
                                                   )  , INTENT(IN) :: fftfd
 !
-INTEGER :: i,j  , ii,jj    
+INTEGER :: ii,jj    
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
-INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
+!INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
+INTEGER, DIMENSION(2) :: ll             ! Target index for i,j
+INTEGER, DIMENSION(2) :: fdimen         ! Dimensions of field fftfd
+!
+fdimen(1) = ubound(fftfd,1)
+fdimen(2) = ubound(fftfd,2)
+l(1) = MOD(fdimen(1)-1,2)
+l(2) = MOD(fdimen(2)-1,2)
 !
 l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
 l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
-!l(dsort(3)) = MOD(dimen(dsort(3))-1,2)
 !
-!DO kk=1, dimen(dsort(3))
    DO jj=1, dimen(dsort(2))
       DO ii = 1, dimen(dsort(1))
-         ientry(1) = MOD(ii + INT(dimen(dsort(1))/2)- l(dsort(1)) - 1, dimen(dsort(1))) + 1
-         ientry(2) = MOD(jj + INT(dimen(dsort(2))/2) -l(dsort(2)) - 1, dimen(dsort(2))) + 1
-!         ientry(3) = MOD(kk + INT(dimen(dsort(3))/2) -l(dsort(3)) - 1, dimen(dsort(3))) + 1
-         i = dimen(dsort(1)) + 1 - ientry(dsort(1))                  ! i ==> goes into :dsort(1)
-         j = dimen(dsort(2)) + 1 - ientry(dsort(2))                  ! j ==> goes into :dsort(2)
-         linear(i,j   ) = real(fftfd(ii,jj    ),kind=PREC_DP)
+         ll(dsort(1)) = dimen(dsort(1)) + 1 - (mod(ii + int(fdimen(1)/2) - l(1) -1, fdimen(1)) + 1)
+         ll(dsort(2)) = dimen(dsort(2)) + 1 - (mod(jj + int(fdimen(2)/2) - l(2) -1, fdimen(2)) + 1)
+         linear(ll((1)),ll((2))         ) = real(fftfd(ii,jj    ), kind=PREC_DP)
       ENDDO
    ENDDO
-!ENDDO
+!
 !
 END SUBROUTINE fftfdtoline_22D_C_R_DP
 !
@@ -592,6 +596,7 @@ END SUBROUTINE fftfdtoline_22D_C_R_DP
 !
 SUBROUTINE fftfdtoline_22D_C_C_DP(dimen, dsort, linear, fftfd)
 !
+! Reverse 2D complex ==> 2D complex
 !
 USE precision_mod
 !
@@ -603,28 +608,26 @@ COMPLEX(KIND=PREC_DP), DIMENSION(1:dimen(dsort(1)),                             
                                  1:dimen(dsort(2))                               &
                                                   )  , INTENT(IN) :: fftfd
 !
-INTEGER :: i,j  , ii,jj    
+INTEGER :: ii,jj    
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
-INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
+INTEGER, DIMENSION(2) :: ll             ! Target index for i,j
+INTEGER, DIMENSION(2) :: fdimen         ! Dimensions of field fftfd
+!
+fdimen(1) = ubound(fftfd,1)
+fdimen(2) = ubound(fftfd,2)
+l(1) = MOD(fdimen(1)-1,2)
+l(2) = MOD(fdimen(2)-1,2)
 !
 l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
 l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
-!l(dsort(3)) = MOD(dimen(dsort(3))-1,2)
 !
-!DO kk=1, dimen(dsort(3))
    DO jj=1, dimen(dsort(2))
       DO ii = 1, dimen(dsort(1))
-         ientry(1) = MOD(ii + INT(dimen(dsort(1))/2)- l(dsort(1)) - 1, dimen(dsort(1))) + 1
-         ientry(2) = MOD(jj + INT(dimen(dsort(2))/2) -l(dsort(2)) - 1, dimen(dsort(2))) + 1
-!         ientry(3) = MOD(kk + INT(dimen(dsort(3))/2) -l(dsort(3)) - 1, dimen(dsort(3))) + 1
-         i = dimen(dsort(1)) + 1 - ientry(dsort(1))                  ! i ==> goes into :dsort(1)
-         j = dimen(dsort(2)) + 1 - ientry(dsort(2))                  ! j ==> goes into :dsort(2)
-!         k = ientry(dsort(3))                  ! k ==> goes into :dsort(3)
-!         loop = (i-1)*dimen(2)*dimen(3) + (j-1)*dimen(3) + k
-         linear(i,j   ) =      fftfd(ii,jj    )
+         ll(dsort(1)) = dimen(dsort(1)) + 1 - (mod(ii + int(fdimen(1)/2) - l(1) -1, fdimen(1)) + 1)
+         ll(dsort(2)) = dimen(dsort(2)) + 1 - (mod(jj + int(fdimen(2)/2) - l(2) -1, fdimen(2)) + 1)
+         linear(ll((1)),ll((2))         ) = fftfd(ii,jj    )
       ENDDO
    ENDDO
-!ENDDO
 !
 END SUBROUTINE fftfdtoline_22D_C_C_DP
 !
@@ -632,6 +635,7 @@ END SUBROUTINE fftfdtoline_22D_C_C_DP
 !
 SUBROUTINE fftfdtoline_3D_C_R_DP(dimen, dsort, linear, fftfd)
 !
+! Reverse 3D complex ==> 1D real
 !
 USE precision_mod
 !
@@ -672,6 +676,7 @@ END SUBROUTINE fftfdtoline_3D_C_R_DP
 !
 SUBROUTINE fftfdtoline_3D_C_C_DP(dimen, dsort, linear, fftfd)
 !
+! Reverse 3D complex ==> 1D complex
 !
 USE precision_mod
 !
@@ -712,6 +717,7 @@ END SUBROUTINE fftfdtoline_3D_C_C_DP
 !
 SUBROUTINE fftfdtoline_33D_C_R_DP(dimen, dsort, linear, fftfd)
 !
+! Reverse 3D complex ==> 3D real
 !
 USE precision_mod
 !
@@ -752,6 +758,7 @@ END SUBROUTINE fftfdtoline_33D_C_R_DP
 !
 SUBROUTINE fftfdtoline_33D_C_C_DP(dimen, dsort, linear, fftfd)
 !
+! Reverse 3D complex ==> 3D complex
 !
 USE precision_mod
 !
@@ -779,8 +786,8 @@ DO kk=1, fdimen(3)
    DO jj=1, fdimen(2)
       DO ii = 1, fdimen(1)
          ll(dsort(1)) = dimen(dsort(1)) + 1 - (mod(ii + int(fdimen(1)/2) - l(1) -1, fdimen(1)) + 1)
-         ll(dsort(2)) = dimen(dsort(1)) + 1 - (mod(jj + int(fdimen(2)/2) - l(2) -1, fdimen(2)) + 1)
-         ll(dsort(3)) = dimen(dsort(1)) + 1 - (mod(kk + int(fdimen(3)/2) - l(3) -1, fdimen(3)) + 1)
+         ll(dsort(2)) = dimen(dsort(2)) + 1 - (mod(jj + int(fdimen(2)/2) - l(2) -1, fdimen(2)) + 1)
+         ll(dsort(3)) = dimen(dsort(3)) + 1 - (mod(kk + int(fdimen(3)/2) - l(3) -1, fdimen(3)) + 1)
          linear(ll((1)),ll((2)),ll((3)) ) = fftfd(ii,jj, kk)
       ENDDO
    ENDDO
