@@ -1008,8 +1008,10 @@ heli_pair: DO is = 0, cr_nscat
          DO js = is, cr_nscat 
          IF (mmc_pair (ic, MC_HELI, is, js) == -1 ) THEN 
          je = MC_HELI 
+         if(is/=js) then
          xnn (is, js) = xnn (is, js) + xnn (js, is) 
          xij (is, js) = xij (is, js) + xij (js, is) 
+         endif
 !        xi2 (is, js) = xi2 (is, js) + xi2 (js, is) 
 !        xj2 (is, js) = xj2 (is, js) + xj2 (js, is) 
          IF (xnn (is, js)  /= 0) THEN 
@@ -1051,9 +1053,9 @@ heli_pair: DO is = 0, cr_nscat
                mmc_target_corr (ic, je, is, js), mmc_ach_corr(ic, je, is,js), &
                mmc_target_corr (ic, je, is, js) - mmc_ach_corr (ic, je, is, js), &
                (mmc_target_corr(ic, je, is, js) - mmc_ach_corr(ic,je, is, js))/divider,&
-               nneigh                                         
+               xnn(is,js)                                     
          ENDIF 
-            mmc_ach_pairs(ic, je, is, js) = nneigh
+            mmc_ach_pairs(ic, je, is, js) = xnn(is,js)
          ENDIF 
          ENDDO 
 ENDDO heli_pair
