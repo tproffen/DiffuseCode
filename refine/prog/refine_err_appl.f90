@@ -13,12 +13,14 @@ USE lib_errlist_func
 IMPLICIT      none
 !
 INTEGER       iu,io
-PARAMETER    (IU=-14,IO=0)
+PARAMETER    (IU=-16,IO=0)
 !
 CHARACTER(LEN=45) ERROR(IU:IO)
 !
 !
       DATA ERROR ( IU:  0) /                                       &
+     &  'Macro file does not end with: ''finished''  ',            & ! -16 ! refine
+     &  'Macro file does not start with: ''branch''  ',            & ! -15 ! refine
      &  'Dimensions of observed data and sigma differ',            & ! -14 ! refine
      &  'Unknown prameter name, check list of newpara',            & ! -13 ! refine
      &  'COVAR not allocated, run a refinement first ',            & ! -12 ! refine
