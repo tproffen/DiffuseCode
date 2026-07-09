@@ -787,12 +787,13 @@ IF (form.eq.'XY'.or.form.eq.'DY') then
    ENDIF 
 elseif (form=='H5') then
    if (ianz.eq.0) then 
-      werte (1) = ex (iwin, iframe, 1) 
-      werte (2) = ex (iwin, iframe, 2) 
-      werte (3) = ey (iwin, iframe, 1) 
-      werte (4) = ey (iwin, iframe, 2) 
-      ianz = 4 
-   elseif(ianz==2 .or. ianz==4) then
+      continue
+!     werte (1) = ex (iwin, iframe, 1) 
+!     werte (2) = ex (iwin, iframe, 2) 
+!     werte (3) = ey (iwin, iframe, 1) 
+!     werte (4) = ey (iwin, iframe, 2) 
+!     ianz = 4 
+   elseif(ianz==2 .or. ianz==4 .or. ianz==6) then
       continue
    endif
 !                                                                       
@@ -1349,6 +1350,12 @@ call data2local(ik, ier_num, ier_typ, node_number, infile, data_type, nlayer, is
                 ndims, dims, is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors,     &
                 a0, win, c_x, c_y, c_z, c_dx, c_dy,c_dz, qvalues, sigma, llims, &
                 steps, steps_full, minmaxval, minmaxcoor)
+!write(*,*) ' SAVE GLOBAL ianz: ', ianz
+!write(*, '(a, i4)') 'node_number ', node_number
+!write(*, '(a, i4)') 'data_type   ', data_type
+!write(*, '(a, i4)') 'ndims       ', ndims
+!write(*, '(a,3i4)') ' dims       ',  dims
+!write(*,*) ' WRITE h5 DATA ', form, dims
 !
 if(form/='H5') then
    call oeffne(IWR, filname, 'unknown')
@@ -1356,6 +1363,7 @@ if(form/='H5') then
       return
    endif
 endif
+!write(*,*) ' OPENED THE DATA ', ier_num, ier_typ, ianz
 !
 cond_choices: if(form=='H5')then
 !nx_min
