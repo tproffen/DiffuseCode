@@ -323,6 +323,11 @@ real(kind=PREC_DP), dimension(4) :: sss
 real(kind=PREC_DP) :: disi_l
 real(kind=PREC_DP) :: disj_l
 real(kind=PREC_DP) :: ww_l
+!
+integer           , dimension(:    ), allocatable :: n_neighbors  ! Number of neighbors current atom, for each iscat
+integer           , dimension(:,:,:), allocatable :: n_neigh_grand! Grand number of neighbors for each iscat
+real(kind=PREC_DP) :: aver
+real(kind=PREC_DP) :: sigma
 !                                                                       
 DATA energy_name / 'none', 'Chemical correlation    ', 'Displacement correlation', &
      'Distance correlation (Hooke)', 'Angular      correlation', &
@@ -363,6 +368,8 @@ ALLOCATE( bl_anz (0:MAXSCAT, 0:MAXSCAT) )
 ALLOCATE( bl_sum (0:MAXSCAT, 0:MAXSCAT) )
 ALLOCATE( bl_s2 (0:MAXSCAT, 0:MAXSCAT) )
 ALLOCATE( p_cn(0:MAXSCAT, 0:MAXSCAT))
+allocate(n_neighbors(0:MAXSCAT))
+allocate(n_neigh_grand(0:48,0:MAXSCAT, 0:MAXSCAT))
 !ALLOCATE( pneig(0:MAXSCAT, 0:MAXSCAT, 1:CHEM_MAX_COR) )
 !
 IF(.NOT.ALLOCATED(mmc_h_diff) ) THEN
@@ -383,6 +390,7 @@ mmc_h_ctarg = 0          ! Start with no targets in history
 mmc_h_index = MOD(mmc_h_index+1,MMC_H_NNNN)   ! increment current index
 mmc_m_index = max(mmc_m_index, mmc_h_index)   ! Record maximum number of feedback cycles so far
 mmc_h_nfeed = mmc_h_nfeed + 1                 ! Increment overall feedback counter
+n_neigh_grand = 0
 !                                                                       
 !------ Write title line                                                
 !                                                                       
@@ -533,6 +541,12 @@ is_mc_heli: IF (mmc_cor_energy (ic, MC_HELI)   ) THEN
 !                                                                       
          dpi = skalpro (disi, idir, cr_gten) / rdi 
 ENDIF is_mc_heli
+!
+! Coordination number, reset nmber of neighbors for this atoms
+!
+is_mc_coordnum: if(mmc_cor_energy (ic, MC_COORDNUM) ) then
+   n_neighbors = 0
+endif is_mc_coordnum
 !                                                                       
 !     ---- Loop over all centers                                        
 !                                                                       
@@ -702,6 +716,7 @@ loop_neig:  DO j = 1, natom (icent)
                IF(mmc_cor_energy(ic, MC_COORDNUM)) THEN
                   IF(mmc_pair(ic,MC_COORDNUM, is,js)==-1) THEN
                      p_cn (is, js) = p_cn (is, js) + 1 
+                     n_neighbors(js) = n_neighbors(js) + 1  ! Increment neighors of type js
                   ENDIF
                ENDIF 
 !
@@ -852,6 +867,11 @@ sss(4) = 0.0_PREC_DP
       ENDIF 
       ENDIF is_cent    !       ! center atoms only                                   
    ENDDO main_cent     ! icent ! Loop over centers                               
+   do js=1, cr_nscat
+   IF(mmc_pair(ic,MC_COORDNUM, is,js)==-1) THEN
+   n_neigh_grand(n_neighbors(js), is, js) = n_neigh_grand(n_neighbors(js), is, js) + 1
+   endif
+  enddo
 ENDDO main_atoms       ! i     ! Loop over all atoms                                   
 !                                                                       
 !------ -- Summ up all energies, write output                           
@@ -908,6 +928,19 @@ ENDIF
    cn_out: DO is = 0, cr_nscat 
       DO js = 0 , cr_nscat 
          IF(mmc_pair(ic, MC_COORDNUM, is, js) /=  0 ) THEN 
+            aver = 0.0
+            sigma = 0.0
+            k     = 0
+            do i=0,6
+               aver = aver + i*n_neigh_grand(i,is,js)
+               k = k + n_neigh_grand(i,is,js)
+            enddo
+            aver = aver / real(k, kind=PREC_DP)
+            do i=0,6
+               sigma = sigma + n_neigh_grand(i,is,js)*(i-aver)**2
+            enddo
+            sigma = sqrt(sigma/k)
+            mmc_ach_sigm(ic, je, is, js) = sigma
             mmc_ach_corr(ic, je, is, js) = REAL(n_cn        )/REAL(ncentral(is))
 !           Feedback mechanism                                      
 !           mmc_depth (ic, MC_COORDNUM, 0, 0) = mmc_depth (ic, MC_COORDNUM, 0, 0) - &
@@ -927,6 +960,7 @@ ENDIF
                WRITE(output_io, 3150) ic, cr_at_lis(is), cr_at_lis(js),         &
                   mmc_target_corr(ic, je, is, js),                              &
                   mmc_ach_corr(ic, je, is, js),                                 &
+                  mmc_ach_sigm(ic, je, is, js),                                 &
                   mmc_target_corr(ic, je, is, js) - mmc_ach_corr(ic,je, is, js),&
                  (mmc_target_corr(ic, je, is, js) - mmc_ach_corr(ic,je, is, js))/divider,&
                   ncentral(is)
@@ -1351,6 +1385,8 @@ DEALLOCATE( bl_anz)
 DEALLOCATE( bl_sum)
 DEALLOCATE( bl_s2)
 DEALLOCATE( p_cn)
+deallocate(n_neighbors)
+deallocate(n_neigh_grand)
 !DEALLOCATE( pneig)
 !
 !  Check for convergence
@@ -1489,6 +1525,7 @@ ENDIF
 !! PRINT FOR res_para
 if(lfinished) THEN
 res_para(0) = 0
+do i=1, 2              ! Loop for achieve/sigma
 loop_cor: DO ic = 1, CHEM_MAX_COR 
    loop_ener: DO je = 1, MC_N_ENERGY 
       cond_ener: if(mmc_cor_energy (ic, je)) then   ! This energy is set
@@ -1503,7 +1540,8 @@ loop_cor: DO ic = 1, CHEM_MAX_COR
                      (je==MC_LENNARD  .and. mmc_ach_corr(ic, je, is, js)/=0.0D0 ) .or. & ! 7 Lennard Jones
                      (je==MC_BUCKING  .and. mmc_ach_corr(ic, je, is, js)/=0.0D0 ) .or. & ! 8 Buckingham
                      (je==MC_REPULSIVE.and. mmc_ach_corr(ic, je, is, js)/=0.0D0 ) .or. & ! 9 Repulsive
-                     (je==MC_COORDNUM .and. js> is  .and. is>=0  .and. lfirst   ) .or. & !10 Coordination number
+                     (je==MC_COORDNUM .and.                            lfirst   ) .or. & !10 Coordination number
+!                    (je==MC_COORDNUM .and. js> is  .and. is>=0  .and. lfirst   ) .or. & !10 Coordination number
                      (je==MC_UNI      .and. js> is  .and. is>=0  .and. lfirst   ) .or. & !11 Unidirectional 
                      (je==MC_GROUP    .and. is/=js .and. is>0 .and. js>0 .and.         & !12 Group correlations
                                             mmc_cor_energy(0, MC_GROUP)   .and.        &
@@ -1519,7 +1557,11 @@ loop_cor: DO ic = 1, CHEM_MAX_COR
 ! write(*,'(4i5, f10.4, i5)') ic, je,    (is),    (js), mmc_ach_corr (ic, je, is, js), &
 !mmc_pair(ic, je, is, js)
                     res_para(0) = res_para(0) + 1
+                    if(i==1) then
                     res_para(nint(res_para(0))) = mmc_ach_corr(ic, je, is, js)
+                    elseif(i==2) then
+                    res_para(nint(res_para(0))) = mmc_ach_sigm(ic, je, is, js)
+                    endif
                     lfirst = .false.
 !
                   endif
@@ -1536,6 +1578,7 @@ loop_cor: DO ic = 1, CHEM_MAX_COR
       endif cond_ener
    ENDDO loop_ener
 ENDDO loop_cor
+enddo
 endif
 !read(*,*) i
 !                                                                       
@@ -1547,8 +1590,8 @@ endif
  2100 FORMAT (1x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
 !3100 FORMAT (1x,i3,3x,'Occupancy',a5,3x,a5,      8x,2(f7.3,3x),        &
 !    &        10x,f7.3,3x,i8)
- 3150 FORMAT (1x,i3,3x,'Coord.No.',a5,3x,a5,      8x,2(f7.3,3x),        &
-     &        10x,f7.3,3x,f7.3,3x,i8)
+ 3150 FORMAT (1x,i3,3x,'Coord.No.',a5,3x,a5,      8x,3(f7.3,3x),        &
+     &            f7.3,3x,f7.3,3x,i8)
  3200 FORMAT (1x,i3,3x,'Disp.Cor.',a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,f7.3,3x,i8)                                           
  3250 FORMAT (1x,i3,3x,'Heli.Cor.',a5,3x,a5,      8x,2(f7.3,3x),        &
@@ -2008,6 +2051,17 @@ cond_ener: IF(mmc_cor_energy (ic, je) ) THEN
             endif
             if     (mmc_pair (ic, je, is, js) /=  0 .and. show_pair(is,js)) then 
             lfirst = luse_all
+            if(je==MC_COORDNUM) then
+            write(output_io, 3150) ic, title      , cr_at_lis (is), cr_at_lis (js),         &
+                mmc_target_corr(ic, je, is, js),                                &
+                mmc_ini_corr   (ic, je, is, js),                                &
+                mmc_ini_sigm   (ic, je, is, js),                                &
+                mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js), &
+               (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor, &
+                mmc_ini_pairs(ic,je, is, js)
+               show_pair(is,js) = .false.
+               show_pair(js,is) = .false.
+            else
             write(output_io, 3100) ic, title      , cr_at_lis (is), cr_at_lis (js),         &
                 mmc_target_corr(ic, je, is, js),                                &
                 mmc_ini_corr   (ic, je, is, js),                                &
@@ -2017,6 +2071,7 @@ cond_ener: IF(mmc_cor_energy (ic, je) ) THEN
                show_pair(is,js) = .false.
                show_pair(js,is) = .false.
             endif
+            endif
          endif
       enddo
    enddo loop_type
@@ -2025,6 +2080,8 @@ deallocate(show_pair)
 !
  3100 FORMAT (1x,i3,3x,a9,a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,f7.3,3x,i8)
+ 3150 FORMAT (1x,i3,3x,a9,a5,3x,a5,      8x,3(f7.3,3x),        &
+     &            f7.3,3x,f7.3,3x,i8)
 !
 end subroutine mmc_correlation_write_corr
 !
