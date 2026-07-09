@@ -4,6 +4,7 @@ module lib_math_mod
 !
 !  calc_h5_coord_global   Calculations on the coordinates and their uncertainties
 !  calc_h5_val_global     Calculations on the values/sigmas 
+!  match_h5_val_global    Match scael factor / offset for two data sets
 !  edge2zero              Calculates average values at data set edge and subtracts from data
 !  filter_minabs          Applies a filter: minimum of (abs(i), abs(j)... )
 !  fft_1D_global          Performs a FFT on 2D data
@@ -83,6 +84,7 @@ real(kind=PREC_DP), dimension(3) :: steps
 private
 public calc_h5_coord_global
 public calc_h5_val_global
+public match_h5_val_global
 public edge2zero
 public filter_minabs
 public fft_1D_global
@@ -174,10 +176,22 @@ if(oper=='ADD') then
    summand = 0.0D0
    if(ianz==2) summand = werte(2)
    p2coord     = p2coord       + summand
+   if(lcoord) then
+      ik1_llims(jdim)           = ik1_llims(jdim)           + summand
+      ik1_steps(jdim)           = ik1_steps(jdim)           + summand
+      ik1_steps_full(jdim,jdim) = ik1_steps_full(jdim,jdim) + summand
+      ik1_vectors(:,jdim)       = ik1_vectors(:,jdim)       + summand
+      ik1_corners(jdim,:)       = ik1_corners(jdim,:)       + summand
+   endif
 elseif(oper.eq.'EXP') then
    p2coord       = exp(p2coord)
    if(lcoord) then
       ik1_is_grid = .false.                 ! No longer an equidistant grid
+      ik1_llims(jdim)           = exp(ik1_llims(jdim)          )
+      ik1_steps(jdim)           = exp(ik1_steps(jdim)          )
+      ik1_steps_full(jdim,jdim) = exp(ik1_steps_full(jdim,jdim))
+      ik1_vectors(:,jdim)       = exp(ik1_vectors(:,jdim)      )
+      ik1_corners(jdim,:)       = exp(ik1_corners(jdim,:)      )
    endif
 elseif(oper.eq.'INV') then
    where(p2coord/=0.0D0)
@@ -185,13 +199,31 @@ elseif(oper.eq.'INV') then
    end where
    if(lcoord) then
       ik1_is_grid = .false.                 ! No longer an equidistant grid
+      if(ik1_llims(jdim)/=0.0D0)      ik1_llims(jdim)           = 1.0D0/(ik1_llims(jdim)          )
+      if(ik1_steps(jdim)/=0.0D0)      ik1_steps(jdim)           = 1.0D0/(ik1_steps(jdim)          )
+      if(ik1_steps_full(jdim,jdim)/=0.0D0) ik1_steps_full(jdim,jdim) = 1.0D0/(ik1_steps_full(jdim,jdim))
+      where(ik1_vectors(:,jdim)/=0.0D0)
+         ik1_vectors(:,jdim)       = 1.0D0/(ik1_vectors(:,jdim)      )
+      end where
+      where(ik1_corners(jdim,:)/=0.0D0)
+         ik1_corners(jdim,:)       = 1.0D0/(ik1_corners(jdim,:)      )
+      end where
    endif
 elseif(oper.eq.'LOG') then
-   where(p2coord>=0.0D0)
+   where(p2coord> 0.0D0)
       p2coord = log(p2coord)
    end where
    if(lcoord) then
       ik1_is_grid = .false.                 ! No longer an equidistant grid
+      if(ik1_llims(jdim)> 0.0D0)      ik1_llims(jdim)           = log   (ik1_llims(jdim)          )
+      if(ik1_steps(jdim)> 0.0D0)      ik1_steps(jdim)           = log   (ik1_steps(jdim)          )
+      if(ik1_steps_full(jdim,jdim)> 0.0D0) ik1_steps_full(jdim,jdim) = log   (ik1_steps_full(jdim,jdim))
+      where(ik1_vectors(:,jdim)> 0.0D0)
+         ik1_vectors(:,jdim)       = log   (ik1_vectors(:,jdim)      )
+      end where
+      where(ik1_corners(jdim,:)> 0.0D0)
+         ik1_corners(jdim,:)       = log   (ik1_corners(jdim,:)      )
+      end where
    endif
 elseif(oper=='MUL') then
    factor = 1.0D0
@@ -201,6 +233,8 @@ elseif(oper=='MUL') then
       ik1_llims(jdim)           = ik1_llims(jdim)           * factor
       ik1_steps(jdim)           = ik1_steps(jdim)           * factor
       ik1_steps_full(jdim,jdim) = ik1_steps_full(jdim,jdim) * factor
+      ik1_vectors(:,jdim)       = ik1_vectors(:,jdim)       * factor
+      ik1_corners(jdim,:)       = ik1_corners(jdim,:)       * factor
    endif
 elseif(oper.eq.'SQR') then
    where(p2coord>=0.0D0)
@@ -208,16 +242,35 @@ elseif(oper.eq.'SQR') then
    end where
    if(lcoord) then
       ik1_is_grid = .false.                 ! No longer an equidistant grid
+      if(ik1_llims(jdim)>=0.0D0)      ik1_llims(jdim)           = sqrt  (ik1_llims(jdim)          )
+      if(ik1_steps(jdim)>=0.0D0)      ik1_steps(jdim)           = sqrt  (ik1_steps(jdim)          )
+      if(ik1_steps_full(jdim,jdim)>=0.0D0) ik1_steps_full(jdim,jdim) = sqrt  (ik1_steps_full(jdim,jdim))
+      where(ik1_vectors(:,jdim)>=0.0D0)
+         ik1_vectors(:,jdim)       = sqrt  (ik1_vectors(:,jdim)      )
+      end where
+      where(ik1_corners(jdim,:)>=0.0D0)
+         ik1_corners(jdim,:)       = sqrt  (ik1_corners(jdim,:)      )
+      end where
    endif
 elseif(oper.eq.'SQU') then
    p2coord = p2coord **2
    if(lcoord) then
       ik1_is_grid = .false.                 ! No longer an equidistant grid
+      ik1_llims(jdim)           = ik1_llims(jdim)           **2     
+      ik1_steps(jdim)           = ik1_steps(jdim)           **2     
+      ik1_steps_full(jdim,jdim) = ik1_steps_full(jdim,jdim) **2     
+      ik1_vectors(:,jdim)       = ik1_vectors(:,jdim)       **2     
+      ik1_corners(jdim,:)       = ik1_corners(jdim,:)       **2     
    endif
 elseif(oper.eq.'ABS') then
    p2coord       = abs(p2coord)
    if(lcoord) then
       ik1_is_grid = .false.                 ! No longer an equidistant grid
+      ik1_llims(jdim)           = abs(ik1_llims(jdim)          )
+      ik1_steps(jdim)           = abs(ik1_steps(jdim)          )
+      ik1_steps_full(jdim,jdim) = abs(ik1_steps_full(jdim,jdim))
+      ik1_vectors(:,jdim)       = abs(ik1_vectors(:,jdim)      )
+      ik1_corners(jdim,:)       = abs(ik1_corners(jdim,:)      )
    endif
 else
    ier_num = -6
@@ -332,6 +385,122 @@ nullify(p2data)
 call math_clean
 !
 end subroutine calc_h5_val_global
+!
+!*****7*****************************************************************
+!
+subroutine match_h5_val_global(ik1, ik2, iweight, lscale, lback)
+!+                                                                      
+!     Calculations for a (3D) data set stored in the (HDF5)-type general storage
+!-
+!
+use errlist_mod
+use lib_data_struc_h5
+use lib_random_func
+use precision_mod
+use prompt_mod
+use wichtung_mod
+!
+implicit none
+!
+integer                            , intent(in) :: ik1    ! Kuplot data set number 
+integer                            , intent(in) :: ik2    ! Kuplot data set number 
+integer                            , intent(in) :: iweight ! Identifier for weight
+logical                            , intent(in) :: lscale  ! Scale the data
+logical                            , intent(in) :: lback   ! 
+!
+integer, PARAMETER :: MAXW  = 25
+!                                                                       
+integer, PARAMETER :: W_ONE = 0
+integer, PARAMETER :: W_SQUA = 1
+integer, PARAMETER :: W_SQRT = 2
+integer, PARAMETER :: W_INV = 3
+integer, PARAMETER :: W_LOG = 4
+integer, PARAMETER :: W_ISQ = 5
+integer, PARAMETER :: W_LIN = 6
+integer, PARAMETER :: W_DAT = 7
+integer, PARAMETER :: W_BCK = 8
+!
+integer :: i,j,k
+integer :: ianz
+real(kind=PREC_DP) :: c, cc, ce, e, ee    ! parameters for the sums 
+real(kind=PREC_DP) :: weight              ! DAweight for data point
+real(kind=PREC_DP) :: wtot                ! total weight
+real(kind=PREC_DP) :: bck_k = 0.0D0       ! "Backgroud weight"
+real(kind=PREC_DP) :: scalef              ! Scale fector
+real(kind=PREC_DP) :: back                ! Backgroundor
+!
+call data2local(ik1     , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+     ik1_data_type, &
+     ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
+     ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+     ik1_vectors, ik1_a0, ik1_win,  &
+     ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
+     ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
+!
+call data2local(ik2     , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+     ik2_data_type, &
+     ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
+     ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+     ik2_vectors, ik2_a0, ik2_win,  &
+     ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
+     ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
+!
+! Do dimensions and coordinates match ?
+!
+if(ik1_ndims /= ik2_ndims) then
+   return
+endif
+!
+!------ Now we calculate scale and offset                               
+!                                                                       
+wtot = 0.0  ! Sum of all weights
+e  = 0.0    ! Sum "experimental"
+c  = 0.0    ! Sum "calculated"
+ee = 0.0    ! Sum "experimental" squared
+cc = 0.0    ! Sum "experimental" squared
+ce = 0.0    ! Sum "experimental" * "calculated"
+!
+do k=1, ik1_dims(3)
+   do j=1, ik1_dims(2)
+      do i=1, ik1_dims(1)
+         weight = r_wichtung(ik1_data(i,j,k), 1.0, iweight, ik2_data(i,j,k), bck_k) 
+         wtot = wtot + weight
+         e  = e  + weight * ik1_data(i,j,k)
+         ee = ee + weight * ik1_data(i,j,k) **2
+         c  = c  + weight * ik2_data(i,j,k)
+         cc = cc + weight * ik2_data(i,j,k) **2
+         ce = ce + weight * ik2_data(i,j,k) * ik1_data(i,j,k)
+      enddo
+   enddo
+enddo
+!
+!                                                                       
+if(lscale .and. lback) then
+   scalef = (wtot * ce-e * c) / (wtot * cc - c * c)
+   back = (e-scalef * c) / wtot
+elseif (lscale .and. .not.lback) then
+   scalef = ce / cc
+   back = 0.0
+elseif (.not.lscale .and. lback) then
+   scalef = 1.0D0
+   back = (e-c) / wtot
+else
+   scalef = 1.0D0
+   back   = 0.0D0
+endif
+!
+write(output_io, 1000) scalef, back
+!
+ik2_data = ik2_data * scalef + back
+call local2data(ik2, ier_num, ier_typ, ik2_node_number, ik2_infile, ik2_data_type, ik2_nlayer,  &
+     ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid, ik2_has_dxyz,             &
+     ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners, ik2_vectors, ik2_a0, ik2_win, ik2_x, ik2_y,     &
+     ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma, ik2_llims, ik2_steps,  &
+     ik2_steps_full)
+!
+1000 format(' ------ > Scale = ',g12.5,' Offset = ',g12.5,/)
+!
+end subroutine match_h5_val_global
 !
 !*******************************************************************************
 !
