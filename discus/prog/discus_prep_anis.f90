@@ -376,26 +376,32 @@ subroutine update_biso(itype, biso)
 use crystal_mod
 !
 use precision_mod
+use wink_mod
 !
 implicit none
 !
 integer           , intent(in) :: itype
 real(kind=PREC_DP), intent(in) :: biso
 !
+character(len=PREC_string) :: string
 integer :: i
 logical, dimension(:), allocatable :: is_uses_adp
 logical, dimension(:), allocatable :: adp_used_is
 integer                            :: new_adp
+integer                            :: ianis 
 integer                            :: ientry
+integer                            :: length
 logical                            :: lsuccess
 !
 allocate(is_uses_adp(cr_nanis))     ! itype uses these ADPs
 allocate(adp_used_is(0:cr_nscat))   ! This adp is used by these atom types
 is_uses_adp = .FALSE.
 adp_used_is = .FALSE.
+ianis = 0
 loop_atoms1: do i=1, cr_natoms
    cond_iscat1: if(cr_iscat(1,i)==itype) then
       is_uses_adp(cr_iscat(3,i)) = .TRUE.
+      ianis = cr_iscat(3,i)
    endif cond_iscat1
 enddo loop_atoms1
 !
@@ -406,19 +412,23 @@ loop_atoms2: do i=1, cr_natoms
    endif cond_iscat2
 enddo loop_atoms2
 !
-new_adp = cr_nanis + 1
-cond_new: if(any(adp_used_is)) then
-   new_adp = cr_nanis + 1
-else cond_new
-   do i=1, cr_nanis
-      if(is_uses_adp(i)) then
-         new_adp = i
-         exit cond_new
-      endif
-   enddo
-endif cond_new
-call lookup_anis_1(.FALSE., cr_nanis, cr_anis_full, cr_prin, biso , cr_emat, cr_ar, &
-                         ientry, lsuccess)
+write(string,'(a5,i4.4,a10,f15.10,a1)') 'type:',ianis, ', values:[',biso/8.0D0/PI**2, ']'
+length = len_trim(string)
+call do_anis(string, length)
+!!
+!new_adp = cr_nanis + 1
+!cond_new: if(any(adp_used_is)) then
+!   new_adp = cr_nanis + 1
+!else cond_new
+!   do i=1, cr_nanis
+!      if(is_uses_adp(i)) then
+!         new_adp = i
+!         exit cond_new
+!      endif
+!   enddo
+!endif cond_new
+!call lookup_anis_1(.FALSE., cr_nanis, cr_anis_full, cr_prin, biso , cr_emat, cr_ar, &
+!                         ientry, lsuccess)
 !
 deallocate(is_uses_adp)
 deallocate(adp_used_is)
@@ -1045,6 +1055,7 @@ logical                                  :: lold     ! Find old value
 logical                                  :: lsuccess  ! True if old UIJ were found
 !
 integer :: ianis, j
+integer :: idim1
 real(kind=PREC_DP)                 :: rlen    ! Vector length
 real(kind=PREC_DP), dimension(3)   :: ar_inv  ! ( 1/a*, 1/b*, 1/c*)
 real(kind=PREC_DP), dimension(3)   :: vec     ! a vector
@@ -1147,10 +1158,25 @@ cr_anis(:,ianis) = wwerte(1:6)   ! WORK
 !
 ! Check if the new UIJ are within the list of the old cr_anis_full
 !
-call lookup_anis(lold, cr_nanis, cr_anis_full, cr_prin, uij, ucij, .TRUE., j, lsuccess)   ! Check if old ADPs are reproduced
+if(ianis>0 .and. ianis<=cr_nanis) then
+   cr_anis_full(1,ianis) = uij(1,1)
+   cr_anis_full(2,ianis) = uij(2,2)
+   cr_anis_full(3,ianis) = uij(3,3)
+   cr_anis_full(4,ianis) = uij(3,2)
+   cr_anis_full(5,ianis) = uij(3,1)
+   cr_anis_full(6,ianis) = uij(2,1)
+   idim1 = cr_nanis
+   call calc_prin_3x3(ianis, cr_nanis, ucij, idim1, cr_prin)
+else
+   ier_num = -6
+   ier_typ = ER_FORT
+   write(ier_msg(1) ,'(a,i8)') 'Wrong type is: ', ianis
+   return
+endif
+!call lookup_anis(lold, cr_nanis, cr_anis_full, cr_prin, uij, ucij, .TRUE., j, lsuccess)   ! Check if old ADPs are reproduced
 !
-cr_iscat(2, ianis) = j
-cr_dw(ianis) = ((cr_prin(4,1,j) + cr_prin(4,2,j) + cr_prin(4,3,j))/3.0_PREC_DP)*8.0_PREC_DP*PI**2
+!cr_iscat(2, ianis) = j
+cr_dw(ianis) = ((cr_prin(4,1,ianis) + cr_prin(4,2,ianis) + cr_prin(4,3,ianis))/3.0_PREC_DP)*8.0_PREC_DP*PI**2
 
 !call calc_prin_3x3(ianis, cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
 !cr_anis_full(1, ianis) = uij(1,1)
