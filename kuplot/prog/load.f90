@@ -466,6 +466,7 @@ USE kuplot_mod
 USE kuplot_load_h5
 use kuplot_load_shelx
 use kuplot_toglobal
+use kuplot_load_rmc
 !
 USE ber_params_mod
 use blanks_mod
@@ -610,6 +611,12 @@ IF (ianz.ge.2) then
                            lopara, lpresent, owerte , iz, ku_ndims,               &
                            ier_num, ier_typ, UBOUND(ier_msg,1), ier_msg, ER_APPL, &
                            ER_IO, output_io)
+            return
+         elseif(unter=='RMC') then
+            CALL rmc_read_kuplot(cpara(2),lpara(2), O_LAYER, O_TRANS, NOPTIONAL, opara,   &
+                           lopara, lpresent, owerte , iz, ku_ndims,               &
+                           ier_num, ier_typ, UBOUND(ier_msg,1), ier_msg, ER_APPL, &
+                           ER_IO, lecho, output_io)
             return
          elseif(unter=='MRC') then
             call mrc_read_kuplot(cpara(2),lpara(2), node_number, ii)
