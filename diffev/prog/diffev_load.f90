@@ -117,6 +117,7 @@ LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE. ! Prevents user from deleting variables
 INTEGER :: iix, iiy, iiz                 ! Dummy loop variables
 integer :: i1, i2, j1, j2, k1, k2        ! Dummy loop variables
 REAL(kind=PREC_DP)    :: step
+integer(KIND=PREC_DP) , dimension(3,1 ) :: ref_dim
 !
 iiz = 1
 IF(ndata==-1) ndata = iz-1            ! -1 signals last data set
