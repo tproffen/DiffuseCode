@@ -3493,7 +3493,7 @@ LOGICAL :: lserial    ! serial calculation if TRUE
 logical :: lout_feed  ! Output on/off as combination of system and user settings
 LOGICAL :: lfeed      ! Perform feedback algorithm
 LOGICAL :: laccept, done 
-LOGICAL :: lout, lfinished
+LOGICAL :: lfinished
 logical :: ldetail     ! Print more detailed correlation output
 !                                                                       
 REAL(kind=PREC_DP), DIMENSION(0:MC_N_ENERGY) :: e_old
@@ -3606,11 +3606,14 @@ ENDDO check_conn
 !------ Loop will be started                                            
 !                                                                       
 lout_feed = lout_feed_in .and. mmc_out_feed    ! Combine system and user feedback settings
+lfinished = .true.
+ldetail   = .false.
+done      = .true.
+rel_cycl  = 0.0_PREC_DP
+CALL mmc_correlations (.false., rel_cycl, done, lfinished, lfeed, ldetail, maxdev) 
 lfinished = .false.
 ldetail   = .false.
 done      = .false.
-rel_cycl  = 0.0_PREC_DP
-CALL mmc_correlations (.false., rel_cycl, done, lfinished, lfeed, ldetail, maxdev) 
 mmc_ini_corr  = mmc_ach_corr 
 mmc_ini_sigm  = mmc_ach_sigm 
 mmc_ini_angl  = mmc_ach_angl 
@@ -4028,6 +4031,8 @@ INTEGER                           , INTENT(INOUT)  :: iacc_neut
 INTEGER                           , INTENT(INOUT)  :: iacc_bad
 REAL(kind=PREC_DP)                              , INTENT(INOUT)  :: rel_cycl
 !
+integer, parameter :: MMC_MAX_ATOM_CN = 48      ! Maximum number of centers
+!
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L)                 :: iatom
 REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L)                 :: patom
 INTEGER, DIMENSION(     MMC_MAX_CENT_L)                                 :: natom
@@ -4044,13 +4049,16 @@ REAL(KIND=PREC_DP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
 !integer :: i
 logical :: ldetail  ! Print more detailed correlations
 logical :: laccept
-real(kind=PREC_DP) , dimension(3,2) :: original_pos
-real(kind=PREC_DP) , dimension(3,2) :: original_disp
-real(kind=PREC_DP) , dimension(3,2) :: final_pos
-real(kind=PREC_DP) , dimension(3,2) :: final_disp
+!real(kind=PREC_DP) , dimension(3,2) :: original_pos
+!real(kind=PREC_DP) , dimension(3,2) :: original_disp
+!real(kind=PREC_DP) , dimension(3,2) :: final_pos
+!real(kind=PREC_DP) , dimension(3,2) :: final_disp
+!
+integer , dimension(:), allocatable :: isel_cn ! centers to selected atoms
 !
 integer :: i
 !write(*,*) ' ID ', tid
+i=0
 ldetail = .false.
 laccept = .false.
 !
@@ -4071,15 +4079,15 @@ IF(done) RETURN                 ! Quickly cycle to end if an error occuredd
 !else
 !write(*,'(a, i6, a,  i3)') ' Scnd  Atom at site 2 ' , isel(2), ' ISCAT ', cr_iscat(1,isel(2))
 !endif
-original_pos(:,1) = cr_pos(:, isel(1))
-original_pos(:,2) = cr_pos(:, isel(2))
-if(cr_iscat(1,isel(1)) ==1) then
-   original_disp(:,1) = cr_pos(:, isel(1)) - nint(cr_pos(:, isel(1)))
-   original_disp(:,2) = cr_pos(:, isel(2)) - nint(cr_pos(:, isel(2)))
-else
-   original_disp(:,1) = cr_pos(:, isel(1)) - 0.5D0 - nint(cr_pos(:, isel(1))-0.5D0)
-   original_disp(:,2) = cr_pos(:, isel(2)) - 0.5D0 - nint(cr_pos(:, isel(2))-0.5D0)
-endif
+!QQQ original_pos(:,1) = cr_pos(:, isel(1))
+!QQQ original_pos(:,2) = cr_pos(:, isel(2))
+!QQQ if(cr_iscat(1,isel(1)) ==1) then
+!QQQ    original_disp(:,1) = cr_pos(:, isel(1)) - nint(cr_pos(:, isel(1)))
+!QQQ    original_disp(:,2) = cr_pos(:, isel(2)) - nint(cr_pos(:, isel(2)))
+!QQQ else
+!QQQ    original_disp(:,1) = cr_pos(:, isel(1)) - 0.5D0 - nint(cr_pos(:, isel(1))-0.5D0)
+!QQQ    original_disp(:,2) = cr_pos(:, isel(2)) - 0.5D0 - nint(cr_pos(:, isel(2))-0.5D0)
+!QQQ endif
 !write(*,'(a,2i6, a, 2i3)') ' First Atom at site 1 ' , isel(1), isel(1)+1, ' ISCAT ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1) 
 !else
 !write(*,'(a,2i6, a, 2i3)') ' First Atom at site 2 ' , isel(1)-1, isel(1), ' ISCAT ', cr_iscat(1,isel(1)-1), cr_iscat(1,isel(1)) 
@@ -4089,18 +4097,37 @@ endif
 !else
 !write(*,'(a,2i6, a, 2i3)') ' Scnd  Atom at site 2 ' , isel(2)-1, isel(2), ' ISCAT ', cr_iscat(1,isel(2)-1), cr_iscat(1,isel(2)) 
 !endif
+!write(*,*) ' mmc_pair ', lbound(mmc_pair)
+!write(*,*) ' mmc_pair ', ubound(mmc_pair)
 !write(*,*) '  mmc_pair 1 ', mmc_pair(1,MC_COORDNUM, cr_iscat(1,isel(1)),:)
 !write(*,*) '  mmc_pair 2 ', mmc_pair(1,MC_COORDNUM, cr_iscat(1,isel(1)),:)
-!write(*,*) '  MMC_PAIR11 ', mmc_pair(:,MC_COORDNUM, 1                  ,:)
-!write(*,*) '  MMC_PAIR 1 ', any(mmc_pair(:,MC_COORDNUM, 1                  ,:)==-1)
-!write(*,*) '  MMC_PAIR 2 ', any(mmc_pair(:,MC_COORDNUM, 2                  ,:)==-1)
-!write(*,*) '  MMC_PAIR 3 ', any(mmc_pair(:,MC_COORDNUM, 3                  ,:)==-1)
-!write(*,*) '  MMC_PAIR 4 ', any(mmc_pair(:,MC_COORDNUM, 4                  ,:)==-1)
+!write(*,*) '  MMC_PAIR11 ', mmc_pair(1:chem_ncor,MC_COORDNUM, 1                  ,:)
+!write(*,*) '  MMC_PAIR 1 ', any(mmc_pair(1:chem_ncor,MC_COORDNUM, 1                  ,:)==-1)
+!write(*,*) '  MMC_PAIR 2 ', any(mmc_pair(1:chem_ncor,MC_COORDNUM, 2                  ,:)==-1)
+!write(*,*) '  MMC_PAIR 3 ', any(mmc_pair(1:chem_ncor,MC_COORDNUM, 3                  ,:)==-1)
+!write(*,*) '  MMC_PAIR 4 ', any(mmc_pair(1:chem_ncor,MC_COORDNUM, 4                  ,:)==-1)
+!write(*,*) '  MMC_COR_ENERGY ', mmc_cor_energy(0:chem_ncor, MC_COORDNUM)
 !write(*,*)
 !write(*,*) '  MMC_PAIR13 ', mmc_pair(:,MC_COORDNUM, 3                  ,:)
 !write(,*,*) ' iscat', cr_iscat(1,isel(1)),cr_iscat(1,isel(2))
 !write(*,*)
+!write(*,*) ' move ', mmc_move, MC_MOVE_SWCHEM , MC_MOVE_SWNEIG
+!write(*,*) ' ISEL ', isel(1:2)
+!write(*,*) ' ISEL ', cr_iscat(1,isel(1:2))
 !read(*,*) i
+!
+!   If any coordination number energy is requested, to prepare :
+!           isel(5:6), the neighbor to be exchanged   if move is swneig or exchange neighbor
+!           icent_cn   The list of central atoms 
+if(allocated(isel_cn)) deallocate(isel_cn)
+allocate(isel_cn(0:MMC_MAX_ATOM_CN))
+isel_cn = 0
+if(mmc_cor_energy(0,MC_COORDNUM)) then
+   call prepare_swneig(isel, isel_cn, mmc_move,  MMC_MAX_ATOM_L, MMC_MAX_ATOM_CN)
+endif
+!
+! write(*,'(a,4i7)') '   modify PRAE  MOVE ', isel(1:4)
+! write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
 !                                                                       
 !--Calculate old energy                                          
 !                                                                       
@@ -4112,15 +4139,18 @@ valid_all = .FALSE.
 !write(*,'(a20,i3, f7.3,2(a5, 2i4),i4)') ' CALL ENERGIES OLD', tid, 0.0D0, ' P1: ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1),  &
 !                                      ' P2: ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1), natoms
 CALL mmc_energies(isel, is, iz, natoms, iatom, patom, tatom, natom, ncent, &
-                  rdi,      valid_all, e_old, CHEM_MAX_COR,         &
-                  MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, .true.)
-!write(*,*) ' Old Energy ', e_old(MC_HELI), valid_all, ubound(e_old), MC_HELI
+                  rdi, isel_cn, valid_all, e_old, CHEM_MAX_COR,         &
+                  MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, MMC_MAX_ATOM_CN,.true.)
+! write(*,'(a,4i7)') '   modify POST  ENER ', isel(1:4)
+! write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
+!write(*,*) ' Old Energy ', e_old(MC_OCC     ), valid_all, ubound(e_old), MC_OCC
+!write(*,*) ' Old Energy ', e_old(MC_COORDNUM), valid_all, ubound(e_old), MC_COORDNUM
 !if(tid==0) &
 !write(*,'(a20,i3, f7.3,2(a5, 2i4),i4)') ' Old Energy ', tid, e_old(MC_OCC ), ' P1: ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1),  &
 !                                           ' P2: ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1), ier_num
 IF(ier_num/=0) THEN             ! Error, cycle to end of loop
    done = .TRUE.
-write(*,*) ' POINT A ', ier_num
+!write(*,*) ' POINT A ', ier_num
    RETURN
 ENDIF
 cond_valid: IF(valid_all) THEN 
@@ -4129,10 +4159,13 @@ cond_valid: IF(valid_all) THEN
 !                                                                       
    CALL mmc_modify(isel, posz(:,tid), posz2(:,tid), disp, MMC_MAX_ATOM_L)
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
-write(*,*) ' POINT B ', ier_num
+!write(*,*) ' POINT B ', ier_num
       done = .TRUE.
       RETURN
    ENDIF
+! SWITCHED NEIGHBORS ?
+! write(*,'(a,4i7)') '   modify POST  MOVE ', isel(1:4)
+! write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
 !                                                                       
 !-----Calculate new energy                                          
 !                                                                       
@@ -4145,14 +4178,17 @@ write(*,*) ' POINT B ', ier_num
 !if(tid==0) &
 !write(*,*) ' CALL ENERGIES NEW', tid
    CALL mmc_energies(isel, is, iz, natoms, iatom, patom, tatom, natom, ncent, &
-                     rdi,      valid_all, e_new, CHEM_MAX_COR,         &
-                     MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, .false.)
-!write(*,*) ' New Energy ', e_new(MC_HELI), valid_all, ubound(e_old), MC_HELI
+                     rdi, isel_cn, valid_all, e_new, CHEM_MAX_COR,         &
+                     MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, MMC_MAX_ATOM_CN, .false.)
+! write(*,'(a,4i7)') '   modify POST  ener ', isel(1:4)
+! write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
+!write(*,*) ' New Energy ', e_new(MC_OCC     ), valid_all, ubound(e_old), MC_OCC     
+!write(*,*) ' New Energy ', e_new(MC_COORDNUM), valid_all, ubound(e_old), MC_COORDNUM
 !if(tid==0) &
 !write(*,'(a20,i3, f7.3,2(a5, 2i4))') ' New Energy ', tid, e_new(MC_OCC ), ' P1: ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1),  &
 !                                           ' P2: ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1)
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
-write(*,*) ' POINT C ', ier_num
+!write(*,*) ' POINT C ', ier_num
       done = .TRUE.
       RETURN
    ENDIF
@@ -4172,10 +4208,11 @@ write(*,*) ' POINT C ', ier_num
       laccept = .FALSE. 
    ENDIF 
 !write(*,*                       ) ' ACCEPT ', tid, laccept, e_new(MC_VALUE), e_old(MC_VALUE), e_new(MC_VALUE)-e_old(MC_VALUE)<0.0!, ier_num, ier_typ
-!write(*,'(a,i3, l3, 3f10.4, l3)') ' ACCEPT ', tid, laccept, e_new(MC_HELI), e_old(MC_HELI),e_new(MC_HELI)-e_old(MC_HELI), laccept .and.e_new(MC_HELI)-e_old(MC_HELI)>0.0!, ier_num, ier_typ
+!write(*,'(a,i3, l3, 3f10.4, l3)') ' ACCEPT ', tid, laccept, e_new(MC_OCC), e_old(MC_OCC),e_new(MC_OCC)-e_old(MC_OCC), laccept .and.e_new(MC_OCC)-e_old(MC_OCC)>0.0
+!write(*,'(a,i3, l3, 3f10.4, l3)') ' ACCEPT ', tid, laccept, e_new(MC_coordnum), e_old(MC_COORDNUM),e_new(MC_COORDNUM)-e_old(MC_COORDNUM), laccept .and.e_new(MC_COORDNUM)-e_old(MC_COORDNUM)>0.0
 !read(*,*) i
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
-write(*,*) ' POINT D ', ier_num
+!write(*,*) ' POINT D ', ier_num
       done = .TRUE.
       RETURN
    ENDIF
@@ -4199,20 +4236,20 @@ write(*,*) ' POINT D ', ier_num
 !!read(*,*) kk
 !endif
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
-write(*,*) ' POINT E ', ier_num
+!write(*,*) ' POINT E ', ier_num
       done = .TRUE.
       RETURN
    ENDIF
 ENDIF  cond_valid
-final_pos(:,1) = cr_pos(:, isel(1))
-final_pos(:,2) = cr_pos(:, isel(2))
-if(cr_iscat(1,isel(1)) ==1) then
-   final_disp(:,1) = cr_pos(:, isel(1)) - nint(cr_pos(:, isel(1)))
-   final_disp(:,2) = cr_pos(:, isel(2)) - nint(cr_pos(:, isel(2)))
-else
-   final_disp(:,1) = cr_pos(:, isel(1)) - 0.5D0 - nint(cr_pos(:, isel(1))-0.5D0)
-   final_disp(:,2) = cr_pos(:, isel(2)) - 0.5D0 - nint(cr_pos(:, isel(2))-0.5D0)
-endif
+!final_pos(:,1) = cr_pos(:, isel(1))
+!final_pos(:,2) = cr_pos(:, isel(2))
+!if(cr_iscat(1,isel(1)) ==1) then
+!   final_disp(:,1) = cr_pos(:, isel(1)) - nint(cr_pos(:, isel(1)))
+!   final_disp(:,2) = cr_pos(:, isel(2)) - nint(cr_pos(:, isel(2)))
+!else
+!   final_disp(:,1) = cr_pos(:, isel(1)) - 0.5D0 - nint(cr_pos(:, isel(1))-0.5D0)
+!   final_disp(:,2) = cr_pos(:, isel(2)) - 0.5D0 - nint(cr_pos(:, isel(2))-0.5D0)
+!endif
 !if(laccept) then  ! Move accepted, switched displacement ?
 !  if(any(abs(final_disp(:,1)-original_disp(:,2))>1.0D-8)   .or. & 
 !     any(abs(final_disp(:,2)-original_disp(:,1))>1.0D-8)  ) then
@@ -4236,6 +4273,8 @@ endif
 !endif
 !write(*,'(a,i3, l3, 3f10.4, l3)') ' ACCEPT ', tid, laccept, e_new(MC_HELI), e_old(MC_HELI),e_new(MC_HELI)-e_old(MC_HELI), laccept .and.e_new(MC_HELI)-e_old(MC_HELI)>0.0
 !read(*,*) i
+!write(*,*) ' ISEL_CN ', allocated(isel_cn)
+if(allocated(isel_cn)) deallocate(isel_cn)
 !
 END SUBROUTINE mmc_run_loop
 !
@@ -5621,6 +5660,11 @@ main: DO
                    check_select_status (isel(2), .TRUE., cr_prop (isel (2) ), cr_sel_prop) .and. &
          any(mmc_pair(:,MC_COORDNUM, cr_iscat(1, isel(1)),:)==-1) .and.  &
          any(mmc_pair(:,MC_COORDNUM, cr_iscat(1, isel(2)),:)==-1)
+!if(laccept) then
+!write(*,*) ' SELECTED ',isel(1), cr_iscat(1,isel(1)), cr_at_lis(cr_iscat(1,isel(1))), &
+!                        isel(2), cr_iscat(1,isel(2)), cr_at_lis(cr_iscat(1,isel(2)))
+!read(*,*) i
+!endif
    ELSEIF (mmc_move == MC_MOVE_EXNEIG) then  ! Exchange neighbors for a central atom
       loop_central: do i=1, 1000   ! Randomly select a central atom
          call random_number(z)
@@ -5696,8 +5740,9 @@ end subroutine mmc_select_site
 !*****7*****************************************************************
 !
 SUBROUTINE mmc_energies(isel, is, iz, natoms, iatom, patom, tatom, natom, ncent, &
-                        rdi,      valid_all, e_cur, CHEM_MAX_COR_L,       &
-                        MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, is_old)
+                        rdi, isel_cn, valid_all, e_cur, CHEM_MAX_COR_L,          &
+                        MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L,          &
+                        MMC_MAX_ATOM_CN, is_old)
 !-
 !
 !+
@@ -5717,6 +5762,7 @@ IMPLICIT NONE
 INTEGER                                                 , INTENT(IN) :: MAX_ATOM_ENV_L
 INTEGER                                                 , INTENT(IN) :: MMC_MAX_CENT_L
 INTEGER                                                 , INTENT(IN) :: MMC_MAX_ATOM_L
+INTEGER                                                 , INTENT(IN) :: MMC_MAX_ATOM_CN
 INTEGER                                                 , INTENT(IN) :: CHEM_MAX_COR_L
 INTEGER, DIMENSION(MMC_MAX_ATOM_L)                      , INTENT(inout) :: isel !(chem_max_atom) 
 INTEGER, DIMENSION(2)                                   , INTENT(IN) :: is
@@ -5728,28 +5774,39 @@ INTEGER, DIMENSION(     MMC_MAX_CENT_L)                 , INTENT(INOUT) :: natom
 LOGICAL, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: tatom
 INTEGER                                                 , INTENT(INOUT) :: ncent
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR_L)           , INTENT(IN   ) :: rdi
+INTEGER, DIMENSION(0:MMC_MAX_ATOM_CN)                   , INTENT(inout) :: isel_cn !(chem_max_atom) 
 LOGICAL                                                 , INTENT(OUT) :: valid_all
 REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY)                         , INTENT(INOUT) :: e_cur
 logical                                                 , intent(in)    :: is_old
 !
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR_L)                           :: rdj
 !
+!integer :: natoms_l  ! Local copy of natoms modified if move is swneig
 INTEGER :: i, j   ! Dummy loop variable
 INTEGER :: ia     ! Dummy loop variable for modified atoms
 INTEGER :: ic     ! Dummy loop variable for correlations
 INTEGER :: icent  ! Dummy loop variable for centers
 REAL(kind=PREC_DP)    :: delta
-REAL(kind=PREC_DP)    :: x             ! random number
+!REAL(kind=PREC_DP)    :: x             ! random number
 REAL(kind=PREC_DP), DIMENSION(3) :: v
 REAL(kind=PREC_DP), DIMENSION(3) :: idir, jdir
 LOGICAL            :: valid_e
 !
 !write(*,*) '=========='
 !write(*,'(a, 2i7, 3x,2i3, a, i12)') ' MMC_ENERGIES  ', isel(1:2), cr_iscat(1,isel(1:2)), ' | ', natoms
+! write(*,'(a,4i7)') '   modify START ener ', isel(1:4)
+! write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
 !                                                                       
 !     ----Loop over all modified atoms                                  
 !                                                                       
-loop_natoms:DO ia = 1, natoms 
+!natoms_l = natoms
+!if(mmc_move == MC_MOVE_SWNEIG) then
+!   natoms_l = 4
+!else
+!   natoms_l = 2
+!endif
+valid_all = .FALSE. 
+loop_natoms:DO ia = 1, natoms
 !                                                                       
 !     ------Set the assumption of at least one proper energy to FALSE  
 !           Will be set to TRUE if at least one energy calculation      
@@ -5764,6 +5821,8 @@ loop_natoms:DO ia = 1, natoms
    loop_corr: DO ic = 1, chem_ncor 
       CALL chem_neighbour_multi(isel(ia), ic, iatom, patom, tatom, natom, &
                                 ncent, MAX_ATOM_ENV_L, MMC_MAX_CENT_L)                                                
+! write(*,'(a,4i7)') '   modify Past NEIGH ', isel(1:4)
+! write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
 !write(*,*) ' central ', isel(ia), cr_iscat(1,isel(ia)), ic, 'NATOM : ', natom(1)
 !write(*,*) ' neigb   ', iatom(0:natom(1),1), ' : ',cr_iscat(1,iatom(0:natom(1),1)), ' ::', ncent
 !write(*,*) ' type is ', tatom(0:natom(1),1)
@@ -5830,20 +5889,6 @@ loop_natoms:DO ia = 1, natoms
                      valid_all = valid_all.OR.valid_e 
 !                 ENDIF 
                ENDIF 
-            ENDIF 
-!
-!     ------- Coordination number
-!
-            IF(mmc_cor_energy(ic, MC_COORDNUM) ) THEN 
-               e_cur(MC_COORDNUM) = e_cur(MC_COORDNUM) + mmc_energy_cn ( &
-               isel, ia, ic, iatom, icent, natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)       
-               valid_all = valid_all.OR.valid_e 
-               call random_number(x)
-               if(is_old) then
-               isel(ia+2) = iatom(int(natom(icent)*x) + 1, icent)
-!write(*,'(a, i3, i6, i3, i3, a, 7i7,a, i7)') ' ENERGIES    ', ia, isel(ia), icent, natom(icent), ' | ', &
-! iatom(0:6, icent),  ' > ',isel(ia+2)
-               endif
             ENDIF 
 !                                                                       
 !     ------- Displacement correlation                                  
@@ -5994,7 +6039,42 @@ j = ia
       ENDDO loop_cent
    ENDDO loop_corr
 ENDDO loop_natoms
+!
+! For the coordination energy a separate loop is needed
+!
+!write(*,'(a, i3, a, 6i6)') ' COORDINATION ', isel_cn(0), ' > ', isel_cn(1:isel_cn(0))
+!write(*,'(a,i6)')          ' MOVE         ', mmc_move
+!
+loop_centers:DO ia = 1, isel_cn(0)         ! Loop over all central atoms
+   loop_corr_cn: DO ic = 1, chem_ncor      ! Loop over all correlations
+      loop_cent_cn: DO icent = 1, ncent    ! Loop over all centers 
+!
+!     ------- Coordination number
+!
+      if(mmc_cor_energy(ic, MC_COORDNUM) ) then 
+         CALL chem_neighbour_multi(isel_cn(ia), ic, iatom, patom, tatom, natom, &
+                                ncent, MAX_ATOM_ENV_L, MMC_MAX_CENT_L)                                                
+!write(*,'(a,5i6)') 'ENERGIES ', ic, isel_cn(ia), cr_iscat(1, isel_cn(ia)), ncent, natom(1)
+!write(*,'(a, 6i6)') 'CN CENTRAL ', isel_cn(ia), cr_iscat(1, isel_cn(ia)), icent, natom(icent), ic
+!write(*,'(a, 6i6)') 'CN neigh   ', iatom(1:natom(icent), icent)
+!write(*,'(a, 6i6)') 'CN neigh   ', cr_iscat(1, iatom(1:natom(icent), icent))
+!
+               e_cur(MC_COORDNUM) = e_cur(MC_COORDNUM) + mmc_energy_cn ( &
+               isel_cn, ia, ic, iatom, icent, natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_CN)       
+               valid_all = valid_all.OR.valid_e 
+!!write(*,'(a, i3, i6, i3, i3, a, 7i7,a, i7)') ' ENERGIES    ', ia, isel(ia), icent, natom(icent), ' | ', &
+!! iatom(0:6, icent),  ' > ',isel(ia+2)
+!               endif
+! write(*,'(a,4i7)') '   modify PAST coord ', isel(1:4)
+! write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
+      endif 
+      enddo loop_cent_cn
+   enddo loop_corr_cn
+enddo loop_centers
+! 
 !write(*,*) ' CAL ENERGIES', e_cur(MC_VALUE), isel(1:2), ' SCAT: ',cr_iscat(1,isel(1)), cr_iscat(1,isel(2)), valid_e
+! write(*,'(a,4i7)') '   modify EXIT  ener ', isel(1:4)
+! write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
 !
 END SUBROUTINE mmc_energies
 !
@@ -6024,7 +6104,7 @@ REAL(kind=PREC_DP), DIMENSION(3)                   , INTENT(OUT)   :: posz
 REAL(kind=PREC_DP), DIMENSION(3)                   , INTENT(OUT)   :: posz2
 REAL(KIND=PREC_DP), DIMENSION(3,0:MMC_MAX_ATOM_L,2), INTENT(INOUT) :: disp
 !
-INTEGER :: i, j, k              ! Dummy loop indices
+INTEGER :: i, j                 ! Dummy loop indices
 INTEGER :: iscat
 INTEGER, DIMENSION(3) :: iz1
 INTEGER, DIMENSION(3) :: iz2
@@ -6032,22 +6112,22 @@ INTEGER, DIMENSION(2) :: is
 REAL(kind=PREC_DP) :: disp1, disp2 
 REAL(kind=PREC_DP) :: rrrr
 !
-integer :: ic, jc
-INTEGER :: ncent
-REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: patom ! (3, 0:MAX_ATOM_ENV, MMC_MAX_CENT) 
-INTEGER           , DIMENSION(  :,:), ALLOCATABLE :: iatom ! (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
-LOGICAL           , DIMENSION(  :,:), ALLOCATABLE :: tatom ! (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
-INTEGER           , DIMENSION(    :), ALLOCATABLE :: natom ! ( MMC_MAX_CENT) 
-INTEGER           , DIMENSION(    :), ALLOCATABLE :: pair1 ! ( MMC_MAX_CENT) 
-INTEGER           , DIMENSION(    :), ALLOCATABLE :: pair2 ! ( MMC_MAX_CENT) 
-integer :: npair1
-integer :: npair2
-REAL(KIND=PREC_DP) :: r1
-integer :: istart1
-integer :: istart2
-integer, dimension(:,:), allocatable :: loc_site
-integer :: nloc
-integer :: nsel
+!integer :: ic, jc
+!INTEGER :: ncent
+!REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: patom ! (3, 0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+!INTEGER           , DIMENSION(  :,:), ALLOCATABLE :: iatom ! (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+!LOGICAL           , DIMENSION(  :,:), ALLOCATABLE :: tatom ! (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+!INTEGER           , DIMENSION(    :), ALLOCATABLE :: natom ! ( MMC_MAX_CENT) 
+!INTEGER           , DIMENSION(    :), ALLOCATABLE :: pair1 ! ( MMC_MAX_CENT) 
+!INTEGER           , DIMENSION(    :), ALLOCATABLE :: pair2 ! ( MMC_MAX_CENT) 
+!integer :: npair1
+!integer :: npair2
+!REAL(KIND=PREC_DP) :: r1
+!integer :: istart1
+!integer :: istart2
+!integer, dimension(:,:), allocatable :: loc_site
+!integer :: nloc
+!integer :: nsel
 !
 !
 IF (mmc_move == MC_MOVE_DISP) THEN 
@@ -6127,16 +6207,82 @@ elseif(mmc_move == MC_MOVE_SWVALUE) then
    cr_valu(isel(2)) = cr_valu(isel(1)) 
    cr_valu(isel(1)) = disp1 
 ELSEIF (mmc_move == MC_MOVE_SWNEIG) THEN 
+!
+   iscat               = cr_iscat(1,isel(6)) 
+   cr_iscat(1,isel(6)) = cr_iscat(1,isel(5)) 
+   cr_iscat(1,isel(5)) = iscat 
+   iscat            = cr_prop(isel(6)) 
+   cr_prop(isel(6)) = cr_prop(isel(5)) 
+   cr_prop(isel(5)) = iscat 
+!                                                                       
+!--End of Modification of atoms according to different moves
+!                                                                       
+ENDIF 
+!
+!DEALLOCATE(disp)
+!
+END SUBROUTINE mmc_modify
+!
+!*******************************************************************************
+!
+subroutine prepare_swneig(isel, isel_cn, mmc_move_l, MMC_MAX_ATOM_L, MMC_MAX_ATOM_CN)
+!-
+!  Select the two neighbors to be switched
+!+
+!
+use crystal_mod
+USE atom_env_mod
+USE chem_mod
+USE chem_neig_multi_mod
+use mc_mod
+use mmc_mod
+!
+implicit none
+!
+integer                                            , INTENT(IN)    :: MMC_MAX_ATOM_L
+integer                                            , INTENT(IN)    :: MMC_MAX_ATOM_CN ! Max number of centers
+integer           , DIMENSION(MMC_MAX_ATOM_L)      , INTENT(inout) :: isel !(chem_max_atom) 
+integer           , DIMENSION(0:MMC_MAX_ATOM_CN)   , INTENT(inout) :: isel_cn !(chem_max_atom) 
+integer                                            , INTENT(IN)    :: mmc_move_l  ! local copy of mmc_move
+!
+integer :: i,j,k, ii   ! Dummy indices
+integer :: ic, jc
+!integer :: iscat   ! Dummy scattering type
+INTEGER :: ncent
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: patom ! (3, 0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+INTEGER           , DIMENSION(  :,:), ALLOCATABLE :: iatom ! (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+LOGICAL           , DIMENSION(  :,:), ALLOCATABLE :: tatom ! (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+INTEGER           , DIMENSION(    :), ALLOCATABLE :: natom ! ( MMC_MAX_CENT) 
+INTEGER           , DIMENSION(    :), ALLOCATABLE :: pair1 ! ( MMC_MAX_CENT) 
+INTEGER           , DIMENSION(    :), ALLOCATABLE :: pair2 ! ( MMC_MAX_CENT) 
+integer :: npair1
+integer :: npair2
+REAL(KIND=PREC_DP) :: r1
+integer :: istart1
+integer :: istart2
+integer, dimension(:,:), allocatable :: loc_site
+integer :: nloc
+integer :: nsel
 !                                                                       
 !     ------Switch the Chemistry of two selected neighbor atoms                  
 !                                                                       
+if(allocated(pair1)) deallocate(pair1)
+if(allocated(pair2)) deallocate(pair2)
 !  allocate space for neighbors
    ALLOCATE(patom(3, 0:MAX_ATOM_ENV, MMC_MAX_CENT))
    ALLOCATE(iatom(0:MAX_ATOM_ENV, MMC_MAX_CENT))
    ALLOCATE(tatom(0:MAX_ATOM_ENV, MMC_MAX_CENT))
    ALLOCATE(natom(MMC_MAX_CENT))
 !======================================
+isel_cn = 0
 !
+jc = 1
+!write(*,'(a,4i7)') 'START PREPARE_SWNEIG ', isel(1:2)
+!write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:2))
+!write(*,'(a,2l1)') 'pairs                ', any(mmc_pair(jc,MC_COORDNUM, cr_iscat(1, isel(1)), :)==-1), &
+!                                            any(mmc_pair(jc,MC_COORDNUM, cr_iscat(1, isel(2)), :)==-1)
+!
+cond_swneig: if(mmc_move_l == MC_MOVE_SWNEIG) then
    j = 0
    nloc = 0
    do i=1, ubound(mmc_lsite,1)
@@ -6165,7 +6311,7 @@ ELSEIF (mmc_move == MC_MOVE_SWNEIG) THEN
 !write(*,*) ' SELECT NEIGHBORS ***********************'
 !write(*,*) ' MMC_LSITE ', ubound(mmc_lsite,1), mmc_lsite
 !write(*,*) 'LOC_SITE ', loc_site
-   isel(3:4) = 0                          ! Default to no atoms switched
+   isel(5:6) = 0                          ! Default to no atoms switched
    j = isel(1) 
    jc = 1   !WORK 
    ic = 0   !WORK 
@@ -6228,35 +6374,147 @@ ELSEIF (mmc_move == MC_MOVE_SWNEIG) THEN
                if(cr_iscat(1, pair1(ic)) /= cr_iscat(1, pair2(jc))) exit loop_search
             enddo
          enddo loop_search
-         isel(3) = pair1(ic)
-         isel(4) = pair2(jc)
+         isel(5) = pair1(ic)   ! First  neighbor to be switched
+         isel(6) = pair2(jc)   ! Second neighbor to be switched
 !
-         iscat             = cr_iscat(1,isel(4)) 
-         cr_iscat(1,isel(4)) = cr_iscat(1,isel(3)) 
-         cr_iscat(1,isel(3)) = iscat 
-         iscat            = cr_prop(isel(4)) 
-         cr_prop(isel(4)) = cr_prop(isel(3)) 
-         cr_prop(isel(3)) = iscat 
-         deallocate(pair2)
+!        iscat             = cr_iscat(1,isel(4)) 
+!        cr_iscat(1,isel(4)) = cr_iscat(1,isel(3)) 
+!        cr_iscat(1,isel(3)) = iscat 
+!        iscat            = cr_prop(isel(4)) 
+!        cr_prop(isel(4)) = cr_prop(isel(3)) 
+!        cr_prop(isel(3)) = iscat 
+!        if(allocated(pair2)) deallocate(pair2)
       endif cond_pair2
-      deallocate(pair1)
+!     if(allocated(pair1)) deallocate(pair1)
    endif cond_pair1
-! write(*,'(a,4i7)') '   modify POST  MOVE ', isel(1:4)
-! write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
-   deallocate(patom)
-   deallocate(iatom)
-   deallocate(tatom)
-   deallocate(natom)
+!
+if(isel(5)==0 .or. isel(6)==0) then
+   exit cond_swneig
+endif
+!  Loop over the two neighbors to find all related centers
+   ii = 0                    ! No centers yet
+   loop_selected_1: do j = 5, 6   ! Loop over all selected atoms
+      jc = 1   !WORK 
+      loop_cn_ncor_1:do jc=1, CHEM_MAX_COR    ! Find neighbors for ISEL(j)
+         ic = 0   !WORK 
+         if(any(mmc_pair(jc,MC_COORDNUM,:, cr_iscat(1, isel(j)))==-1)) then
+            ic = jc               ! This target used Coordination number
+!            exit loop_cn_ncor_1
+      CALL chem_neighbour_multi (isel(j), ic, iatom, patom, tatom, natom, ncent, MAX_ATOM_ENV, MMC_MAX_CENT)
+      do k=1,ncent          ! Found central atoms
+         loop_add_1: do i=1, natom(ncent)
+            do ic=1, ii  ! Test previous entries
+               if(iatom(i,k)==isel_cn(ic)) cycle loop_add_1
+            enddo
+            ii=ii+1
+            isel_cn(0)  = ii          ! Adjust number of centers
+            isel_cn(ii) = iatom(i,k)  ! Add new center
+         enddo loop_add_1
+      enddo
+         endif
+      enddo loop_cn_ncor_1
+   enddo loop_selected_1
+!
+!Q   isel(3:4) = 0
+!Q   j = isel(1) 
+!Q   jc = 1   !WORK 
+!Q   ic = 0   !WORK 
+!Q   loop_cn_ncor1b:do jc=1, CHEM_MAX_COR    ! Find neighbors for ISEL(1)
+!Q      if(any(mmc_pair(jc,MC_COORDNUM, cr_iscat(1, isel(1)), :)==-1)) then
+!Q         ic = jc               ! This target used Coordination number
+!Q         exit loop_cn_ncor1b
+!Q      endif
+!Q   enddo loop_cn_ncor1b
+!Q! write(*,'(a,7i7)') '   modify PRIOR NEIG ', isel(1:6), ic
+!Q! write(*,'(a,6i7)') '          atom types ', cr_iscat(1,isel(1:2)), cr_iscat(1,isel(5:6))
+!Q   if(ic> 0) then
+!Q   CALL chem_neighbour_multi (isel(5), ic, iatom, patom, tatom, natom, ncent, MAX_ATOM_ENV, MMC_MAX_CENT)
+!Q!write(*,'(a, 6i5)') ' Neighbors for ', isel(5), ncent, natom(1), iatom(1:natom(1),1)
+!Q   loop_neig1: do j= 1, natom(1)
+!Q      if(iatom(j,1)/=isel(1)) then
+!Q         isel(3) = iatom(j,1)
+!Q         exit loop_neig1
+!Q      endif
+!Q   enddo loop_neig1
+!Q!  isel(3) = iatom(1,1)
+!Q   j = isel(1) 
+!Q   jc = 1   !WORK 
+!Q   ic = 0   !WORK 
+!Q   loop_cn_ncor2b:do jc=1, CHEM_MAX_COR    ! Find neighbors for ISEL(1)
+!Q      if(any(mmc_pair(jc,MC_COORDNUM, cr_iscat(1, isel(2)), :)==-1)) then
+!Q         ic = jc               ! This target used Coordination number
+!Q         exit loop_cn_ncor2b
+!Q      endif
+!Q   enddo loop_cn_ncor2b
+!Q   if(ic>0) then
+!Q   CALL chem_neighbour_multi (isel(6), ic, iatom, patom, tatom, natom, ncent, MAX_ATOM_ENV, MMC_MAX_CENT)
+!Q!write(*,'(a, 6i5)') ' Neighbors for ', isel(6), ncent, natom(1), iatom(1:natom(1),1)
+!Q   loop_neig2: do j= 1, natom(1)
+!Q      if(iatom(j,1)/=isel(2)) then
+!Q         isel(4) = iatom(j,1)
+!Q         exit loop_neig2
+!Q      endif
+!Q   enddo loop_neig2
+!Q   isel_cn(1:4) = isel(1:4)   ! Copy list of centers
+!Q   isel_cn(0)   = 4           ! We have four centers for coordination energy
+!Q   else 
+!Q      isel_cn(1:2) = isel(1:2)   ! Copy list of centers
+!Q      isel_cn(0)   = 2           ! We have four centers for coordination energy
+!Q      endif
+!Q   else 
+!Q      isel_cn(1:2) = isel(1:2)   ! Copy list of centers
+!Q      isel_cn(0)   = 2           ! We have four centers for coordination energy
+!Q   endif
+!
+   if(allocated(loc_site)) deallocate(loc_site)
+!
+!  isel(4) = iatom(1,1)
+! write(*,'(a,6i7)') '   modify POST  NEIG ', isel(1:2)
+! write(*,'(a,6i7)') '          atom types ', cr_iscat(1,isel(1:2))
+! write(*,'(a,12i7)') '   modify MOV SWNEIG ', isel_cn(1:isel_cn(0))
+! write(*,'(a,12i7)') '          atom types ', cr_iscat(1,isel_cn(1:isel_cn(0)))
+!read(*,*) j
+else  cond_swneig            ! Not a switch neighbor move, assemble centers for possible neighbors
+   ii = 0                    ! No centers yet
+   loop_selected: do j = 1, 2   ! Loop over all selected atoms
+      jc = 1   !WORK 
+      loop_cn_ncor_q:do jc=1, CHEM_MAX_COR    ! Find neighbors for ISEL(j)
+         ic = 0   !WORK 
+         if(any(mmc_pair(jc,MC_COORDNUM,:, cr_iscat(1, isel(j)))==-1)) then
+            ic = jc               ! This target used Coordination number
+!            exit loop_cn_ncor_q
+      CALL chem_neighbour_multi (isel(j), ic, iatom, patom, tatom, natom, ncent, MAX_ATOM_ENV, MMC_MAX_CENT)
+      do k=1,ncent          ! Found central atoms
+         loop_add: do i=1, natom(ncent)
+            do ic=1, ii  ! Test previous entries
+               if(iatom(i,k)==isel_cn(ic)) cycle loop_add
+            enddo
+            ii=ii+1
+            isel_cn(0)  = ii          ! Adjust number of centers
+            isel_cn(ii) = iatom(i,k)  ! Add new center
+         enddo loop_add
+      enddo
+         endif
+      enddo loop_cn_ncor_q
+   enddo loop_selected
+! write(*,'(a,6i7)') '   modify MOV SWCHEM ', isel(1:2)
+! write(*,'(a,6i7)') '          atom types ', cr_iscat(1,1:2)
+! write(*,'(a,6i7)') '   modify MOV SWCHEM ', isel_cn(1:isel_cn(0))
+! write(*,'(a,6i7)') '          atom types ', cr_iscat(1,isel_cn(1:isel_cn(0)))
+!read(*,*) j
+endif cond_swneig
+!
+if(allocated(patom))   deallocate(patom)
+if(allocated(iatom))   deallocate(iatom)
+if(allocated(tatom))   deallocate(tatom)
+if(allocated(natom))   deallocate(natom)
+!write(*,*) ' ?atom) ', allocated(patom), allocated(iatom), allocated(tatom), allocated(natom)
+!write(*,*) ' par    ', allocated(pair1), allocated(pair2)
+!write(*,*) ' loc_sit', allocated(loc_site)
+!write(*,*) 'isel_cn ', ubound(isel)
+!read(*,*) j
 !  deallocate(lsite)
-   deallocate(loc_site)
-!                                                                       
-!--End of Modification of atoms according to different moves
-!                                                                       
-ENDIF 
-!
-!DEALLOCATE(disp)
-!
-END SUBROUTINE mmc_modify
+end subroutine prepare_swneig
 !
 !*******************************************************************************
 !
@@ -6328,13 +6586,13 @@ ELSEIF (mmc_move == MC_MOVE_SWNEIG) THEN
 !                                                                       
 !write(*,'(a,4i7)') ' UNMODIFY PRIOR MOVE ', isel(1:4)
 !write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
-   if(isel(3)/=0 .and. isel(4)/=0) then
-      iscat             = cr_iscat(1,isel(4)) 
-      cr_iscat(1,isel(4)) = cr_iscat(1,isel(3)) 
-      cr_iscat(1,isel(3)) = iscat 
-      iscat            = cr_prop(isel(4)) 
-      cr_prop(isel(4)) = cr_prop(isel(3)) 
-      cr_prop(isel(3)) = iscat 
+   if(isel(5)/=0 .and. isel(6)/=0) then
+      iscat             = cr_iscat(1,isel(6)) 
+      cr_iscat(1,isel(6)) = cr_iscat(1,isel(5)) 
+      cr_iscat(1,isel(5)) = iscat 
+      iscat            = cr_prop(isel(6)) 
+      cr_prop(isel(6)) = cr_prop(isel(5)) 
+      cr_prop(isel(5)) = iscat 
 !write(*,'(a,4i7)') ' UNMODIFY POST  MOVE ', isel(1:4)
 !write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
    endif
@@ -7216,7 +7474,7 @@ END FUNCTION mmc_energy_occ_mol
 !*****7*****************************************************************
 !
 REAL(kind=PREC_DP) FUNCTION mmc_energy_cn(isel, ia, ic, iatom, icent, natom, valid_e,         &
-                            MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)                                                   
+                            MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_CN)
 !+                                                                      
 !     Calculates the energy for coordination number
 !-                                                                      
@@ -7233,8 +7491,8 @@ IMPLICIT none
 !
 INTEGER                          , INTENT(IN) :: MAX_ATOM_ENV_L
 INTEGER                          , INTENT(IN) :: MMC_MAX_CENT_L
-INTEGER                          , INTENT(IN) :: MMC_MAX_ATOM_L
-INTEGER, DIMENSION(MMC_MAX_ATOM), INTENT(IN) :: isel
+INTEGER                          , INTENT(IN) :: MMC_MAX_ATOM_CN
+INTEGER, DIMENSION(0:MMC_MAX_ATOM_CN), INTENT(IN) :: isel
 INTEGER                          , INTENT(IN)  ::  ia
 INTEGER                          , INTENT(IN)  ::  ic
 INTEGER, DIMENSION(0:MAX_ATOM_ENV_L, MMC_MAX_CENT), INTENT(IN) :: iatom
@@ -7253,6 +7511,10 @@ valid_e = .FALSE.
 IF(ALLOCATED(n_neig)) DEALLOCATE(n_neig)
 ALLOCATE(n_neig(0:CR_NSCAT))
 n_neig(:) = 0
+!
+!write(*,'(a, 6i6)') 'CN CENTRAL ', isel(ia), cr_iscat(1, isel(ia)), icent, natom(icent), ic
+!write(*,'(a, 6i6)') 'CN neigh   ', iatom(1:natom(icent), icent)
+!write(*,'(a, 6i6)') 'CN neigh   ', cr_iscat(1, iatom(1:natom(icent), icent))
 !                                                                       
 IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
     chem_ctyp(ic) == CHEM_ENVIR  .OR. &
@@ -7270,13 +7532,13 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
          is   = cr_iscat(1,iatom (0, icent) ) 
          js   = -1                            ! Flag negative to indicate no neighbor
          DO in = in_a, in_e 
-            IF(check_select_status(iatom(in, icent),  .TRUE.,          &
-                                   cr_prop (iatom (in, icent)), cr_sel_prop)) THEN
+!           IF(check_select_status(iatom(in, icent),  .TRUE.,          &
+!                                  cr_prop (iatom (in, icent)), cr_sel_prop)) THEN
                js    = cr_iscat(1,iatom (in, icent) ) 
-               IF(mmc_pair(ic, MC_COORDNUM, is, js)==-1) THEN
+!              IF(mmc_pair(ic, MC_COORDNUM, is, js)==-1) THEN
                   n_neig(js) = n_neig(js) + 1
-               ENDIF
-            ENDIF
+!              ENDIF
+!           ENDIF
          ENDDO 
          DO js = 0, cr_nscat
             IF(mmc_pair(ic, MC_COORDNUM, is, js) == -1) THEN
@@ -7307,9 +7569,9 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
    ENDIF 
 ENDIF 
 valid_e = .TRUE. 
-!write(*,'(a, i3, i6, i3, i3, a, 7i7,a,5i2, f10.2)') &
-!' energy_cn   ', ia, isel(ia), icent, natom(icent), ' | ', &
-! cr_iscat(1,iatom(0:6, icent)),  ' > ', n_neig(0:4), mmc_energy_cn
+!write(*,'(a, i3, i6, i3,2i3)') 'energy_cn    ', ia, isel(ia), icent, natom(icent), ic
+!write(*,'(a, 7i6       )')     'types        ', cr_iscat(1,iatom(1:natom(icent), icent))
+!write(*,'(a, 4i6, f10.2)')     'N_NEIG; ener ', n_neig(0:3), mmc_energy_cn
 DEALLOCATE(n_neig)
 !                                                                       
 END FUNCTION mmc_energy_cn                   
@@ -7499,7 +7761,7 @@ REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR)          , INTENT(IN)  :: rdj      !
 !
 integer :: j
 !                                                                       
-INTEGER :: i, is, js, in, jjs 
+INTEGER :: is, js, in, jjs 
 INTEGER :: in_a, in_e 
 INTEGER :: cell (3), site 
 REAL(kind=PREC_DP) :: ener(3)   ! Term in energy
