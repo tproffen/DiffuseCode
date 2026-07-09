@@ -291,7 +291,6 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
    CALL indextocell (jatom, jcell, jsite) 
    DO i = 1, chem_nvec(ic) 
       iv = chem_use_vec(i, ic) 
-!write(*,*) ' Vectors         ', chem_cvec(1:2, iv), jsite == chem_cvec(1, iv) , jsite == chem_cvec(2, iv), natom(ncent)
       IF(jsite == chem_cvec(1, iv) ) THEN     ! Atom jatom is at vector start == central
          iatom(0, ncent) = jatom 
          patom(1, 0, ncent) = cr_pos(1, jatom) 
