@@ -17,7 +17,6 @@ integer                                                   :: ref_kload = 0    ! 
 integer                                                   :: ref_ksigma= 0    ! Sigma set within KUPLOT
 integer                                                   :: ref_kupl  = 0    ! Data set within KUPLOT that needs to be kept
 integer                                                   :: ref_type  = 0    ! Data type => lib_data_types_mod
-integer                   , dimension(3,1)                  :: ref_dim    ! Dimensions of data set
 real(kind=PREC_DP)        , dimension(:,:,:,:), allocatable :: ref_data   ! the actual data set
 real(kind=PREC_DP)        , dimension(:,:,:,:), allocatable :: ref_sigma  ! sigma at each data point
 real(kind=PREC_DP)        , dimension(      :), allocatable :: ref_weight ! Weight for each data set, defaults to 1 
