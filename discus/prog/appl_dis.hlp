@@ -1789,6 +1789,7 @@
 !p bval    ! Calculates the bond valence sum for given atom
 !p continue! Continue a stopped macro (see main help level)
 !p corr    ! Calculates neighbor frequencies/correlations
+!p coordination ! Calculates the coordination numbers
 !p disp    ! Calculated average distances for given neighbors
 !p echo    ! Echos a string (see main help level)
 !p elem    ! Show relative abundances of elements in crystal
@@ -1926,7 +1927,27 @@
    than Zr in the structure file. The bond valence parameters are
    taken from a list compiled by I.D. Brown, McMaster University, Canada.
    The resulting bond valence sum is stored in variable res[1].
-3  corr
+3  coordination
+!p coordination
+
+   This command calculates the coordination numbers. 
+   The command uses the neighborhoods and traget as defined  in the 
+   ==> 'mmc' menu. 
+   For each coordination that is defined in mmc the coordination is
+   displayed like:
+   Def Cent Neig   Fraction with coord   Average
+                    0    1 ...  6 
+   1   Fe   O      0.00  0.00   1.00     1.00
+
+   The resulting values are saved into the result variables. 
+   For each coordination definition 24 number are stored as:
+   1    Coordination Number
+   2    Atom type central atom
+   3    Atom type neighbors
+   4-22 Fraction of central atoms with 0, 1, ... 18 neighbors
+   23   Average number of neighbors
+   24   Sigma of the average
+3  corr 
 !p corr "occ", { <name>|<number>}, {<name>|<number>}
 !p corr "disp",{ <name>|<number>|"all"},{<name>|<number>|"all" }
 
@@ -4084,7 +4105,8 @@
    the "parameters" are a list of optional parameters to specify details:
    style:single     ! The macros are set up for a single crystal refinement
    style:powder     ! Setup for a powder diffraction refinement
-   style:pdf        ! Setup for a PDF refinement
+   style:pdf_nano   ! Setup for a nanoparticle PDF refinement
+   style:pdf_bulk   ! Setup for a bulk crystal PDF refinement
    lambda:value     ! Defines a numerical value for the wave length
    lambda:name      ! Defines a wave length symbol like Cu, CUA1, CU12 etc
    form:waas        ! Use the Waasmeier-Kirfel atomic form factors
@@ -4097,7 +4119,8 @@
    the "parameters" are a list of optional parameters to specify details:
    style:single     ! The macros are set up for a single crystal refinement
    style:powder     ! Setup for a powder diffraction refinement
-   style:pdf        ! Setup for a PDF refinement
+   style:pdf_nano   ! Setup for a nanoparticvle PDF refinement
+   style:pdf_bulk   ! Setup for a bulk crystal PDF refinement
    lambda:value     ! Defines a numerical value for the wave length
    lambda:name      ! Defines a wave length symbol like Cu, CUA1, CU12 etc
    form:waas        ! Use the Waasmeier-Kirfel atomic form factors
