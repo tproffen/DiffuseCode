@@ -238,6 +238,16 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
                ier_msg(1) = 'Parameter must be ''corr'' or absent '
             endif
 !                                                                       
+!------ Calculate Coordination numbers    'coordination'                        
+!                                                                       
+         ELSEIF (str_comp (befehl, 'coordination', 2, lbef, 12) ) then 
+            IF (.not.chem_sel_atom) then 
+               ier_num = - 22 
+               ier_typ = ER_CHEM 
+               RETURN 
+            ENDIF 
+            call chem_calc_cn(zeile, lp)
+!                                                                       
 !     continues a macro 'continue'                                      
 !                                                                       
          ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) then 
@@ -5873,6 +5883,133 @@ IF(lshift) THEN   ! Periodic boundary conditions were applied
 ENDIF
 !
 END SUBROUTINE chem_apply_period
+!
+!*****7***************************************************************  
+!
+subroutine chem_calc_cn(zeile, length)
+!-
+!  determine coordination numbers
+!+
+!
+use chem_neig_multi_mod
+use crystal_mod
+use get_iscat_mod
+use atom_env_mod
+use chem_mod
+use mmc_mod
+!
+use errlist_mod
+use get_params_mod
+use param_mod
+use precision_mod
+use prompt_mod
+use take_param_mod
+!
+implicit none
+!
+character(len=*) , intent(inout) :: zeile
+integer          , intent(inout) :: length
+!
+integer, parameter :: MAXNEI = 18
+integer :: i, j, k  ! Dummy loop indices
+integer :: ic       ! correlation number
+integer :: is       ! Atom type center
+integer :: js       ! Atom type neighbor
+integer :: icent    ! Current center 
+!
+INTEGER :: ncent
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: patom ! (3, 0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+INTEGER           , DIMENSION(  :,:), ALLOCATABLE :: iatom ! (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+LOGICAL           , DIMENSION(  :,:), ALLOCATABLE :: tatom ! (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+INTEGER           , DIMENSION(    :), ALLOCATABLE :: natom ! ( MMC_MAX_CENT)
+!
+integer           , dimension(:    ), allocatable :: n_neighbors  ! Number of neighbors current atom, for each iscat
+integer           , dimension(:,:,:), allocatable :: n_neigh_grand! Grand number of neighbors for each iscat
+real(kind=PREC_DP) :: aver
+real(kind=PREC_DP) :: sigma
+!
+allocate(n_neighbors(0:MAXSCAT))
+allocate(n_neigh_grand(0:MAXNEI,0:MAXSCAT, 0:MAXSCAT))
+ALLOCATE(patom(3, 0:MAX_ATOM_ENV, MMC_MAX_CENT))
+ALLOCATE(iatom(0:MAX_ATOM_ENV, MMC_MAX_CENT))
+ALLOCATE(tatom(0:MAX_ATOM_ENV, MMC_MAX_CENT))
+ALLOCATE(natom(MMC_MAX_CENT))
+!
+res_para = 0
+!
+write(output_io, '(a)') ' Neig.-      Atoms                  Fraction with # neighbors'
+write(output_io, '(a)') ' Def.     Center  Neigh     0       1       2       3       4       5       6      Average'
+write(output_io, '(a)') '                                    7       8       9      10      11      12      Sigma'
+!'Aver       Sigma'
+!
+loop_target: do ic = 1, chem_ncor
+
+n_neigh_grand = 0    ! Initiallize all neighbors
+cond_coord: IF(mmc_cor_energy(ic, MC_COORDNUM)) THEN
+   loop_atoms: do i=1, cr_natoms
+      n_neighbors = 0
+      is = cr_iscat (1,i)
+      call chem_neighbour_multi (i, ic, iatom, patom, tatom, natom, ncent, MAX_ATOM_ENV, MMC_MAX_CENT)
+      !                                                                       
+      !     ---- Loop over all centers                                        
+      !                                                                       
+      loop_cent: DO icent = 1, ncent
+         !                                                                       
+         !     ---------- Loop over all neighbours                               
+         !                                                                       
+         loop_neig:  do j = 1, natom (icent)
+            if(.not.tatom(j,icent)) cycle loop_neig        ! Current atom is neighbour to this 'neighbor'
+            js = cr_iscat (1,iatom (j, icent) )
+            n_neighbors(js) = n_neighbors(js) + 1  ! Increment neighors of type js
+         enddo loop_neig
+      enddo loop_cent
+      do js=1, cr_nscat
+         IF(mmc_pair(ic,MC_COORDNUM, is,js)==-1) THEN
+            n_neigh_grand(n_neighbors(js), is, js) = n_neigh_grand(n_neighbors(js), is, js) + 1
+         endif
+      enddo
+   enddo loop_atoms
+!
+   do is=1, cr_nscat
+   do js=1, cr_nscat
+      if(mmc_pair(ic, MC_COORDNUM, is, js) /=  0 ) THEN
+      aver = 0.0D0
+      sigma = 0.0D0
+      k = 0
+      do i=0, MAXNEI
+         aver = aver + i*n_neigh_grand(i,is,js)
+         k    = k + n_neigh_grand(i,is,js)
+      enddo
+      aver = aver / real(k, kind=PREC_DP)
+      do i=1, MAXNEI
+         sigma = sigma + n_neigh_grand(i,is,js)*(i-aver)**2
+      enddo
+      sigma = sqrt(sigma/k)
+      write(output_io, '(i4,6x, a5, 3x, a5,8(1x,f7.3))') ic, cr_at_lis(is), cr_at_lis(js), &
+         (n_neigh_grand(i,is,js)/real(k, kind=PREC_DP), i=0, 6), aver
+      write(output_io, '(31x, 8(1x,f7.3))') &
+         (n_neigh_grand(i,is,js)/real(k, kind=PREC_DP), i=7,12), sigma
+      res_para(nint(res_para(0))+ 1) = ic
+      res_para(nint(res_para(0))+ 2) = is
+      res_para(nint(res_para(0))+ 3) = js
+      res_para(nint(res_para(0))+ 4:nint(res_para(0))+ 22) = n_neigh_grand(0:18, is, js)/real(k, kind=PREC_DP)
+      res_para(nint(res_para(0))+23) = aver
+      res_para(nint(res_para(0))+24) = sigma
+      res_para(0) = res_para(0) + 24
+      endif
+   enddo
+   enddo
+endif cond_coord
+enddo loop_target
+!
+deallocate(n_neigh_grand)
+deallocate(n_neighbors  )
+deallocate(patom)
+deallocate(iatom)
+deallocate(tatom)
+deallocate(natom)
+!
+end subroutine chem_calc_cn
 !
 !*****7***************************************************************  
 !
