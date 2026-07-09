@@ -24,6 +24,7 @@ use refine_log_mod
 USE refine_params_mod
 USE refine_show_mod
 !
+use blanks_mod
 USE doact_mod
 USE ber_params_mod
 USE errlist_mod
@@ -43,6 +44,7 @@ IMPLICIT NONE
 CHARACTER(LEN=*), INTENT(INOUT) :: line          ! Input command line
 INTEGER         , INTENT(INOUT) :: length        ! length of input command line
 !
+integer, parameter :: IRD  = 17
 INTEGER, PARAMETER :: MAXW = 20
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara    ! Parameter strings
@@ -51,6 +53,8 @@ REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte    ! Parameter values
 !
 INTEGER            , DIMENSION(4   ) :: dimen    ! Dimension of global array
 INTEGER                              :: i        ! Dummy loop parameter
+integer                              :: laenge   ! String length
+integer                              :: ios      ! I/O error signal
 INTEGER                              :: ndata    ! number of data points
 INTEGER                              :: ianz     ! number of parameters
 LOGICAL                              :: lexist   ! File exists yes/no
@@ -61,6 +65,7 @@ integer                              :: diffev_l_get_random_state  ! Copy of cur
 logical                              :: l_old_plot_status
 !
 character(len=PREC_STRING) :: string
+character(len=PREC_STRING) :: string_last
 integer :: ier_cmd
 integer :: exit_msg
 character(len=PREC_STRING) :: message
@@ -113,6 +118,30 @@ IF(.NOT.lexist) THEN              ! Macro does not exist
    ier_msg(1) = 'Check if macro name was spelled correctly'
    RETURN
 ENDIF
+!
+! Test if first line is 'branch ...' and last is 'finished'
+open(file=refine_mac, unit=IRD, status='old')
+read(IRD, '(a)', iostat=ios) string
+laenge = len_trim(string)
+call rem_leading_bl(string, laenge)
+do while(ios==0)
+   read(IRD, '(a)', iostat=ios) string_last
+enddo
+close(unit=IRD)
+if(string(1:6)/='branch') then
+   ier_num = -15
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Check first macro line; must be:'
+   ier_msg(2) = 'branch discus  or branch kuplot'
+   return
+endif
+call rem_leading_bl(string_last, laenge)
+if(string_last(1:8)/='finished') then
+   ier_num = -16
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Check last macro line; must be: finished'
+   return
+endif
 !
 if(refine_log) then
    string = 'mkdir -p DISCUS_SUITE_DERIVATIVES'
@@ -207,7 +236,7 @@ l_plot_status = .FALSE.             ! Turn plotting off during refinements
 !write(*,*) 'do_plot   ', ref_do_plot, refine_plot_mac(1:len_trim(refine_plot_mac))
 !write(*,*) 'Para      ', refine_p(1:refine_par_n)
 CALL refine_mrq(linit, REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,     &
-                refine_params, ref_dim,                                         &
+                refine_params, ref_data_ptr(1)%data_ptr%dims(1:3),              &
                 conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf,     &
                 conv_lambda, lconvergence, lconv,                               &
                 refine_chisqr, refine_conf, refine_lamda, refine_lamda_s,       &
@@ -230,7 +259,9 @@ main:IF(ier_num==0) THEN
       IF(ier_num/=0) EXIT main
       refine_f(i) = werte(1)
    ENDDO
-   ndata = ref_dim(1,1)*ref_dim(2,1)
+   ndata = ref_data_ptr(1)%data_ptr%dims(1) * &
+           ref_data_ptr(1)%data_ptr%dims(2) * &
+           ref_data_ptr(1)%data_ptr%dims(3)
    CALL show_fit_erg(output_io, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n,   &
                      ref_ndata, ref_weight, &
                      ndata, refine_mac, refine_mac_l, ref_load, ref_kload,         &
@@ -1853,7 +1884,7 @@ cycles:DO
    lconv(3) = last_chi(last_i)  < conv_chi2
    lconv(4) = alamda            > conv_lambda
 !  lconv(2) =   last_chi( last_i)  < conv_chi2
-   IF(lconv(1) .OR. lconv(2) .OR. lconv(3) .or. lconv(4)) THEN
+   IF(rval>0.00 .and. (lconv(1) .OR. lconv(2) .OR. lconv(3) .or. lconv(4))) THEN
 !  IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
 !     last_shift(last_i) < conv_dp_sig                   .AND.   &
 !     last_conf(last_i)  > conv_conf                     .OR.    &
@@ -2276,15 +2307,16 @@ REAL(kind=PREC_DP) :: wght
 !
 sumz = 0.0
 sumn = 0.0
+idata = 1
 !write(*,*) ' DATA_TYPE ', ref_type
-!write(*,*) ' BOUND DAT ', lbound(ref_data), ubound(ref_data)
+!write(*,*) ' BOUND DAT ', lbound(ref_data_ptr(idata)%data_ptr%datamap), ubound(ref_data_ptr(idata)%data_ptr%datamap)
 !write(*,*) ' BOUND CAL ', lbound(refine_calc), ubound(refine_calc)
-!write(*,*) ' X         ', ref_x(1), ref_x(ref_dim(1))
-!write(*,*) ' y         ', ref_y(1), ref_y(ref_dim(2))
-!write(*,*) ' z         ', ref_z(1), ref_z(ref_dim(3))
-!write(*,*) ' VALS        ', minval(ref_data), maxval(ref_data)
+!write(*,*) ' X         ', ref_data_ptr(idata)%data_ptr%x(1), ref_data_ptr(idata)%data_ptr%x(ref_data_ptr(1)%data_ptr%dims(1))
+!write(*,*) ' y         ', ref_data_ptr(idata)%data_ptr%y(1), ref_data_ptr(idata)%data_ptr%y(ref_data_ptr(1)%data_ptr%dims(2))
+!write(*,*) ' z         ', ref_data_ptr(idata)%data_ptr%z(1), ref_data_ptr(idata)%data_ptr%z(ref_data_ptr(1)%data_ptr%dims(3))
+!write(*,*) ' VALS        ', minval(ref_data_ptr(idata)%data_ptr%datamap), maxval(ref_data_ptr(idata)%data_ptr%datamap)
 !write(*,*) ' CALC        ', minval(refine_calc), maxval(refine_calc)
-!write(*,*) ' SIGMAS      ', minval(ref_sigma), maxval(ref_sigma)
+!write(*,*) ' SIGMAS      ', minval(ref_data_ptr(idata)%data_ptr%sigma), maxval(ref_data_ptr(idata)%data_ptr%sigma)
 !cond_type: if(ref_type==H5_BRAGG_I) then      ! Rvalue for Bragg reflection list
 !
 !  call refine_rvalue_hkl(sumz, sumn)
@@ -2371,9 +2403,9 @@ sumn = 0.0
 loop_data: do idata=1, ref_ndata
 !
 do j=-2, 2
-DO iiz = 1, ref_dim(3,1)
-DO iiy = 1, ref_dim(2,1)
-   loop_inner: DO iix = 1, ref_dim(1,1)
+DO iiz = 1, ref_data_ptr(idata)%data_ptr%dims(3)
+DO iiy = 1, ref_data_ptr(idata)%data_ptr%dims(2)
+   loop_inner: DO iix = 1, ref_data_ptr(idata)%data_ptr%dims(1)
       IF(ref_sigma(iix,iiy,iiz,1)> 0.0) THEN
          wght = 1./(ref_sigma(iix,iiy,iiz,1))**2
       elseif(ref_sigma(iix,iiy,iiz,1)<-1000.0) then
