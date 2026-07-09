@@ -22,7 +22,7 @@ INTEGER, PARAMETER  ::  MC_N_MOVE          =  8
 INTEGER, PARAMETER  ::  MMC_SELECT_RANDOM  =  0
 INTEGER, PARAMETER  ::  MMC_SELECT_ALL     =  0
 !
-INTEGER, PARAMETER  ::  MMC_MAX_ATOM       =  4    ! Number of selected atoms
+INTEGER, PARAMETER  ::  MMC_MAX_ATOM       =  6    ! Number of selected atoms 4 plus space for two neighbors
 !
 INTEGER             ::  MMC_MAX_ANGLES     =  1
 !
