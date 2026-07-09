@@ -217,21 +217,20 @@ if(lout) then
    WRITE(IWR,'(a)') 'set neig, rese' 
 DO ic=1,chem_ncor
    IF(chem_ctyp(ic) == CHEM_VEC) THEN
-      WRITE(IWR,'(a,50(a2,i3))') 'set neig, vec', (', ',chem_use_vec(i,ic),i=1, chem_nvec(ic))
+      WRITE(IWR,'(a,50(a2,i3))') 'set neig, number:next, vec', (', ',chem_use_vec(i,ic),i=1, chem_nvec(ic))
    ELSEIF(chem_ctyp(ic) == CHEM_CON) THEN
-      WRITE(IWR,'(a,50(a2,i3))') 'set neig, con', (', ',chem_use_con(i,ic),i=1, chem_ncon(ic))
+      WRITE(IWR,'(a,50(a2,i3))') 'set neig, number:next, con', (', ',chem_use_con(i,ic),i=1, chem_ncon(ic))
    ELSEIF(chem_ctyp(ic) == CHEM_ANG) THEN
-      WRITE(IWR,'(a,50(a2,i3))') 'set neig, ang', (', ',chem_use_win(i,ic),i=1, chem_nwin(ic))
+      WRITE(IWR,'(a,50(a2,i3))') 'set neig, number:next, ang', (', ',chem_use_win(i,ic),i=1, chem_nwin(ic))
    ELSEIF(chem_ctyp(ic) == CHEM_RANGE) THEN
-      WRITE(IWR,'(a,50(a2,i3))') 'set neig, ra ', (', ',chem_use_ran(i,ic),i=1, chem_nran(ic))
+      WRITE(IWR,'(a,50(a2,i3))') 'set neig, number:next, ra ', (', ',chem_use_ran(i,ic),i=1, chem_nran(ic))
    ELSEIF(chem_ctyp(ic) == CHEM_ENVIR) THEN
-      WRITE(IWR,'(a,50(a2,i3))') 'set neig, env', (', ',chem_use_env(i,ic),i=1, chem_nenv(ic))
+      WRITE(IWR,'(a,50(a2,i3))') 'set neig, number:next, env', (', ',chem_use_env(i,ic),i=1, chem_nenv(ic))
 !  ELSEIF(chem_ctyp(ic) == CHEM_DIST ) THEN
 !     WRITE(IWR,'(a,50(a2,i3))') 'set neig, dis', (', ',chem_use_env(i,ic),i=1, chem_nenv(ic))
 !  ELSEIF(chem_ctyp(ic) == CHEM_DIR  ) THEN
 !     WRITE(IWR,'(a, 6(a2,f9.4))') 'set neig, dir', (', ',chem_dir(1:3,1,ic), chem_dir(1:3,2,ic)
    ENDIF
-   IF(ic<chem_ncor) WRITE(IWR,'(a)') 'set neig, add'
 ENDDO
 endif
 !
