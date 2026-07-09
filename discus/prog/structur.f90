@@ -4249,7 +4249,8 @@ if(l_diffev) then
    elseif(ref_dif(O_STYLE,2)=='powder' ) then 
       call write_diffev_powder_part1(substance, user_name,      &
            spcgr_syst(space_number), latt, ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2)) 
-   elseif(ref_dif(O_STYLE,2)=='pdf' ) then 
+   elseif(ref_dif(O_STYLE,2)=='pdf_nano' .or.                &
+          ref_dif(O_STYLE,2)=='pdf_bulk') then 
       call write_diffev_pdf_part1(substance, user_name,      &
            spcgr_syst(space_number), latt, ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2)) 
    endif
@@ -4262,7 +4263,8 @@ if(l_refine) then
    elseif(ref_dif(O_STYLE,1)=='powder' ) then
       call write_refine_powder_part1(substance, 0, 1.000_PREC_DP,  &
            spcgr_syst(space_number), latt, ref_dif(O_STYLE,1))
-   elseif(ref_dif(O_STYLE,1)=='pdf' ) then
+   elseif(ref_dif(O_STYLE,1)=='pdf_nano' .or.                      &
+          ref_dif(O_STYLE,1)=='pdf_bulk') then
       call write_refine_powder_part1(substance, 0, 1.000_PREC_DP,  &
            spcgr_syst(space_number), latt, ref_dif(O_STYLE,1))
    endif
@@ -4306,7 +4308,8 @@ do iscat=1, ntyp
             uij_l(1, iscat,j) = (uij_l(1, iscat,j)+uij_l(2, iscat,j)+uij_l(3, iscat,j))/3.0_PREC_DP
             l = 1
             call write_refine_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'fixed')
-         elseif(ref_dif(O_STYLE,1)=='pdf' ) then
+         elseif(ref_dif(O_STYLE,1)=='pdf_nano' .or.  &
+                ref_dif(O_STYLE,1)=='pdf_bulk') then
             uij_l(1, iscat,j) = (uij_l(1, iscat,j)+uij_l(2, iscat,j)+uij_l(3, iscat,j))/3.0_PREC_DP
             l = 1
             call write_refine_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, 'fixed')
@@ -4315,7 +4318,8 @@ do iscat=1, ntyp
       if(l_diffev) then
          if(ref_dif(O_STYLE,2)=='single' .or.          & ! SINGLE
             ref_dif(O_STYLE,2)=='powder' .or.          & ! POWDER
-            ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
+            ref_dif(O_STYLE,2)=='pdf_bulk' .or.          & ! POWDER
+            ref_dif(O_STYLE,2)=='pdf_nano'         ) then     ! PDF
          uij_l(1, iscat,j) = (uij_l(1, iscat,j)+uij_l(2, iscat,j)+uij_l(3, iscat,j))/3.0_PREC_DP
          l = 1
          call write_diffev_single_part2(j, l, jj, iscat, lcontent, natoms, c_atom, uij_l, l_free_adp) !'free')
@@ -4478,14 +4482,16 @@ loop_atoms_set_prep: do jc=ifvar +1, ihklf-1
 !   if(c_refine=='all' .or. c_refine=='powder') then
       elseif(ref_dif(O_STYLE,1)=='powder' ) then
          call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
-      elseif(ref_dif(O_STYLE,1)=='pdf' ) then
+      elseif(ref_dif(O_STYLE,1)=='pdf_nano' .or.      &
+             ref_dif(O_STYLE,1)=='pdf_bulk') then
          call write_refine_single_part3(content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, 'fixed')
       endif
    endif
    if(l_diffev) then
-      if(ref_dif(O_STYLE,2)=='single' .or.          & ! SINGLE
-         ref_dif(O_STYLE,2)=='powder' .or.          & ! POWDER
-         ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
+      if(ref_dif(O_STYLE,2)=='single'   .or.          & ! SINGLE
+         ref_dif(O_STYLE,2)=='powder'   .or.          & ! POWDER
+         ref_dif(O_STYLE,2)=='pdf_bulk' .or.          & ! PDF Bulk
+         ref_dif(O_STYLE,2)=='pdf_nano'         ) then     ! PDF Nano
          call write_diffev_single_part3(&
            content(jc)(1:4), iatom, iscat, lcontent, natoms, c_atom, posit, l_free_position)  !&
 !          'free')
@@ -4507,8 +4513,11 @@ if(l_refine) then
    elseif(ref_dif(O_STYLE,1)=='powder' ) then
       call write_refine_powder_part4(substance,  &
            ilist, c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
-   elseif(ref_dif(O_STYLE,1)=='pdf' ) then
-      call write_refine_pdf_part4(substance,  &
+   elseif(ref_dif(O_STYLE,1)=='pdf_nano' ) then
+      call write_refine_pdf_part4_nano(substance,  &
+           ilist, c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
+   elseif(ref_dif(O_STYLE,1)=='pdf_bulk' ) then
+      call write_refine_pdf_part4_bulk(substance,  &
            ilist, c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
    endif
 endif
@@ -4521,8 +4530,12 @@ if(l_diffev) then
       call write_diffev_powder_part4(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
            ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
            )
-   elseif(ref_dif(O_STYLE,2)=='pdf'         ) then     ! PDF
-      call write_diffev_pdf_part4(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
+   elseif(ref_dif(O_STYLE,2)=='pdf_nano'         ) then     ! PDF
+      call write_diffev_pdf_part4_nano(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
+           ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
+           )
+   elseif(ref_dif(O_STYLE,2)=='pdf_bulk'         ) then     ! PDF
+      call write_diffev_pdf_part4_bulk(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
            ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
            )
    endif
