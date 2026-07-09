@@ -9,7 +9,8 @@ public write_refine_single_part3
 public write_refine_single_part4
 public write_refine_powder_part1
 public write_refine_powder_part4
-public write_refine_pdf_part4
+public write_refine_pdf_part4_bulk
+public write_refine_pdf_part4_nano
 public write_diffev_generic
 public write_diffev_single_part1
 public write_diffev_powder_part1
@@ -18,7 +19,8 @@ public write_diffev_single_part3
 public write_diffev_single_part4
 public write_diffev_powder_part4
 public write_diffev_pdf_part1
-public write_diffev_pdf_part4
+public write_diffev_pdf_part4_bulk
+public write_diffev_pdf_part4_nano
 public init_qmsys
 !
 integer, parameter :: IDI_MA  = 36    ! DISCUS_MAIN MACRO PART
@@ -85,6 +87,11 @@ open(unit=IRE_NP, file='newpara.mac', status='unknown')
 !
 write(IDI_MA,'(a )') 'branch discus'
 write(IDI_MA,'(a )') '#'
+write(IDI_MA,'(a )') 'variable integer, ncell, dim:[3] ! number unit cells'
+write(IDI_MA,'(a )') 'ncell[1] = 1'
+write(IDI_MA,'(a )') 'ncell[2] = 1'
+write(IDI_MA,'(a )') 'ncell[3] = 1'
+write(IDI_MA,'(a )') '#'
 write(IDI_MA,'(a )') 'read'
 write(IDI_MA,'(3a)') '  stru ', substance(1:i), '.cell'
 !
@@ -100,7 +107,7 @@ elseif(lexist_fcf_file) then    ! An fcf file exists, we will have merged hkl fi
    write(IRE_MA,'(a )') 'refine'
    write(IRE_MA,'(a )') 'rese'
    write(IRE_MA,'(2a)') 'data hklf4, ',hkl_file(1:len_trim(hkl_file))
-else                           !NO hkl fikel assume an h5 file will be used
+else                           !NO hkl file  assume an h5 file will be used
    refine_file = 'refine_'//substance(1:i)//'_dat.mac'
    open(unit=IRE_MA, file=refine_file, status='unknown')
    write(IRE_MA,'(a )') 'refine'
@@ -111,7 +118,9 @@ write(IRE_MA,'(a        )') '#'
 write(IRE_MA,'(a        )') '@newpara.mac'
 write(IRE_MA,'(a        )') '#'
 !
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_scale, value:', fv_1 , ', points:3, shift:0.001, status:free'
+if(lexist_hkl_file .or. lexist_fcf_file) then    ! Not an h5 file
+   write(IRE_NP,'(a,f9.4,a )') 'newpara P_scale, value:', fv_1 , ', points:3, shift:0.001, status:free'
+endif
 !
 end subroutine write_refine_single_part1
 !
@@ -256,19 +265,30 @@ real(kind=PREC_DP) :: rlambda
 !
 read(lambda, *) rlambda
 !
+line = 'mkdir -p CALCULATED'
+call execute_command_line(line, wait=.false.)
+!
 j = 0
 i = len_trim(substance)
 call single_main_part4(IDI_MA, .true., substance, c_form, rlambda, slambda, P_exti)
 !
 write(IDI_MA,'(a )') 'branch kuplot'
-write(IDI_MA,'(a )') 'reset'
+write(IDI_MA,'(a )') '  reset'
 if(lexist_hkl_file) then                      ! Single HKL refinement
-   write(IDI_MA,'(a )') 'load hklf4, calc.hkl'
+   write(IDI_MA,'(a )') '  load hklf4, CALCULATED/calc.hkl'
 elseif(lexist_fcf_file) then                      ! Single HKL refinement
-   write(IDI_MA,'(a )') 'load hklf4, calc.hkl'
+   write(IDI_MA,'(a )') '  load hklf4, CALCULATED/calc.hkl'
 else
-   write(IDI_MA,'(a )') 'load h5, calc.h5'
+   write(IDI_MA,'(3a)') '  load h5, DATA/', substance(1:len_trim(substance)),'.h5'
+   write(IDI_MA,'(a )') '  load h5, CALCULATED/calc.h5'
+   write(IDI_MA,'(a )') '  scale'
+   write(IDI_MA,'(a )') '  match sca, 1, 2'
+   write(IDI_MA,'(a )') '  ksav 2'
+   write(IDI_MA,'(a )') '    outfile CALCULATED/calc.h5'   ! Replace with scaled data set
+   write(IDI_MA,'(a )') '    form h5'
+   write(IDI_MA,'(a )') '    run'
 endif
+write(IDI_MA,'(a )') '  torefine kuplot:last, refine:cost, data:1'
 write(IDI_MA,'(a )') 'exit  ! Back to DISCUS'
 write(IDI_MA,'(a )') 'exit  ! Back to REFINE'
 write(IDI_MA,'(a )') 'finished'
@@ -301,17 +321,22 @@ write(IRE_MA,'(a )') '#'
 write(IRE_MA,'(a )') 'exit  ! Back to SUITE'
 close(IRE_MA)
 !
-open(IRE_MA, file='final_cell_cif.mac', status='unknown')
 i= len_trim(substance)
+line = 'mkdir -p STRUCTURE_FINAL'
+call execute_command_line(line, wait=.false.)
+!
+open(IRE_MA, file='final_cell_cif.mac', status='unknown')
 write(IRE_MA,'( a)') 'branch discus'
 write(IRE_MA,'( a)') 'read'
 write(IRE_MA,'(3a)') '  stru internal.' , substance(1:i), '.cell'
+write(IRE_MA,'( a)') 'cd STRUCTURE_FINAL'
 write(IRE_MA,'( a)') 'save'
 write(IRE_MA,'(3a)') '  outf ', substance(1:i), '.cell'
 write(IRE_MA,'( a)') '  write all'
 write(IRE_MA,'( a)') '  run'
 write(IRE_MA,'( a)') 'exit'
 write(IRE_MA,'(3a)') 'export cif, ', substance(1:i), '.cif, spcgr:original'
+write(IRE_MA,'( a)') 'cd ..'
 write(IRE_MA,'( a)') 'exit  ! back to REFINE'
 close(IRE_MA)
 close(IRE_NP)
@@ -387,7 +412,7 @@ write(IWR,'(a )') '  write all'
 write(IWR,'(a )') '  run'
 write(IWR,'(a )') 'exit'
 write(IWR,'(a )') 'read'
-write(IWR,'(3a)') '  cell internal.',substance(1:i),'.cell'
+write(IWR,'(3a)') '  cell internal.',substance(1:i),'.cell, ncell[1], ncell[2], ncell[3]'
 write(IWR,'(a )') 'variable integer, points_abs'
 write(IWR,'(a )') 'variable integer, points_ord'
 write(IWR,'(a )') 'variable integer, points_top'
@@ -442,7 +467,7 @@ if(lexist_hkl_file .or. lexist_fcf_file) then                      ! Single HKL 
    write(IWR,'(a )') 'exit'
 else
    write(IWR,'(a )') '  set technique:nufft'
-   write(IWR,'(a )') '  set scale:P_scale'
+!  write(IWR,'(a )') '  set scale:P_scale'
    write(IWR,'(a )') '  ll F_XMIN, F_YMIN, F_ZMIN'
    write(IWR,'(a )') '  lr F_XMAX, F_YMIN, F_ZMIN'
    write(IWR,'(a )') '  ul F_XMIN, F_YMAX, F_ZMIN'
@@ -450,13 +475,13 @@ else
    write(IWR,'(a )') '  na points_abs'
    write(IWR,'(a )') '  no points_ord'
    write(IWR,'(a )') '  nt points_top'
-   write(IWR,'(a )') '  !set filter:lanczos, damp:0.5, width:7, scale:1.0'
+   write(IWR,'(a )') '  !set filter:lanczos, damp:0.35, width:11, scale:1.0'
    write(IWR,'(a )') '  !set symmetry:apply'
    write(IWR,'(a )') '  run ! sigabs:[0.001, 1.0,0.0,0.0, sigord:[0.001, 0.0,1.0,0.0], sigtop:[0.001, 0.0,0.0,1.0]'
    write(IWR,'(a )') 'exit'
    write(IWR,'(a )') 'output'
    if(l_refine) then
-      write(IWR,'(a )') '  outf calc.h5'
+      write(IWR,'(a )') '  outf CALCULATED/calc.h5'
    else
       write(IWR,'(a )') '  outf "%c/INDI/indi.%4D", INDIDIR, REF_KID'
    endif
@@ -541,7 +566,7 @@ else
       open(IWR, file='k_inter.mac', status='unknown')
       write(IWR,'(a )') 'reset'
       write(IWR,'(3a)') 'load h5, DATA/',substance(1:len_trim(substance)),'.h5, layer:middle'
-      write(IWR,'(a )') 'load h5, calc.h5, layer:middle'
+      write(IWR,'(a )') 'load h5, CALCULATED/calc.h5, layer:middle'
    else
       open(IWR, file='ksingle.mac', status='unknown')
       write(IWR,'(a )') 'reset'
@@ -572,8 +597,8 @@ else
    write(IWR,'(a )') 'achz Intensity'
    write(IWR,'(a )') 'hart 1, 2'
    write(IWR,'(a )') 'cmap fire'
-   write(IWR,'(a )') 'hlin 1, 0.1, 0.1, 100, %'
-   write(IWR,'(a )') 'fset 3'
+   write(IWR,'(a )') 'hlin 1, 0.5, 0.5, 100, %'
+   write(IWR,'(a )') 'fset 2'
    write(IWR,'(a )') '#'
    write(IWR,'(a )') 'afra 2'
    write(IWR,'(a )') 'aver data:1'
@@ -588,8 +613,8 @@ else
    write(IWR,'(a )') 'achz Intensity'
    write(IWR,'(a )') 'hart 2, 2'
    write(IWR,'(a )') 'cmap fire'
-   write(IWR,'(a )') 'hlin 1, 0.1, 0.1, 100, %'
-   write(IWR,'(a )') 'fset -3'
+   write(IWR,'(a )') 'hlin 1, 0.5, 0.5, 100, %'
+   write(IWR,'(a )') 'fset -2'
    write(IWR,'(a )') '#'
    write(IWR,'(a )') 'afra 3'
    write(IWR,'(a )') 'aver data:1'
@@ -613,7 +638,7 @@ else
    write(IWR,'(a )') 'endif'
    write(IWR,'(a )') 'r[11] = -0.02*r[10]'
    write(IWR,'(a )') 'hlin 1, r[10], r[11], 101'
-   write(IWR,'(a )') 'fset 3'
+   write(IWR,'(a )') 'fset 2'
    write(IWR,'(a )') '#'
    write(IWR,'(a )') 'plot'
    if(l_refine) then
@@ -663,7 +688,7 @@ if(c_style=='powder') then
    else
       hkl_file = substance(1:len_trim(substance))//'.Q'
    endif
-elseif(c_style=='pdf') then
+elseif(c_style(1:3)=='pdf') then
    line = 'mkdir -p GRCALC'
    call execute_command_line(line, wait=.false.)
    discus_file = substance(1:i)//'_main_pdf.mac'
@@ -671,6 +696,7 @@ elseif(c_style=='pdf') then
 !
    hkl_file = substance(1:len_trim(substance))//'.grobs'
 endif
+!
 open(unit=IDI_MA, file=discus_file, status='unknown')
 open(unit=IRE_MA, file=refine_file, status='unknown')
 open(unit=IRE_NP, file='newpara.mac', status='unknown')
@@ -874,16 +900,22 @@ write(IRE_MA,'(a )') '#'
 write(IRE_MA,'(a )') 'exit  ! Back to SUITE'
 close(IRE_MA)
 !
+i= len_trim(substance)
+line = 'mkdir -p STRUCTURE_FINAL'
+call execute_command_line(line, wait=.false.)
+!
 open(IRE_MA, file='final_cell_cif.mac', status='unknown')
 write(IRE_MA,'( a)') 'branch discus'
 write(IRE_MA,'( a)') 'read'
 write(IRE_MA,'(3a)') '  stru internal.' , substance(1:i), '.cell'
+write(IRE_MA,'( a)') 'cd STRUCTURE_FINAL'
 write(IRE_MA,'( a)') 'save'
 write(IRE_MA,'(3a)') '  outf ', substance(1:i), '.cell'
 write(IRE_MA,'( a)') '  write all'
 write(IRE_MA,'( a)') '  run'
 write(IRE_MA,'( a)') 'exit'
 write(IRE_MA,'(3a)') 'export cif, ', substance(1:i), '.cif, spcgr:original'
+write(IRE_MA,'( a)') 'cd ..'
 write(IRE_MA,'( a)') 'exit  ! back to REFINE'
 close(IRE_MA)
 close(IRE_NP)
@@ -930,7 +962,178 @@ end subroutine write_refine_powder_part4
 !
 !*****7**************************************************************** 
 !
-subroutine write_refine_pdf_part4(substance,                      &
+subroutine write_refine_pdf_part4_bulk(substance,                      &
+        ilist, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
+!
+!  Write main discus macro; powder diffraction  PART 4
+!
+use blanks_mod
+use lib_conv_shelx_mod
+use precision_mod
+!
+implicit none
+!
+character(len=*)                , intent(in) :: substance
+integer                         , intent(in) :: ilist
+character(len=*)                , intent(in) :: c_form
+character(len=*)                , intent(in) ::  lambda 
+character(len=*)                , intent(in) :: slambda 
+real(kind=PREC_DP)              , intent(in) :: P_exti
+integer            , intent(in) :: spcgr_syst
+real(kind=PREC_DP) , dimension(6), intent(in) :: lattice_para
+integer           , dimension(3), intent(inout) :: hkl_max
+!
+character(len=PREC_STRING) :: aspher_file
+character(len=PREC_STRING) :: line
+character(len=PREC_STRING) :: line1
+character(len=PREC_STRING) :: line2
+integer :: i,j, k
+integer :: length
+integer :: ios
+logical :: lexist
+real(kind=PREC_DP)  :: rlambda
+!
+read(lambda, *) rlambda
+!
+i= len_trim(substance)
+j= len_trim(hkl_file) - 4
+!
+call write_powder_lattice(IDI_MA, spcgr_syst)
+call write_macro_powder(c_form, hkl_file, rlambda, slambda)
+!
+write(IDI_MA,'(a )') 'save'
+write(IDI_MA,'(3a)') '  outfile internal.',substance(1:i), '.cell'
+write(IDI_MA,'(a )') '  write all'
+write(IDI_MA,'(a )') '  run'
+write(IDI_MA,'(a )') 'exit'
+write(IDI_MA,'(a )') 'read'
+write(IDI_MA,'(3a)') '  cell internal.',substance(1:i), '.cell'
+write(IDI_MA,'(a )') 'variable real, rlambda'
+write(IDI_MA,'(a )') 'rlambda = 1.5409'
+write(IDI_MA,'(a )') '@powder.mac'
+!
+write(IDI_MA,'(a )') 'output'
+write(IDI_MA,'(3a)') '  outf GRCALC/', substance(1:i), '.grcalc'
+write(IDI_MA,'(a )') '  value PDF'
+write(IDI_MA,'(a )') '  form pdf, r, F_XMIN, F_XMAX, F_XSTP'
+write(IDI_MA,'(a )') '  run'
+write(IDI_MA,'(a )') 'exit'
+write(IDI_MA,'(a )') 'branch kuplot'
+write(IDI_MA,'(a )') 'reset'
+write(IDI_MA,'(3a)') 'load xy, GRCALC/', substance(1:i), '.grcalc'
+write(IDI_MA,'(a )') 'exit  ! Back to DISCUS'
+write(IDI_MA,'(a )') 'exit  ! Back to REFINE'
+write(IDI_MA,'(a )') 'finished'
+close(IDI_MA)
+!
+i= len_trim(substance)
+open(IDI_PO, file='k_inter.mac', status='unknown')
+write(IDI_PO,'(a )') 'reset'
+write(IDI_PO,'(3a)') 'load xy, DATA/', substance(1:i), '.grobs'
+write(IDI_PO,'(3a)') 'load xy, GRCALC/', substance(1:i), '.grcalc'
+write(IDI_PO,'(a )') 'kcal sub, 1, 2'
+write(IDI_PO,'(a )') 'r[0] = min(ymin[1], ymin[2]) - ymax[3]'
+write(IDI_PO,'(a )') 'ccal add, wy, 3, r[0]'
+write(IDI_PO,'(a )') 'aver'
+write(IDI_PO,'(a )') 'scale'
+write(IDI_PO,'(a )') 'mark'
+write(IDI_PO,'(a )') 'ltyp 1, 1'
+write(IDI_PO,'(a )') 'ltyp 2, 1'
+write(IDI_PO,'(a )') 'ltyp 3, 1'
+write(IDI_PO,'(a )') 'lcol 1, blue'
+write(IDI_PO,'(a )') 'lcol 2, red'
+write(IDI_PO,'(a )') 'lcol 3, black'
+write(IDI_PO,'(a )') 'mtyp 1, 0'
+write(IDI_PO,'(a )') 'mtyp 2, 0'
+write(IDI_PO,'(a )') 'mtyp 3, 0'
+write(IDI_PO,'(a )') 'fnam off'
+write(IDI_PO,'(a )') 'fset 2'
+write(IDI_PO,'(a )') 'grid on'
+write(IDI_PO,'(a,f9.7 )') 'achx Distance[\A]'
+write(IDI_PO,'(a )') 'achy PDF'
+write(IDI_PO,'(a )') 'rval 1,2, dat'
+write(IDI_PO,'(2a)') 'tit1 Substance: ', substance(1:i)
+write(IDI_PO,'(a )') 'tit2 "wR-value %8.5f",res[2]'
+write(IDI_PO,'(a )') 'plot'
+write(IDI_PO,'(a )') 'exit '
+close(IDI_PO)
+!
+write(IRE_MA,'(a )') 'set cycle,   5'
+write(IRE_MA,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10, pshift:2.0, conf:1.0, lambda:65000.'
+write(IRE_MA,'(a )') 'set relax, start:0.25'
+write(IRE_MA,'(2a)') '@', discus_file(1:len_trim(discus_file))
+write(IRE_MA,'( a)') 'branch kuplot'
+write(IRE_MA,'( a)') '  @k_inter.mac'
+write(IRE_MA,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_inter.mac'
+write(IRE_MA,'(a )') '#'
+write(IRE_MA,'(a )') '@final_cell_cif.mac'
+write(IRE_MA,'(a )') '#'
+write(IRE_MA,'(a )') 'exit  ! Back to SUITE'
+close(IRE_MA)
+!
+i= len_trim(substance)
+line = 'mkdir -p STRUCTURE_FINAL'
+call execute_command_line(line, wait=.false.)
+!
+open(IRE_MA, file='final_cell_cif.mac', status='unknown')
+write(IRE_MA,'( a)') 'branch discus'
+write(IRE_MA,'( a)') 'read'
+write(IRE_MA,'(3a)') '  stru internal.' , substance(1:i), '.cell'
+write(IRE_MA,'( a)') 'cd STRUCTURE_FINAL'
+write(IRE_MA,'( a)') 'save'
+write(IRE_MA,'(3a)') '  outf ', substance(1:i), '.cell'
+write(IRE_MA,'( a)') '  write all'
+write(IRE_MA,'( a)') '  run'
+write(IRE_MA,'( a)') 'exit'
+write(IRE_MA,'(3a)') 'export cif, ', substance(1:i), '.cif, spcgr:original'
+write(IRE_MA,'( a)') 'cd ..'
+write(IRE_MA,'( a)') 'exit  ! back to REFINE'
+close(IRE_MA)
+close(IRE_NP)
+!
+!  Interpret "aspher.json"
+!
+if(c_form=='discamb') then
+   aspher_file = '../BUILD_TSC/aspher.json'  ! Use the special fixed name for aspher.json
+   inquire(file=aspher_file, exist = lexist)
+   cond_exist: if(lexist) then
+      open(unit=IRE_MA, file=aspher_file, status='old')
+      read(IRE_MA, '(a)', iostat=ios) line
+      if(is_iostat_end(ios)) exit cond_exist
+      if(ios/= 0           ) exit cond_exist
+      if(line=='}'         ) exit cond_exist
+      length=len_trim(line)
+      call rem_leading_bl(line, length)
+      loop_aspher: do
+         i =index(line, 'structure')
+         if(i > 0) then
+            i = index(line, ':')
+            j = index(line(i+1:len_trim(line)), '"')
+            k = index(line, '"', .true.)
+            line1 = line(i+j+1:k-1)
+            line2 = 'cp ../ESSENTIAL_INPUT/' // line1(1:len_trim(line1)) // ' ../BUILD_TSC/'
+            call execute_command_line(line2, wait=.false.)
+            exit cond_exist
+         endif
+         read(IRE_MA, '(a)', iostat=ios) line
+         if(is_iostat_end(ios)) exit cond_exist
+         if(ios/= 0           ) exit cond_exist
+         if(line=='}'         ) exit cond_exist
+         length=len_trim(line)
+         call rem_leading_bl(line, length)
+      enddo loop_aspher
+   endif cond_exist
+   close(IRE_MA)
+endif
+!
+write(line,'(3a)') 'cp ', substance(1:len_trim(substance)),'.cell CELL'
+call execute_command_line(line, wait=.false.)
+!
+end subroutine write_refine_pdf_part4_bulk
+!
+!*****7**************************************************************** 
+!
+subroutine write_refine_pdf_part4_nano(substance,                      &
         ilist, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
 !
 !  Write main discus macro; PDF PART 4
@@ -1050,23 +1253,29 @@ write(IRE_MA,'(a )') 'exit  ! Back to SUITE'
 close(IRE_MA)
 close(IRE_NP)
 !
+i= len_trim(substance)
+line = 'mkdir -p STRUCTURE_FINAL'
+call execute_command_line(line, wait=.false.)
+!
 open(IRE_MA, file='final_cell_cif.mac', status='unknown')
 write(IRE_MA,'( a)') 'branch discus'
 write(IRE_MA,'( a)') 'read'
 write(IRE_MA,'(3a)') '  stru internal.' , substance(1:i), '.cell'
+write(IRE_MA,'( a)') 'cd STRUCTURE_FINAL'
 write(IRE_MA,'( a)') 'save'
 write(IRE_MA,'(3a)') '  outf ', substance(1:i), '.cell'
 write(IRE_MA,'( a)') '  write all'
 write(IRE_MA,'( a)') '  run'
 write(IRE_MA,'( a)') 'exit'
 write(IRE_MA,'(3a)') 'export cif, ', substance(1:i), '.cif, spcgr:original'
+write(IRE_MA,'( a)') 'cd ..'
 write(IRE_MA,'( a)') 'exit  ! back to REFINE'
 close(IRE_MA)
 !
 write(line,'(3a)') 'cp ', substance(1:len_trim(substance)),'.cell CELL'
 call execute_command_line(line, wait=.false.)
 !
-end subroutine write_refine_pdf_part4
+end subroutine write_refine_pdf_part4_nano
 !
 !*****7**************************************************************** 
 !
@@ -1211,7 +1420,7 @@ if(c_style=='single') then
 elseif(c_style=='powder') then
    write(IDF_SI, '(4a)') '  data xy, DATA/', substance(1:len_trim(substance)), '.tth', &
                          ' ! Load data file, populates F_XMIN etc.'
-elseif(c_style=='pdf') then
+elseif(c_style(1:3)=='pdf') then
    write(IDF_SI, '(4a)') '  data xy, DATA/', substance(1:len_trim(substance)), '.grobs', &
                          ' ! Load data file, populates F_XMIN etc.'
 endif
@@ -1253,7 +1462,7 @@ if(c_style=='single') then
 elseif(c_style=='powder') then
    write(IDF_SI, '(4a)') '  data xy, DATA/', substance(1:len_trim(substance)), '.tth', &
                          ' !  Load data file, populates F_XMIN etc.'
-elseif(c_style=='pdf') then
+elseif(c_style(1:3)=='pdf') then
    write(IDF_SI, '(4a)') '  data xy, DATA/', substance(1:len_trim(substance)), '.grobs', &
                          ' ! Load data file, populates F_XMIN etc.'
 endif
@@ -1331,7 +1540,7 @@ if(c_style=='single') then
    endif
 elseif(c_style=='powder') then
    write(IDF_SI, '(a)') '#@ DESCRIPTION  *_main_powder.mac'
-elseif(c_style=='pdf') then
+elseif(c_style(1:3)=='pdf') then
    write(IDF_SI, '(a)') '#@ DESCRIPTION  *_main_pdf.mac'
 endif
 write(IDF_SI, '(a)') '#@ DESCRIPTION  Averaging and possible scaling/background is done in '
@@ -1364,7 +1573,7 @@ if(c_style=='single') then
    endif
 elseif(c_style=='powder') then
    write(IDF_SI, '(3a)') '  @',substance(1:len_trim(substance)), '_main_powder.mac'
-elseif(c_style=='pdf') then
+elseif(c_style(1:3)=='pdf') then
    write(IDF_SI, '(3a)') '  @',substance(1:len_trim(substance)), '_main_pdf.mac'
 endif
 if(compute=='serial') then
@@ -1454,7 +1663,7 @@ if(c_style=='single') then
 elseif(c_style=='powder') then
    write(IDF_BS, '(4a)') '  data xy, DATA/', substance(1:len_trim(substance)), '.tth', &
                          ' ! Load data file, populates F_XMIN etc.'
-elseif(c_style=='pdf') then
+elseif(c_style(1:3)=='pdf') then
    write(IDF_BS, '(4a)') '  data xy, DATA/', substance(1:len_trim(substance)), '.grobs', &
                          ' ! Load data file, populates F_XMIN etc.'
 endif
@@ -2058,16 +2267,22 @@ call diffev_setup_last
 !write(IDF_MA,'(a )') 'exit  ! Back to SUITE'
 close(IDF_MA)
 !
+i= len_trim(substance)
+line = 'mkdir -p STRUCTURE_FINAL'
+call execute_command_line(line, wait=.false.)
+!
 open(IDF_MA, file='final_cell_cif.mac', status='unknown')
 write(IDF_MA,'( a)') 'branch discus'
 write(IDF_MA,'( a)') 'read'
 write(IDF_MA,'(3a)') '  stru internal.' , substance(1:i), '.cell'
+write(IDF_MA,'(3a)') 'cd STRUCTURE_FINAL'
 write(IDF_MA,'( a)') 'save'
 write(IDF_MA,'(3a)') '  outf ', substance(1:i), '.cell'
 write(IDF_MA,'( a)') '  write all'
 write(IDF_MA,'( a)') '  run'
 write(IDF_MA,'( a)') 'exit'
 write(IDF_MA,'(3a)') 'export cif, ', substance(1:i), '.cif, spcgr:original'
+write(IDF_MA,'(3a)') 'cd ..'
 write(IDF_MA,'( a)') 'exit  ! back to REFINE'
 !
 close(IDF_MA)
@@ -2194,7 +2409,73 @@ end subroutine write_diffev_powder_part4
 !
 !*****7**************************************************************** 
 !
-subroutine write_diffev_pdf_part4(&
+subroutine write_diffev_pdf_part4_bulk(&
+           substance, c_form, lambda, slambda, compute, c_style )
+!-
+! Write main discus macro DIFFEV_VERSION, last part
+! Write "diffev_setup.mac"              , last part
+!+
+!
+use precision_mod
+!
+implicit none
+!
+character(len=*), intent(in) :: substance    ! current material
+character(len=*), intent(in) :: c_form       ! Atom form factor
+character(len=*), intent(in) ::  lambda      ! Wave length numerical value
+character(len=*), intent(in) :: slambda      ! Wave length symbol
+character(len=*), intent(in) :: compute      ! 'serial' or 'parallel' 
+character(len=*), intent(in) :: c_style      ! 'powder' or 'pdf' 
+!
+character(len=PREC_STRING) :: line
+real(kind=PREC_DP) :: rlambda
+!
+write(IDF_PO, '(a)') '#'
+write(IDF_PO, '(a)') 'save'
+write(IDF_PO, '(3a)') '  outfile internal.', substance(1:len_trim(substance)), '.cell'
+write(IDF_PO, '(a)') '  write all'
+write(IDF_PO, '(a)') '  run'
+write(IDF_PO, '(a)') 'exit'
+write(IDF_PO, '(a)') '#'
+!
+write(IDF_PO, '(a)') 'read'
+write(IDF_PO, '(3a)') '  cell internal.', substance(1:len_trim(substance)), '.cell'
+write(IDF_PO, '(a)') '#'
+write(IDF_PO, '(a)') '@powder.mac'
+!
+read(lambda, *) rlambda
+call write_macro_powder(c_form, hkl_file, rlambda, slambda)
+!
+write(IDF_PO, '(a)') 'output'
+write(IDF_PO, '(a)') '  outf "%c/INDI/indi.%4D.%4D", INDIDIR, REF_KID, REF_INDIV'
+write(IDF_PO, '(a)') '  value PDF'
+write(IDF_PO, '(a)') '  form pdf, r, F_XMIN, F_XMAX, F_XSTP'
+write(IDF_PO, '(a)') '  run'
+write(IDF_PO, '(a)') 'exit'
+!
+call diffev_main_powder_mac(.true.)
+!
+call diffev_best_powder_mac(.true., compute)
+call diffev_setup_last
+!
+call diffev_best2_powder_mac
+!
+close(IDF_PO)
+close(IDF_MA)
+close(IDF_NP)
+close(IDF_BS)
+close(IDF_BS2)
+!
+call write_kup_diffev_mac(substance, compute, c_style)
+!
+write(line,'(3a)') 'cp ', substance(1:len_trim(substance)),'.cell CELL'
+call execute_command_line(line, wait=.false.)
+!
+end subroutine write_diffev_pdf_part4_bulk
+!
+!*****7**************************************************************** 
+!
+subroutine write_diffev_pdf_part4_nano(&
            substance, c_form, lambda, slambda, compute, c_style )
 !-
 ! Write main discus macro DIFFEV_VERSION, last part
@@ -2293,7 +2574,7 @@ close(IDF_PO)
 write(line,'(3a)') 'cp ', substance(1:len_trim(substance)),'.cell CELL'
 call execute_command_line(line, wait=.false.)
 !
-end subroutine write_diffev_pdf_part4
+end subroutine write_diffev_pdf_part4_nano
 !
 !*****7**************************************************************** 
 !
@@ -2462,7 +2743,7 @@ elseif(compute=='serial') then
 endif
 if(c_style=='powder') then
    write(IDF_PO, '(a)') '# Version for fit to an experimental powder pattern'
-elseif(c_style=='pdf') then
+elseif(c_style(1:3)=='pdf') then
    write(IDF_PO, '(a)') '# Version for fit to an experimental PDF'
 endif
 !
@@ -2507,7 +2788,7 @@ if(c_style=='powder') then
    write(IDF_PO, '(a)') '  run                     ! create two data sets scaled+back and difference'      
    write(IDF_PO, '(a)') 'exit'
    write(IDF_PO, '(a)') 'icalc = n[1] - 1          ! Final calculated data set is scaled + back'
-elseif(c_style=='pdf') then
+elseif(c_style(1:3)=='pdf') then
    write(IDF_PO, '(a)') 'load xy, "%c/DATA/%c", DATADIR, DATAFILE'
    write(IDF_PO, '(a)') 'idata = n[1]              ! Data set number with experimental data'
    write(IDF_PO, '(a)') 'spline imerge, idata      ! For safety spline ==> isplined'
@@ -2553,7 +2834,7 @@ if(c_style=='powder') then
    write(IDF_PO, '(a)') 'achx 2Theta'
    write(IDF_PO, '(a)') 'achy intensity'
    write(IDF_PO, '(a)') 'tit1 "Fit to powder: %c", SUBSTANCE'
-elseif(c_style=='pdf') then
+elseif(c_style(1:3)=='pdf') then
    write(IDF_PO, '(a)') 'r[1] = ymax[3] - min(ymin[1],ymin[2])'
    write(IDF_PO, '(a)') 'ccal add, wy, 3, -r[1]'
    write(IDF_PO, '(a)') 'achx Distance [\A]'
