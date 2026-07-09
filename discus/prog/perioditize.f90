@@ -657,7 +657,7 @@ integer, dimension(3) :: shift                    ! Integer shift vector
 integer, dimension(3) :: icell                    ! Old atom is in this new cell
 integer, dimension(3) :: jcell                    ! Old atom is in this new cell
 !
-integer, dimension(  :), allocatable ::  tmp_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
+integer, dimension(:,:), allocatable ::  tmp_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
 integer, dimension(  :), allocatable ::  tmp_prop   ! (  1:NMAX)  !Property flag
 integer, dimension(  :), allocatable ::  tmp_mole   ! (  1:NMAX)  !Atom is in this molecule
 integer, dimension(:,:), allocatable ::  tmp_surf   ! (  1:NMAX)  !Atom is on this surface 
@@ -696,7 +696,7 @@ enddo
 !write(*,*) ' low  ', pdt_ilow
 !write(*,*) ' high ', pdt_ihig
 !
-allocate(tmp_iscat(     1:natoms))
+allocate(tmp_iscat(1:3, 1:natoms))
 allocate(tmp_prop (     1:natoms))
 allocate(tmp_mole (     1:natoms))
 allocate(tmp_surf (0:3, 1:natoms))
@@ -811,8 +811,8 @@ do m=1, nprior
       endif
    enddo
       if(dmin < EPS) then                     ! Found close atom
-      if(tmp_iscat(   k) == -1) then
-         tmp_iscat(   k) = cr_iscat(1, m)
+      if(tmp_iscat(1, k) == -1) then
+         tmp_iscat(:, k) = cr_iscat(:, m)
          tmp_prop (   k) = cr_prop (   m)
          tmp_mole (   k) = cr_mole (   m)
          tmp_surf (:, k) = cr_surf (:, m)
@@ -904,6 +904,8 @@ enddo
 !Q   eps = eps * 2.0
 !Qenddo soften
 !
+write(*,'(a,4i9)') ' cr_anis_full ', ubound( cr_anis_full)
+!
 cr_iscat = 0
 cr_prop  = 0
 cr_mole  = 0
@@ -911,7 +913,7 @@ cr_surf  = 0
 cr_magn  = 0.0
 cr_valu  = 0.0
 cr_pos   = 0.0
-cr_iscat(1,1:natoms) = tmp_iscat(  1:natoms)
+cr_iscat(:,1:natoms) = tmp_iscat(:,1:natoms)
 cr_prop (  1:natoms) = tmp_prop (  1:natoms)
 cr_mole (  1:natoms) = tmp_mole (  1:natoms)
 cr_surf (:,1:natoms) = tmp_surf (:,1:natoms)
