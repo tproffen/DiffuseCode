@@ -4,6 +4,7 @@ module lib_load_mod
 !
 private
 public gen_load_hklf4
+public gen_load_rmc
 !
 contains
 !
@@ -233,6 +234,250 @@ deallocate(d5_dy)
 deallocate(d5_dz)
 !
 end subroutine gen_load_hklf4
+!
+!*******************************************************************************
+!
+subroutine gen_load_rmc(infile, node_number, lout)
+!-
+! Load a RMCprofile type dat file into memory
+!+
+use errlist_mod
+use lib_data_struc_h5
+use lib_data_types_mod
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+character(len=*), intent(in) :: infile
+integer, intent(out) :: node_number
+logical, intent(in ) :: lout
+!
+integer, parameter :: IRD = 33
+!
+character(len=PREC_STRING) :: line
+integer               :: i          ! Dummy loop index
+integer               :: ih, ik, il ! Dummy loop index
+integer               :: ios        ! I/O status
+integer, dimension(3) :: minpix     ! Max values for pixel
+integer, dimension(3) :: maxpix     ! Max values for pixel
+integer, dimension(3) ::  ipix      ! An individual pixel
+integer               :: ndat       ! number data points
+logical               :: lda        ! File is present / absent
+real(kind=PREC_DP), dimension(3)    :: minhkl           ! Minimum hkl values
+real(kind=PREC_DP), dimension(3)    :: maxhkl           ! Maximum hkl values
+real(kind=PREC_DP), dimension(3)    ::    hkl           ! individual hkl values
+real(kind=PREC_DP), dimension(2)    :: inte_range       ! intensity for reflection j
+real(kind=PREC_DP), dimension(2)    ::  sig_range       ! intensity for reflection j
+real(kind=PREC_DP)    :: inte       ! intensity for reflection j
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: observed
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: sigma
+integer           , dimension(:,:,:), allocatable :: weight
+!
+integer :: d5_layer
+integer :: d5_nndims
+integer :: d5_data_type
+integer,dimension(3) :: d5_dims
+integer,dimension(3) :: d5_use_coor
+logical :: d5_direct
+logical :: d5_is_grid
+logical :: d5_has_dxyz
+logical :: d5_has_dval
+logical :: d5_calc_coor
+real(kind=PREC_DP)   , dimension(3)                   :: d5_llims          ! left lower bottom corner
+real(kind=PREC_DP)   , dimension(3)                   :: d5_steps          ! simple steps along axes 
+real(kind=PREC_DP)   , dimension(3,3)                 :: d5_steps_full     ! full steps in H, K, L
+real(kind=PREC_DP)   , dimension(3,3)                 :: d5_vectors        ! full steps in H, K, L
+real(kind=PREC_DP)   , dimension(3,4)                 :: d5_corners        ! steps in H, K, L
+real(kind=PREC_DP)   , dimension(6)                   :: d5_unit           ! steps in H, K, L
+real(kind=PREC_DP)   , dimension(:), allocatable      :: d5_x              ! h coordinates
+real(kind=PREC_DP)   , dimension(:), allocatable      :: d5_y              ! k coordinates
+real(kind=PREC_DP)   , dimension(:), allocatable      :: d5_z              ! l coordinates
+real(kind=PREC_DP)   , dimension(:), allocatable      :: d5_dx             ! h coordinates
+real(kind=PREC_DP)   , dimension(:), allocatable      :: d5_dy             ! k coordinates
+real(kind=PREC_DP)   , dimension(:), allocatable      :: d5_dz             ! l coordinates
+!
+ios = 0
+inquire(file=infile,exist=lda)
+if(.not.lda) then
+   ier_num = -1
+   ier_typ = ER_IO
+   return
+endif
+!
+open(unit=IRD, file=infile, iostat=ios)
+if(ios/=0) then
+   ier_num = -2
+   ier_typ = ER_IO
+   return
+endif
+!
+!  Read once to get maximum abs(hkl)
+!
+read(IRD, '(a)', iostat=ios) line
+if(is_iostat_end(ios)) return
+read(line, *, iostat=ios) ndat
+!
+inte_range(1) = +huge(1.0D0)
+inte_range(2) = -huge(1.0D0)
+ sig_range(1) = +huge(1.0D0)
+ sig_range(2) = -huge(1.0D0)
+minhkl =  9999
+maxhkl = -9999
+minpix =  9999
+maxpix = -9999
+!ndat = 0
+!nobs = 0
+init_loop: do i=1, ndat
+   read(IRD, '(a)', iostat=ios) line
+   if(is_iostat_end(ios)) exit init_loop
+   read(line, *, iostat=ios) ipix, hkl, inte
+   if(is_iostat_end(ios)) exit init_loop
+!   ndat = ndat + 1
+   minpix(1) = min(minpix(1),     ipix(1))
+   minpix(2) = min(minpix(2),     ipix(2))
+   minpix(3) = min(minpix(3),     ipix(3))
+   maxpix(1) = max(maxpix(1),     ipix(1))
+   maxpix(2) = max(maxpix(2),     ipix(2))
+   maxpix(3) = max(maxpix(3),     ipix(3))
+   minhkl(1) = min(minhkl(1),      hkl(1))
+   minhkl(2) = min(minhkl(2),      hkl(2))
+   minhkl(3) = min(minhkl(3),      hkl(3))
+   maxhkl(1) = max(maxhkl(1),      hkl(1))
+   maxhkl(2) = max(maxhkl(2),      hkl(2))
+   maxhkl(3) = max(maxhkl(3),      hkl(3))
+enddo init_loop
+close(IRD)
+!
+allocate(observed( maxpix(1)-minpix(1)+1, maxpix(2)-minpix(2)+1, maxpix(3)-minpix(3)+1))
+allocate(sigma   ( maxpix(1)-minpix(1)+1, maxpix(2)-minpix(2)+1, maxpix(3)-minpix(3)+1))
+allocate(weight  ( maxpix(1)-minpix(1)+1, maxpix(2)-minpix(2)+1, maxpix(3)-minpix(3)+1))
+!
+observed = 0.0D0
+sigma    = 1.0D0    ! Flag all points as unit weights
+sig_range = 1.0D0
+!
+open(unit=IRD, file=infile, iostat=ios)
+read(IRD, '(a)', iostat=ios) line     ! Read first line with number of data points
+read_loop_l: do il=minpix(3), maxpix(3)
+read_loop_k: do ik=minpix(2), maxpix(2)
+read_loop_h: do ih=minpix(1), maxpix(1)
+   read(IRD, '(a)', iostat=ios) line
+   if(is_iostat_end(ios)) exit read_loop_l
+   read(line, *, iostat=ios) ipix, hkl, inte
+!write(*,*) ipix, hkl, inte
+   if(is_iostat_end(ios)) exit read_loop_l
+    inte_range(1) = min(inte_range(1), inte)
+    inte_range(2) = max(inte_range(2), inte)
+   observed(ih,ik,il) = inte
+enddo read_loop_h
+enddo read_loop_k
+enddo read_loop_l
+!
+!
+if(lout) then
+   write(output_io,*)
+   write(output_io,'(a)')         ' Intensity statistics ' 
+   write(output_io,'(a, 3i6)')    '  # data points', ndat
+   write(output_io,'(a, 3i6)')    '  Minimum pix  ', minpix
+   write(output_io,'(a, 3i6)')    '  Maximum pix  ', maxpix
+   write(output_io,'(a, 3f12.4)')    '  Minimum pix  ', minhkl
+   write(output_io,'(a, 3f12.4)')    '  Maximum pix  ', maxhkl
+   write(output_io,'(a, 2g20.6e3)') '  Intensity range ', inte_range
+   write(output_io,'(a, 2f12.4)') '  Sigma     range ',  sig_range
+   write(output_io,*)
+endif
+!
+close(IRD)
+!
+d5_layer  = (maxpix(3)+minpix(3))/2 !max(abs(lbound(observed,3)),-minpix(3)+1)
+d5_direct = .false.
+d5_nndims = 3
+d5_dims   = (maxpix-minpix) + 1
+d5_llims   = minhkl
+d5_steps   = 1.0D0
+d5_steps_full      = 0.0D0
+d5_steps_full(1,1) = (maxhkl(1)-minhkl(1))/real(maxpix(1)-minpix(1), kind=PREC_DP)
+d5_steps_full(2,2) = (maxhkl(2)-minhkl(2))/real(maxpix(2)-minpix(2), kind=PREC_DP)
+d5_steps_full(3,3) = (maxhkl(3)-minhkl(3))/real(maxpix(3)-minpix(3), kind=PREC_DP)
+d5_steps(1) = d5_steps_full(1,1)
+d5_steps(2) = d5_steps_full(2,2)
+d5_steps(3) = d5_steps_full(3,3)
+d5_is_grid= .true.
+d5_has_dxyz=.false.
+d5_has_dval=.true.
+d5_calc_coor=.false.
+d5_use_coor = (/1,2,3/)
+d5_corners(:,1) = minhkl(:)
+d5_corners(:,2) = minhkl(:)
+d5_corners(:,3) = minhkl(:)
+d5_corners(:,4) = minhkl(:)
+d5_corners(1,2) = maxhkl(1)
+d5_corners(2,3) = maxhkl(2)
+d5_corners(3,4) = maxhkl(3)
+d5_vectors      = d5_steps_full
+d5_unit(1:3)    = 1.0D0
+d5_unit(4:6)    =90.0D0
+allocate(d5_x(d5_dims(1)))
+allocate(d5_y(d5_dims(2)))
+allocate(d5_z(d5_dims(3)))
+allocate(d5_dx(d5_dims(1)))
+allocate(d5_dy(d5_dims(2)))
+allocate(d5_dz(d5_dims(3)))
+do i=1,d5_dims(1)
+   d5_x(i) = minhkl(1) + real((i-1),kind=PREC_DP)*d5_steps_full(1,1)
+enddo
+do i=1,d5_dims(2)
+   d5_y(i) = minhkl(2) + real((i-1),kind=PREC_DP)*d5_steps_full(2,2)
+enddo
+do i=1,d5_dims(3)
+   d5_z(i) = minhkl(3) + real((i-1),kind=PREC_DP)*d5_steps_full(3,3)
+enddo
+d5_dx = 0.0D0
+d5_dy = 0.0D0
+d5_dz = 0.0D0
+call dgl5_new_node
+node_number = dgl5_get_number()
+d5_data_type = H5_3D_RECI
+d5_direct = .false.
+!write(*,'(a,l2)') ' DIRECT ', d5_direct
+!write(*,'(a,i5)') ' LAYER  ', d5_layer
+!write(*,'(a,3i5)') ' nndims ', d5_nndims
+!write(*,'(a,3i5)') '   dims ', d5_dims
+!write(*,'(a,3l2)') ' GRID   ', d5_is_grid, d5_has_dxyz, d5_has_dval
+!write(*,'(a,3f12.5,3f8.1)') ' UNIT   ', d5_unit
+!write(*,'(a,3f12.5)') ' Vector1', d5_vectors(:,1)
+!write(*,'(a,3f12.5)') ' Vector2', d5_vectors(:,2)
+!write(*,'(a,3f12.5)') ' Vector3', d5_vectors(:,3)
+!write(*,'(a,3f12.5)') ' Steps 1', d5_steps_full(:,1)
+!write(*,'(a,3f12.5)') ' Steps 2', d5_steps_full(:,2)
+!write(*,'(a,3f12.5)') ' Steps 3', d5_steps_full(:,3)
+!write(*,'(a,3f12.5)') ' L L B  ', d5_corners(:,1)
+!write(*,'(a,3f12.5)') ' R L B  ', d5_corners(:,2)
+!write(*,'(a,3f12.5)') ' L U B  ', d5_corners(:,3)
+!write(*,'(a,3f12.5)') ' L L T  ', d5_corners(:,4)
+!write(*,'(a,3f12.5)') ' x X    ', d5_x(1), d5_x(d5_dims(1))
+!write(*,'(a,3f12.5)') ' y Y    ', d5_y(1), d5_y(d5_dims(2))
+!write(*,'(a,3f12.5)') ' z Z    ', d5_z(1), d5_z(d5_dims(3))
+!
+call dgl5_set_node(   infile, d5_data_type, d5_layer, d5_direct, d5_nndims, d5_dims ,         &
+                   d5_is_grid, d5_has_dxyz, d5_has_dval, d5_calc_coor, d5_use_coor, &
+                   d5_corners, d5_vectors,&
+                   d5_unit(1:3), d5_unit(4:6), d5_x, d5_y, d5_z, d5_dx, d5_dy,  &
+                   d5_dz,      observed              ,    sigma, d5_llims,      &
+                   d5_steps, d5_steps_full)
+!
+deallocate(observed)
+deallocate(sigma)
+deallocate(weight)
+deallocate(d5_x)
+deallocate(d5_y)
+deallocate(d5_z)
+deallocate(d5_dx)
+deallocate(d5_dy)
+deallocate(d5_dz)
+!
+end subroutine gen_load_rmc
 !
 !*******************************************************************************
 !
