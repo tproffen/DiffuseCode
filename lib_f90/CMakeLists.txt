@@ -24,6 +24,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               gauss_lorentz_pseudo.f90
               gamma_mod.f90 gaussj_mod.f90 gen_mpi_mod.f90 global_data.f90
               hdf5_def.f90 
+              wichtung.f90
               length_string_mod.f90 lib_f90_config.f90 lib_f90_fftw3.f90 
               lib_conv.f90 lib_conver_shelx.f90 lib_element_status.f90 
               lib_functions.f90
