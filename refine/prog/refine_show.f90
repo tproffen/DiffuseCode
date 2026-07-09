@@ -37,6 +37,8 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 INTEGER :: k
+integer :: idata
+integer :: ndata   ! NUmber of data points
 INTEGER :: ianz
 INTEGER :: iounit
 !
@@ -139,9 +141,13 @@ IF(.NOT.ALLOCATED(refine_CL)) THEN
    ALLOCATE(refine_cl(refine_par_n, refine_par_n))
 ENDIF
 !
+idata = 1   ! WORK
+ndata = ref_data_ptr(idata)%data_ptr%dims(1)* &
+        ref_data_ptr(idata)%data_ptr%dims(2)* &
+        ref_data_ptr(idata)%data_ptr%dims(3)
 CALL show_fit_erg(iounit, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n,   &
            refine_fix_n, ref_ndata, ref_weight,                           &
-           ref_dim(1,1)*ref_dim(2,1),      &
+           ndata                            ,      &
            refine_mac, refine_mac_l,   &
            ref_load, ref_kload, ref_csigma, ref_ksigma, lcovar,           &
            refine_chisqr, refine_conf, &
@@ -179,7 +185,7 @@ INTEGER                                   , INTENT(IN) :: npara       ! Number o
 INTEGER                                   , INTENT(IN) :: nfixed      ! Number of fixed parameters
 integer                                   , intent(in) :: n_dataset   ! Number of data sets
 real(kind=PREC_DP), dimension(n_dataset)  , intent(in) :: weight      ! Relative weights data sets
-INTEGER                                   , INTENT(IN) :: ndata       ! Number of data points = ref_dim(1)*ref_dim(2)
+INTEGER                                   , INTENT(IN) :: ndata       ! Number of data points 
 CHARACTER(LEN=*)                          , INTENT(IN) :: mac         ! Refinement macro name
 INTEGER                                   , INTENT(IN) :: mac_l       ! Length of macro name
 CHARACTER(LEN=*)                          , INTENT(IN) :: load        ! Data set loaded as:
