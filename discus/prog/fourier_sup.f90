@@ -351,6 +351,7 @@ implicit none
 logical           , parameter :: lnufft = .TRUE.
 logical           , parameter :: lform  = .TRUE.
 real(kind=PREC_DP), parameter :: EPS=1.0D-8
+real(kind=PREC_DP), parameter :: EPS2=1.0D-4
 real(kind=PREC_DP), parameter :: MAXSCALE=3.0D0      ! Maximum scale allowed by FINUFFT
 integer               :: i, j, k, l  ! Dummy index
 integer               :: jflat    ! Indicator for flat dimensions
@@ -450,7 +451,8 @@ enddo
 !                1/vi              must be integer
 if(fave/=0.0D0) then
    do i=1, 3
-      if(abs(    abs(vi(i,i)*real(cr_icc(i), kind=PREC_DP))-                        &
+!
+      if( abs(    abs(vi(i,i)*real(cr_icc(i), kind=PREC_DP))-  &
             nint(abs(vi(i,i)*real(cr_icc(i), kind=PREC_DP))))>0.0D0) then
         if(abs(scales(i)-nint(scales(i)))>EPS) then
            ier_num = -186
@@ -458,7 +460,7 @@ if(fave/=0.0D0) then
            ier_msg(1) = 'Increment vector along ' // c_axes(i)
            return
         endif
-         if(abs(1.D0/vi(i,i)-nint(1.D0/(vi(i,i))))>EPS ) then
+         if(abs(1.D0/vi(i,i)-nint(1.D0/(vi(i,i))))>EPS2) then
             ier_num = -187
             ier_typ = ER_APPL
             ier_msg(1) = 'Increment vector along ' // c_axes(i)
