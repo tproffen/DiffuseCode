@@ -40,6 +40,7 @@ character(len=PREC_STRING) :: string
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
+integer            , dimension(3,1 ) :: ref_dim
 !
 INTEGER                              :: ianz
 integer :: i
@@ -343,6 +344,7 @@ ref_weight(idata) = owerte(O_WEIGHT)
 !write(*,*) ' SIGMA ', ref_data_ptr(1    )%data_ptr%sigma(1  ,1  ,1  ), &
 !                      ref_data_ptr(1    )%data_ptr%sigma(51 ,1  ,1  )
 !read(*,*) i
+!write(*,*) ' REF_DIM ', ref_data_ptr(1)%data_ptr%dims
 !
 END SUBROUTINE refine_load
 !
@@ -376,6 +378,7 @@ INTEGER :: iix, iiy, iiz                 ! Dummy loop variables
 integer :: i1, i2, j1, j2, k1, k2        ! Dummy loop variables
 integer :: i, j                          ! Dummy loop variables
 REAL(kind=PREC_DP)    :: step
+integer, dimension(3,1 ) :: ref_dim
 !
 !
 !write(*,*) ' IN REF_KUPLOT'
@@ -414,9 +417,9 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
 !write(*,*) ' LOADED DATA ', ik1_data_type==H5_BRAGG_I
       if(ik1_data_type==H5_BRAGG_I) then
 !
-         ref_dim(1,1) = 2*(max(abs(nint(ik1_x(1))),abs(nint(ik1_x(ik1_dims(1)))))) + 1
-         ref_dim(2,1) = 2*(max(abs(nint(ik1_y(1))),abs(nint(ik1_y(ik1_dims(2)))))) + 1
-         ref_dim(3,1) = 2*(max(abs(nint(ik1_z(1))),abs(nint(ik1_z(ik1_dims(3)))))) + 1
+!        ref_dim(1,1) = 2*(max(abs(nint(ik1_x(1))),abs(nint(ik1_x(ik1_dims(1)))))) + 1
+!        ref_dim(2,1) = 2*(max(abs(nint(ik1_y(1))),abs(nint(ik1_y(ik1_dims(2)))))) + 1
+!        ref_dim(3,1) = 2*(max(abs(nint(ik1_z(1))),abs(nint(ik1_z(ik1_dims(3)))))) + 1
          ref_dim(:,1)    = ik1_dims
          ALLOCATE(ref_data  (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
          ALLOCATE(ref_sigma (ref_dim(1,1),ref_dim(2,1),ref_dim(3,1),1))
