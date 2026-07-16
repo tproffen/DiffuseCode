@@ -2,7 +2,10 @@ module kuplot_update_mod
 !
 contains
 !
-      SUBROUTINE kuplot_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
+!*******************************************************************************
+!
+SUBROUTINE kuplot_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
+!-
 !       Replaces a substring in an expression by the value of the       
 !       appropriate parameter. Modified version for KUPLOT.             
 !+                                                                      
@@ -18,6 +21,7 @@ use kuplot_para_mod
       USE lib_upd_mod
 USE lib_length
 USE lib_errlist_func
+use lib_data_struc_h5
       USE precision_mod
       USE precision_command_mod
 !                                                                       
@@ -32,29 +36,31 @@ USE lib_errlist_func
       INTEGER,                    INTENT(IN   ) :: ianz
 !
       INTEGER mmaxw
-      PARAMETER (mmaxw = 3) 
+      PARAMETER (mmaxw = 4) 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: zeile 
       INTEGER i, laenge
       INTEGER lcomm, ltyp 
       INTEGER idummy 
       INTEGER kpara (mmaxw) 
+integer, dimension(3) :: dimen   ! Dimensions for arrays in global storage
+integer :: node_number   ! Entry in global data 
 !                                                                       
 !
 CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 IF(ier_num == 0) RETURN
 CALL no_error
 !                                                                       
-      laenge = ll 
-      ltyp = 1 
-      zeile = ' ' 
-      DO i = 1, maxw 
-      kpara (i) = nint (ww (i) ) 
-      ENDDO 
+laenge = ll 
+ltyp = 1 
+zeile = ' ' 
+DO i = 1, maxw 
+   kpara (i) = nint (ww (i) ) 
+ENDDO 
 !                                                                       
-      lcomm = length_com (string, ikl) 
+lcomm = length_com (string, ikl) 
 !                                                                       
-      IF (lcomm.eq.1) then 
+cond_lcomm:IF(lcomm.eq.1) then 
          IF (ikl.gt.2) zeile (1:ikl - 1) = string (1:ikl - 2) 
 !                                                                       
 !-------- program information n[n]                                      
@@ -176,7 +182,7 @@ CALL no_error
             ier_num = - 2 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF (lcomm.eq.2) then 
+ELSEIF (lcomm.eq.2) then  cond_lcomm
          IF (ikl.gt.3) zeile (1:ikl - 2) = string (1:ikl - 3) 
 !                                                                       
 !-------- data arrays dx[n,m], dy[n,m]                                  
@@ -291,7 +297,66 @@ CALL no_error
             ier_typ = ER_FORT 
          ENDIF 
 !                                                                       
-      ELSEIF (lcomm.eq.4) then 
+ELSEIF (lcomm.eq.3) then  cond_lcomm
+   IF (ikl.gt.4) zeile (1:ikl - 3) = string (1:ikl - 4) 
+!
+   if(string(ikl-3:ikl-1) == 'val') then
+      if(ianz>=2) then
+      if(kpara(1)>0 .and. kpara(1)<iz) then
+!
+         if(lh5(kpara(1))) then          ! Data in global storage
+            node_number = dgl5_get_h5_is_ku(kpara(1))
+            call dgl5_get_dims(dimen)
+            if(kpara(2)>0 .and. kpara(2)<=dimen(1) .and.  &
+               kpara(3)>0 .and. kpara(3)<=dimen(2) .and.  &
+               kpara(4)>0 .and. kpara(4)<=dimen(3) )        then
+               write(zeile(ikl - 3:ikl + PREC_WIDTH-2) , PREC_F_REAL)   &
+                       dgl5_get_data(kpara(2),kpara(3),kpara(4))
+               zeile(ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
+            else
+               ier_msg(1) = 'Index is out of range'
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            endif
+         else
+         if(ku_ndims(kpara(1))==1) then
+            if(kpara(2)>0 .and. kpara(2)<=lenc(kpara(1))) then
+               write(zeile(ikl-3:ikl + PREC_WIDTH-2) , PREC_F_REAL) & 
+                  y(offxy(kpara(1) - 1) + kpara(2))                   
+               zeile(ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
+            else
+               ier_msg(1) = 'Index is out of range'
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            endif
+         elseif(ku_ndims(kpara(1))==2) then
+            if(kpara(2)>0 .and. kpara(2)<=nx(kpara(1))  .and.           &
+               kpara(3)>0 .and. kpara(3)<=ny(kpara(1))) then
+               write(zeile(ikl - 3:ikl + PREC_WIDTH-2) , PREC_F_REAL)   &
+                  z(offz(kpara(1) - 1) + (kpara(2) - 1) * ny(kpara (1)) + kpara (3) )                                       
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
+            else
+               ier_msg(1) = 'Index is out of range'
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            endif
+         endif
+         endif
+            else
+               ier_msg(1) = 'Index is out of range'
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            endif
+      ELSE 
+         ier_num = -6 
+         ier_typ = ER_FORT 
+      ENDIF 
+   ELSE 
+      ier_num = - 2 
+      ier_typ = ER_FORT 
+   ENDIF 
+!                                                                       
+ELSEIF (lcomm.eq.4) then  cond_lcomm
          IF (ikl.gt.5) zeile (1:ikl - 4) = string (1:ikl - 5) 
 !                                                                       
 !-------- data set dimensions xmin[n], xmax[n], ..                      
@@ -529,23 +594,23 @@ CALL no_error
             ier_typ = ER_FORT 
          ENDIF 
 !
-      ELSE 
+ELSE  cond_lcomm
          ier_num = - 2 
          ier_typ = ER_FORT 
-      ENDIF 
-      IF (ier_num.eq.0) then 
-         ll = laenge+PREC_WIDTH - ltyp - (iklz - ikl + 1) 
-         IF (iklz + 1.le.laenge) zeile (ikl + PREC_WIDTH-1:ll) = string (iklz + 1:&
-         laenge)                                                        
-         string = zeile 
+ENDIF  cond_lcomm
+IF (ier_num.eq.0) then 
+   ll = laenge+PREC_WIDTH - ltyp - (iklz - ikl + 1) 
+   IF (iklz + 1.le.laenge) zeile (ikl + PREC_WIDTH-1:ll) = string (iklz + 1:&
+   laenge)                                                        
+   string = zeile 
 !        CALL rem_bl (string, ll) 
-      ELSE
-         ll = min (40, laenge)
-         WRITE (ier_msg (1), '(a)') string (1:ll)
-      ENDIF 
-      ll = LEN_TRIM(string)
+   ELSE
+   ll = min (40, laenge)
+   WRITE (ier_msg (1), '(a)') string (1:ll)
+ENDIF 
+ll = LEN_TRIM(string)
 !
-      END SUBROUTINE kuplot_ersetz_para                    
+END SUBROUTINE kuplot_ersetz_para                    
 !
 !*****7*****************************************************************
 !
