@@ -25,7 +25,7 @@ USE precision_mod
 USE set_sub_generic_mod
 IMPLICIT none 
 !                                                                       
-INTEGER, PARAMETER :: maxw =3
+INTEGER, PARAMETER :: maxw = 4
 !                                                                       
 CHARACTER (LEN=*), INTENT(INOUT) :: in_string 
 INTEGER          , INTENT(INOUT) :: laenge
