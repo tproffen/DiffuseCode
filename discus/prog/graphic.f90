@@ -2477,10 +2477,12 @@ real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat       
 !
 character(len=32)                                         :: data_type_experiment ! 'experimental', 'calculated'
 character(len=32)                                         :: data_type_style      ! 'powder', 'powder_pdf', 'single_diffraction', 'single_pdf' ...
+character(len=32)                                         :: data_type_axes       ! 'hkl', 'Q', 'theta', 'theta', 'uvw', 'dstar', 'sinR(theta)/lambda'
 character(len=32)                                         :: data_type_content    ! 'intensity', '3d-delta-pdf', 'amplitide', 'density' ...
 character(len=32)                                         :: data_type_reciprocal ! 'reciprocal', 'patterson', 'direct'
 character(len=32)                                         :: data_type_with_bragg ! With Bragg   = 0, No Bragg   = 1
 character(len=32)                                         :: data_type_symmetrized! No = 0; Point=1; Laue=2; Space=3;SymElem=4
+character(len=32)                                         :: data_type_number     ! 'real; 'complex'
 character(len=32)                                         :: data_rad_radiation   ! Xray=0; Neutron=1; Electron=2
 character(len=16)                                         :: data_rad_symbol      ! CU, CUA1, CU12 ...
 real(kind=PREC_DP)        , dimension(3)                  :: data_rad_length      ! CU, CUA1, CU12 ...
@@ -2519,8 +2521,16 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate
 !
+!character(len=32), dimension(0:5) :: c_axes 
 character(len=32), dimension(0:5) :: c_style
 character(len=32), dimension(0:3) :: c_radiation
+!data c_axes  /'unknown                         ', &
+!              'Q                               ', &
+!              'r                               ', &
+!              'hkl                             ', &
+!              'uvw                             ', &
+!              'hkl                             '  &
+!             / 
 data c_style /'unknown                         ', &
               'powder_diffraction              ', &
               'powder_pdf                      ', &
@@ -2550,7 +2560,20 @@ symmetry_mat(1:3, 1:4, 1:symmetry_n_mat)   = spc_mat(1:3, 1:4, 1:spc_n)
 data_type_experiment = 'calculated'         ! Calculated data
 data_type_reciprocal = 'reciprocal'         ! Reciprocal space
 data_type_style      = c_style(data_style)  ! Data style 'powder', 'powder_pdf', 'single_diffraction', 'single_pdf' ...
-!write(*,*) ' Data style ', data_type_style, data_style
+if(data_style==0) then
+   data_type_axes       = 'unknown'
+elseif(data_style==1) then
+   data_type_axes       = 'Q'
+elseif(data_style==2) then 
+   data_type_axes       = 'r'
+elseif(data_style==3) then 
+   data_type_axes       = 'hkl'
+elseif(data_style==4) then 
+   data_type_axes       = 'uvw'
+elseif(data_style==5) then 
+   data_type_axes       = 'hkl'
+endif
+write(*,*) ' Data style ', data_type_style, data_style, data_type_axes
 !
 if(value==14 .or. value==15 .or. value==16) data_type_reciprocal = 'patterson'   ! Patterson space
 data_type_content    = cvalue(value)        ! Data content 'Intensity etc'
@@ -2620,10 +2643,12 @@ else
                            symmetry_mat,                                                &
                            data_type_experiment, &
                            data_type_style     , &
+                           data_type_axes      , &
                            data_type_content   , &
                            data_type_reciprocal, &
                            data_type_with_bragg, &
                            data_type_symmetrized, &
+                           data_type_number     , &
                            data_rad_radiation , data_rad_symbol, data_rad_length, &
                            data_dimension  , &
                            data_abs_is_hkl     , &
