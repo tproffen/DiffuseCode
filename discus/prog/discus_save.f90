@@ -547,7 +547,7 @@ loop_main: DO while (.not.lend)
                      ELSEIF(str_comp(cpara (1), 'surface',   1, lpara(1), 7) ) THEN
                         sav_w_surf = .true. 
                      ELSEIF(str_comp(cpara (1), 'magnetic',  1, lpara(1), 8) ) THEN
-                        sav_w_magn = .FALSE.    ! MAGNETIC_WORK
+                        sav_w_magn = .true.    ! MAGNETIC_WORK
                      ELSEIF(str_comp(cpara (1), 'property',  1, lpara(1), 8) ) THEN
                         sav_w_prop = .true. 
                      ELSEIF(str_comp(cpara (1), 'average',   1, lpara(1), 7) ) THEN
@@ -1139,8 +1139,10 @@ integer :: i,j   ! Dummy counter
 integer :: n_void   ! Structure contains atoms 'VOID' with iscat ==0
 integer :: anis_n  ! Number of anisotropic types
 !
+!
 character(len=8)   :: date
 integer, parameter :: NMSG = ubound(ier_msg,1)
+!
 !
 optional_intended = .false.             ! Default to no flags
 !
@@ -1177,6 +1179,10 @@ allocate(types_charge   (number_of_types+n_void))
 allocate(types_isotope  (number_of_types+n_void))
 allocate(types_occupancy(number_of_types+n_void))
 !
+types_ordinal = 0
+types_charge  = 0
+types_isotope  = 0
+types_occupancy = 1.0
 do i=1, number_of_types
    types_names(i)    = cr_at_lis(i)
    call guess_element(element, j, cr_at_lis(i))
@@ -1227,9 +1233,18 @@ optional_intended(o_crystal_flags) = .true.
 crystal_flags = .false.
 if(any(cr_icc>1) .and. all(chem_period)) then
    crystal_flags(:,1) = .true.         !(1,*) value; (2,*) is present and set
+   crystal_flags(1,2) = .false.        ! Not an asymmetric unit
+   crystal_flags(2,2) = .true.         ! Flag is set
 elseif(all(cr_icc==1) .and. cr_natoms== as_natoms) then
-   crystal_flags(1,1) = .false.        ! Is asymmetric
-   crystal_flags(2,1) = .false.        ! Flag is set
+   crystal_flags(1,1) = .false.        ! Not a superstructure
+   crystal_flags(2,1) = .true.         ! Flag is set
+   crystal_flags(1,2) = .true.         ! Is asymmetric
+   crystal_flags(2,2) = .true.         ! Flag is set
+elseif(                     cr_natoms/= as_natoms) then
+   crystal_flags(1,1) = .false.        ! Not a superstructure
+   crystal_flags(2,1) = .true.         ! Flag is set
+   crystal_flags(1,2) = .false.        ! Not an asymmetric unit
+   crystal_flags(2,2) = .true.         ! Flag is set
 endif
 if(chem_period(1)) crystal_flags(1,3) = .true.
 if(chem_period(2)) crystal_flags(1,4) = .true.
@@ -1269,7 +1284,7 @@ if(cr_nanis>0) then                    ! Anisotropic ADPs  (also for Uiso
 !anisotropic_adp%anisotropic_adp(7,i)
 !enddo
 endif
-optional_intended(o_anisotropic_adp) = sav_w_adp
+!optional_intended(o_anisotropic_adp) = sav_w_adp
 !
 ! Molecules
 !
@@ -1309,14 +1324,14 @@ if(.not.crystal_flags(1,2) .and.    &  !   Not an asymmetric unit
    allocate(average_struc%anis_adp   (7, average_struc%aver_n_atoms))
    allocate(average_struc%site_number(   average_struc%aver_n_atoms))
    do i=1,cr_ncatoms
-      average_struc%atom_type(  i) = chem_ave_iscat(1,i)
+      average_struc%atom_type(  i) = chem_ave_iscat(i,1)
       average_struc%position (:,i) = chem_ave_pos(:,i)
-      average_struc%occupancy(  i) = chem_ave_bese(i,1)   ! SITE IDENTICAL WORK
+      average_struc%occupancy(  i) = chem_ave_bese(i,1)/cr_natoms*cr_ncatoms   ! SITE IDENTICAL WORK
       j = chem_ave_anis(i,1)  ! SITE IDENTICAL   WORK
       average_struc%anis_adp (1:6,i) = cr_anis_full(1:6, j)
       average_struc%anis_adp (7  ,i) =                                          &
              (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP
-      average_struc%site_number = i
+      average_struc%site_number(i) = i
    enddo
    optional_intended(o_average_struc) = sav_w_aver
 else
