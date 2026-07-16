@@ -117,7 +117,7 @@ LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE. ! Prevents user from deleting variables
 INTEGER :: iix, iiy, iiz                 ! Dummy loop variables
 integer :: i1, i2, j1, j2, k1, k2        ! Dummy loop variables
 REAL(kind=PREC_DP)    :: step
-integer(KIND=PREC_DP) , dimension(3,1 ) :: ref_dim
+integer               , dimension(3,1 ) :: ref_dim
 !
 iiz = 1
 IF(ndata==-1) ndata = iz-1            ! -1 signals last data set
@@ -222,6 +222,7 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
       CALL def_set_variable('real', 'F_ZSTP', step             , IS_DIFFEV)
 
    else cond_data3                     ! This is sigma
+      ref_dim(:,1)    = ik1_dims
       IF(.NOT.ALLOCATED(ref_sigma )) THEN 
          ier_num = -5
          ier_typ = ER_APPL
@@ -285,6 +286,9 @@ elseif(ku_ndims(ndata)==2) THEN         ! 2D data set
       step = (ref_y(ref_dim(2,1),1)-ref_y(1,1))/FLOAT(ref_dim(2,1)-1)
       CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
    ELSE
+      ref_dim(1,1) = nx(ndata )
+      ref_dim(2,1) = ny(ndata )
+      ref_dim(3,1) = 1
       IF(.NOT.ALLOCATED(ref_sigma )) THEN 
          ier_num = -5
          ier_typ = ER_APPL
@@ -335,6 +339,9 @@ ELSEif(ku_ndims(ndata)==1) then          ! 1D data set
       step = 1.0
       CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
    ELSE
+      ref_dim(1,1) = lenc(ndata )
+      ref_dim(2,1) = 1
+      ref_dim(3,1) = 1
       IF(.NOT.ALLOCATED(ref_sigma )) THEN 
          ier_num = -5
          ier_typ = ER_APPL
