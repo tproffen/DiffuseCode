@@ -2,6 +2,18 @@ module unified_read_mod
 !
 !   Module to read the unified structure / scattering via the h5fortran library
 !
+!   Error statur returned to calling routines:
+!
+!   0    ! No error
+!  -1    !  File does not exist
+!  -2    !  Data set does not exist
+!  -3    !  Wrong rank
+!  -4    !  Wrong dimensions
+!  -5    !  Not an HDF5 file
+!  -6    !  (Some) Meta data are missing
+!  -7    !  Wrong HDF5 library
+!  -8    !  An essential required field is missing
+!
 private
 public unified_read_structure
 public unified_read_data
@@ -20,7 +32,7 @@ subroutine unified_read_structure( infile, unit_cell_lengths, unit_cell_angles, 
                              types_occupancy,                                             &
                              l_property, l_anisotropic_adp, l_molecules, l_average_struc, &
                              l_magnetic_spins, l_types_occupancy,                         &
-                             NMSG, ier_num, ier_msg)
+                             NMSG, ier_num, ier_msg)        
 !
 ! low level read
 !
@@ -28,6 +40,7 @@ use lib_h5fortran_mod
 use lib_nx_transfer_mod
 use lib_unified_chars_mod
 use precision_mod
+use unified_dump_mod
 !
 use h5fortran, only: hdf5_file
 !
@@ -78,10 +91,27 @@ integer :: i,j, k
 character(len=256) :: string
 integer, dimension(3) :: cdim
 logical :: lexist
+logical :: temp_atom_property = .false.  ! If atom_property is absent flag a temorary need for dump
 !
 call h5f_reset
 call h5f_open(h5f, infile, 'r', NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
+!
+! Check if all META fields are present and if we have the correct library; 1 = 'Disorder structure'
+!
+call h5f_check_read_meta(h5f, 1, crystal_meta, NMSG, ier_num, ier_msg) 
+if(ier_num/=0) return
+!
+call h5f_check_crystal_fields(h5f, NMSG, ier_num, ier_msg)
+do i=1, 18
+   if(.not.l_fields_crystal(i)) then      ! An essential crystasl field is missing
+      ier_msg(i) = c_fields_crystal(i)
+      ier_num = -8
+      call h5f%close()
+      call h5f_reset
+      return
+   endif
+enddo
 !
 ! Unit cell parameters
 !
@@ -185,11 +215,6 @@ do i=1,N_C_FLAGS
   call unified_read_c_flags(h5f, i, c_flags(i), cdim(1:2), crystal_flags)
 enddo
 !
-crystal_meta = ' '
-do i=1,N_META
-  call unified_read_meta(h5f, i, c_meta(i), N_META, crystal_meta)
-enddo
-!
 ! OPTIONAL_AVERAGE_STRUCTURE
 !
 lexist =  h5f%exist('/entry/data/average_number')
@@ -288,6 +313,7 @@ endif
 ! OPTIONAL ANISOTROPIC ADP
 !
 lexist =  h5f%exist('/entry/data/anisotropic_number')
+
 if(lexist) then
    l_anisotropic_adp = .true.
    call h5f_read(h5f, 'anisotropic_number', anisotropic_adp%anisotropic_n_type, NMSG, ier_num, ier_msg)
@@ -314,20 +340,46 @@ endif
 call h5f%close()
 call h5f_reset
 !
+if(l_dump) then    ! Dump upon user request
+temp_atom_property = .false.
+if(.not.(allocated(atom_property))) then
+   allocate(atom_property(number_of_atoms))
+   atom_property = 1
+   temp_atom_property = .true.
+endif
+call       unified_dump_structure( unit_cell_lengths, unit_cell_angles,           &
+                             symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                             symmetry_mat, unit_cells, number_of_types, types_names,      &
+                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
+                             atom_type, atom_pos, atom_unit_cell, atom_site,              &
+                             atom_property, crystal_flags, crystal_meta,                  &
+                             anisotropic_adp, molecules, average_struc, magnetic_spins,   &
+                             types_occupancy,                                             &
+                             l_property, l_anisotropic_adp, l_molecules, l_average_struc, &
+                             l_magnetic_spins, l_types_occupancy,                         &
+                             NMSG, ier_num, ier_msg)
+if(temp_atom_property) deallocate(atom_property)
+endif
+!
 end subroutine unified_read_structure
 !
 !*******************************************************************************
 !
-subroutine unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
+subroutine unified_read_data( infile,  &
+                             unit_cell_lengths, unit_cell_angles,           &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                              symmetry_mat,                                                &
                              data_type_experiment, &
                              data_type_style     , &
+                             data_type_axes      , &
                              data_type_content   , &
                              data_type_reciprocal, &
                              data_type_with_bragg, &
                              data_type_symmetrized, &
-                             data_rad_radiation , data_rad_symbol, data_rad_length, &
+                             data_type_number     , &
+                             data_rad_radiation ,   &
+                             data_rad_symbol,   &
+                             data_rad_length, &
                              data_dimension  , &
                              data_abs_is_hkl     , &
                              data_ord_is_hkl     , &
@@ -336,7 +388,8 @@ subroutine unified_read_data( infile, unit_cell_lengths, unit_cell_angles,      
                              data_vector     , &
                              data_values     , &
                              NMSG, ier_num, ier_msg,                                      &
-                                            crystal_meta                   &
+                             crystal_meta,  &
+                             data_imag  &
                             )
 !-
 !  Read the Diffuse Developers common file format for diffraction data
@@ -346,6 +399,7 @@ subroutine unified_read_data( infile, unit_cell_lengths, unit_cell_angles,      
 use lib_h5fortran_mod
 use lib_nx_transfer_mod
 use lib_unified_chars_mod
+use unified_dump_mod
 use precision_mod
 !
 use h5fortran, only: hdf5_file
@@ -363,10 +417,12 @@ real(kind=PREC_DP)        , dimension(:,:,:), allocatable, intent(out) :: symmet
 !
 character(len=*)                                         , intent(out) :: data_type_experiment ! Experimental = 0, Calculated = 1
 character(len=*)                                         , intent(out) :: data_type_style      ! 'powder', 'powder_pdf', 'single_diffraction', 'single_pdf' ...
+character(len=*)                                         , intent(out) :: data_type_axes       ! 'hkl', 'Q', 'theta', 'theta', 'uvw', 'xyz', 'r' ... 
 character(len=*)                                         , intent(out) :: data_type_content    ! 'intensity', '3d-delta-pdf', 'amplitide', 'density' ...
 character(len=*)                                         , intent(out) :: data_type_reciprocal ! 'reciprocal', 'patterson', 'direct'
 character(len=*)                                         , intent(out) :: data_type_with_bragg ! With Bragg   = 0, No Bragg   = 1
 character(len=*)                                         , intent(out) :: data_type_symmetrized! No = 0; Point=1; Laue=2; Space=3;SymElem=4
+character(len=*)                                         , intent(out) :: data_type_number     ! 'real; 'complex'
 character(len=*)                                         , intent(out) :: data_rad_radiation   ! Xray=1; Neutron=2; Electron=3
 character(len=*)                                         , intent(out) :: data_rad_symbol      ! CU, CUA1, CU12
 real(kind=PREC_DP)        , dimension(3)                 , intent(out) :: data_rad_length      ! Numerical value
@@ -377,6 +433,7 @@ integer                                                  , intent(out) :: data_t
 real(kind=PREC_DP)        , dimension(3   )              , intent(out) :: data_corner          ! Lower left bottom corner in fractional coordinates
 real(kind=PREC_DP)        , dimension(3, 3)              , intent(out) :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable, intent(out) :: data_values  ! Actual data array
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable, intent(out) :: data_imag    ! Actual data array ; optional complex part
 
 !
 integer                                                  , intent(in ) :: NMSG               ! Dimension of ier_msg
@@ -385,89 +442,163 @@ character(len=*)          , dimension(NMSG)              , intent(out) :: ier_ms
 !
 !logical                   , dimension(8)                 , intent(in)  :: optional_intended     ! These optional flags should be present
 !
-character(len=PREC_STRING), dimension(  5)               , intent(in ), optional :: crystal_meta       ! Metadata, see "c_meta"
+character(len=PREC_STRING), dimension(N_META)            , intent(out) :: crystal_meta       ! Metadata, see "c_meta"
 !
 type(hdf5_file) :: h5f
 integer, dimension(3) :: cdim
-integer, dimension(11):: data_info
+integer, dimension(3) :: data_info
 !
 call h5f_reset
 call h5f_open(h5f, infile, 'r', NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 !
+! Check if all META fields are present and if we have the correct library; 2= Disorder unified data
+!
+call h5f_check_read_meta(h5f, 2, crystal_meta, NMSG, ier_num, ier_msg) 
+if(ier_num/=0) return            ! Fatal error in the meta fields
+!
+call h5f_check_data_fields(h5f, NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
 ! Unit cell parameters
 !
-cdim(1) = ubound(unit_cell_lengths,1)
-call h5f_read(h5f, 'unit_cell_lengths', cdim(1), unit_cell_lengths, NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
-call h5f_read(h5f, 'unit_cell_angles' , cdim(1), unit_cell_angles , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_UNIT_CELL_LENGTHS) .and.            &
+   l_fields_data(INDX_UNIT_CELL_ANGLES ) ) then
+   cdim(1) = ubound(unit_cell_lengths,1)
+   call h5f_read(h5f, 'unit_cell_lengths', cdim(1), unit_cell_lengths, NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+   call h5f_read(h5f, 'unit_cell_angles' , cdim(1), unit_cell_angles , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   unit_cell_lengths =  1.0D0
+   unit_cell_angles  = 90.0D0
+endif
 !
 ! Symmetry information
-call h5f_read(h5f, 'symmetry_space_group_name_H-M' , symmetry_H_M , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
-call h5f_read(h5f, 'space_group_origin'            , symmetry_origin, NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
-call h5f_read(h5f, 'symmetry_space_group_abc'      , symmetry_abc   , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
-call h5f_read(h5f, 'space_group_symop_number'      , symmetry_n_mat , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+!
+if(l_fields_data(INDX_SYMMETRY_SPACE_GROUP_NAME_H_M)   .and.  &
+   l_fields_data(INDX_SPACE_GROUP_ORIGIN)              .and.  &
+   l_fields_data(INDX_SYMMETRY_SPACE_GROUP_ABC)        .and.  &
+   l_fields_data(INDX_SPACE_GROUP_SYMOP_NUMBER)        .and.  &
+   l_fields_data(INDX_SPACE_GROUP_SYMOP_OPERATION_MAT)        &
+  ) then
+   call h5f_read(h5f, 'symmetry_space_group_name_H-M' , symmetry_H_M , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+   call h5f_read(h5f, 'space_group_origin'            , symmetry_origin, NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+   call h5f_read(h5f, 'symmetry_space_group_abc'      , symmetry_abc   , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+   call h5f_read(h5f, 'space_group_symop_number'      , symmetry_n_mat , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
 !
 !Symmetry matrices / transposed read
-allocate(symmetry_mat(3,4,symmetry_n_mat))
-cdim(1) = 3
-cdim(2) = 4
-cdim(3) = symmetry_n_mat
-call h5f_read(h5f, 'space_group_symop_operation_mat' , cdim, symmetry_mat, NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+   allocate(symmetry_mat(3,4,symmetry_n_mat))
+   cdim(1) = 3
+   cdim(2) = 4
+   cdim(3) = symmetry_n_mat
+   call h5f_read(h5f, 'space_group_symop_operation_mat' , cdim, symmetry_mat, NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   symmetry_H_M = ' P 1'
+   symmetry_origin = 1
+   symmetry_abc    = 'abc'
+   symmetry_n_mat  = 1
+   allocate(symmetry_mat(3,4,symmetry_n_mat))
+   symmetry_mat      = 0.0D0
+   symmetry_mat(1,1,1) = 1.0D0
+   symmetry_mat(2,2,1) = 1.0D0
+   symmetry_mat(3,3,1) = 1.0D0
+endif
 !
-!cdim(1) = 11
-!call h5f_read(h5f, 'data_info'                     , cdim(1), data_info , NMSG, ier_num, ier_msg)
-!if(ier_num/=0) return
-!!data_dim_number       = data_info( 1) ! Data dimension 0,1,2,3
-!data_type_experiment  = data_info( 2) ! Experimental = 0, Calculated = 1
-!data_type_with_bragg  = data_info( 3) ! With Bragg   = 0, No Bragg   = 1
-!data_type_symmetrized = data_info( 4) ! No = 0; Point=1; Laue=2; Space=3;SymElem=4
-!data_rad_radiation    = data_info( 5) ! Xray=0; Neutron=1; Electron=2
-!data_dimension(1)     = data_info( 6) ! Data have these dimensions along (HKL) / (UVW) abscissa
-!data_dimension(2)     = data_info( 7) ! Data have these dimensions along (HKL) / (UVW) ordinate
-!data_dimension(3)     = data_info( 8) ! Data have these dimensions along (HKL) / (UVW) top_axis
+if(l_fields_data(INDX_DATA_TYPE_EXPERIMENT) )   then
+   call h5f_read(h5f, 'data_type_experiment' , data_type_experiment , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_type_experiment = 'calculated'
+endif
 !
-call h5f_read(h5f, 'data_type_experiment' , data_type_experiment , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_DATA_TYPE_STYLE)      )   then
+  call h5f_read(h5f, 'data_type_style' , data_type_style , NMSG, ier_num, ier_msg)
+  if(ier_num/=0) return
+else
+   data_type_style = 'single_diffraction'
+endif
 !
-call h5f_read(h5f, 'data_type_style' , data_type_style , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_DATA_TYPE_AXES)       )   then
+   call h5f_read(h5f, 'data_type_axes' , data_type_axes , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_type_axes = 'hkl'
+endif
 !
-call h5f_read(h5f, 'data_type_content' , data_type_content , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_DATA_TYPE_CONTENT)    )   then
+   call h5f_read(h5f, 'data_type_content' , data_type_content , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_type_content = 'intensity'
+endif
 !
-call h5f_read(h5f, 'data_type_reciprocal' , data_type_reciprocal , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_DATA_TYPE_RECIPROCAL) )   then
+   call h5f_read(h5f, 'data_type_reciprocal' , data_type_reciprocal , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_type_reciprocal = 'reciprocal'
+endif
 !
-call h5f_read(h5f, 'data_type_with_bragg' , data_type_with_bragg , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_DATA_TYPE_WITH_BRAGG) )   then
+   call h5f_read(h5f, 'data_type_with_bragg' , data_type_with_bragg , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_type_with_bragg = 'bragg_subtracted'
+endif
 !
-call h5f_read(h5f, 'data_type_symmetrized' , data_type_symmetrized , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_DATA_TYPE_SYMMETRIZED))   then
+   call h5f_read(h5f, 'data_type_symmetrized' , data_type_symmetrized , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_type_symmetrized = 'none'
+endif
 !
-call h5f_read(h5f, 'data_radiation' , data_rad_radiation , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_DATA_TYPE_NUMBER)     )   then
+   call h5f_read(h5f, 'data_type_number' , data_type_number , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_type_number      = 'real'
+endif
 !
-call h5f_read(h5f, 'data_rad_symbol' , data_rad_symbol , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_DATA_RADIATION)   )   then
+   call h5f_read(h5f, 'data_radiation' , data_rad_radiation , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_rad_radiation    = 'xray'
+endif
 !
-cdim(1) = 3
-call h5f_read(h5f, 'data_rad_length' , cdim(1), data_rad_length , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_DATA_RAD_SYMBOL)      )   then
+   call h5f_read(h5f, 'data_rad_symbol' , data_rad_symbol , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_rad_symbol       = 'none'
+endif
+!
+if(l_fields_data(INDX_DATA_RAD_LENGTH)      )   then
+   cdim(1) = 3
+      call h5f_read(h5f, 'data_rad_length' , cdim(1), data_rad_length , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_rad_length       = 1.0D0
+endif
 !
 cdim(1) = 3
 call h5f_read(h5f, 'data_dimension' , cdim(1), data_dimension , NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 !
-cdim(1) =  3
-call h5f_read(h5f, 'data_axes' , cdim(1), data_info , NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+if(l_fields_data(INDX_DATA_AXES)            )   then
+   cdim(1) =  3
+   call h5f_read(h5f, 'data_axes' , cdim(1), data_info , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   data_info            = (/ 1, 2, 3 /)
+endif
 data_abs_is_hkl       = data_info( 1) ! Abscissa is 1=h 2=k 3=l
 data_ord_is_hkl       = data_info( 2) ! Ordinate is 1=h 2=k 3=l
 data_top_is_hkl       = data_info( 3) ! top-axis is 1=h 2=k 3=l
@@ -484,10 +615,44 @@ allocate(data_values(data_dimension(1), data_dimension(2), data_dimension(3)))
 cdim    = data_dimension
 call h5f_read(h5f, 'data_values' , cdim   , data_values , NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
-
+!
+if(data_type_number == 'complex') then
+   allocate(data_imag(data_dimension(1), data_dimension(2), data_dimension(3)))
+   cdim    = data_dimension
+   call h5f_read(h5f, 'data_imag' , cdim   , data_imag , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+endif
 !
 call h5f%close()
 call h5f_reset
+!
+if(l_dump) then 
+   call unified_dump_data(unit_cell_lengths, unit_cell_angles,           &
+                             symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                             symmetry_mat,                                                &
+                             data_type_experiment, &
+                             data_type_style     , &
+                             data_type_axes      , &
+                             data_type_content   , &
+                             data_type_reciprocal, &
+                             data_type_with_bragg, &
+                             data_type_symmetrized, &
+                             data_type_number     , &
+                             data_rad_radiation ,   &
+                             data_rad_symbol,   &
+                             data_rad_length, &
+                             data_dimension  , &
+                             data_abs_is_hkl     , &
+                             data_ord_is_hkl     , &
+                             data_top_is_hkl     , &
+                             data_corner     , &
+                             data_vector     , &
+                             data_values     , &
+                             NMSG, ier_num, ier_msg,                                      &
+                             crystal_meta,                  &
+                             data_imag         &
+                            )
+endif
 !
 end subroutine unified_read_data
 !
@@ -524,39 +689,6 @@ if(lexist) then
 endif
 !
 end subroutine unified_read_c_flags
-!
-!*******************************************************************************
-!
-subroutine unified_read_meta(h5f, i, c_meta, N_META, crystal_meta)
-!-
-!  Check for existence and read the optional crystal_meta information
-!+
-!
-use precision_mod
-!
-use h5fortran, only: hdf5_file
-!
-implicit none
-!
-type(hdf5_file)                     , intent(in)  :: h5f
-integer                             , intent(in)  :: i
-character(len=*)                    , intent(in)  :: c_meta
-integer                             , intent(in)  :: N_META
-character(len=*), dimension(N_META), intent(out) :: crystal_meta
-!
-character(len=PREC_STRING) :: string
-character(len=PREC_STRING) :: meta
-logical :: lexist
-!
-crystal_meta(i) = ' '
-meta   = '/entry/data/' // c_meta
-lexist = h5f%exist(meta  )
-if(lexist) then     ! Metadata exist
-   call h5f%read(meta,  string)
-   crystal_meta(i) = string 
-endif
-!
-end subroutine unified_read_meta
 !
 !*******************************************************************************
 !

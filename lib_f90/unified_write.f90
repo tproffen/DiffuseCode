@@ -16,7 +16,7 @@ subroutine unified_write_structure( infile, unit_cell_lengths, unit_cell_angles,
                              types_ordinal, types_charge, types_isotope, number_of_atoms, &
                              atom_type, atom_pos, atom_unit_cell, atom_site,              &
                              NMSG, ier_num, ier_msg,                                      &
-                             optional_intended,                                              &
+                             optional_intended,                                           &
                              atom_property, crystal_flags, crystal_meta,                  &
                              anisotropic_adp, molecules, average_struc, magnetic_spins,   &
                              types_occupancy)
@@ -27,6 +27,7 @@ use lib_h5fortran_mod
 use lib_nx_transfer_mod
 use lib_unified_chars_mod
 use precision_mod
+use unified_dump_mod
 !
 use h5fortran, only: hdf5_file
 !
@@ -68,6 +69,12 @@ type(average_structure)                                  , intent(in ), optional
 real(kind=PREC_DP)        , dimension(3, number_of_atoms), intent(in ), optional :: magnetic_spins     ! Atom has these magnetic spins
 real(kind=PREC_DP)        , dimension(   number_of_types), intent(in ), optional :: types_occupancy    ! This atoms type has an occupancy of value
 !
+logical                                                  :: l_property
+logical                                                  :: l_anisotropic_adp
+logical                                                  :: l_molecules
+logical                                                  :: l_average_struc
+logical                                                  :: l_magnetic_spins
+logical                                                  :: l_types_occupancy
 !
 type(hdf5_file) :: h5f           ! The h5fortran library object
 !
@@ -76,6 +83,26 @@ integer :: i
 character(len=256) :: string
 integer, dimension(3) :: cdim
 !
+l_property        = present(atom_property)
+l_anisotropic_adp = present(anisotropic_adp)
+l_molecules       = present(molecules)
+l_average_struc   = present(average_struc)
+l_magnetic_spins  = present(magnetic_spins)
+l_types_occupancy = present(types_occupancy)
+!
+if(l_dump) then
+call       unified_dump_structure( unit_cell_lengths, unit_cell_angles,           &
+                             symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                             symmetry_mat, unit_cells, number_of_types, types_names,      &
+                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
+                             atom_type, atom_pos, atom_unit_cell, atom_site,              &
+                             atom_property, crystal_flags, crystal_meta,                  &
+                             anisotropic_adp, molecules, average_struc, magnetic_spins,   &
+                             types_occupancy,                                             &
+                             l_property, l_anisotropic_adp, l_molecules, l_average_struc, &
+                             l_magnetic_spins, l_types_occupancy,                         &
+                             NMSG, ier_num, ier_msg)
+endif
 !
 call h5f_reset
 call h5f_open(h5f, infile, 'w', NMSG, ier_num, ier_msg)
@@ -288,10 +315,12 @@ subroutine unified_write_data(datafile, unit_cell_lengths, unit_cell_angles,    
                              symmetry_mat,                                                &
                              data_type_experiment, &
                              data_type_style     , &
+                             data_type_axes      , &
                              data_type_content   , &
                              data_type_reciprocal, &
                              data_type_with_bragg, &
                              data_type_symmetrized, &
+                             data_type_number     , &
                              data_rad_radiation , data_rad_symbol, data_rad_length, &
                              data_dimension  , &
                              data_abs_is_hkl     , &
@@ -301,7 +330,8 @@ subroutine unified_write_data(datafile, unit_cell_lengths, unit_cell_angles,    
                              data_vector     , &
                              data_values     , &
                              NMSG, ier_num, ier_msg,                                      &
-                                            crystal_meta                   &
+                                            crystal_meta,                  &
+                             data_imag                                                    &
                              )
 !
 ! low level read
@@ -326,14 +356,16 @@ real(kind=PREC_DP)        , dimension(3,4,symmetry_n_mat), intent(in) :: symmetr
 !
 character(len=*)                                         , intent(in) :: data_type_experiment ! 'experimental';  'calculated'
 character(len=*)                                         , intent(in) :: data_type_style      ! 'powder_diffraction', 'powder_pdf', 'single_diffraction', 'single_pdf' ...
+character(len=*)                                         , intent(in) :: data_type_axes       ! 'hkl', 'Q', 'theta', 'theta', 'uvw', 'xyz', 'r' ...
 character(len=*)                                         , intent(in) :: data_type_content    ! 'intensity', '3d-delta-pdf', 'amplitide', 'density' ...
 character(len=*)                                         , intent(in) :: data_type_reciprocal ! 'reciprocal', 'patterson', 'direct'
 character(len=*)                                         , intent(in) :: data_type_with_bragg ! 'bragg_present'; 'bragg_subtracted'
 character(len=*)                                         , intent(in) :: data_type_symmetrized! 'none'; 'point'; 'laue'; 'space', 'sym_elem'
+character(len=*)                                         , intent(in) :: data_type_number     ! 'real'; 'complex'
 character(len=*)                                         , intent(in) :: data_rad_radiation   ! 'xray'; 'neutron'; 'electron'
 character(len=*)                                         , intent(in) :: data_rad_symbol      ! CU, CUA1, CU12
 real(kind=PREC_DP)        , dimension(3)                 , intent(in) :: data_rad_length      ! Numerical value
-integer                   , dimension(3)                 , intent(in) :: data_dimension   ! Data have dimensions along (HKL) / (UVW)
+integer                   , dimension(3)                 , intent(in) :: data_dimension       ! Data have dimensions along (HKL) / (UVW)
 integer                                                  , intent(in) :: data_abs_is_hkl      ! Abscissa is 1=h 2=k 3=l
 integer                                                  , intent(in) :: data_ord_is_hkl      ! Ordinate is 1=h 2=k 3=l
 integer                                                  , intent(in) :: data_top_is_hkl      ! top-axis is 1=h 2=k 3=l
@@ -341,27 +373,30 @@ real(kind=PREC_DP)        , dimension(3   )              , intent(in) :: data_co
 real(kind=PREC_DP)        , dimension(3, 3)              , intent(in) :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
 real(kind=PREC_DP)        , dimension(data_dimension(1), &
                                       data_dimension(2), &
-                                      data_dimension(3)), intent(in) :: data_values  ! Actual data array
+                                      data_dimension(3)), intent(in) :: data_values  ! Actual data array, real part
 
+real(kind=PREC_DP)        , dimension(data_dimension(1), &
+                                      data_dimension(2), &
+                                      data_dimension(3)), optional, intent(in) :: data_imag  ! Optional imaginary part of complex data values
 !
 integer                                                  , intent(in ) :: NMSG               ! Dimension of ier_msg
 integer                                                  , intent(out) :: ier_num            ! an error =0 if all is OK
 character(len=*)          , dimension(NMSG)              , intent(out) :: ier_msg            ! Error messages
+character(len=PREC_STRING), dimension(  5)               , intent(in ) :: crystal_meta       ! Metadata, see "c_meta"
 !
 !logical                   , dimension(8)                 , intent(in)  :: optional_intended     ! These optional flags should be present
 !
-character(len=PREC_STRING), dimension(  5)               , intent(in ), optional :: crystal_meta       ! Metadata, see "c_meta"
 !
 !
 type(hdf5_file) :: h5f           ! The h5fortran library object
 !
-integer :: i
+!integer :: i
 !
-character(len=1), dimension(3), parameter :: chkl = (/'h', 'k', 'l'/)
-character(len=1), dimension(3), parameter :: cxyz = (/'x', 'y', 'z'/)
-character(len=1), dimension(3), parameter :: cuvw = (/'u', 'v', 'w'/)
-character(len=PREC_STRING)    :: axes ! ==  '["h", "k", "l"]' or similar permutation
-character(len=256) :: string
+!character(len=1), dimension(3), parameter :: chkl = (/'h', 'k', 'l'/)
+!character(len=1), dimension(3), parameter :: cxyz = (/'x', 'y', 'z'/)
+!character(len=1), dimension(3), parameter :: cuvw = (/'u', 'v', 'w'/)
+!character(len=PREC_STRING)    :: axes ! ==  '["h", "k", "l"]' or similar permutation
+!character(len=256) :: string
 integer, dimension(3) :: cdim
 !integer                :: data_dim_number      ! Data have 0,1,2,3 dimensions
 integer, dimension(11) :: data_info
@@ -373,22 +408,22 @@ integer, dimension(11) :: data_info
 !
 !  Set proper axes names at abscissa, ordinate, top_axis
 !
-if(data_type_reciprocal=='reciprocal') then
-   axes      = '["h", "k", "l"]'
-   axes( 3: 3) = chkl(data_abs_is_hkl)    ! Place the correct 'h', 'k', or 'l'
-   axes( 8: 8) = chkl(data_ord_is_hkl)
-   axes(13:13) = chkl(data_top_is_hkl)
-elseif(data_type_reciprocal=='direct') then
-   axes      = '["x", "y", "z"]'
-   axes( 3: 3) = cxyz(data_abs_is_hkl)    ! Place the correct 'x', 'y', or 'z'
-   axes( 8: 8) = cxyz(data_ord_is_hkl)
-   axes(13:13) = cxyz(data_top_is_hkl)
-elseif(data_type_reciprocal=='patterson') then
-   axes      = '["u", "v", "w"]'
-   axes( 3: 3) = cxyz(data_abs_is_hkl)    ! Place the correct 'u', 'v', or 'w'
-   axes( 8: 8) = cxyz(data_ord_is_hkl)
-   axes(13:13) = cxyz(data_top_is_hkl)
-endif
+!if(data_type_reciprocal=='reciprocal') then
+!   axes      = '["h", "k", "l"]'
+!   axes( 3: 3) = chkl(data_abs_is_hkl)    ! Place the correct 'h', 'k', or 'l'
+!   axes( 8: 8) = chkl(data_ord_is_hkl)
+!   axes(13:13) = chkl(data_top_is_hkl)
+!elseif(data_type_reciprocal=='direct') then
+!   axes      = '["x", "y", "z"]'
+!   axes( 3: 3) = cxyz(data_abs_is_hkl)    ! Place the correct 'x', 'y', or 'z'
+!   axes( 8: 8) = cxyz(data_ord_is_hkl)
+!   axes(13:13) = cxyz(data_top_is_hkl)
+!elseif(data_type_reciprocal=='patterson') then
+!   axes      = '["u", "v", "w"]'
+!   axes( 3: 3) = cxyz(data_abs_is_hkl)    ! Place the correct 'u', 'v', or 'w'
+!   axes( 8: 8) = cxyz(data_ord_is_hkl)
+!   axes(13:13) = cxyz(data_top_is_hkl)
+!endif
 !
 data_info = 0           ! Generic integer array
 !
@@ -435,6 +470,10 @@ if(ier_num/=0) return
 call h5f_write(h5f, 'data_type_style' , data_type_style , NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 !
+! Data type axes   information
+call h5f_write(h5f, 'data_type_axes' , data_type_axes , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
 ! Data type content information
 call h5f_write(h5f, 'data_type_content' , data_type_content , NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
@@ -449,6 +488,10 @@ if(ier_num/=0) return
 !
 ! Data type symmetrized
 call h5f_write(h5f, 'data_type_symmetrized' , data_type_symmetrized , NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+! Data type symmetrized
+call h5f_write(h5f, 'data_type_number' , data_type_number , NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 !
 ! Data radiation
@@ -497,10 +540,16 @@ call h5f_write(h5f, 'data_values' , cdim, data_values, NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 !
 !
-if(present(crystal_meta)) then
-!  if(optional_intended(o_crystal_meta)) then
-      call unified_write_meta(h5f, N_META, crystal_meta)
-!  endif
+call unified_write_meta(h5f, N_META, crystal_meta)
+!
+! Actual data complex part      / transposed write
+!
+if(data_type_number == 'complex') then
+cdim(1) = data_dimension(1)
+cdim(2) = data_dimension(2)
+cdim(3) = data_dimension(3)
+call h5f_write(h5f, 'data_imag' , cdim, data_imag, NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
 endif
 !
 call h5f%close()
@@ -537,7 +586,6 @@ do i=1, cdim(2)
          string = 'is_true'
       else
          string = 'is_false'
-   attribute = 'status_flag_' // c_flags(i)(1:len_trim(c_flags(i)))
       endif
       attribute = 'status_flag_' // c_flags(i)(1:len_trim(c_flags(i)))
       call h5f%writeattr('/entry/data/',attribute(1:len_trim(attribute)), string)
@@ -566,7 +614,6 @@ character(len=*), dimension(NN_META), intent(in) :: crystal_meta
 !
 character(len=PREC_STRING) :: meta
 integer :: i
-!logical :: lexist
 !
 do i=1, N_META
    meta   = '/entry/data/' // c_meta(i)
