@@ -1,4 +1,6 @@
-6.21.04  DRAFT
+6.22.01  DRAFT
+
+6.22.04  RELEASE 2026_07_16
 
 GENERAL
                Introduced two common file formats for:
