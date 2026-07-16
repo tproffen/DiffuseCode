@@ -5276,6 +5276,10 @@
 !p set "target",<ic>,"repulsive",{<number> | <name> | "all"},
 !p                               {<number> | <name> | "all"}, 
 !p                               <energy>,    <scale> [, <rmin> [, <pa>] ]
+!p set "target",<ic>,"heli",    ,{<number> | <name> | "all"},
+!p                               {<number> | <name> | "all"},
+!p                               <correlation>, <energy>, {"CORR" | "ENER"},
+!p                               {"dir:["<u>,<v>,<w>"]" | "dir:["<u>,<v>,<w>,<u2>,<v2>,<w2>"]"} 
 !p
 
    The target command sets the desired correlation values for each of
@@ -5342,9 +5346,9 @@
    This energy works best for "vector" neighborhoods, and you 
    should only use a given vector and not the opposite vector.
 
-!p set "target", <ic>,"cn",     ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
-!p                              ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
-!p                               <coordination_number>, <energy> 
+   set "target", <ic>,"cn",     ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+                                ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+                                 <coordination_number>, <energy> 
 
    This energy form drives the structure into neighborhoods with
    user defined coordination numbers. 
@@ -5420,6 +5424,15 @@
    whose position the bond angle is located. 
    The potential is <energ>*(alpha-<angle>)**2. Compared to the Lennard-Jones
    potential, the energy values should usually be smaller by a factor 10 or so.
+
+   set "target",<ic>,"heli",    ,{<number> | <name> | "all"},
+                                 {<number> | <name> | "all"},
+                                 <correlation>, <energy>, {"CORR" | "ENER"},
+                                 {"dir:["<u>,<v>,<w>"]" | "dir:["<u>,<v>,<w>,<u2>,<v2>,<w2>"]"} 
+
+   The displacemnt of the two atoms shall be correlated. For two
+   neighbors along the axis direction  [<u2>,<v2>,<w2>] the 
+   displacement should for a helixx around the axis [<u>,<v>,<w>].
 4  temp
 !p set "temp",<kt>
 
