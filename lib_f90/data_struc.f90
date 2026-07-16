@@ -102,7 +102,7 @@ integer                                               :: h5_number   = 0   ! Cur
 !
 type(h5_data_struc), pointer                          :: h5_root => NULL()
 type(h5_data_struc), pointer                          :: h5_temp => NULL()
-type(h5_data_struc), pointer                          :: h5_send => NULL()
+!type(h5_data_struc), pointer                          :: h5_send => NULL()
 type(h5_data_struc), pointer                          :: h5_find => NULL()
 !
 !
@@ -901,7 +901,7 @@ end subroutine dgl5_get_infile
 !
 !*******************************************************************************
 !
-integer function   dgl5_get_has_sigma()
+logical function   dgl5_get_has_sigma()
 !
 implicit none
 !
@@ -1470,43 +1470,6 @@ endif
    h5_ku_is_h5 = 0
 !
 end subroutine dgl5_reset
-!
-!*******************************************************************************
-!
-subroutine dgl5_reset_orig
-!
-type(h5_data_struc), pointer :: h5_current => NULL()
-!
-if(associated(h5_root)) then       ! A storage does exist
-   h5_temp => h5_root
-   if(allocated(h5_temp%datamap)) deallocate(h5_temp%datamap)
-   find_node: do 
-      if(associated(h5_temp%after)) then   ! A next node exists
-         h5_current => h5_temp             ! Point to current
-         h5_temp    => h5_temp%after       ! Point to next node
-         if(allocated(h5_temp%x )) deallocate(h5_temp%x)
-         if(allocated(h5_temp%y )) deallocate(h5_temp%y)
-         if(allocated(h5_temp%z )) deallocate(h5_temp%z)
-         if(allocated(h5_temp%dx)) deallocate(h5_temp%dx)
-         if(allocated(h5_temp%dy)) deallocate(h5_temp%dy)
-         if(allocated(h5_temp%dz)) deallocate(h5_temp%dz)
-         if(allocated(h5_temp%datamap )) deallocate(h5_temp%datamap)
-         if(allocated(h5_temp%sigma )) deallocate(h5_temp%sigma)
-         if(allocated(h5_temp%x )) deallocate(h5_current)            ! Clean up current node
-      else
-         h5_current => h5_temp             ! Point to current
-         deallocate(h5_current)            ! Clean up current node
-         exit find_node                    ! We are done
-      endif
-   enddo find_node
-endif
-nullify(h5_temp)
-nullify(h5_root)
-h5_number   = 0
-h5_h5_is_ku = 0
-h5_ku_is_h5 = 0
-!
-end subroutine dgl5_reset_orig
 !
 !*******************************************************************************
 !
