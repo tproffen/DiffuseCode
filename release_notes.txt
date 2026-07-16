@@ -1,5 +1,30 @@
 6.21.04  DRAFT
 
+GENERAL
+               Introduced two common file formats for:
+               disordered structures and
+               diffuse data 
+
+DISCUS
+  mmc          Improved convergence of 'cn' coordination number target
+  mmc          Modernized 'apply_symmetry' output
+  import       Modernized preparation of refine macros
+  output       
+  read         Files with ending ".hdf5" ".h5" are interpreted as 
+               unified common structure format
+  save         Added format 'nexus' for unified common structure file format
+
+KUPLOT
+  calc         Extending calculations to 3D
+               'val' qualifier substitutes old 'wz'
+               'wz' refers to coordinates for 3D data
+  load         Added 'rmc' for RMCprofile 3D data
+  load         Added 'nexus' for DAunified common diffuse data file format
+  match        Extended to 3D data
+  variables    val[data_set, h,k,l] returns value at pixel for 3D data
+               val[data_set, h,k  ] returns value at pixel for 2D data
+               val[data_set, h    ] returns value at pixel for 1D data
+
 6.21.03  RELEASE 2026_06_11
 
 GENERAL
