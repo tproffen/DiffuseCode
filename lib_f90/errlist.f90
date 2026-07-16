@@ -502,12 +502,15 @@ USE errlist_mod
 IMPLICIT      NONE
 !
 !
-INTEGER, PARAMETER :: iu =  -5
+INTEGER, PARAMETER :: iu =  -8
 INTEGER, PARAMETER :: io =   0
 !
 CHARACTER(LEN=45)  ERROR(IU:IO)
 !
 DATA ERROR/                                   &
+  'An essential required field is missing  ', & ! -8  ! hff
+  'Wrong HDF library                       ', & !- 7  ! hdf
+  '(Some) Meta data are missing            ', & !- 6  ! hdf
   'File does not appear to be an HDF5 file ', & !- 5  ! hdf
   'Array has wrong dimensions              ', & !- 4  ! hdf
   'Array has wrong rank                    ', & !- 3  ! hdf
