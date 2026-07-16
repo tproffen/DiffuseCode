@@ -70,6 +70,7 @@ call hdf5_read(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,      
                      lpresent, owerte,               &
                      node_number,ndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+if(ier_num/=0) return
 call dgl5_set_ku_is_h5(iz, node_number)
 call dgl5_set_h5_is_ku(node_number, iz)
 if(ier_num/=0) return
@@ -129,6 +130,7 @@ INTEGER, INTENT(IN)    :: output_io   ! KUPLOT array size
 CHARACTER(LEN=14)   :: dataname    ! Dummy name for HDF5 datasets
 !
 integer               :: node_number = 0
+integer               :: node_complex= 0   ! The second node if complex data are present
 integer               :: ndims = 0
 integer               :: ik
 integer, dimension(3) :: dims  = 1
@@ -138,8 +140,9 @@ dataname = ' '
 
 call nx_read_scattering_common(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
-                     node_number,ndims, dims, &
+                     node_number,node_complex, ndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+if(ier_num/=0) return
 call dgl5_set_ku_is_h5(iz, node_number)
 call dgl5_set_h5_is_ku(node_number, iz)
 if(ier_num/=0) return
@@ -150,6 +153,18 @@ call dgl5_set_ku_is_h5(iz, node_number)
 call dgl5_set_h5_is_ku(node_number, iz)
 !
 call data2kuplot(ik, infile, lout)
+!
+write(*,*) 'NODES ', node_number, node_complex, ' IK, IZ ', ik, iz
+if(node_complex/=0) then    ! Add complex part as second data set
+call dgl5_set_ku_is_h5(iz, node_complex)
+call dgl5_set_h5_is_ku(node_complex, iz)
+if(ier_num/=0) return
+!
+ku_ndims(iz) = ndims
+ik = iz 
+call data2kuplot(ik, infile, lout)
+endif
+
 !
 END SUBROUTINE nexus_read_kuplot
 !
