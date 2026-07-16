@@ -19,6 +19,7 @@ use kuplot_show_mod
 !
 USE ber_params_mod
 USE errlist_mod 
+use lib_errlist_func
 USE get_params_mod
 USE precision_mod
 use prompt_mod
