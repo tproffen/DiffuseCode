@@ -40,7 +40,7 @@ character(len=PREC_STRING) :: string
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
-integer            , dimension(3,1 ) :: ref_dim
+!integer            , dimension(3,1 ) :: ref_dim
 !
 INTEGER                              :: ianz
 integer :: i
