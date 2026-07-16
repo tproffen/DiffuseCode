@@ -483,13 +483,17 @@ ELSE internalcell
       return
    endif
    idot = index(strucfile,'.', .true.)
-   if(strucfile(idot:len_trim(strucfile))=='.hdf5') then
+   if(strucfile(idot:len_trim(strucfile))=='.hdf5' .or. &  
+      strucfile(idot:len_trim(strucfile))=='.h5'        ) then
       outfile=' '
       cpara(1) = strucfile
       lpara(1) = len_trim(strucfile)
       j = 1
       call nexus2discus(CMD_CELL, j, cpara, lpara, MAXW, outfile)
-      if(ier_num/=0) return
+      if(ier_num/=0) then
+         ier_typ = ER_HDF
+         return
+      endif
       CALL readcell_internal(MAXMASK, outfile, uni_mask)
       l_not_full = .FALSE.        ! Use cr_anis_full
       exit internalcell
@@ -758,7 +762,8 @@ ELSE internals
       return
    endif
    idot = index(strucfile,'.', .true.)
-   if(strucfile(idot:len_trim(strucfile))=='.hdf5') then
+   if(strucfile(idot:len_trim(strucfile))=='.hdf5' .or. &  
+      strucfile(idot:len_trim(strucfile))=='.h5'        ) then
       ofile=' '
       cpara(1) = strucfile
       lpara(1) = len_trim(strucfile)
