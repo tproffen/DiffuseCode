@@ -387,11 +387,11 @@ character(len=PREC_string) :: string
 integer :: i
 logical, dimension(:), allocatable :: is_uses_adp
 logical, dimension(:), allocatable :: adp_used_is
-integer                            :: new_adp
+!integer                            :: new_adp
 integer                            :: ianis 
-integer                            :: ientry
+!integer                            :: ientry
 integer                            :: length
-logical                            :: lsuccess
+!logical                            :: lsuccess
 !
 allocate(is_uses_adp(cr_nanis))     ! itype uses these ADPs
 allocate(adp_used_is(0:cr_nscat))   ! This adp is used by these atom types
@@ -1052,7 +1052,7 @@ real(kind=PREC_DP) , dimension(6)        :: wwerte   ! Calculated values
 !
 logical                                  :: loutput  ! Output to screen ?
 logical                                  :: lold     ! Find old value
-logical                                  :: lsuccess  ! True if old UIJ were found
+!logical                                  :: lsuccess  ! True if old UIJ were found
 !
 integer :: ianis, j
 integer :: idim1
