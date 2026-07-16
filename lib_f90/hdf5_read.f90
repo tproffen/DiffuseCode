@@ -70,6 +70,7 @@ use iso_c_binding
 use ber_params_mod
 use lib_trans_mod
 use lib_data_types_mod
+!use lib_hdf5_low_level_mod
 use lib_use_coor_mod
 use precision_mod
 !
@@ -510,6 +511,7 @@ h5_corners(:,4) = h5_corners(:,1) + (d5_dims(3)-1)* h5_vectors(:,3)   ! Top left
 call hdf5_trans_store &
                     (infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
+                     d5_dims, d5_data, &
                      node_number, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !write(*,*) ' DID NEW ROUTINE ', ier_num, ier_typ
@@ -689,7 +691,7 @@ END SUBROUTINE hdf5_read
 !
 subroutine nx_read_scattering_common(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
-                     node_number, nndims, dims, &
+                     node_number, node_complex, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !-
 ! Read a NEXUS HDF5 file in the Diffuse Developers common file format via FORPY
@@ -718,6 +720,7 @@ LOGICAL            , dimension(NOPTIONAL), intent(in) :: lpresent
 real(KinD=PREC_DP) , dimension(NOPTIONAL), intent(in) :: owerte
 !
 integer, intent(out) :: node_number
+integer, intent(out) :: node_complex
 integer, intent(out) :: nndims
 integer, dimension(3), intent(out) :: dims
 integer,                            intent(out)   :: ier_num
@@ -740,10 +743,12 @@ real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat       
 !
 character(len=32)                                         :: data_type_experiment ! Experimental = 0, Calculated = 1
 character(len=32)                                         :: data_type_style      ! 'powder', 'powder_pdf', 'single_diffraction', 'single_pdf' ...
+character(len=32)                                         :: data_type_axes       ! 'hkl', 'Q', 'theta', 'theta', 'uvw', 'xyz', 'r' ... 
 character(len=32)                                         :: data_type_content    ! 'intensity', '3d-delta-pdf', 'amplitide', 'density' ...
 character(len=32)                                         :: data_type_reciprocal ! 'reciprocal', 'patterson', 'direct'
 character(len=32)                                         :: data_type_with_bragg ! With Bragg   = 0, No Bragg   = 1
 character(len=32)                                         :: data_type_symmetrized! No = 0; Point=1; Laue=2; Space=3;SymElem=4
+character(len=32)                                         :: data_type_number     ! 'real; 'complex'
 character(len=32)                                         :: data_rad_radiation   ! Xray=1; Neutron=2; Electron=3
 character(len=16)                                         :: data_rad_symbol      ! CU, CUA1, CU12
 real(kind=PREC_DP)        , dimension(3)                  :: data_rad_length      ! Numerical value
@@ -754,6 +759,7 @@ integer                                                   :: data_top_is_hkl    
 real(kind=PREC_DP)        , dimension(3   )               :: data_corner          ! Lower left bottom corner in fractional coordinates
 real(kind=PREC_DP)        , dimension(3, 3)               :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: data_values  ! Actual data array
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: data_imag    ! Actual data array; optional complex part
 
 !
 integer                                                   :: NMSG                 ! Dimension of ier_msg
@@ -767,17 +773,18 @@ integer :: i   ! Dummy loop index
 NMSG = idims                ! Dimensions ier_msg
 h5_infile = infile
 !
-!write(*,*) ' IN nx_read_scattering_common ', infile(1:len_trim(infile))
 !
 call unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                              symmetry_mat,                                                &
                              data_type_experiment, &
                              data_type_style     , &
+                             data_type_axes      , &
                              data_type_content   , &
                              data_type_reciprocal, &
                              data_type_with_bragg, &
                              data_type_symmetrized, &
+                             data_type_number     , &
                              data_rad_radiation , data_rad_symbol, data_rad_length, &
                              data_dimension  , &
                              data_abs_is_hkl     , &
@@ -787,8 +794,14 @@ call unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
                              data_vector     , &
                              data_values     , &
                              NMSG, ier_num, ier_msg,                                      &
-                                            crystal_meta                   &
+                                            crystal_meta ,                                &
+                             data_imag         &
                             )
+if(ier_num/=0) then       ! Error in the unified read
+   ier_typ = ER_HDF
+   return
+endif
+!write(*,*) ' BACK FROM UNIFIED READ '
 !
 !write(*,'(a, 3f11.6)') ' Unit cell length ', unit_cell_lengths
 !write(*,'(a, 3f11.6)') ' Unit cell angles ', unit_cell_angles
@@ -809,6 +822,7 @@ call unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
 !write(*,'(a, a     )') ' Data experiment  ', data_type_experiment
 !write(*,'(a, a     )') ' Data with  bragg ', data_type_with_bragg
 !write(*,'(a, a     )') ' Data symmetrized ', data_type_symmetrized
+!write(*,'(a, a     )') ' Data axes        ', data_type_axes
 !write(*,'(a, a     )') ' Data radiation   ', data_rad_radiation
 !write(*,'(a, 3i5   )') ' Data dimensions  ', data_dimension
 !write(*,'(a, 3i5   )') ' Data abs,ord,top ', data_abs_is_hkl, data_ord_is_hkl, data_top_is_hkl
@@ -825,9 +839,9 @@ call unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
 !write(*,*)
 !write(*,*) ' DATA_VALUES', data_values(1:2,1,1)
 !write(*,*) ' DATA_MINMAX', minval(data_values), maxval(data_values)
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Copy into H5 storage ! Room for streamlining ?
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Copy into H5 storage ! Room for streamlining ?
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 h5_unit(1:3) = unit_cell_lengths
@@ -874,9 +888,24 @@ length = len_trim(infile)
 call hdf5_trans_store &
                     (infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
+                     d5_dims, d5_data, &
                      node_number, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !write(*,*) ' DID NEW ROUTINE ', ier_num, ier_typ
+if(data_type_number == 'complex') then
+write(*,*) ' DOING COMPLEX '
+!
+if(.not.(allocated(d5_data))) allocate(d5_data(d5_dims(1), d5_dims(2), d5_dims(3)))
+d5_data = 0.0_PREC_DP
+d5_data = data_imag
+call hdf5_trans_store &
+                    (infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
+                     lpresent, owerte,               &
+                     d5_dims, d5_data, &
+                     node_complex, nndims, dims, &
+                     ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
+!
+endif
 if(ier_num==0) return
 !
 end subroutine nx_read_scattering_common
@@ -889,6 +918,7 @@ subroutine nx_read_scattering_place(infile, length, O_LAYER, O_TRANS, NOPTIONAL,
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !-
 ! Read a NEXUS HDF5 file in the Diffuse Developers common file format via FORPY
+! CURRENTLY NOT ACTIVE; replaced by h5fortran library
 !+
 !
 !use lib_nx_read_mod
@@ -924,20 +954,20 @@ integer, intent(in)    :: output_io   ! KUPLOT array size
 !
 !
 integer :: i ,j ,k    ! Dummy loop arrays
-character(len=PREC_STRING)  :: file_type   ! File type should be "Disorder scattering"
-character(len=PREC_STRING)  :: file_version! File version 
-character(len=PREC_STRING)  :: file_date   ! File date 
-character(len=PREC_STRING)  :: file_program! File program
-character(len=PREC_STRING)  :: file_author ! File author
-character(len=PREC_STRING)  :: signal      ! Data contain 'measurement', 'background' ,,, ,,,
-character(len=PREC_STRING)  :: radiation   ! Data were measured/calculated for this radiation
+!character(len=PREC_STRING)  :: file_type   ! File type should be "Disorder scattering"
+!character(len=PREC_STRING)  :: file_version! File version 
+!character(len=PREC_STRING)  :: file_date   ! File date 
+!character(len=PREC_STRING)  :: file_program! File program
+!character(len=PREC_STRING)  :: file_author ! File author
+!character(len=PREC_STRING)  :: signal      ! Data contain 'measurement', 'background' ,,, ,,,
+!character(len=PREC_STRING)  :: radiation   ! Data were measured/calculated for this radiation
 character(len=PREC_STRING)  :: is_space       ! Data are 'reciprocal or 'direct'
-character(len=PREC_STRING)  :: value_type  ! Data contain this value type
-character(len=PREC_STRING)  :: axes        ! string with ["h", "k","l"] or so
-character(len=PREC_STRING)  :: space_group ! Hermann-Mauguin Symbol
-integer                     :: symmetry_applied ! Data conform to symmetry
-integer                     :: symmetry_n_mat   ! Number of Symmetry matrices
-real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat ! Actual Symmetry matrices
+!character(len=PREC_STRING)  :: value_type  ! Data contain this value type
+!character(len=PREC_STRING)  :: axes        ! string with ["h", "k","l"] or so
+!character(len=PREC_STRING)  :: space_group ! Hermann-Mauguin Symbol
+!integer                     :: symmetry_applied ! Data conform to symmetry
+!integer                     :: symmetry_n_mat   ! Number of Symmetry matrices
+!real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat ! Actual Symmetry matrices
 !
 ! TEMPORARY DEBUG
 !character(kind=C_CHAR, len=:), allocatable :: dname
@@ -995,10 +1025,11 @@ h5_infile = infile
 call hdf5_trans_store &
                     (infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
+                     d5_dims, d5_data, &
                      node_number, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !
-deallocate(symmetry_mat)
+!deallocate(symmetry_mat)
 !
 end subroutine nx_read_scattering_place
 !
@@ -1007,6 +1038,7 @@ end subroutine nx_read_scattering_place
 subroutine hdf5_trans_store &
                     (infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
+                     d5_dims_local, d5_data_local, &
                      node_number, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !+
@@ -1032,6 +1064,9 @@ CHARACTER(LEN=*)   , DIMENSION(NOPTIONAL), INTENT(IN) :: opara
 INTEGER            , DIMENSION(NOPTIONAL), INTENT(IN) :: lopara
 LOGICAL            , DIMENSION(NOPTIONAL), INTENT(IN) :: lpresent
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL), INTENT(IN) :: owerte
+!
+integer, dimension(3), intent(in ) :: d5_dims_local
+real(kind=PREC_DP), dimension(:, :, :), allocatable, intent(inout) :: d5_data_local
 !
 integer, intent(out) :: node_number
 integer, intent(out) :: nndims
@@ -1073,15 +1108,15 @@ real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: new_data      ! New
 if(opara(O_TRANS)=='yes') then    ! Transform into different orientation
    value = 1                      ! Assume Intensity in reciprocal space
    if(h5_direct) value = VAL_PDF  ! Direct space 
-   call lib_trans_menu(0, value, .false., h5_infile, d5_dims, h5_corners, h5_vectors, h5_unit(1:3),    &
-           h5_unit(4:6), d5_data, VAL_PDF, VAL_3DPDF , &
+   call lib_trans_menu(0, value, .false., h5_infile, d5_dims_local, h5_corners, h5_vectors, h5_unit(1:3),    &
+           h5_unit(4:6), d5_data_local, VAL_PDF, VAL_3DPDF , &
         new_outfile, new_inc, new_eck, new_vi, new_data)
    deallocate(d5_data)
    if(ier_num/=0) then
 !
       if(allocated(h5_datasets)) deallocate(h5_datasets)
       if(allocated(h5_data)) deallocate(h5_data)
-      if(allocated(d5_data)) deallocate(d5_data)
+      if(allocated(d5_data_local)) deallocate(d5_data_local)
       if(allocated(h5_sigma)) deallocate(h5_sigma)
       if(allocated(d5_sigma)) deallocate(d5_sigma)
       if(allocated(h5_x)) deallocate(h5_x)
@@ -1106,8 +1141,8 @@ if(opara(O_TRANS)=='yes') then    ! Transform into different orientation
    h5_steps(1)   = new_vi(1,1)
    h5_steps(2)   = new_vi(2,2)
    h5_steps(3)   = new_vi(3,3)
-   allocate(d5_data(d5_dims(1), d5_dims(2), d5_dims(3)))
-   d5_data       = new_data
+   allocate(d5_data_local(d5_dims(1), d5_dims(2), d5_dims(3)))
+   d5_data_local       = new_data
    deallocate(new_data)
    if(allocated(d5_sigma)) deallocate(d5_sigma)
    allocate(d5_sigma(d5_dims(1), d5_dims(2), d5_dims(3)))
@@ -1221,7 +1256,7 @@ if(ier_num==0) then
                    h5_is_grid, h5_has_dxyz, h5_has_dval, h5_calc_coor, h5_use_coor, &
                    h5_corners, h5_vectors,&
                    h5_unit(1:3), h5_unit(4:6), h5_x, h5_y, h5_z, h5_dx, h5_dy,  &
-                   h5_dz,      d5_data               , d5_sigma, h5_llims,      &
+                   h5_dz,      d5_data_local               , d5_sigma, h5_llims,      &
                    h5_steps, h5_steps_full)
 else
    ndims = 0
@@ -1230,7 +1265,7 @@ endif
 !
 if(allocated(h5_datasets)) deallocate(h5_datasets)
 if(allocated(h5_data)) deallocate(h5_data)
-if(allocated(d5_data)) deallocate(d5_data)
+if(allocated(d5_data_local)) deallocate(d5_data_local)
 if(allocated(h5_sigma)) deallocate(h5_sigma)
 if(allocated(d5_sigma)) deallocate(d5_sigma)
 if(allocated(h5_x)) deallocate(h5_x)
@@ -1245,12 +1280,15 @@ end subroutine hdf5_trans_store
 !*******************************************************************************
 !
 INTEGER FUNCTION op_func(loc_id, name, info, operator_data) bind(C)
-     
-    USE allocate_generic
-    USE HDF5
-    USE ISO_C_BINDING
+!
+USE allocate_generic
+USE HDF5
+USE ISO_C_BINDING
+!
+use lib_hdf5_params_mod
 use trig_degree_mod
-    IMPLICIT NONE
+!
+IMPLICIT NONE
      
     INTEGER, PARAMETER ::MAXSTR = 1024
     INTEGER(HID_T), VALUE :: loc_id
@@ -1313,8 +1351,13 @@ use trig_degree_mod
 !
 !*******************************************************************************
 !
+!
+!*******************************************************************************
+!
 SUBROUTINE hdf5_error(infile, file_id, dataname, dset_id, ier_num, ier_typ, &
                       idims,ier_msg,er_nr, er_type, message)
+!
+!use lib_hdf5_params_mod
 !
 IMPLICIT NONE
 !
