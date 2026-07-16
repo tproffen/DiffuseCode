@@ -8010,6 +8010,15 @@
    or structure may be read. The old structure is lost ! If necessary
    save it with the --> 'save' command.
 
+   As default discus will expect a (small) ASCII file written in the
+   DISCUS own format. Typically these files are called "*.cell" or
+   "*.stru".
+   A file that ends in "*.hdf5" or "*.h5" is expected to be in the
+   unified binary file format.
+   A file that ends in "*.cif" is expected to be in the 
+   Crystallographic Information File format and will be interpreted 
+   automatically. 
+
    The 'read' menu is an old one. After a 'cell', 'stru', 'free' 
    command DISCUS will leave the menu even without an 'exit'. 
    As of version 5.17.1 comments no longer cause an 'exit'.
@@ -8645,8 +8654,13 @@
 
    Saves the current structure to file <name>
 
-   The format is identical to the unit cell or structure file. Each
-   atom is written in format A4,3(2X,F11.6),5X,F6.4
+   A default, the format is identical to the unit cell or structure file. 
+   Each atom is written in format A4,3(2X,F11.6),5X,F6.4
+
+   For larger files and to exchange strcutures with RMCprofile, Yell,
+   SCATTY, use the binary nexus like format specified by the
+   'format nexus' command. 
+   The file should receive an extension "*.h5" or '"*.hdf5".
 
    If the 'save' command is used with one parameter, the
    parameter is interpreted as output file name. See the entry
