@@ -96,10 +96,26 @@ IF (ik.gt.0.and.ik.lt.iz) then
          IF (ier_num.ne.0) return 
          CALL get_extrema_z (z, ik, nx (ik), ny (ik), zmin, zmax) 
          CALL show_data (ik) 
+         ier_num = +1
+         ier_typ = ER_COMM
+         ier_msg(1) = 'Qualifier ''wz'' should be used for 3D '
+         ier_msg(2) = '                 coordinates only '
+         ier_msg(3) = 'Instead use ''val'' for the function value'
+         call errlist
+         call errlist_none
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+   ELSEIF (unt.eq.'VAL') then 
+      if(ku_ndims(ik)==1) then    !1D data
+         call calc_xy (y, ilen, ik, oper, werte, maxw, ianz)
+      elseif(lni (ik) ) then 
+         CALL calc_z(z, nx(ik), ny(ik), ik, oper, werte, maxw, ianz)
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      endif
    ELSE 
       ier_num = - 6 
       ier_typ = ER_COMM 
@@ -730,7 +746,7 @@ IF (lni (ik1) .and.lni (ik2) .and. (nx (ik1) .eq.nx (ik2) ) .and. &
    CALL get_extrema_z (z, ik3, nx (ik3), ny (ik3), zmin, zmax) 
    CALL show_data (ik3) 
 !                                                                       
-!------ here for a 2d data set                                          
+!------ here for a 1d data set                                          
 !                                                                       
 ELSEIF (.not.lni (ik1) .and..not.lni (ik2) ) then 
         imin = min (lenc (ik1), lenc (ik2) ) 
@@ -1655,10 +1671,13 @@ USE get_params_mod
 USE param_mod 
 USE prompt_mod 
 USE kuplot_config 
+use kuplot_global
 USE kuplot_mod 
 use kuplot_extrema_mod
 use kuplot_show_mod
 use kuplot_wichtung_mod
+!
+use lib_math_mod
 USE string_convert_mod
 USE precision_mod
 USE str_comp_mod
@@ -1773,10 +1792,14 @@ cc = 0.0
 ce = 0.0 
 !                                                                       
 wi = 1.0 
+if(lh5(iko) .and. lh5(ikc)) then
+   call match_h5_val_global(iko, ikc,  iweight, lskal, lback)
+   call data2kuplot(ikc, fname(ikc), .false.) 
+   return
 !                                                                       
 !     xy-data                                                           
 !                                                                       
-IF (.not.lni (iko) .and..not.lni (ikc) ) then 
+elseIF (.not.lni (iko) .and..not.lni (ikc) ) then 
    DO ip = 1, lenc (ikc) 
       ikko = offxy (iko - 1) + ip 
       ikkc = offxy (ikc - 1) + ip 
