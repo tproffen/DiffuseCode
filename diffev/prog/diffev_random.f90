@@ -118,7 +118,7 @@ CHARACTER(LEN=40) :: macro_file = 'diffev_best.mac'
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=  39), PARAMETER :: string = 'cat *.mac |grep -F ref_para > /dev/null'
 CHARACTER(LEN=PREC_STRING) :: message
-character(len=PREC_STRING) :: datadir, dataname
+!character(len=PREC_STRING) :: datadir, dataname
 INTEGER            , PARAMETER :: lstring = 39
 INTEGER :: exit_msg
 INTEGER :: i, i1, nn
