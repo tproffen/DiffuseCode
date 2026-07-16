@@ -158,7 +158,7 @@ ELSE           ! No internal storage yet, make new storage, and add
       ier_typ = ER_MAC
       oprompt = prompt
       ier_msg(1) = 'Missing macro file'
-      ier_msg(2) =  userfile
+      ier_msg(2) =  userfile(1:min(len(ier_msg), len_trim(userfile)))
       IF(lblock) THEN                ! If inside do/if terminate the block
          lblock_dbg = .false.
          lblock = .false.
@@ -205,7 +205,7 @@ is_new: IF(.NOT. is_stored ) THEN             ! This is a new macro
       ier_typ = ER_MAC
       oprompt = prompt
       ier_msg(1) = 'Missing macro file'
-      ier_msg(2) =  userfile
+      ier_msg(2) =  userfile(1:min(len(ier_msg), len_trim(userfile)))
       IF(lblock) THEN                ! If inside do/if terminate the block
          lblock_dbg = .false.
          lblock = .false.
