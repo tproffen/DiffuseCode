@@ -5,13 +5,18 @@ module lib_h5fortran_mod
 ! checks available in the library to gracefully return to the calling program.
 !
 use precision_mod
-use hdf5, only : HSIZE_T, H5F_ACC_RDONLY_F, H5F_ACC_TRUNC_F
+use hdf5   , only : HSIZE_T, H5F_ACC_RDONLY_F, H5F_ACC_TRUNC_F
+!, H5_INDEX_NAME_F, &
+! H5_ITER_NATIVE_F, C_FUNPTR, C_PTR, H5Literate_f
 !
 private
 public h5f_reset
-public h5f_open
-public h5f_read
-public h5f_write
+public h5f_open                          ! Check if file exists and open the file
+public h5f_read                          ! Interface to all reading routines
+public h5f_write                         ! Interface to all writing routines
+public h5f_check_read_meta               ! Checkes presence of all meta and reads these
+public h5f_check_crystal_fields          ! Checks presence of all required fields
+public h5f_check_data_fields             ! Checks presence of all required fields
 !
 interface h5f_read
    module procedure read_char,         & !  Read a character string
@@ -39,6 +44,8 @@ end interface h5f_write
 ! -3  Wrong rank
 ! -4  Wrong dimensions
 ! -5  Not an HDF5 file
+! -6  Some Meta data are missing
+! -7  Wrong library name in c_meta(1) == 
 !
 !*******************************************************************************
 !
@@ -78,8 +85,8 @@ character(len=*)  , dimension(NMSG)  , intent(out)   :: ier_msg
 integer, parameter :: IRD =65
 character(len=16) :: line
 logical :: lexist
-logical :: debug = .true.
-logical :: ok    = .true.
+!logical :: debug = .true.
+!logical :: ok    = .true.
 !
 if(read_write=='r') then
    inquire(file=infile, exist=lexist)
@@ -730,6 +737,144 @@ string = '/entry/data/' // data_set(1:len_trim(data_set))
 !endif
 !
 end subroutine write_real_3D
+!
+!*******************************************************************************
+!
+subroutine h5f_check_read_meta(h5f, lib_type, crystal_meta, NMSG, ier_num, ier_msg)
+!-
+!  Check if all meta fields are present
+!  If all are present, l_meta from "lib_unified_chars_mod" is all true
+!  crystal_meta contains actual output strings
+!
+!  Error messages
+!   0  All is well
+!  -6  (Some) meta are missing
+!  -7  Wrong library
+!+
+!
+use h5fortran, only: hdf5_file
+use lib_unified_chars_mod
+use precision_mod
+!
+type(hdf5_file)                    , intent(inout) :: h5f       ! The h5fortan object
+integer                            , intent(in)    :: lib_type  ! 1==Structure; 2==Data
+character(len=PREC_STRING), dimension(N_META)            , intent(out) :: crystal_meta
+integer                            , intent(out)   :: ier_num
+integer                            , intent(in )   :: NMSG
+character(len=*)  , dimension(NMSG), intent(out)   :: ier_msg
+!
+character(len=PREC_STRING) :: meta
+character(len=PREC_STRING) :: string
+integer :: i, j ! Dummy loop index
+!
+l_meta = .false.                   ! Assume all missing
+!
+do i=1, N_META                     ! Go through all required fields
+   meta = '/entry/data/' // c_meta(i)
+   if(h5f%exist(meta(1:len_trim(meta)))) then
+      l_meta(i) = .true.           ! This field is present
+      call h5f%read(meta,  string) ! Read actual character string
+      crystal_meta(i) = string     ! And copy into the output field
+!
+!write(*,'(a8, a32, a)') ' META  ', c_meta(i), ' is present'
+   endif
+enddo
+!
+if(all(l_meta)) then        ! All meta are present; check the first field for library
+!
+   if(crystal_meta(1) /= c_dictionary_names(lib_type))   then
+      ier_num = -7
+      ier_msg(1) = 'Wrong HDF5 library'
+      ier_msg(2) = 'Found      : ' // crystal_meta(1)
+      ier_msg(3) = 'Instead of : ' // c_dictionary_names(lib_type)(1:len_trim(c_dictionary_names(lib_type)))
+!
+      call h5f%close()
+      call h5f_reset
+      return
+   endif
+else                        ! Some meta are missing
+   ier_num = -6
+   ier_msg(1) = 'Meta data are missing'
+   ier_msg(2) = '1 2 3 4 5'
+   do i=1, N_META
+      j = 2*(i-1)+1
+      if(l_meta(i)) then
+         ier_msg(3)(j:j) = 'T'   ! Entry is present
+      else
+         ier_msg(3)(j:j) = 'F'   ! Entry is missing
+      endif
+   enddo
+!
+   call h5f%close()
+   call h5f_reset
+   return
+endif
+!
+end subroutine h5f_check_read_meta
+!
+!*******************************************************************************
+!
+subroutine h5f_check_crystal_fields(h5f, NMSG, ier_num, ier_msg)
+!-
+!  Check if all fields are present
+!+
+!
+use h5fortran, only: hdf5_file
+use lib_unified_chars_mod
+use precision_mod
+!
+type(hdf5_file)                    , intent(inout) :: h5f
+integer                            , intent(out)   :: ier_num
+integer                            , intent(in )   :: NMSG
+character(len=*)  , dimension(NMSG), intent(out)   :: ier_msg
+!
+character(len=PREC_STRING) :: string
+integer :: i    ! Dummy loop index
+!
+l_fields_crystal = .false.
+!
+do i=1, N_FIELDS_CRYSTAL          ! Go through all required fields
+   string = '/entry/data/' // c_fields_crystal(i)
+   if(h5f%exist(string(1:len_trim(string)))) then
+      l_fields_crystal(i) = .true.
+!write(*,'(a8, a32, a)') ' FIELD ', c_fields_crystal(i), ' is present'
+!   else
+!write(*,'(a8, a32, a)') ' FIELD ', c_fields_crystal(i), ' is absent '
+   endif
+enddo
+
+end subroutine h5f_check_crystal_fields
+!
+!*******************************************************************************
+!
+subroutine h5f_check_data_fields(h5f, NMSG, ier_num, ier_msg)
+!-
+!  Check if all fields are present
+!+
+!
+use h5fortran, only: hdf5_file
+use lib_unified_chars_mod
+use precision_mod
+!
+type(hdf5_file)                    , intent(inout) :: h5f
+integer                            , intent(out)   :: ier_num
+integer                            , intent(in )   :: NMSG
+character(len=*)  , dimension(NMSG), intent(out)   :: ier_msg
+!
+character(len=PREC_STRING) :: string
+integer :: i    ! Dummy loop index
+!
+l_fields_data = .false.
+!
+do i=1, N_FIELDS_DATA             ! Go through all required fields
+   string = '/entry/data/' // c_fields_data(i)
+   if(h5f%exist(string(1:len_trim(string)))) then
+      l_fields_data(i) = .true.
+!write(*,'(a8, a32, a)') ' FIELD ', c_fields_data(i), ' is present'
+   endif
+enddo
+
+end subroutine h5f_check_data_fields
 !
 !*******************************************************************************
 !
