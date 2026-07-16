@@ -178,9 +178,6 @@ if(oper=='ADD') then
    p2coord     = p2coord       + summand
    if(lcoord) then
       ik1_llims(jdim)           = ik1_llims(jdim)           + summand
-      ik1_steps(jdim)           = ik1_steps(jdim)           + summand
-      ik1_steps_full(jdim,jdim) = ik1_steps_full(jdim,jdim) + summand
-      ik1_vectors(:,jdim)       = ik1_vectors(:,jdim)       + summand
       ik1_corners(jdim,:)       = ik1_corners(jdim,:)       + summand
    endif
 elseif(oper.eq.'EXP') then
@@ -408,20 +405,20 @@ integer                            , intent(in) :: iweight ! Identifier for weig
 logical                            , intent(in) :: lscale  ! Scale the data
 logical                            , intent(in) :: lback   ! 
 !
-integer, PARAMETER :: MAXW  = 25
+!integer, PARAMETER :: MAXW  = 25
 !                                                                       
-integer, PARAMETER :: W_ONE = 0
-integer, PARAMETER :: W_SQUA = 1
-integer, PARAMETER :: W_SQRT = 2
-integer, PARAMETER :: W_INV = 3
-integer, PARAMETER :: W_LOG = 4
-integer, PARAMETER :: W_ISQ = 5
-integer, PARAMETER :: W_LIN = 6
-integer, PARAMETER :: W_DAT = 7
-integer, PARAMETER :: W_BCK = 8
+!integer, PARAMETER :: W_ONE = 0
+!integer, PARAMETER :: W_SQUA = 1
+!integer, PARAMETER :: W_SQRT = 2
+!integer, PARAMETER :: W_INV = 3
+!integer, PARAMETER :: W_LOG = 4
+!integer, PARAMETER :: W_ISQ = 5
+!integer, PARAMETER :: W_LIN = 6
+!integer, PARAMETER :: W_DAT = 7
+!integer, PARAMETER :: W_BCK = 8
 !
 integer :: i,j,k
-integer :: ianz
+!integer :: ianz
 real(kind=PREC_DP) :: c, cc, ce, e, ee    ! parameters for the sums 
 real(kind=PREC_DP) :: weight              ! DAweight for data point
 real(kind=PREC_DP) :: wtot                ! total weight
