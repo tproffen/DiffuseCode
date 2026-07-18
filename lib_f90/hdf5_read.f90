@@ -756,6 +756,7 @@ integer                   , dimension(3)                  :: data_dimension   ! 
 integer                                                   :: data_abs_is_hkl      ! Abscissa is 1=h 2=k 3=l
 integer                                                   :: data_ord_is_hkl      ! Ordinate is 1=h 2=k 3=l
 integer                                                   :: data_top_is_hkl      ! top-axis is 1=h 2=k 3=l
+character(len=32)                                         :: coordinate_unit      !Units at axes 
 real(kind=PREC_DP)        , dimension(3   )               :: data_corner          ! Lower left bottom corner in fractional coordinates
 real(kind=PREC_DP)        , dimension(3, 3)               :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: data_values  ! Actual data array
@@ -790,6 +791,7 @@ call unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
                              data_abs_is_hkl     , &
                              data_ord_is_hkl     , &
                              data_top_is_hkl     , &
+                             coordinate_unit , &
                              data_corner     , &
                              data_vector     , &
                              data_values     , &
