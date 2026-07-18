@@ -1113,6 +1113,7 @@ integer           , dimension(:),   allocatable :: types_ordinal       ! Ordinal
 integer           , dimension(:),   allocatable :: types_charge        ! Atomic charge as +2 or -2 ...
 integer           , dimension(:),   allocatable :: types_isotope       ! Zero or specific isotpoe number
 real(kind=PREC_DP), dimension(:),   allocatable :: types_occupancy     ! Occupancy for the atom type, not for an individual atom
+character(len=32)                               :: coordinate_unit     ! 'basecell_fractional, 'supercell_fractional'
 !
 integer                                         :: number_of_atoms  ! Number of atoms
 real(kind=PREC_DP), dimension(:,:), allocatable :: atom_pos         ! Fractional coordinates 1.0 is a subcell unit cell length
@@ -1344,11 +1345,13 @@ allocate(magnetic_spins(3,number_of_atoms))
 magnetic_spins = 0.0_PREC_DP
 optional_intended(o_magnetic_spins) = sav_w_magn
 !
+coordinate_unit = 'basecell_fractional'
 !
 call unified_write_structure(outfile, unit_cell_lengths, unit_cell_angles,                &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                              symmetry_mat, unit_cells, number_of_types, types_names,      &
-                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
+                             types_ordinal, types_charge, types_isotope, coordinate_unit, &
+                             number_of_atoms, &
                              atom_type, atom_pos, atom_unit_cell, atom_site,              &
                              NMSG, ier_num, ier_msg,                                      &
                              optional_intended,                                           &

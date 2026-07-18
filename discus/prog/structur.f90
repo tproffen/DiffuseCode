@@ -6932,6 +6932,7 @@ integer                   , dimension(:),     allocatable :: types_ordinal
 integer                   , dimension(:),     allocatable :: types_charge
 integer                   , dimension(:),     allocatable :: types_isotope
 real(kind=PREC_DP)        , dimension(:),     allocatable :: types_occupancy
+character(len=32)                                         :: coordinate_unit
 integer                                                   :: number_of_atoms
 integer                   , dimension(:    ), allocatable :: atom_type    ! Atom is of this type
 real(kind=PREC_DP)        , dimension(:,:  ), allocatable :: atom_pos     ! Atom is at these fractional coordinates
@@ -6953,6 +6954,7 @@ integer :: n_symm    ! Number symmetryop for molecules
 integer :: NMSG      ! Array dimension ier_msg
 logical :: lout
 !
+real(kind=PREC_DP), dimension(3  ) :: converter ! Convert 'supercell_fractional' [0,1] to DISCUS range
 real(kind=PREC_DP), dimension(3,3) :: xx        ! Dummy tensor
 real(kind=PREC_DP), dimension(3,3) :: uij       ! Uij in crystal space
 real(kind=PREC_DP), dimension(3,3) :: ucij      ! Uij in cartesian space
@@ -6979,7 +6981,8 @@ NMSG = ubound(ier_msg,1)
 call unified_read_structure(cpara(1), unit_cell_lengths, unit_cell_angles,                &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                              symmetry_mat, unit_cells, number_of_types, types_names,      &
-                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
+                             types_ordinal, types_charge, types_isotope, coordinate_unit, &
+                             number_of_atoms, &
                              atom_type, atom_pos, atom_unit_cell, atom_site,              &
                              atom_property, crystal_flags, crystal_meta,                  &
                              anisotropic_adp, molecules, average_struc, magnetic_spins,   &
@@ -7126,6 +7129,15 @@ endif
 !write(*,'(a,6f10.6,a,f10.6)') ' ADP uij   ', anisotropic_adp%anisotropic_adp(1:6,i), ' || ',&
 !anisotropic_adp%anisotropic_adp(7,i)
 !enddo
+if('coordinate_unit'=='basecell_fractional') then
+   converter = 1.0_PREC_DP
+elseif('coordinate_unit'=='supercell_fractional') then
+   converter = real(unit_cells, kind=PREC_DP)
+elseif('coordinate_unit'=='unknown') then
+   converter = 1.0_PREC_DP
+else
+   converter = 1.0_PREC_DP
+endif
 do i=1,number_of_atoms
    cr_iscat(1,i) = atom_type(i)
    cr_iscat(2,i) = 1   ! WORK  SYMMETRY OPERATION that created atom
@@ -7140,7 +7152,9 @@ do i=1,number_of_atoms
       cr_iscat(3,i) = 1
    endif
 !  cr_dw(cr_iscat(3,i)) = real(cr_iscat(3,i),kind=PREC_DP)
-   cr_pos(:,i)   = atom_pos (:,i)
+   cr_pos(1,i)   = atom_pos (1,i) * converter(1)
+   cr_pos(2,i)   = atom_pos (2,i) * converter(2)
+   cr_pos(3,i)   = atom_pos (3,i) * converter(3)
    if(l_property) then
       cr_prop(i)    = atom_property(i)
    else

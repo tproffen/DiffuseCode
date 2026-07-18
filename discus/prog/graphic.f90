@@ -2491,6 +2491,7 @@ integer                                                   :: data_ord_is_hkl    
 integer                                                   :: data_top_is_hkl      ! top-axis is 1=h 2=k 3=l
 integer                   , dimension(3   )               :: data_dimension       ! Data have dimensions along (HKL) / (UVW)
 real(kind=PREC_DP)        , dimension(3   )               :: data_corner          ! Lower left bottom corner in fractional coordinates
+character(len=32)                                         :: coordinate_unit      ! Axis units 'basecell_fractional' ...
 real(kind=PREC_DP)        , dimension(3, 3)               :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
 !
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: data_values     ! The data
@@ -2562,16 +2563,22 @@ data_type_reciprocal = 'reciprocal'         ! Reciprocal space
 data_type_style      = c_style(data_style)  ! Data style 'powder', 'powder_pdf', 'single_diffraction', 'single_pdf' ...
 if(data_style==0) then
    data_type_axes       = 'unknown'
+   coordinate_unit      = 'unknown'
 elseif(data_style==1) then
    data_type_axes       = 'Q'
+   coordinate_unit      = 'inverse_angstroem'
 elseif(data_style==2) then 
    data_type_axes       = 'r'
+   coordinate_unit      = 'angstroem'
 elseif(data_style==3) then 
    data_type_axes       = 'hkl'
+   coordinate_unit      = 'basecell_fractional'
 elseif(data_style==4) then 
    data_type_axes       = 'uvw'
+   coordinate_unit      = 'basecell_fractional'
 elseif(data_style==5) then 
    data_type_axes       = 'hkl'
+   coordinate_unit      = 'basecell_fractional'
 endif
 write(*,*) ' Data style ', data_type_style, data_style, data_type_axes
 !
@@ -2654,6 +2661,7 @@ else
                            data_abs_is_hkl     , &
                            data_ord_is_hkl     , &
                            data_top_is_hkl     , &
+                           coordinate_unit , &
                            data_corner     , &
                            data_vector     , &
                            data_values     , &
