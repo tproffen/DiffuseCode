@@ -6,8 +6,8 @@ logical :: l_dump = .false.
 !
 integer, parameter :: N_C_FLAGS        = 6        ! Number of Crystal flags
 integer, parameter :: N_META           = 5        ! Number of meta entries
-integer, parameter :: N_FIELDS_DATA    = 23       ! Number of entries in HDF5 file  scattering data
-integer, parameter :: N_FIELDS_CRYSTAL = 36       ! Number of entries in HDF5 file  crystal structure
+integer, parameter :: N_FIELDS_DATA    = 24       ! Number of entries in HDF5 file  scattering data
+integer, parameter :: N_FIELDS_CRYSTAL = 37       ! Number of entries in HDF5 file  crystal structure
 !
 character(len=24), dimension(N_C_FLAGS       ), parameter :: c_flags  &
        =    (/'is_super_structure      ', &
@@ -46,6 +46,7 @@ character(len=32), dimension(N_FIELDS_CRYSTAL), parameter :: c_fields_crystal &
               'atom_position                  ', &
               'atom_unit_cell                 ', &
               'atom_site_number               ', &
+              'coordinate_unit                ', &
               'average_number                 ', &
               'average_type                   ', &
               'average_pos                    ', &
@@ -88,6 +89,7 @@ character(len=32), dimension(N_FIELDS_DATA   ), parameter :: c_fields_data   &
               'data_rad_length                ', &
               'data_dimension                 ', &
               'data_axes                      ', &
+              'coordinate_unit                ', &
               'data_corner                    ', &
               'data_increment_vector          ', &
               'data_values                    '  &
@@ -132,9 +134,10 @@ integer, parameter :: INDX_data_rad_symbol                 = 17
 integer, parameter :: INDX_data_rad_length                 = 18
 integer, parameter :: INDX_data_dimension                  = 19
 integer, parameter :: INDX_data_axes                       = 20
-integer, parameter :: INDX_data_corner                     = 21
-integer, parameter :: INDX_data_increment_vector           = 22
-integer, parameter :: INDX_data_values                     = 23
+integer, parameter :: INDX_DATA_coordinate_unit            = 21
+integer, parameter :: INDX_data_corner                     = 22
+integer, parameter :: INDX_data_increment_vector           = 23
+integer, parameter :: INDX_data_values                     = 24
 !
 !integer, parameter :: INDX_unit_cell_lengths              =  1
 !integer, parameter :: INDX_unit_cell_angles               =  2
@@ -154,23 +157,24 @@ integer, parameter :: INDX_atom_type                      = 15
 integer, parameter :: INDX_atom_position                  = 16
 integer, parameter :: INDX_atom_unit_cell                 = 17
 integer, parameter :: INDX_atom_site_number               = 18
-integer, parameter :: INDX_average_number                 = 19
-integer, parameter :: INDX_average_type                   = 20
-integer, parameter :: INDX_average_pos                    = 21
-integer, parameter :: INDX_average_occ                    = 22
-integer, parameter :: INDX_average_adp                    = 23
-integer, parameter :: INDX_average_site                   = 24
-integer, parameter :: INDX_occupancy                      = 25
-integer, parameter :: INDX_property_flags                 = 26
-integer, parameter :: INDX_molecules_number               = 27
-integer, parameter :: INDX_molecules_types                = 28
-integer, parameter :: INDX_molecules_int                  = 29
-integer, parameter :: INDX_molecules_real                 = 30
-integer, parameter :: INDX_molecules_index                = 31
-integer, parameter :: INDX_magnetic_spins                 = 32
-integer, parameter :: INDX_anisotropic_number             = 33
-integer, parameter :: INDX_anisotropic_is_iso             = 34
-integer, parameter :: INDX_anisotropic_adp                = 35
-integer, parameter :: INDX_anisotropic_index              = 36
+integer, parameter :: INDX_CRYST_coordinate_unit          = 19
+integer, parameter :: INDX_average_number                 = 20
+integer, parameter :: INDX_average_type                   = 21
+integer, parameter :: INDX_average_pos                    = 22
+integer, parameter :: INDX_average_occ                    = 23
+integer, parameter :: INDX_average_adp                    = 24
+integer, parameter :: INDX_average_site                   = 25
+integer, parameter :: INDX_occupancy                      = 26
+integer, parameter :: INDX_property_flags                 = 27
+integer, parameter :: INDX_molecules_number               = 28
+integer, parameter :: INDX_molecules_types                = 29
+integer, parameter :: INDX_molecules_int                  = 30
+integer, parameter :: INDX_molecules_real                 = 31
+integer, parameter :: INDX_molecules_index                = 32
+integer, parameter :: INDX_magnetic_spins                 = 33
+integer, parameter :: INDX_anisotropic_number             = 34
+integer, parameter :: INDX_anisotropic_is_iso             = 35
+integer, parameter :: INDX_anisotropic_adp                = 36
+integer, parameter :: INDX_anisotropic_index              = 37
 !
 end module lib_unified_chars_mod

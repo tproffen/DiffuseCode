@@ -13,8 +13,9 @@ contains
 subroutine unified_write_structure( infile, unit_cell_lengths, unit_cell_angles,          &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                              symmetry_mat, unit_cells, number_of_types, types_names,      &
-                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
-                             atom_type, atom_pos, atom_unit_cell, atom_site,              &
+                             types_ordinal, types_charge, types_isotope, coordinate_unit, &
+                             number_of_atoms, atom_type, atom_pos, atom_unit_cell,        &
+                             atom_site,                                                   &
                              NMSG, ier_num, ier_msg,                                      &
                              optional_intended,                                           &
                              atom_property, crystal_flags, crystal_meta,                  &
@@ -48,6 +49,7 @@ character(len=4)          , dimension(number_of_types)   , intent(in) :: types_n
 integer                   , dimension(number_of_types)   , intent(in) :: types_ordinal      ! Ordinal number of chemical element
 integer                   , dimension(number_of_types)   , intent(in) :: types_charge       ! Atom types have this charge
 integer                   , dimension(number_of_types)   , intent(in) :: types_isotope      ! Atom type is this isotope or zero
+character(len=32)                                        , intent(in) :: coordinate_unit    ! The atom coordinates are 'basecell_fractional', 'supercell_fractional'
 integer                                                  , intent(in) :: number_of_atoms    ! Crystal contains this many actual atoms
 integer                   , dimension(  number_of_atoms) , intent(in) :: atom_type          ! Atom is of this type
 real(kind=PREC_DP)        , dimension(3,number_of_atoms) , intent(in) :: atom_pos           ! Atom is at these fractional coordinates
@@ -94,7 +96,8 @@ if(l_dump) then
 call       unified_dump_structure( unit_cell_lengths, unit_cell_angles,           &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                              symmetry_mat, unit_cells, number_of_types, types_names,      &
-                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
+                             types_ordinal, types_charge, types_isotope, coordinate_unit, &
+                             number_of_atoms, &
                              atom_type, atom_pos, atom_unit_cell, atom_site,              &
                              atom_property, crystal_flags, crystal_meta,                  &
                              anisotropic_adp, molecules, average_struc, magnetic_spins,   &
@@ -161,6 +164,9 @@ call h5f_write(h5f, 'types_charge'  , number_of_types, types_charge , NMSG, ier_
 if(ier_num/=0) return
 call h5f_write(h5f, 'types_isotope' , number_of_types, types_isotope, NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
+!
+! Atom coordinate type
+call h5f_write(h5f, 'coordinate_unit' , coordinate_unit , NMSG, ier_num, ier_msg)
 !
 ! Atom: type, coordinate, unit cell, site_number
 !
@@ -326,6 +332,7 @@ subroutine unified_write_data(datafile, unit_cell_lengths, unit_cell_angles,    
                              data_abs_is_hkl     , &
                              data_ord_is_hkl     , &
                              data_top_is_hkl     , &
+                             coordinate_unit,      &
                              data_corner     , &
                              data_vector     , &
                              data_values     , &
@@ -369,6 +376,8 @@ integer                   , dimension(3)                 , intent(in) :: data_di
 integer                                                  , intent(in) :: data_abs_is_hkl      ! Abscissa is 1=h 2=k 3=l
 integer                                                  , intent(in) :: data_ord_is_hkl      ! Ordinate is 1=h 2=k 3=l
 integer                                                  , intent(in) :: data_top_is_hkl      ! top-axis is 1=h 2=k 3=l
+character(len=32)                                        , intent(in) :: coordinate_unit      ! The axes coordinates are 'basecell_fractional', 'supercell_fractional'
+!                                                                                             ! 'degree#, 'radian', 'inverse_angstroem', 'inverse_nm', 'angstroem', 'nm'
 real(kind=PREC_DP)        , dimension(3   )              , intent(in) :: data_corner          ! Lower left bottom corner in fractional coordinates
 real(kind=PREC_DP)        , dimension(3, 3)              , intent(in) :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
 real(kind=PREC_DP)        , dimension(data_dimension(1), &
@@ -518,6 +527,10 @@ data_info( 2) = data_ord_is_hkl       ! Ordinate is 0=unknown 1=h 2=k 3=l
 data_info( 3) = data_top_is_hkl       ! top-axis is 0=unknown 1=h 2=k 3=l
 cdim(1) = 3
 call h5f_write(h5f, 'data_axes' , cdim(1), data_info(1:3), NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+! Axes coordinate type
+call h5f_write(h5f, 'coordinate_unit' , coordinate_unit , NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 !
 ! Lower_left_bottom corner / transposed write

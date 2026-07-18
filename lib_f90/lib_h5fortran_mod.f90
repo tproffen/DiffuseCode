@@ -837,12 +837,12 @@ do i=1, N_FIELDS_CRYSTAL          ! Go through all required fields
    string = '/entry/data/' // c_fields_crystal(i)
    if(h5f%exist(string(1:len_trim(string)))) then
       l_fields_crystal(i) = .true.
-!write(*,'(a8, a32, a)') ' FIELD ', c_fields_crystal(i), ' is present'
-!   else
-!write(*,'(a8, a32, a)') ' FIELD ', c_fields_crystal(i), ' is absent '
+      if(l_dump) write(*,'(a8, i3, 1x, a32, a)') ' FIELD ', i, c_fields_crystal(i), ' is present'
+   else
+      if(l_dump) write(*,'(a8, i3, 1x, a32, a)') ' FIELD ', i, c_fields_crystal(i), ' is absent '
    endif
 enddo
-
+!
 end subroutine h5f_check_crystal_fields
 !
 !*******************************************************************************
@@ -870,7 +870,9 @@ do i=1, N_FIELDS_DATA             ! Go through all required fields
    string = '/entry/data/' // c_fields_data(i)
    if(h5f%exist(string(1:len_trim(string)))) then
       l_fields_data(i) = .true.
-!write(*,'(a8, a32, a)') ' FIELD ', c_fields_data(i), ' is present'
+      if(l_dump) write(*,'(a8, i3, 1x, a32, a)') ' FIELD ', i, c_fields_data(i), ' is present'
+   else
+      if(l_dump) write(*,'(a8, i3, 1x, a32, a)') ' FIELD ', i, c_fields_data(i), ' is absent'
    endif
 enddo
 

@@ -16,7 +16,8 @@ contains
 subroutine unified_dump_structure( unit_cell_lengths, unit_cell_angles,           &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                              symmetry_mat, unit_cells, number_of_types, types_names,      &
-                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
+                             types_ordinal, types_charge, types_isotope, coordinate_unit, &
+                             number_of_atoms, &
                              atom_type, atom_pos, atom_unit_cell, atom_site,              &
                              atom_property, crystal_flags, crystal_meta,                  &
                              anisotropic_adp, molecules, average_struc, magnetic_spins,   &
@@ -50,6 +51,7 @@ integer                   , dimension(number_of_types)   , intent(in ) :: types_
 integer                   , dimension(number_of_types)   , intent(in ) :: types_charge       ! Atom types have this charge
 integer                   , dimension(number_of_types)   , intent(in ) :: types_isotope      ! Atom type is this isotope or zero
 integer                                                  , intent(in ) :: number_of_atoms    ! Crystal contains this many actual atoms
+character(len=32)                                        , intent(in ) :: coordinate_unit    ! Units for coordinates 'basecell_fractional', isupercell_fractional'
 integer                   , dimension(  number_of_atoms) , intent(in ) :: atom_type          ! Atom is of this type
 real(kind=PREC_DP)        , dimension(3,number_of_atoms) , intent(in ) :: atom_pos           ! Atom is at these fractional coordinates
 integer                   , dimension(3,number_of_atoms) , intent(in ) :: atom_unit_cell     ! Atom is in this unit cell
@@ -113,6 +115,9 @@ write(*,'(a)') '  Number  Name  Ordinal  Charge  Isotope'
 do i=1, number_of_types
 write(*,'(i8, 1x, a5, 3i8)') i, types_names(i), types_ordinal(i), types_charge(1),  types_isotope(i)
 enddo
+!
+write(*,*)
+write(*,'(a,a)') 'Atom coordinates: ', coordinate_unit
 !
 write(*,*)
 write(*,'(a, i8)') ' Number of atoms      ', number_of_atoms
@@ -187,6 +192,7 @@ subroutine unified_dump_data(unit_cell_lengths, unit_cell_angles,           &
                              data_abs_is_hkl     , &
                              data_ord_is_hkl     , &
                              data_top_is_hkl     , &
+                             coordinate_unit , &
                              data_corner     , &
                              data_vector     , &
                              data_values     , &
@@ -227,6 +233,7 @@ integer                   , dimension(3)                 , intent(in) :: data_di
 integer                                                  , intent(in) :: data_abs_is_hkl      ! Abscissa is 1=h 2=k 3=l
 integer                                                  , intent(in) :: data_ord_is_hkl      ! Ordinate is 1=h 2=k 3=l
 integer                                                  , intent(in) :: data_top_is_hkl      ! top-axis is 1=h 2=k 3=l
+character(len=32)                                        , intent(in) :: coordinate_unit    ! Units for coordinates 'basecell_fractional', isupercell_fractional'
 real(kind=PREC_DP)        , dimension(3   )              , intent(in) :: data_corner          ! Lower left bottom corner in fractional coordinates
 real(kind=PREC_DP)        , dimension(3, 3)              , intent(in) :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
 real(kind=PREC_DP)        , dimension(data_dimension(1), &
@@ -282,6 +289,9 @@ write(*,'(a, a     )') ' Data style       ', data_type_style
 write(*,'(a, a     )') ' Data content     ', data_type_content
 write(*,'(a, a     )') ' Data symbol      ', data_rad_symbol
 write(*,'(a, 3f11.6)') ' Data length      ', data_rad_length
+!
+write(*,*)
+write(*,'(a,a)')       'Axes coordinates: ', coordinate_unit
 write(*,*)
 write(*,'(a, 3f11.6)') ' Data corner      ', data_corner(:)
 write(*,*)

@@ -25,7 +25,8 @@ contains
 subroutine unified_read_structure( infile, unit_cell_lengths, unit_cell_angles,           &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                              symmetry_mat, unit_cells, number_of_types, types_names,      &
-                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
+                             types_ordinal, types_charge, types_isotope, coordinate_unit, &
+                             number_of_atoms, &
                              atom_type, atom_pos, atom_unit_cell, atom_site,              &
                              atom_property, crystal_flags, crystal_meta,                  &
                              anisotropic_adp, molecules, average_struc, magnetic_spins,   &
@@ -61,6 +62,7 @@ character(len=4)          , dimension(:),     allocatable, intent(out) :: types_
 integer                   , dimension(:),     allocatable, intent(out) :: types_ordinal      ! Ordinal number of chemical element
 integer                   , dimension(:),     allocatable, intent(out) :: types_charge       ! Atom types have this charge
 integer                   , dimension(:),     allocatable, intent(out) :: types_isotope      ! Atom type is this isotope or zero
+character(len=32)                                        , intent(out) :: coordinate_unit    ! 'basecell_fractional', 'supercell_fractional',  'unknown'
 integer                                                  , intent(out) :: number_of_atoms    ! Crystal contains this many actual atoms
 integer                   , dimension(:    ), allocatable, intent(out) :: atom_type          ! Atom is of this type
 real(kind=PREC_DP)        , dimension(:,:  ), allocatable, intent(out) :: atom_pos           ! Atom is at these fractional coordinates
@@ -173,6 +175,13 @@ call h5f_read(h5f, 'types_charge'  , number_of_types, types_charge , NMSG, ier_n
 if(ier_num/=0) return
 call h5f_read(h5f, 'types_isotope' , number_of_types, types_isotope, NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
+!
+if(l_fields_crystal(INDX_CRYST_COORDINATE_UNIT)            )   then
+   call h5f_read(h5f, 'coordinate_unit', coordinate_unit, NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   coordinate_unit = 'unknown'
+endif
 !
 ! Atom: type, coordinate, unit cell, site_number
 !
@@ -350,7 +359,8 @@ endif
 call       unified_dump_structure( unit_cell_lengths, unit_cell_angles,           &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                              symmetry_mat, unit_cells, number_of_types, types_names,      &
-                             types_ordinal, types_charge, types_isotope, number_of_atoms, &
+                             types_ordinal, types_charge, types_isotope, coordinate_unit, &
+                             number_of_atoms, &
                              atom_type, atom_pos, atom_unit_cell, atom_site,              &
                              atom_property, crystal_flags, crystal_meta,                  &
                              anisotropic_adp, molecules, average_struc, magnetic_spins,   &
@@ -384,6 +394,7 @@ subroutine unified_read_data( infile,  &
                              data_abs_is_hkl     , &
                              data_ord_is_hkl     , &
                              data_top_is_hkl     , &
+                             coordinate_unit     , &
                              data_corner     , &
                              data_vector     , &
                              data_values     , &
@@ -430,6 +441,7 @@ integer                   , dimension(3)                 , intent(out) :: data_d
 integer                                                  , intent(out) :: data_abs_is_hkl      ! Abscissa is 1=h 2=k 3=l
 integer                                                  , intent(out) :: data_ord_is_hkl      ! Ordinate is 1=h 2=k 3=l
 integer                                                  , intent(out) :: data_top_is_hkl      ! top-axis is 1=h 2=k 3=l
+character(len=32)                                        , intent(out) :: coordinate_unit    ! 'basecell_fractional', 'supercell_fractional',  'unknown'
 real(kind=PREC_DP)        , dimension(3   )              , intent(out) :: data_corner          ! Lower left bottom corner in fractional coordinates
 real(kind=PREC_DP)        , dimension(3, 3)              , intent(out) :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable, intent(out) :: data_values  ! Actual data array
@@ -603,6 +615,13 @@ data_abs_is_hkl       = data_info( 1) ! Abscissa is 1=h 2=k 3=l
 data_ord_is_hkl       = data_info( 2) ! Ordinate is 1=h 2=k 3=l
 data_top_is_hkl       = data_info( 3) ! top-axis is 1=h 2=k 3=l
 !
+if(l_fields_data(INDX_DATA_COORDINATE_UNIT)            )   then
+   call h5f_read(h5f, 'coordinate_unit' , coordinate_unit , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   coordinate_unit = 'unknown'
+endif
+!
 cdim(1) = 3
 call h5f_read(h5f, 'data_corner' , cdim(1), data_corner , NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
@@ -645,6 +664,7 @@ if(l_dump) then
                              data_abs_is_hkl     , &
                              data_ord_is_hkl     , &
                              data_top_is_hkl     , &
+                             coordinate_unit , &
                              data_corner     , &
                              data_vector     , &
                              data_values     , &
