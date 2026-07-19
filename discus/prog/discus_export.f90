@@ -309,6 +309,7 @@ real(kind=PREC_DP),DIMENSION(:), ALLOCATABLE :: unique_n_atoms
 logical                  :: lout = .FALSE.
 logical                  :: l_not_full = .TRUE.
 LOGICAL                  :: orig_OK =.FALSE.
+logical                  :: l_dump = .false.    ! No dump on SHELX files
 logical, dimension(0:MAXMASK) :: uni_mask
 real(kind=PREC_DP)       :: lambda_user
 real(kind=PREC_DP)       :: energy
@@ -438,7 +439,7 @@ befehl = 'lcell'
 lbef   = 5
 cpara(1) = origfile
 lpara(1) = 19
-CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0D-5, 0, .TRUE., .FALSE., MAXMASK, uni_mask)
+CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0D-5, 0, .TRUE., .FALSE., MAXMASK, uni_mask, l_dump)
 CALL chem_elem(.FALSE.)
 z_unit = 192.0
 DO i=1, cr_nscat
@@ -451,7 +452,7 @@ deallocate(true_occ)
 !
 ! Restore original structure
 !
-CALL do_readstru(MAXMASK, origfile, .FALSE., uni_mask, l_not_full)
+CALL do_readstru(MAXMASK, origfile, .FALSE., uni_mask, l_not_full, l_dump)
 lout = .false.
 CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
      cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
