@@ -129,35 +129,48 @@ write(*,'(i8, a5, i8, 3f12.6, 5i8)') i, types_names(atom_type(i)), atom_type(i),
 write(*,*)
 !
 if(l_anisotropic_adp) then
-write(*,'(a,i8)') ' Number of ADPs ', anisotropic_adp%anisotropic_n_type
-write(*,'(a   )') '   Number ISO    U11         U22         U33         U23         U13         U11         Ueqv'
-do i= 1, anisotropic_adp%anisotropic_n_type
-   write(*,'(i8, l3, 7f12.6)') i, anisotropic_adp%anisotropic_is_iso(i), anisotropic_adp%anisotropic_adp(:,i)
-enddo
+   if(allocated(anisotropic_adp%anisotropic_is_iso)) then
+   write(*,'(a,i8)') ' Number of ADPs ', anisotropic_adp%anisotropic_n_type
+   write(*,'(a   )') '   Number ISO    U11         U22         U33         U23         U13         U11         Ueqv'
+   do i= 1, anisotropic_adp%anisotropic_n_type
+      write(*,'(i8, l3, 7f12.6)') i, anisotropic_adp%anisotropic_is_iso(i), anisotropic_adp%anisotropic_adp(:,i)
+   enddo
+   else
+      write(*,'(a)') ' No anisotropic ADP are present '
+   endif
 else
    write(*,'(a)') ' No anisotropic ADP are present '
 endif
 write(*,*)
 !
 if(l_average_struc) then
-write(*,'(a,i8)') ' Number of Atoms in average structure ', average_struc%aver_n_atoms
-do i=1, average_struc%aver_n_atoms
-   write(*,'(i8, i8, 11f12.6,i8)') i, average_struc%atom_type(i), average_struc%position(:,i), &
-   average_struc%occupancy(i), average_struc%anis_adp(:,i), average_struc%site_number(i)
-enddo
+   if(allocated(average_struc%atom_type)) then
+      write(*,'(a,i8)') ' Number of Atoms in average structure ', average_struc%aver_n_atoms
+      write(*,'(a)') '  Number    Type               Position                Occupancy    U11         U22         U33         U23         U13         U12         Ueqv        Site'
+      do i=1, average_struc%aver_n_atoms
+         write(*,'(i8, i8, 11f12.6,i8)') i, average_struc%atom_type(i), average_struc%position(:,i), &
+         average_struc%occupancy(i), average_struc%anis_adp(:,i), average_struc%site_number(i)
+      enddo
+   else
+      write(*,'(a)') ' No average structure info '
+   endif
 else
    write(*,'(a)') ' No average structure info '
 endif
 write(*,*)
 !
 if(l_molecules) then
-write(*,'(a,i8)') ' Number of  molecules', molecules%number_moles
-write(*,'(a,i8)') '   Number   Type  Character N_atoms   Biso       Corrlin    Corrquad'
-write(*,'(a,i8)') '   Atoms in the molecule '
-  i=1
-  write(*,'(4i8, 3f12.6)') i, molecules%mole_int(:,i), molecules%mole_real(:,i)
-  write(*,*) molecules%atom_index(:,i)
-  i=molecules%number_moles
+   if(allocated(molecules%atom_index)) then
+      write(*,'(a,i8)') ' Number of  molecules', molecules%number_moles
+      write(*,'(a,i8)') '   Number   Type  Character N_atoms   Biso       Corrlin    Corrquad'
+      write(*,'(a,i8)') '   Atoms in the molecule '
+      i=1
+      write(*,'(4i8, 3f12.6)') i, molecules%mole_int(:,i), molecules%mole_real(:,i)
+      write(*,*) molecules%atom_index(:,i)
+      i=molecules%number_moles
+   else
+      write(*,'(a)') ' No molecules present'
+   endif
 else
    write(*,'(a)') ' No molecules present'
 endif
@@ -165,7 +178,11 @@ write(*,*)
 !
 write(*,*) ' Magnetic spins '
 if(l_magnetic_spins) then
-   write(*,'(i8, 3f12.6)') i, magnetic_spins(:,1)
+   if(ubound(magnetic_spins,2)>0) then
+      write(*,'(i8, 3f12.6)') i, magnetic_spins(:,1)
+   else
+      write(*,'(a)') ' No magnetic spins present'
+   endif
 else
    write(*,'(a)') ' No magnetic spins present'
 endif
