@@ -85,12 +85,12 @@ integer :: i
 character(len=256) :: string
 integer, dimension(3) :: cdim
 !
-l_property        = present(atom_property)
-l_anisotropic_adp = present(anisotropic_adp)
-l_molecules       = present(molecules)
-l_average_struc   = present(average_struc)
-l_magnetic_spins  = present(magnetic_spins)
-l_types_occupancy = present(types_occupancy)
+l_property        = present(atom_property)   .and. optional_intended(o_atom_property)
+l_anisotropic_adp = present(anisotropic_adp) .and. optional_intended(o_anisotropic_adp)
+l_molecules       = present(molecules)       .and. optional_intended(o_molecules)
+l_average_struc   = present(average_struc)   .and. optional_intended(o_average_struc)
+l_magnetic_spins  = present(magnetic_spins)  .and. optional_intended(o_magnetic_spins)
+l_types_occupancy = present(types_occupancy) .and. optional_intended(o_types_occupancy)
 !
 if(l_dump) then
 call       unified_dump_structure( unit_cell_lengths, unit_cell_angles,           &
@@ -558,11 +558,11 @@ call unified_write_meta(h5f, N_META, crystal_meta)
 ! Actual data complex part      / transposed write
 !
 if(data_type_number == 'complex') then
-cdim(1) = data_dimension(1)
-cdim(2) = data_dimension(2)
-cdim(3) = data_dimension(3)
-call h5f_write(h5f, 'data_imag' , cdim, data_imag, NMSG, ier_num, ier_msg)
-if(ier_num/=0) return
+   cdim(1) = data_dimension(1)
+   cdim(2) = data_dimension(2)
+   cdim(3) = data_dimension(3)
+   call h5f_write(h5f, 'data_imag' , cdim, data_imag, NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
 endif
 !
 call h5f%close()
