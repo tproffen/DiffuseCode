@@ -59,7 +59,7 @@ USE support_mod
 !
 IMPLICIT none 
 !                                                                       
-INTEGER , PARAMETER :: MAXW = 11
+INTEGER , PARAMETER :: MAXW = 12
 INTEGER , PARAMETER :: MAXMASK =  4
 !                                                                       
 CHARACTER(LEN=PREC_STRING)        :: line, zeile, cpara (maxw) 
@@ -77,9 +77,10 @@ REAL(KIND=PREC_DP)   , DIMENSION(maxw) ::  werte!, wwerte
 INTEGER          ::   occupancy= 0          ! Apply occupancy upon read cell   ?
 LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
 LOGICAL          :: l_site     = .FALSE.    ! Treat atoms on different sites as different types?
+logical          :: l_dump     = .FALSE.    ! Dump an HDF5 file
 logical, dimension(0:MAXMASK) :: uni_mask           ! Mask for unique atom types
 REAL(KIND=PREC_DP) :: r_identical = 0.00001_PREC_DP
-INTEGER, PARAMETER :: NOPTIONAL  = 7
+INTEGER, PARAMETER :: NOPTIONAL  = 8
 integer, parameter :: O_RADIUS   = 1
 integer, parameter :: O_ORIGIN   = 2
 integer, parameter :: O_OCC      = 3
@@ -87,6 +88,7 @@ integer, parameter :: O_TOLERATE = 4
 INTEGER, PARAMETER :: O_SETTING  = 5
 INTEGER, PARAMETER :: O_SITE     = 6
 INTEGER, PARAMETER :: O_UNIQUE   = 7
+INTEGER, PARAMETER :: O_DUMP     = 8
 CHARACTER(LEN=   9)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -98,12 +100,12 @@ INTEGER, PARAMETER                        :: NCALC = 2 ! Number of values to cal
 !
 !                                                                       
 !
-DATA oname  / 'radius' , 'origin'   , 'occupancy', 'identical', 'setting', 'site'   ,'unique'/
-DATA loname /  6       ,  6         ,  9         ,  6         ,  7       ,  4       , 6      /
+DATA oname  / 'radius' , 'origin'   , 'occupancy', 'identical', 'setting', 'site'   ,'unique', 'dump' /
+DATA loname /  6       ,  6         ,  9         ,  6         ,  7       ,  4       , 6      ,  4     /
 !
-opara  =  (/ '1.0E-5'  , '1.0000'   , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  '/)   ! Always provide fresh default values
-lopara =  (/  6        ,  6         ,  6         ,  6         ,  6       ,  6       ,  4      /)
-owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    /)
+opara  =  (/ '1.0E-5'  , '1.0000'   , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  ', 'no    '/)   ! Always provide fresh default values
+lopara =  (/  6        ,  6         ,  6         ,  6         ,  6       ,  6       ,  4      ,  2      /)
+owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    ,  0.0    /)
 !
 !
 !                                                                       
@@ -195,9 +197,9 @@ ELSE  cond_command
 !
 !      --Get optional parameters
 !
-         opara  =  (/ '1.0E-5'  , '1.0000'   , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  '/)   ! Always provide fresh default values
-         lopara =  (/  6        ,  6         ,  6         ,  6         ,  6       ,  6       ,  4      /)
-         owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    /)
+         opara  =  (/ '1.0E-5'  , '1.0000'   , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  ', 'no    '/)   ! Always provide fresh default values
+         lopara =  (/  6        ,  6         ,  6         ,  6         ,  6       ,  6       ,  4      ,  2      /)
+         owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    ,  0.0    /)
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, lpresent, owerte)
          IF(ier_num/=0) exit cond_command      ! Jump to handle error messages, amd macro conditions
@@ -258,6 +260,7 @@ ELSE  cond_command
                RETURN
             ENDIF
             l_site = opara(O_SITE) == 'differ'
+            l_dump = opara(O_DUMP) == 'yes'
             if(.not.uni_mask(0)) then            ! User did not provide a mask
                if(str_comp (befehl, 'lcell', 1, lbef, 5)) then ! For lcell apply mask
                   uni_mask(0)   = .false.
@@ -269,7 +272,7 @@ ELSE  cond_command
             endif
             CALL do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, &
                              l_identical, r_identical, occupancy,  &
-                             lpresent(O_OCC), l_site, MAXMASK, uni_mask)
+                             lpresent(O_OCC), l_site, MAXMASK, uni_mask, l_dump)
 !                                                                       
 !     Free style editing of a structure 'free'                          
 !                                                                       
@@ -288,7 +291,9 @@ ELSE  cond_command
                strucfile = cpara (1)(1:lpara(1))
                l_site = opara(O_SITE) == 'differ'
                uni_mask(0) = .true.                   ! Always apply unique mask
-               CALL do_readstru(MAXMASK, strucfile, l_site, uni_mask, l_not_full)
+               l_dump = opara(O_DUMP) == 'yes'
+               CALL do_readstru(MAXMASK, strucfile, l_site, uni_mask, l_not_full, l_dump)
+
                IF(ier_num /= 0) THEN
                   IF(ier_msg(3) == ' ') THEN
                      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
@@ -382,7 +387,8 @@ END SUBROUTINE read_struc
 !*******************************************************************************
 !
 SUBROUTINE do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, l_identical, &
-                       r_identical, occupancy, l_occ, l_site, MAXMASK, uni_mask)
+                       r_identical, occupancy, l_occ, l_site, MAXMASK, uni_mask, &
+                       l_dump)
 !
 USE discus_allocate_appl_mod
 USE chem_mod 
@@ -418,6 +424,7 @@ logical         ,                  intent(in) :: l_occ
 LOGICAL         ,                  INTENT(IN) :: l_site
 integer                          , intent(in) :: MAXMASK
 logical, dimension(0:MAXMASK)    , intent(in) :: uni_mask           ! Mask for unique atom types
+logical         ,                  intent(in) :: l_dump
 !
 integer, parameter :: CMD_CELL = 1
 !character(len=PREC_STRING) :: string
@@ -489,7 +496,8 @@ ELSE internalcell
       cpara(1) = strucfile
       lpara(1) = len_trim(strucfile)
       j = 1
-      call nexus2discus(CMD_CELL, j, cpara, lpara, MAXW, outfile)
+      call nexus2discus(CMD_CELL, j, cpara, lpara, MAXW, outfile, l_dump)
+      l_not_full = .false.
       if(ier_num/=0) then
          ier_typ = ER_HDF
          return
@@ -712,7 +720,7 @@ end subroutine do_readcell
 !
 !*******************************************************************************
 !
-SUBROUTINE do_readstru(MAXMASK, strucfile, l_site, uni_mask, l_not_full)
+SUBROUTINE do_readstru(MAXMASK, strucfile, l_site, uni_mask, l_not_full, l_dump)
 !
 ! Do the full job for a 'read stru ' command
 !
@@ -733,6 +741,7 @@ CHARACTER(LEN=*)             , INTENT(INOUT) :: strucfile
 LOGICAL                      , INTENT(IN)    :: l_site     ! Differ atoms on sites?
 logical, dimension(0:MAXMASK), intent(in)    :: uni_mask
 logical                      , intent(out)   :: l_not_full
+logical                      , intent(in)    :: l_dump
 !
 integer, parameter :: MAXW=1
 integer, parameter :: CMD_STRU=2
@@ -748,27 +757,28 @@ logical :: lda
 CALL rese_cr
 l_not_full = .TRUE.
 internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
-   CALL readstru_internal(MAXMASK, strucfile, uni_mask) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
-   l_not_full = .FALSE.
+CALL readstru_internal(MAXMASK, strucfile, uni_mask) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
+l_not_full = .FALSE.
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
-   IF(ier_num/=0) RETURN
+IF(ier_num/=0) RETURN
 ELSE internals
-   inquire(file=strucfile, exist=lda)
-   if(.not.lda) then
-      ier_num = -2
-      ier_typ = ER_IO
-      ier_msg(1) = 'Cell file does not exist'
-      ier_msg(2) = 'Check filename and path '
-      return
-   endif
-   idot = index(strucfile,'.', .true.)
-   if(strucfile(idot:len_trim(strucfile))=='.hdf5' .or. &  
-      strucfile(idot:len_trim(strucfile))=='.h5'        ) then
-      ofile=' '
-      cpara(1) = strucfile
-      lpara(1) = len_trim(strucfile)
-      ianz = 1
-      call nexus2discus(cmd_stru, ianz, cpara, lpara, MAXW, ofile)
+inquire(file=strucfile, exist=lda)
+if(.not.lda) then
+ier_num = -2
+ier_typ = ER_IO
+ier_msg(1) = 'Cell file does not exist'
+ier_msg(2) = 'Check filename and path '
+return
+endif
+idot = index(strucfile,'.', .true.)
+if(strucfile(idot:len_trim(strucfile))=='.hdf5' .or. &  
+strucfile(idot:len_trim(strucfile))=='.h5'        ) then
+ofile=' '
+cpara(1) = strucfile
+lpara(1) = len_trim(strucfile)
+ianz = 1
+call nexus2discus(cmd_stru, ianz, cpara, lpara, MAXW, ofile, l_dump)
+   l_not_full = .false.
       if(ier_num/=0) return
       call alloc_unitcell(cr_ncatoms)
       cr_is_sym = 1
@@ -3345,7 +3355,7 @@ INTEGER :: length
 !
 CHARACTER(LEN= 200) :: hostfile  ! original structure file name
 !
-INTEGER, PARAMETER :: NOPTIONAL = 9
+INTEGER, PARAMETER :: NOPTIONAL = 10
 INTEGER, PARAMETER :: O_METRIC  = 1
 INTEGER, PARAMETER :: O_SPACE   = 2
 INTEGER, PARAMETER :: O_SORT    = 3
@@ -3355,6 +3365,7 @@ integer, parameter :: O_NAMES   = 6
 integer, parameter :: O_REFINE  = 7
 integer, parameter :: O_DIFFEV  = 8
 integer, parameter :: O_FORM    = 9
+integer, parameter :: O_DUMP    = 9
 CHARACTER(LEN=   6)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -3363,8 +3374,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique',  'name', 'refine', 'diffev', 'form'   /
-DATA loname /  6,        5     ,  4    ,  4    ,  6      ,   4    ,  6      ,  6      ,  4       /
+DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique',  'name', 'refine', 'diffev', 'form', 'dump'   /
+DATA loname /  6,        5     ,  4    ,  4    ,  6      ,   4    ,  6      ,  6      ,  4    ,  4       /
 !
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_a0
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_win
@@ -3379,6 +3390,7 @@ REAL(KIND=PREC_DP), DIMENSION(4)   :: posit4 ! atom position
 REAL(KIND=PREC_DP), DIMENSION(4)   :: uvw4   ! atom position
 INTEGER              :: j
 LOGICAL              :: lperiod
+logical              :: l_dump
 logical, dimension(0:MAXMASK) :: uni_mask
 logical                       :: l_not_full = .true.
 !
@@ -3386,13 +3398,13 @@ LOGICAL :: lout = .FALSE.
 !
 !
 opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'biso  ', 'chem  ', &
-             'no    ', 'no    ', 'waas  '                                &
+             'no    ', 'no    ', 'waas  ', 'no    '                      &
            /)   ! Always provide fresh default values
 lopara =  (/  5,        2      ,  6      ,  4      ,  4      ,  4      , &
-              2      ,  2      ,  4                                      &
+              2      ,  2      ,  4      ,  2                            &
           /)
 owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    , &
-              0.0    ,  0.0    ,  0.0                                    &
+              0.0    ,  0.0    ,  0.0    ,  0.00                         &
           /)
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
@@ -3510,7 +3522,8 @@ IF (ianz.ge.1) THEN
       IF (ianz >= 2) THEN 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          IF (ier_num.ne.0) return 
-         CALL nexus2discus (CMD_IMPORT, ianz, cpara, lpara, MAXW, ofile) 
+         l_dump = opara(O_DUMP)=='yes'
+         CALL nexus2discus (CMD_IMPORT, ianz, cpara, lpara, MAXW, ofile, l_dump) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -6878,7 +6891,7 @@ END SUBROUTINE cif2discus
 !
 !*******************************************************************************
 !
-subroutine nexus2discus (cmd, ianz, cpara, lpara, MAXW, ofile) 
+subroutine nexus2discus (cmd, ianz, cpara, lpara, MAXW, ofile, l_dump_top) 
 !-                                                                      
 !     converts a NEXUS file to DISCUS                   
 !+                                                                      
@@ -6898,6 +6911,7 @@ use build_name_mod
 use envir_mod
 use matrix_mod
 !use lib_nx_read_mod
+use lib_unified_chars_mod
 use unified_read_mod
 use lib_nx_transfer_mod
 use precision_mod
@@ -6912,6 +6926,7 @@ integer                            , intent(in)    :: MAXW
 character(len=*), dimension(1:MAXW), intent(inout) :: cpara
 integer         , dimension(1:MAXW), intent(inout) :: lpara
 character(len=*)                   , intent(OUT)   :: ofile 
+logical                            , intent(in)    :: l_dump_top
 !
 real(kind=PREC_DP), parameter :: TOL = 1.0D-6
 !
@@ -6977,7 +6992,7 @@ if(MAXW>1) then
 endif
 !
 NMSG = ubound(ier_msg,1)
-
+l_dump = l_dump_top
 call unified_read_structure(cpara(1), unit_cell_lengths, unit_cell_angles,                &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                              symmetry_mat, unit_cells, number_of_types, types_names,      &
@@ -7069,6 +7084,7 @@ call guess_atom_all
 ! Copy ADPs
 !
 cr_anis_full = 0.0_PREC_DP
+!
 if(l_anisotropic_adp .and.  anisotropic_adp%anisotropic_n_type>0) then     ! File contained ADPs
    call alloc_anis(anisotropic_adp%anisotropic_n_type)
    cr_nanis = anisotropic_adp%anisotropic_n_type
@@ -8354,6 +8370,7 @@ INTEGER :: im, j, iat
 LOGICAL :: lout
 logical, dimension(0:MAXMASK) :: uni_mask
 logical                       :: l_not_full
+logical                       :: l_dump
 INTEGER, DIMENSION(3) :: n_unit_cells  ! local copy to survive readstru 
 REAL(KIND=PREC_DP), DIMENSION(3) :: vec     ! position of first atom in a molecule
 REAL(KIND=PREC_DP), DIMENSION(3) :: fract   ! shift into first unit cell
@@ -8364,8 +8381,9 @@ lout = .FALSE.
 uni_mask(0)   = .true.
 uni_mask(1:3) = .true.
 uni_mask(4)   = .false.
+l_dump = .false.   ! No dump
 !
-CALL do_readstru(MAXMASK, strucfile, .FALSE., uni_mask, l_not_full)
+CALL do_readstru(MAXMASK, strucfile, .FALSE., uni_mask, l_not_full, l_dump)
 IF(ier_num/=0) THEN
    IF(ier_num /= 0) THEN
       IF(ier_msg(3) == ' ') THEN
@@ -8465,6 +8483,7 @@ character(len=PREC_STRING) :: line
 character(len=PREC_STRING) :: getfile
 integer :: length
 logical :: l_site
+logical :: l_dump
 logical, dimension(0:MAXMASK) :: uni_mask
 logical                       :: l_not_full
 !
@@ -8473,9 +8492,10 @@ l_site = .false.
 uni_mask(0)   = .true.
 uni_mask(1:3) = .true.
 uni_mask(4)   = .false.
+l_dump = .false.   ! O dump on internal files
 !
 getfile = infile                    ! Just a local copy
-call do_readstru(MAXMASK, getfile, l_site, uni_mask, l_not_full)   ! Read actual file
+call do_readstru(MAXMASK, getfile, l_site, uni_mask, l_not_full, l_dump)   ! Read actual file
 if(ier_num/=0) return
 CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
