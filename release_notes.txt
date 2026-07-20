@@ -1,5 +1,9 @@
 6.22.01  DRAFT
 
+DISCUS
+  save/read    Added a field to HDF5 files to specify if coordinates are in range
+               of basecell or supercell fractional coordinates
+
 6.22.04  RELEASE 2026_07_16
 
 GENERAL
@@ -30,7 +34,7 @@ KUPLOT
 6.21.03  RELEASE 2026_06_11
 
 GENERAL
-               Bug FIX 2D Mapping needed repair => DISCSU 2D convolution
+               Bug FIX 2D Mapping needed repair => DISCUS 2D convolution
 DISCUS
   mmc          Added a helical displacement disorder
 
