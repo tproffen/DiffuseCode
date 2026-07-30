@@ -5,6 +5,12 @@ USE errlist_mod
 IMPLICIT NONE
 !
 PUBLIC
+integer, parameter :: IS_DISCUS = 0
+integer, parameter :: IS_PDFGUI = 1
+!
+private IS_DISCUS
+private IS_PDFGUI
+!
 CONTAINS
 !+                                                                      
 !     These routines create a new structure. The different options      
@@ -591,7 +597,7 @@ IF(occupancy == 0 .and. .NOT.l_occ) THEN     ! Clear occupancies on read cell
    if(any(cr_occ<1.0_PREC_DP)) then
       ier_num = 8
       ier_typ = ER_APPL
-      ier_msg(1) = 'By default occupancies have ben set to 1'
+      ier_msg(1) = 'By default occupancies have been set to 1'
       call errlist
    endif
    cr_occ(:) = 1.0
@@ -846,10 +852,11 @@ INTEGER             :: n_type
 INTEGER             :: n_atom
 INTEGER             :: i,l
 integer, dimension(3) :: n_cells
+integer             :: is_program
 !
 !
 CALL test_file(strucfile, natoms, nscats, n_mole, n_type, &
-               n_atom, n_cells, -1 , .false., MAXMASK, uni_mask)
+               n_atom, n_cells, is_program, -1 , .false., MAXMASK, uni_mask)
 IF (ier_num /= 0) THEN
    RETURN                 ! Jump to handle error messages, amd macro conditions
 ENDIF
@@ -1124,8 +1131,8 @@ ENDIF
 IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
    ier_num = -160
    ier_typ = ER_APPL
-   ier_msg(1) = 'Non-standard settings are implemented only'
-   ier_msg(2) = 'for orthorhombic space groups '
+   ier_msg(3) = 'Non-standard settings are implemented only'
+   ier_msg(4) = 'for orthorhombic space groups '
    RETURN
 ENDIF
 cr_icc (1) = 1 
@@ -1213,6 +1220,7 @@ REAL(KIND=PREC_DP) :: werte (maxw)
 REAL(KIND=PREC_DP) :: dw1 , occ1
 !                                                                       
 LOGICAL :: IS_IOSTAT_END
+integer             :: is_program
 !                                                                       
 cr_natoms = 0 
 lcell     = .true. 
@@ -1224,7 +1232,7 @@ n_read      = 0
 local_mask(0)  = .false.       ! For test_file use a local mask
 local_mask(1:) = .true.        ! Set such that all atoms will be different types
 CALL test_file(strucfile, new_nmax, new_nscat, n_mole, n_type, &
-               n_atom, n_cells, -1 , cr_newtype, MAXMASK, local_mask)
+               n_atom, n_cells, is_program, -1 , cr_newtype, MAXMASK, local_mask)
 IF (ier_num /= 0) THEN
    CLOSE (ist)
    RETURN
@@ -1280,7 +1288,7 @@ cr_dim(:,2) = -1.e10
 !                                                                       
 !     --Read header of structure file                                   
 !                                                                       
-CALL stru_readheader (ist, MAXSCAT, cr_name,      &
+CALL stru_readheader (ist, MAXSCAT, is_program, cr_name,      &
          cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_anis, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)
 IF (ier_num.ne.0) THEN 
@@ -1303,8 +1311,8 @@ CALL get_symmetry_matrices
 IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
    ier_num = -160
    ier_typ = ER_APPL
-   ier_msg(1) = 'Non-standard settings are implemented only'
-   ier_msg(2) = 'for orthorhombic space groups '
+   ier_msg(3) = 'Non-standard settings are implemented only'
+   ier_msg(4) = 'for orthorhombic space groups '
    RETURN
 ENDIF
 IF( NMAX < spc_n*new_nmax .or.  &      ! Allocate sufficient atom numbers
@@ -1355,6 +1363,7 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
       ENDIF 
       return
    ENDIF
+   if(line(1:4)==' ' .and. is_program == IS_PDFGUI) cycle main 
    lline = len_str (line) 
 !23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
    if(line==' ' .or. line(1:1)=='!' .or. line(1:1)=='#' .or.    &
@@ -2065,6 +2074,7 @@ INTEGER :: i
 INTEGER                              :: at_ianz
 LOGICAL :: lcell 
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
+integer :: is_program
 !                                                                       
 REAL(kind=PREC_DP), dimension(0:MAXSCAT) :: as_occ(0:MAXSCAT) 
 !                                                                       
@@ -2082,7 +2092,7 @@ REAL(kind=PREC_DP), dimension(0:MAXSCAT) :: as_occ(0:MAXSCAT)
 !                                                                       
 !     --Read header of structure file                                   
 !                                                                       
-         CALL stru_readheader (ist, MAXSCAT, cr_name,      &
+         CALL stru_readheader (ist, MAXSCAT, is_program,  cr_name,      &
          cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_anis,  cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)
 !                                                                       
@@ -2108,7 +2118,7 @@ call guess_atom_all
       ENDIF 
       END SUBROUTINE readstru                       
 !********************************************************************** 
-SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
+SUBROUTINE stru_readheader (ist, HD_MAXSCAT, is_program, cr_name,   &
       cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_anis, cr_a0, cr_win, sav_ncell,   &
       sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)                 
 !-                                                                      
@@ -2132,6 +2142,7 @@ IMPLICIT none
 !                                                                      
 INTEGER                                  , INTENT(IN)  :: ist
 INTEGER                                  , INTENT(IN)  :: HD_MAXSCAT 
+integer                                  , intent(inout) :: is_program 
 CHARACTER(LEN=80)                        , INTENT(OUT) :: cr_name 
 CHARACTER(LEN=16)                        , INTENT(OUT) :: cr_spcgr 
 CHARACTER(LEN= 3)                        , INTENT(OUT) :: cr_set 
@@ -2216,6 +2227,9 @@ sym_add_n = 0
       befehl = cr_name (1:lbef) 
       lbef = len_str (befehl) 
       befehl = cr_name (1:lbef) 
+!
+is_program = IS_DISCUS    ! Default to discus
+!
 IF (str_comp (befehl, 'title', 1, lbef, 5) ) THEN 
 !                                                                       
 !     Read new header                                                   
@@ -2582,6 +2596,8 @@ IF (str_comp (befehl, 'title', 1, lbef, 5) ) THEN
             at_number = .true.
          elseif(cpara(1) == 'VARIABLES') then
             at_number = .false.
+         elseif(cpara(1) == 'PDFGUI') then
+            is_program = IS_PDFGUI
          endif
          if(cpara(2) == 'XYZBPMMOSU') then
             at_vals = AT_XYZBPMMOSU
@@ -2618,6 +2634,10 @@ IF (str_comp (befehl, 'title', 1, lbef, 5) ) THEN
                call atom_verify_param
                if(ier_num/=0) return
             ENDIF
+   elseif(str_comp(befehl, 'scale', 5, lbef, 5) .or.   &
+          str_comp(befehl, 'sharp', 5, lbef, 5) .or.   &
+          str_comp(befehl, 'dcell', 5, lbef, 5)     ) then
+       is_program = IS_PDFGUI
    ELSE 
             ier_num = - 89 
             ier_typ = ER_APPL 
@@ -2773,6 +2793,7 @@ loop_main: do          ! Loop to read all atom lines
 !
    if(line==' ' .or. line(1:1)=='#' .or. line(1:1)=='!' .or. &
       line(1:1)== TAB .or. line(1:1)==char(13)) cycle loop_main  ! Empty line
+   if(line(1:4) == ' ') cycle loop_main
 !
    call tab2blank(line, lline)
 !
@@ -3113,8 +3134,8 @@ IF(ier_num/=0) RETURN
 IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
    ier_num = -160
    ier_typ = ER_APPL
-   ier_msg(1) = 'Non-standard settings are implemented only'
-   ier_msg(2) = 'for orthorhombic space groups '
+   ier_msg(3) = 'Non-standard settings are implemented only'
+   ier_msg(4) = 'for orthorhombic space groups '
    RETURN
 ENDIF
 !
@@ -7510,7 +7531,7 @@ USE lib_errlist_func
 !*******************************************************************************
 !
 SUBROUTINE test_file( strucfile, natoms, ntypes, n_mole, n_type, &
-                       n_atom, n_cells, init, l_cell, MAXMASK, uni_mask)
+                       n_atom, n_cells, is_program, init, l_cell, MAXMASK, uni_mask)
 !
 !     Determines the number of atoms and atom types in strucfile
 !
@@ -7537,6 +7558,7 @@ INTEGER              , INTENT(INOUT) :: n_mole
 INTEGER              , INTENT(INOUT) :: n_type 
 INTEGER              , INTENT(INOUT) :: n_atom 
 integer, dimension(3), intent(out)   :: n_cells
+integer              , intent(out)   :: is_program
 INTEGER              , INTENT(IN)    :: init
 LOGICAL              , INTENT(IN)    :: l_cell         ! If true this is a 'cell' > all atoms differ in type
 integer              , intent(in)    :: MAXMASK
@@ -7612,6 +7634,7 @@ nocctypes  = 0
 ntypes     = 0
 iblk = 0
 ccdim = 0.0
+is_program = IS_DISCUS   ! Default to DISCUS
 IF ( init == -1 ) THEN
    if(allocated(names)) deallocate(names)
    if(allocated(bvals)) deallocate(bvals)
@@ -7891,6 +7914,8 @@ header: DO
             at_number = .true.
          elseif(cpara(1) == 'VARIABLES') then
             at_number = .false.
+         elseif(cpara(1) == 'PDFFIT') then
+            is_program = IS_PDFGUI
          endif
          if(cpara(2) == 'XYZBPMMOSU') then
             at_vals = AT_XYZBPMMOSU
@@ -7963,6 +7988,7 @@ main: DO
    IF( IS_IOSTAT_END(ios) ) EXIT main
    IF(line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
       line(1:1) == TAB .or. line == CHAR (13) )  CYCLE main
+   if(is_program == IS_PDFGUI .and. line(1:4)==' ') cycle main
    laenge = len_str(line)
    call tab2blank(line, laenge)
 !
@@ -7977,6 +8003,7 @@ main: DO
    bef  = line (1:lbef)
    CALL do_cap (line(1:laenge))
    IF(line(1:1)=='#' .OR. line(1:1)=='!') CYCLE main
+   if(line(1:4)==' ' .and. is_program==IS_PDFGUI) cycle main
 !
    ismole: IF(str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
               str_comp(line, 'DOMAIN'  , 3, lbef, 6) .or. &
@@ -8297,8 +8324,8 @@ IF(ianz>=1) THEN                   ! At least one parameter
    IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
       ier_num = -160
       ier_typ = ER_APPL
-      ier_msg(1) = 'Non-standard settings are implemented only'
-      ier_msg(2) = 'for orthorhombic space groups '
+      ier_msg(3) = 'Non-standard settings are implemented only'
+      ier_msg(4) = 'for orthorhombic space groups '
       RETURN
    ENDIF
 ELSE

@@ -686,6 +686,7 @@ integer           , dimension(:,:)  , allocatable :: adp_look         ! Lookup t
 integer                                      :: clu_type   ! 
 logical  :: lsuccess  
 integer  :: ier  ! Allocation error
+integer  :: is_program  ! Which program style is the input file
 !
 clu_type = 1
 nscats = 0
@@ -900,7 +901,7 @@ DO i=1, clu_number
          endif
    ELSE
       CALL test_file(infile ,natoms, &
-              nscats, n_mole, n_type, n_atom, n_cells, -1 , .false., MAXMASK, uni_mask)
+              nscats, n_mole, n_type, n_atom, n_cells, is_program, -1 , .false., MAXMASK, uni_mask)
       clu_moles(1,i) = n_mole
       clu_moles(2,i) = n_type
       IF (ier_num.ne.0) THEN
@@ -932,7 +933,7 @@ DO i=1, clu_number
 !                                                                       
 !     Read the input file header                                        
 !                                                                       
-      CALL stru_readheader (imd, MK_MAX_SCAT, mk_name,     &
+      CALL stru_readheader (imd, MK_MAX_SCAT, is_program, mk_name,     &
       mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_a0, mk_win, sav_ncell,   &
       sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
       AT_MAXP, at_ianz, at_param)           
@@ -1040,7 +1041,7 @@ IF ( clu_infile_internal ) THEN
    at_param(8) = 'OCC'
    at_ianz = 8
 ELSE
-   CALL test_file(clu_infile, natoms, nscats, n_mole, n_type, n_atom, n_cells, -1 , .false., MAXMASK, uni_mask)
+   CALL test_file(clu_infile, natoms, nscats, n_mole, n_type, n_atom, n_cells, is_program, -1 , .false., MAXMASK, uni_mask)
    IF(natoms > MAX(MK_MAX_ATOM, NMAX)    .or. &
       nscats > MAX(MK_MAX_SCAT, MAXSCAT) .or. &
       n_mole > MOLE_MAX_MOLE             .or. &
@@ -1064,7 +1065,7 @@ ELSE
 !                                                                       
 !     Read the input file header                                        
 !                                                                       
-   CALL stru_readheader (imd, MK_MAX_SCAT, mk_name,     &
+   CALL stru_readheader (imd, MK_MAX_SCAT, is_program, mk_name,     &
    mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_a0, mk_win, sav_ncell,   &
    sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
    AT_MAXP, at_ianz, at_param)           
@@ -2035,6 +2036,7 @@ integer                              :: n_atom
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 LOGICAL  :: lread 
 integer  :: ier  ! Allocation error
+integer  :: is_program  ! IS_DISCUS or IS_PDFGUI
 !                                                                       
 lread = .true. 
 IF(infile(1:8)=='internal') THEN
@@ -2076,7 +2078,7 @@ ELSE
 !                                                                       
 !     Read the input file header                                        
 !                                                                       
-         CALL stru_readheader (ist, MK_MAX_SCAT, mk_name,     &
+         CALL stru_readheader (ist, MK_MAX_SCAT, is_program, mk_name,     &
          mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_a0, mk_win, sav_ncell,   &
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
          AT_MAXP, at_ianz, at_param)           

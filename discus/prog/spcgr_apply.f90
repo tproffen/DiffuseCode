@@ -410,8 +410,8 @@ END SELECT settings
 IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
    ier_num = -160
    ier_typ = ER_APPL
-   ier_msg(1) = 'Non-standard settings are implemented only'
-   ier_msg(2) = 'for orthorhombic space groups '
+   ier_msg(3) = 'Non-standard settings are implemented only'
+   ier_msg(4) = 'for orthorhombic space groups '
 ENDIF
 cr_spcgr_set = cr_spcgr          ! Default to normal space group name
 IF(cr_syst==4) THEN
