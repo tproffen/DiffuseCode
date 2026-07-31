@@ -8056,6 +8056,7 @@
 !p       [,"radius:"<value>]
 !p       [,"occupancy:"{"clear"|"apply"|"keep"}]
 !p       [,"unique:"{"site"|"name"|"charge"|"biso"|"occ"}]
+!p       [,"asymmetric:"{"yes"|"true","no","false"}]
 
    Reads the contents of a single asymmetric unit from file <name> and
    then generates the unit cell.
@@ -8108,6 +8109,15 @@
              are identical are treated as one atom type 
    "biso"    In addition to name, charge the B-value must be identical
    "occ"     In addition to all other the occupancies must be identical
+
+!p       [,"asymmetric:"{"yes"|"true","no","false"}]
+   By default an input file is considered to be an asymmetric unit.
+   There might be cases where the input fil econtains a full unit cell
+   and you still want to expand the cell to a larger block. 
+   In this case set the option to either "no" or "false". Discus will 
+   consider the file to be a full unit cell, the space group symmetry is
+   not applied to the individual atoms. A larger block of LxMxN unit cell
+   will be generated.
 3  lcell
 !p lcell <name> [,<nx> [,<ny> [,<nz>]]]
 !p       [,"unique:"{"site"|"name"|"charge"|"biso"|"occ"}]
