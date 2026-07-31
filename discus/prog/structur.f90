@@ -3066,7 +3066,6 @@ ENDDO loop_regular
 !
 ! Test for alternative settings in orthorhombic space groups
 !                                                                       
-write(*,*) ' SPACE GROUP ', cr_spcgr, ' ',l_not_found
 cond_alternative: if(l_not_found) then
 loop_alternative: DO i = 16,74
    DO j = 1,6
@@ -3088,7 +3087,6 @@ loop_alternative: DO i = 16,74
    ENDDO 
 ENDDO loop_alternative
 endif cond_alternative
-write(*,*) ' SPACE GROUP ', cr_spcgr, ' ',l_not_found, ' ', cr_spcgr_set
 !                                                                       
 cond_final: if(l_not_found) then
 CALL no_error 
