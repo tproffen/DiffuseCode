@@ -60,6 +60,7 @@ USE precision_mod
 USE prompt_mod 
 USE take_param_mod
 USE str_comp_mod
+use string_convert_mod
 USE sup_mod
 USE support_mod
 !
@@ -279,6 +280,7 @@ ELSE  cond_command
                endif
             endif
             if(lpresent(O_ASYMMETRIC)) then
+               call do_low(opara(O_ASYMMETRIC))
                l_asymmetric = opara(O_ASYMMETRIC) == 'yes' .or. opara(O_ASYMMETRIC) == 'true'
             else
                l_asymmetric = .true.
