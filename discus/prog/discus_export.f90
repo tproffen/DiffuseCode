@@ -311,6 +311,8 @@ logical                  :: l_not_full = .TRUE.
 LOGICAL                  :: orig_OK =.FALSE.
 logical                  :: l_dump = .false.    ! No dump on SHELX files
 logical, dimension(0:MAXMASK) :: uni_mask
+logical :: l_asymmetric = .true.
+logical :: l_present_asym = .false.
 real(kind=PREC_DP)       :: lambda_user
 real(kind=PREC_DP)       :: energy
 REAL(KIND=PREC_DP)       :: z_unit
@@ -439,7 +441,9 @@ befehl = 'lcell'
 lbef   = 5
 cpara(1) = origfile
 lpara(1) = 19
-CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0D-5, 0, .TRUE., .FALSE., MAXMASK, uni_mask, l_dump)
+l_asymmetric = .true.
+l_present_asym = .false.
+CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0D-5, 0, .TRUE., .FALSE., MAXMASK, uni_mask, l_dump, l_asymmetric, l_present_asym)
 CALL chem_elem(.FALSE.)
 z_unit = 192.0
 DO i=1, cr_nscat

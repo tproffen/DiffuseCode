@@ -84,18 +84,20 @@ INTEGER          ::   occupancy= 0          ! Apply occupancy upon read cell   ?
 LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
 LOGICAL          :: l_site     = .FALSE.    ! Treat atoms on different sites as different types?
 logical          :: l_dump     = .FALSE.    ! Dump an HDF5 file
+logical          :: l_asymmetric=.TRUE.     ! File is an asymmetric unit
 logical, dimension(0:MAXMASK) :: uni_mask           ! Mask for unique atom types
 REAL(KIND=PREC_DP) :: r_identical = 0.00001_PREC_DP
-INTEGER, PARAMETER :: NOPTIONAL  = 8
-integer, parameter :: O_RADIUS   = 1
-integer, parameter :: O_ORIGIN   = 2
-integer, parameter :: O_OCC      = 3
-integer, parameter :: O_TOLERATE = 4
-INTEGER, PARAMETER :: O_SETTING  = 5
-INTEGER, PARAMETER :: O_SITE     = 6
-INTEGER, PARAMETER :: O_UNIQUE   = 7
-INTEGER, PARAMETER :: O_DUMP     = 8
-CHARACTER(LEN=   9)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+INTEGER, PARAMETER :: NOPTIONAL    = 9
+integer, parameter :: O_RADIUS     = 1
+integer, parameter :: O_ORIGIN     = 2
+integer, parameter :: O_OCC        = 3
+integer, parameter :: O_TOLERATE   = 4
+INTEGER, PARAMETER :: O_SETTING    = 5
+INTEGER, PARAMETER :: O_SITE       = 6
+INTEGER, PARAMETER :: O_UNIQUE     = 7
+INTEGER, PARAMETER :: O_DUMP       = 8
+INTEGER, PARAMETER :: O_ASYMMETRIC = 9
+CHARACTER(LEN=  10)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -106,12 +108,12 @@ INTEGER, PARAMETER                        :: NCALC = 2 ! Number of values to cal
 !
 !                                                                       
 !
-DATA oname  / 'radius' , 'origin'   , 'occupancy', 'identical', 'setting', 'site'   ,'unique', 'dump' /
-DATA loname /  6       ,  6         ,  9         ,  6         ,  7       ,  4       , 6      ,  4     /
+DATA oname  / 'radius' , 'origin'   , 'occupancy', 'identical', 'setting', 'site'   ,'unique', 'dump'  , 'asymmetric'/
+DATA loname /  6       ,  6         ,  9         ,  6         ,  7       ,  4       , 6      ,  4      , 10          /
 !
-opara  =  (/ '1.0E-5'  , '1.0000'   , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  ', 'no    '/)   ! Always provide fresh default values
-lopara =  (/  6        ,  6         ,  6         ,  6         ,  6       ,  6       ,  4      ,  2      /)
-owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    ,  0.0    /)
+opara  =  (/ '1.0E-5'  , '1.0000'   , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  ', 'no    ', 'yes   '/)   ! Always provide fresh default values
+lopara =  (/  6        ,  6         ,  6         ,  6         ,  6       ,  6       ,  4      ,  2      ,  3      /)
+owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    ,  0.0    ,  0.0    /)
 !
 !
 !                                                                       
@@ -203,9 +205,9 @@ ELSE  cond_command
 !
 !      --Get optional parameters
 !
-         opara  =  (/ '1.0E-5'  , '1.0000'   , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  ', 'no    '/)   ! Always provide fresh default values
-         lopara =  (/  6        ,  6         ,  6         ,  6         ,  6       ,  6       ,  4      ,  2      /)
-         owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    ,  0.0    /)
+         opara  =  (/ '1.0E-5'  , '1.0000'   , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  ', 'no    ', 'yes   '/)   ! Always provide fresh default values
+         lopara =  (/  6        ,  6         ,  6         ,  6         ,  6       ,  6       ,  4      ,  2      ,  3      /)
+         owerte =  (/  1.0E-5   ,  1.0       ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    ,  0.0    ,  0.0    /)
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, lpresent, owerte)
          IF(ier_num/=0) exit cond_command      ! Jump to handle error messages, amd macro conditions
@@ -276,9 +278,15 @@ ELSE  cond_command
                   uni_mask(:)   = .false.
                endif
             endif
+            if(lpresent(O_ASYMMETRIC)) then
+               l_asymmetric = opara(O_ASYMMETRIC) == 'yes' .or. opara(O_ASYMMETRIC) == 'true'
+            else
+               l_asymmetric = .true.
+            endif
             CALL do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, &
                              l_identical, r_identical, occupancy,  &
-                             lpresent(O_OCC), l_site, MAXMASK, uni_mask, l_dump)
+                             lpresent(O_OCC), l_site, MAXMASK, uni_mask, l_dump, &
+                             l_asymmetric, lpresent(O_ASYMMETRIC))
 !                                                                       
 !     Free style editing of a structure 'free'                          
 !                                                                       
@@ -394,7 +402,7 @@ END SUBROUTINE read_struc
 !
 SUBROUTINE do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, l_identical, &
                        r_identical, occupancy, l_occ, l_site, MAXMASK, uni_mask, &
-                       l_dump)
+                       l_dump, l_asymmetric, l_present_asym)
 !
 USE discus_allocate_appl_mod
 USE chem_mod 
@@ -431,6 +439,8 @@ LOGICAL         ,                  INTENT(IN) :: l_site
 integer                          , intent(in) :: MAXMASK
 logical, dimension(0:MAXMASK)    , intent(in) :: uni_mask           ! Mask for unique atom types
 logical         ,                  intent(in) :: l_dump
+logical         ,                  intent(inout) :: l_asymmetric    ! File is an asymmetric unit
+logical         ,                  intent(in)    :: l_present_asym  ! User specified asymmetric status
 !
 integer, parameter :: CMD_CELL = 1
 !character(len=PREC_STRING) :: string
@@ -521,7 +531,8 @@ ELSE internalcell
       return
    endif
    strucfile = outfile
-   CALL readcell (strucfile, l_identical, r_identical, MAXMASK, uni_mask) 
+   CALL readcell(strucfile, l_identical, r_identical, MAXMASK, uni_mask,  &
+                 l_asymmetric, l_present_asym) 
    cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
    l_not_full = .TRUE.        ! Default use cr_anis
 ENDIF internalcell
@@ -1157,7 +1168,8 @@ END SUBROUTINE do_readfree
 !
 !********************************************************************** 
 !
-SUBROUTINE readcell (strucfile, l_identical, r_identical, MAXMASK, uni_mask) 
+SUBROUTINE readcell (strucfile, l_identical, r_identical, MAXMASK, uni_mask, &
+                     l_asymmetric, l_present_asym)
 !-                                                                      
 !           This subroutine reads a unit cell.                          
 !+                                                                      
@@ -1188,6 +1200,8 @@ LOGICAL            , INTENT(IN) :: l_identical
 REAL(KIND=PREC_DP) , INTENT(IN) :: r_identical
 integer                    , intent(in) :: MAXMASK
 logical, dimension(0:MAXMASK), intent(in) :: uni_mask
+logical                      , intent(inout) :: l_asymmetric
+logical                      , intent(in   ) :: l_present_asym
 !
 character(len=4)           :: nw_name
 CHARACTER(len=10)          :: befehl 
@@ -1233,6 +1247,9 @@ local_mask(0)  = .false.       ! For test_file use a local mask
 local_mask(1:) = .true.        ! Set such that all atoms will be different types
 CALL test_file(strucfile, new_nmax, new_nscat, n_mole, n_type, &
                n_atom, n_cells, is_program, -1 , cr_newtype, MAXMASK, local_mask)
+if(is_program==IS_PDFGUI .and. .not. l_present_asym) then    ! PDFGUI and no user "asymmetric:"
+   l_asymmetric = .false.
+endif
 IF (ier_num /= 0) THEN
    CLOSE (ist)
    RETURN
@@ -1493,7 +1510,7 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
                if(j>-1) then              ! Old atom type
                   cr_iscat(1,i) = j
                   cr_iscat(2:,i) = 1
-                  call symmetry
+                  if(l_asymmetric) call symmetry
                   exit if_blk
                endif
 !              DO j = 0, cr_nscat 
@@ -1536,7 +1553,7 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
                if(j>-1)  then              ! Old atom type
                   cr_iscat(1,i) = j
                   cr_iscat(2:,i) = 1
-                  call symmetry
+                  if(l_asymmetric) call symmetry
                if(uni_mask(0) .and. .not.any(uni_mask(1:))) then   !unique:site is present
                   do j=i+1, cr_natoms
                      cr_nscat = cr_nscat + 1
@@ -1579,7 +1596,7 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
 !              ENDDO 
 !              as_mole (as_natoms) = cr_mole (i) 
 !              as_prop (as_natoms) = cr_prop (i) 
-               CALL symmetry 
+               if(l_asymmetric) call symmetry 
                if(uni_mask(0) .and. .not.any(uni_mask(1:))) then   !unique:site is present
                   do j=i+1, cr_natoms
                      cr_nscat = cr_nscat + 1
@@ -2977,6 +2994,7 @@ INTEGER              , INTENT(INOUT) :: ianz
 INTEGER              , INTENT(IN)    :: MAXW
 REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN)    :: werte
 !                                                                       
+character(len=16)                 :: trial
 CHARACTER(LEN=   3), DIMENSION(6) :: setting 
 CHARACTER(LEN=PREC_STRING), DIMENSION(1) :: cpara 
 character(len=16)  , dimension(2) :: spcgr_noblank
@@ -2985,6 +3003,7 @@ REAL(KIND=PREC_DP) , DIMENSION(1) :: rpara
 !
 INTEGER :: ii, i 
 INTEGER :: j
+integer :: length
 logical :: l_not_found
 !                                                                       
 !
@@ -3045,22 +3064,29 @@ ENDDO loop_regular
 !
 ! Test for alternative settings in orthorhombic space groups
 !                                                                       
+write(*,*) ' SPACE GROUP ', cr_spcgr, ' ',l_not_found
 cond_alternative: if(l_not_found) then
 loop_alternative: DO i = 16,74
    DO j = 1,6
-      IF (cr_spcgr.eq.spcgr_name_set (i,j) ) THEN 
+      trial = spcgr_name_set(i,j)
+      length = 16
+      call rem_bl(trial, length)
+!     IF (cr_spcgr.eq.spcgr_name_set (i,j) ) THEN 
+      IF (cr_spcgr.eq.trial                ) THEN 
          cr_spcgrno   = i                       ! Here we can use number i as spcgr number instead of spcgr_num (i, ii) 
          cr_syst      = spcgr_syst (cr_spcgrno) ! Still works
          cr_spcgr     = spcgr_name_set(i,1)     ! Use standard name
          cr_spcgr_set = spcgr_name_set(i,j)     ! Alternative setting
          cr_set       = setting(j)
          cr_iset      = j
+         l_not_found = .false.
          CALL no_error 
          exit cond_alternative
       ENDIF 
    ENDDO 
 ENDDO loop_alternative
 endif cond_alternative
+write(*,*) ' SPACE GROUP ', cr_spcgr, ' ',l_not_found, ' ', cr_spcgr_set
 !                                                                       
 cond_final: if(l_not_found) then
 CALL no_error 
