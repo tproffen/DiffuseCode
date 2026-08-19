@@ -175,6 +175,11 @@
 
    Defines the radiation that was used to measure the observed
    intensity.
+
+!p   ["lambda:"{<wavelength>|<name>}]   
+!p   ["energy:"<value>]   
+   As optional parameters, the wavelength or the energy can be given.
+   These two parameters are mutually exclusive.
 3  run
 !p run
 !p run  [mode:silent]
