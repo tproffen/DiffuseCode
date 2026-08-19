@@ -524,6 +524,8 @@ USE prompt_mod
 USE take_param_mod
 USE string_convert_mod
 USE str_comp_mod
+use terminal_mod
+use support_mod
 !
 IMPLICIT NONE
 !
@@ -533,7 +535,7 @@ INTEGER         , INTENT(INOUT) :: length
 INTEGER, PARAMETER  :: N_VIEWER = 5
 INTEGER, PARAMETER  :: W_VIEWER = 5
 INTEGER, PARAMETER  :: MAXW     = 2
-INTEGER, PARAMETER  :: MAX_MAN  = 6
+INTEGER, PARAMETER  :: MAX_MAN  = 7
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: string, zeile
 CHARACTER(LEN=    PREC_STRING           ) :: command, message
 CHARACTER(LEN=    PREC_STRING           ) :: man_path
@@ -558,6 +560,7 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
+integer             :: seconds = 1
 integer             :: exit_msg
 INTEGER             :: ianz
 INTEGER             :: laenge, i
@@ -585,7 +588,7 @@ DATA win_viewer /                                             &
 '/mnt/c/Program Files/Mozilla Firefox/firefox.exe   '  &
 /
 DATA c_manual / 'suite'  ,'discus' , 'diffev' ,'kuplot',      &
-                'package','refine'  /
+                'package','refine' , 'experi'  /
 !
 opara (1) = pname         ! Default to section name
 lopara(1) = LEN_TRIM(pname)
@@ -624,7 +627,7 @@ IF(ier_num /=0) THEN
    ier_typ = ER_COMM
    ier_msg(1) = 'Selected package is not present, choose:'
    ier_msg(2) = 'suite, discus, diffev, kuplot, package,'
-   ier_msg(3) = 'mixscat'
+   ier_msg(3) = 'refine, experi'
    RETURN
 ENDIF
 !
@@ -662,16 +665,18 @@ IF(operating==OS_LINUX_WSL ) then
       ierror = 0
    endif
    IF(ierror==0) THEN     ! Finally, everything is fine let's do it
-      write(output_io,'(a)') ' '
-      write(output_io,'(a)') ' The pdfviewer might produce warnings, obscure the prompt'
-      write(output_io,'(a)') ' Just hit the Enter/Return key to proceed'
-      write(output_io,'(a)') ' '
       command = ''''//viewer(1:LEN_TRIM(viewer))//''''//' '// &
                 '''' // &
                 man_path(1:LEN_TRIM(man_path))//manual(1:LEN_TRIM(manual))//'_man.pdf'' &'
       laenge=LEN_TRIM(command)
       call execute_command_line (command(1:laenge),  wait=.false., &
            CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
+      call do_sleep(seconds)
+      call do_sleep(seconds)
+      write(output_io,'(a)') ' '
+      write(output_io,'(3a)') TRIM(color_info), ' The pdfviewer might produce warnings, obscure the prompt', trim(color_fg)
+      write(output_io,'(3a)') trim(color_info), ' Just hit the Enter/Return key to proceed', trim(color_fg)
+      write(output_io,'(a)') ' '
    ENDIF
 elseIF(operating(1:7)=='Windows' .OR. operating(1:6)=='cygwin') THEN 
    ierror = -6
@@ -778,16 +783,18 @@ ELSE
 !   ENDIF
 !
    IF(ierror==0) THEN     ! Finally, everything is fine let's do it
-      write(output_io,'(a)') ' '
-      write(output_io,'(a)') ' The pdfviewer might produce warnings, obscure the prompt'
-      write(output_io,'(a)') ' Just hit the Enter/Return key to proceed'
-      write(output_io,'(a)') ' '
       command = viewer(1:LEN_TRIM(viewer))//' '// &
                 man_dir(1:LEN_TRIM(man_dir))//manual(1:LEN_TRIM(manual))//'_man.pdf &'
       laenge=LEN_TRIM(command)
       call execute_command_line (command(1:laenge),  wait=.false., &
            CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
 !write(*,*) ' VIEW >', command(1:len_trim(command)), '< ERR ',ierror, ier_num, ier_typ
+      call do_sleep(seconds)
+      call do_sleep(seconds)
+      write(output_io,'(a)') ' '
+      write(output_io,'(3a)') TRIM(color_info), ' The pdfviewer might produce warnings, obscure the prompt', trim(color_fg)
+      write(output_io,'(3a)') trim(color_info), ' Just hit the Enter/Return key to proceed', trim(color_fg)
+      write(output_io,'(a)') ' '
    ENDIF
 ENDIF
 IF(ierror/=0) THEN     ! Error ??
