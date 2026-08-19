@@ -234,7 +234,7 @@ end subroutine write_refine_single_part3
 !*****7**************************************************************** 
 !
 subroutine write_refine_single_part4( &
-        substance,  ilist, c_form, lambda, slambda, P_exti, hkl_max, P_ncycle)
+        substance,  ilist, radiation, c_form, lambda, slambda, P_exti, hkl_max, P_ncycle)
 !
 !  Write main discus macro; single crystal PART 4
 !  REFINE version
@@ -246,6 +246,7 @@ implicit none
 !
 character(len=*)                , intent(in) :: substance
 integer                         , intent(in) :: ilist
+character(len=*)                , intent(in) :: radiation
 character(len=*)                , intent(in) :: c_form
 character(len=*)                , intent(in) ::  lambda
 character(len=*)                , intent(in) :: slambda
@@ -270,7 +271,7 @@ call execute_command_line(line, wait=.false.)
 !
 j = 0
 i = len_trim(substance)
-call single_main_part4(IDI_MA, .true., substance, c_form, rlambda, slambda, P_exti)
+call single_main_part4(IDI_MA, .true., substance, radiation, c_form, rlambda, slambda, P_exti)
 !
 write(IDI_MA,'(a )') 'branch kuplot'
 write(IDI_MA,'(a )') '  reset'
@@ -386,7 +387,7 @@ end subroutine write_refine_single_part4
 !
 !*****7**************************************************************** 
 !
-subroutine single_main_part4(IWR, l_refine, substance, c_form, rlambda, slambda, P_exti)
+subroutine single_main_part4(IWR, l_refine, substance, radiation, c_form, rlambda, slambda, P_exti)
 !-
 !  Write the main discus macro Single crystal refinement 
 !  DIFFEV and REFINE
@@ -396,6 +397,7 @@ implicit none
 integer           , intent(in) :: IWR
 logical           , intent(in) :: l_refine     ! True == REFINE false==DIFFEV
 character(len=*)  , intent(in) :: substance
+character(len=*)  , intent(in) :: radiation
 character(len=*)  , intent(in) :: c_form
 real(kind=PREC_DP), intent(in) :: rlambda
 character(len=*)  , intent(in) :: slambda
@@ -441,10 +443,22 @@ if(lexist_hkl_file .or. lexist_fcf_file) then     ! Shelx HKL file exists
          call execute_command_line(line, wait=.false.)
       endif
    else
-      write(IWR,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+      if(radiation=='xray') then
+         write(IWR,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+      elseif(radiation=='neutron') then
+         write(IWR,'(2a)') '  neutron'
+      elseif(radiation=='electron') then
+         write(IWR,'(2a)') '  electron'
+      endif
    endif
 else
-   write(IWR,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+   if(radiation=='xray') then
+      write(IWR,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+   elseif(radiation=='neutron') then
+      write(IWR,'(2a)') '  neutron'
+   elseif(radiation=='electron') then
+      write(IWR,'(2a)') '  electron'
+   endif
 endif
 write(IWR,'(a )') '  temp use'
 write(IWR,'(a )') '  disp off'
@@ -776,7 +790,7 @@ end subroutine write_refine_powder_part1
 !*****7**************************************************************** 
 !
 subroutine write_refine_powder_part4(substance,                      &
-        ilist, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
+        ilist, radiation, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
 !
 !  Write main discus macro; powder diffraction  PART 4
 !
@@ -788,6 +802,7 @@ implicit none
 !
 character(len=*)                , intent(in) :: substance
 integer                         , intent(in) :: ilist
+character(len=*)                , intent(in) :: radiation
 character(len=*)                , intent(in) :: c_form
 character(len=*)                , intent(in) ::  lambda 
 character(len=*)                , intent(in) :: slambda 
@@ -812,7 +827,7 @@ i= len_trim(substance)
 j= len_trim(hkl_file) - 4
 !
 call write_powder_lattice(IDI_MA, spcgr_syst)
-call write_macro_powder(c_form, hkl_file, rlambda, slambda)
+call write_macro_powder(radiation, c_form, hkl_file, rlambda, slambda)
 !
 write(IDI_MA,'(a )') 'save'
 write(IDI_MA,'(3a)') '  outfile internal.',substance(1:i), '.cell'
@@ -963,7 +978,7 @@ end subroutine write_refine_powder_part4
 !*****7**************************************************************** 
 !
 subroutine write_refine_pdf_part4_bulk(substance,                      &
-        ilist, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
+        ilist, radiation, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
 !
 !  Write main discus macro; powder diffraction  PART 4
 !
@@ -975,6 +990,7 @@ implicit none
 !
 character(len=*)                , intent(in) :: substance
 integer                         , intent(in) :: ilist
+character(len=*)                , intent(in) :: radiation
 character(len=*)                , intent(in) :: c_form
 character(len=*)                , intent(in) ::  lambda 
 character(len=*)                , intent(in) :: slambda 
@@ -999,7 +1015,7 @@ i= len_trim(substance)
 j= len_trim(hkl_file) - 4
 !
 call write_powder_lattice(IDI_MA, spcgr_syst)
-call write_macro_powder(c_form, hkl_file, rlambda, slambda)
+call write_macro_powder(radiation, c_form, hkl_file, rlambda, slambda)
 !
 write(IDI_MA,'(a )') 'save'
 write(IDI_MA,'(3a)') '  outfile internal.',substance(1:i), '.cell'
@@ -1134,7 +1150,7 @@ end subroutine write_refine_pdf_part4_bulk
 !*****7**************************************************************** 
 !
 subroutine write_refine_pdf_part4_nano(substance,                      &
-        ilist, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
+        ilist, radiation, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
 !
 !  Write main discus macro; PDF PART 4
 !
@@ -1146,6 +1162,7 @@ implicit none
 !
 character(len=*)                , intent(in) :: substance
 integer                         , intent(in) :: ilist
+character(len=*)                , intent(in) :: radiation
 character(len=*)                , intent(in) :: c_form
 character(len=*)                , intent(in) ::  lambda 
 character(len=*)                , intent(in) :: slambda 
@@ -1167,7 +1184,7 @@ i= len_trim(substance)
 j= len_trim(hkl_file) - 4
 !
 call write_powder_lattice(IDI_MA, spcgr_syst)
-call write_macro_debye(c_form, hkl_file, rlambda, slambda)
+call write_macro_debye(radiation, c_form, hkl_file, rlambda, slambda)
 !
 write(IDI_MA,'(a )') 'save'
 write(IDI_MA,'(3a)') '  outfile internal.',substance(1:i), '.cell'
@@ -2212,7 +2229,7 @@ end subroutine write_diffev_single_part3
 !*****7**************************************************************** 
 !
 subroutine write_diffev_single_part4(&
-        substance,  ilist, c_form, lambda, slambda, compute, c_style,           &
+        substance,  ilist, radiation, c_form, lambda, slambda, compute, c_style,           &
         P_exti, hkl_max, P_ncycle  &
         )
 !
@@ -2226,6 +2243,7 @@ implicit none
 !
 character(len=*)                , intent(in) :: substance
 integer                         , intent(in) :: ilist
+character(len=*)                , intent(in) :: radiation
 character(len=*)                , intent(in) :: c_form
 character(len=*)                , intent(in) ::  lambda
 character(len=*)                , intent(in) :: slambda
@@ -2249,7 +2267,7 @@ read(lambda, *) rlambda
 !
 j = 0
 i = len_trim(substance)
-call single_main_part4(IDF_PO, .false., substance, c_form, rlambda, slambda, P_exti)
+call single_main_part4(IDF_PO, .false., substance, radiation, c_form, rlambda, slambda, P_exti)
 close(IDF_PO)
 !
 if(P_exti> 0.00001) then
@@ -2344,7 +2362,7 @@ end subroutine write_diffev_single_part4
 !*****7**************************************************************** 
 !
 subroutine write_diffev_powder_part4(&
-           substance, c_form, lambda, slambda, compute, c_style )
+           substance, radiation, c_form, lambda, slambda, compute, c_style )
 !-
 ! Write main discus macro DIFFEV_VERSION, last part
 ! Write "diffev_setup.mac"              , last part
@@ -2355,6 +2373,7 @@ use precision_mod
 implicit none
 !
 character(len=*), intent(in) :: substance    ! current material
+character(len=*), intent(in) :: radiation
 character(len=*), intent(in) :: c_form       ! Atom form factor
 character(len=*), intent(in) ::  lambda      ! Wave length numerical value
 character(len=*), intent(in) :: slambda      ! Wave length symbol
@@ -2378,7 +2397,7 @@ write(IDF_PO, '(a)') '#'
 write(IDF_PO, '(a)') '@powder.mac'
 !
 read(lambda, *) rlambda
-call write_macro_powder(c_form, hkl_file, rlambda, slambda)
+call write_macro_powder(radiation, c_form, hkl_file, rlambda, slambda)
 !
 write(IDF_PO, '(a)') 'output'
 write(IDF_PO, '(a)') '  outf "%c/INDI/indi.%4D.%4D", INDIDIR, REF_KID, REF_INDIV'
@@ -2410,7 +2429,7 @@ end subroutine write_diffev_powder_part4
 !*****7**************************************************************** 
 !
 subroutine write_diffev_pdf_part4_bulk(&
-           substance, c_form, lambda, slambda, compute, c_style )
+           substance, radiation, c_form, lambda, slambda, compute, c_style )
 !-
 ! Write main discus macro DIFFEV_VERSION, last part
 ! Write "diffev_setup.mac"              , last part
@@ -2421,6 +2440,7 @@ use precision_mod
 implicit none
 !
 character(len=*), intent(in) :: substance    ! current material
+character(len=*), intent(in) :: radiation
 character(len=*), intent(in) :: c_form       ! Atom form factor
 character(len=*), intent(in) ::  lambda      ! Wave length numerical value
 character(len=*), intent(in) :: slambda      ! Wave length symbol
@@ -2444,7 +2464,7 @@ write(IDF_PO, '(a)') '#'
 write(IDF_PO, '(a)') '@powder.mac'
 !
 read(lambda, *) rlambda
-call write_macro_powder(c_form, hkl_file, rlambda, slambda)
+call write_macro_powder(radiation, c_form, hkl_file, rlambda, slambda)
 !
 write(IDF_PO, '(a)') 'output'
 write(IDF_PO, '(a)') '  outf "%c/INDI/indi.%4D.%4D", INDIDIR, REF_KID, REF_INDIV'
@@ -2476,7 +2496,7 @@ end subroutine write_diffev_pdf_part4_bulk
 !*****7**************************************************************** 
 !
 subroutine write_diffev_pdf_part4_nano(&
-           substance, c_form, lambda, slambda, compute, c_style )
+           substance, radiation, c_form, lambda, slambda, compute, c_style )
 !-
 ! Write main discus macro DIFFEV_VERSION, last part
 ! PDF version
@@ -2488,6 +2508,7 @@ use precision_mod
 implicit none
 !
 character(len=*), intent(in) :: substance    ! current material
+character(len=*), intent(in) :: radiation
 character(len=*), intent(in) :: c_form       ! Atom form factor
 character(len=*), intent(in) ::  lambda      ! Wave length numerical value
 character(len=*), intent(in) :: slambda      ! Wave length symbol
@@ -2525,7 +2546,7 @@ write(IDF_PO, '(a)') '#'
 write(IDF_PO, '(a)') '@debye.mac'
 !
 read(lambda, *) rlambda
-call write_macro_debye(c_form, hkl_file, rlambda, slambda)
+call write_macro_debye(radiation, c_form, hkl_file, rlambda, slambda)
 !
 write(IDF_PO, '(a)') 'output'
 write(IDF_PO, '(a)') '  outf "%c/INDI/indi.%4D.%4D", INDIDIR, REF_KID, REF_INDIV'
@@ -2597,7 +2618,8 @@ logical, parameter :: lfirst  = .false.
 logical, parameter :: loutput = .false.
 integer, parameter :: mode    = 0
 !
-character(len=4) :: at_name
+character(len=4) :: at_name  ! Atom name as element 
+character(len=4) :: at_full  ! Atom name as full mightr be ion
 character(len=4) :: el_name
 character(len=92), dimension(:,:), allocatable :: qmsys_line
 character(len=87), dimension(:,:), allocatable :: sym_xyz       ! Wyckoff copies for all molecules
@@ -2685,7 +2707,7 @@ do imole=1,mole_num_mole                       ! For all molecules
    n_charge   = 0
    do iatom=1,natom                        ! Guess Ordinal number and charge for all elements
       el_name = qmsys_line(iatom+1, imole)(1:4)
-      call guess_element(at_name, is_cond, el_name)
+      call guess_element(at_name, at_full, is_cond, el_name)
       charge = 0
       if(is_cond>0) then
          charge = get_charge(el_name)
@@ -3166,7 +3188,7 @@ end subroutine diffev_best2_powder_mac
 !
 !*****7**************************************************************** 
 !
-subroutine write_macro_powder(c_form, hkl_file, rlambda, slambda)
+subroutine write_macro_powder(radiation, c_form, hkl_file, rlambda, slambda)
 !-
 !  Write the powder diffraction macro
 !+
@@ -3174,6 +3196,7 @@ use precision_mod
 !
 implicit none
 !
+character(len=*)  , intent(in) :: radiation
 character(len=*)  , intent(in) :: c_form       ! Atom form factor
 character(len=*)  , intent(in) :: hkl_file     ! TSC file in case of DISCAMB
 real(kind=PREC_DP), intent(in) :: rlambda
@@ -3195,7 +3218,13 @@ if(c_form == 'discamb') then
    write(IDI,'(a )') '  set axis, q'
    write(IDI,'(a )') '  set calc, grid'
 else
-   write(IDI,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+   if(radiation=='xray') then
+      write(IDI,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+   elseif(radiation=='neutron') then
+      write(IDI,'(2a)') '  neutron'
+   elseif(radiation=='electron') then
+      write(IDI,'(2a)') '  electron'
+   endif
    write(IDI,'(a )') '  set axis, q'
    write(IDI,'(a )') '  set calc, complete'
 endif
@@ -3237,7 +3266,7 @@ end subroutine write_macro_powder
 !
 !*****7**************************************************************** 
 !
-subroutine write_macro_debye(c_form, hkl_file, rlambda, slambda)
+subroutine write_macro_debye(radiation, c_form, hkl_file, rlambda, slambda)
 !-
 !  Write the powder diffraction macro   debye scattering version
 !+
@@ -3245,6 +3274,7 @@ use precision_mod
 !
 implicit none
 !
+character(len=*)  , intent(in) :: radiation    ! Radiation
 character(len=*)  , intent(in) :: c_form       ! Atom form factor
 character(len=*)  , intent(in) :: hkl_file     ! TSC file in case of DISCAMB
 real(kind=PREC_DP), intent(in) :: rlambda
@@ -3261,7 +3291,13 @@ else
    write(IDI,'(a )') 'rlambda = 0.20000'
 endif
 write(IDI,'(a )') 'powder'
-write(IDI,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+if(radiation=='xray') then
+   write(IDI,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+elseif(radiation=='neutron') then
+   write(IDI,'(2a)') '  neutron'
+elseif(radiation=='electron') then
+   write(IDI,'(2a)') '  electron'
+endif
 write(IDI,'(a )') '  set axis, q'
 write(IDI,'(a )') '  set calc, debye'
 write(IDI,'(a,f7.5,a )') '  set qmin, 0.5000'
