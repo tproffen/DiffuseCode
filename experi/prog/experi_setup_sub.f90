@@ -10,6 +10,8 @@ subroutine experi_set_sub
 ! LIB_F90 by their generic names
 !+
 !
+use discus_errlist_mod
+!
 use set_sub_generic_mod
 !
 implicit none
@@ -25,6 +27,7 @@ interface
 end interface
 !
 p_mache_kdo => experi_mache_kdo
+p_errlist_appl      => discus_errlist_appl
 
 end subroutine experi_set_sub
 !
