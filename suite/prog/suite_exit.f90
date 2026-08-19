@@ -16,10 +16,12 @@ USE prompt_mod
 !           Clean exit from the program DIFFEV ;-)                      
 !-                                                                      
 IMPLICIT none 
+!
+logical :: did_kill
 !                                                                       
 !  Terminate any Jmol processes started by this discus_suite
 !
-CALL jmol_kill(.FALSE., .TRUE.)
+CALL jmol_kill(.FALSE., .TRUE., did_kill)
 !
 !CALL do_deallocate_appl ( 'all',3)
 CALL exit_all
