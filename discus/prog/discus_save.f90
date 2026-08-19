@@ -1134,6 +1134,7 @@ logical, dimension(2,6) :: crystal_flags        ! is_super_structure, is_asymmet
 logical, dimension(8) :: optional_intended
 !
 character(len=4)      :: element   ! Proper element name
+character(len=4)      :: ion       ! Full element name, might be ion
 integer, dimension(3) :: icell     ! Atom is in this unit cell
 integer               :: isite     ! Atom is on this site
 integer :: i,j   ! Dummy counter
@@ -1186,7 +1187,7 @@ types_isotope  = 0
 types_occupancy = 1.0
 do i=1, number_of_types
    types_names(i)    = cr_at_lis(i)
-   call guess_element(element, j, cr_at_lis(i))
+   call guess_element(element, ion, j, cr_at_lis(i))
    if(j<0) then
       ier_typ = ER_APPL
       ier_num = -204
