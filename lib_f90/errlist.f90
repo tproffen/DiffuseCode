@@ -269,12 +269,15 @@ character(len=11) :: color   ! Use this color
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -60
+       INTEGER, PARAMETER :: iu = -61
        INTEGER, PARAMETER :: io =   2
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
-       DATA ERROR ( iu:-41) /                       &
+       DATA ERROR ( iu:-61) /                       &
+     &  'Illegal limits                       '     & !-61  ! fortran
+     &   /
+       DATA ERROR (-60:-41) /                       &
      &  'Error while collecting do/if commands',    & !-60  ! fortran
      &  'Input data are not 3-D',                   & !-59  ! fortran
      &  'mask:edge needs radius as well',           & !-58  ! fortran
