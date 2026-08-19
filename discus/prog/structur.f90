@@ -3412,7 +3412,7 @@ integer, parameter :: O_NAMES   = 6
 integer, parameter :: O_REFINE  = 7
 integer, parameter :: O_DIFFEV  = 8
 integer, parameter :: O_FORM    = 9
-integer, parameter :: O_DUMP    = 9
+integer, parameter :: O_DUMP    = 10
 CHARACTER(LEN=   6)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -3813,16 +3813,18 @@ logical             :: l_free_profile
 logical             :: l_free_asym
 logical             :: l_free_preferred
 !
-integer, parameter :: NOPTIONAL = 8
-integer, parameter :: O_STYLE   = 1
-integer, parameter :: O_LAMBDA  = 2
-integer, parameter :: O_COMPUTE = 3
-integer, parameter :: O_FORM    = 4
-integer, parameter :: O_REFINE  = 5
-integer, parameter :: O_DIFFEV  = 6
-integer, parameter :: O_FREE    = 7
+integer, parameter :: NOPTIONAL   = 10
+integer, parameter :: O_QMAX      = 1
+integer, parameter :: O_STYLE     = 2
+integer, parameter :: O_LAMBDA    = 3
+integer, parameter :: O_COMPUTE   = 4
+integer, parameter :: O_FORM      = 5
+integer, parameter :: O_REFINE    = 6
+integer, parameter :: O_DIFFEV    = 7
+integer, parameter :: O_FREE      = 8
+integer, parameter :: O_RADIATION = 9
 integer, parameter :: O_SYMBOL  = NOPTIONAL
-character(len=   7)       , dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(len=   9)       , dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(len=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -3831,8 +3833,10 @@ real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
 integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
 character(len=PREC_STRING), dimension(NOPTIONAL,2) :: ref_dif
 !
-DATA oname  / 'style ', 'lambda', 'compute', 'form  ',  'refine', 'diffev', 'free   ', 'UNUSED'  /
-DATA loname /  5,        6      ,  7       ,  4      ,   6      ,  6      ,  4       ,  6        /
+DATA oname  / 'qmax  ', 'style ' , 'lambda'   , 'compute'  , 'form  ',  &
+              'refine', 'diffev' , 'free   '  , 'radiation', 'UNUSED' /
+DATA loname /  4      ,  5       ,  6         ,  7         ,  4      ,  &
+               6      ,  6       ,  4         ,  9         ,  6       /
 !
 !                                                                       
 DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
@@ -3844,14 +3848,17 @@ DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
 'SADI', 'SAME', 'SHEL', 'SIMU', 'SIZE', 'SPEC', 'SUMP', 'STIR',   &
 'SWAT', 'TEMP', 'TIME', 'TWIN', 'UNIT', 'WGHT', 'WPDB', 'ZERR' /  
 !
-opara  =  (/ 'powder  ', '1.540592', 'serial  ', 'waas    ',  &
-             'no      ', 'no      ', 'none    ', 'unused  '   &
+opara  =  (/ '7.500   ', 'powder  ', '1.540592', 'serial  ', 'waas    ',  &
+             'no      ', 'no      ', 'none    ', 'xray    ',  &
+             'unused  '   &
            /)   ! Always provide fresh default values
-lopara =  (/  6        ,   8      ,  6        ,  4        ,  &
-              2        ,  2       ,  4        ,  6           &
+lopara =  (/  5        ,  6        ,  8        ,  6        ,  4        ,  &
+              2        ,  2        ,  4        ,  4        ,  &
+              6           &
           /)
-owerte =  (/  0.0,     1.540592,   0.0       ,  0.0      ,  &
-              0.0    ,  0.0    ,   0.0       ,  0.0         &
+owerte =  (/  7.500  ,  0.0    ,   1.540592,  0.0      ,  0.0      ,  &
+              0.0    ,  0.0    ,   0.0     ,  1.0      ,  &
+              0.0         &
           /)
 !
 fv = 0.0_PREC_DP
@@ -4266,6 +4273,17 @@ if(l_diffev) then     ! Interpret the diffev parameters
   else
      call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, opara(O_LAMBDA), ref_dif, 2)
   endif
+  if(opara(O_STYLE)=='powder') then        ! Powder diffraction
+     owerte(O_QMAX) = min(owerte(O_QMAX), 4.0D0*PI/rlambda)
+  elseif(opara(O_STYLE)(1:3)=='pdf') then
+     if(lpresent(O_LAMBDA) .and. lpresent(O_QMAX)) THEN 
+        owerte(O_QMAX) = min(owerte(O_QMAX), 4.0D0*PI/rlambda)
+     elseif(lpresent(O_LAMBDA)) then
+        owerte(O_QMAX) = min(owerte(O_QMAX), 4.0D0*PI/rlambda)
+     elseif(lpresent(O_QMAX)) then
+        rlambda = min(0.15D0, 4.0D0*PI/owerte(O_QMAX))
+     endif
+  endif
   if(lpresent(O_FREE)) then
     l_free_lattice   = index(opara(O_FREE),'latt') >0
     l_free_adp       = index(opara(O_FREE),'adp') >0
@@ -4299,6 +4317,17 @@ if(l_refine) then     ! Interpret the refine parameters
      ref_dif(O_SYMBOL, 1) = ' '
   else
      call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, opara(O_LAMBDA), ref_dif, 1)
+  endif
+  if(opara(O_STYLE)=='powder') then        ! Powder diffraction
+     owerte(O_QMAX) = min(owerte(O_QMAX), 4.0D0*PI/rlambda)
+  elseif(opara(O_STYLE)(1:3)=='pdf') then
+     if(lpresent(O_LAMBDA) .and. lpresent(O_QMAX)) THEN 
+        owerte(O_QMAX) = min(owerte(O_QMAX), 4.0D0*PI/rlambda)
+     elseif(lpresent(O_LAMBDA)) then
+        owerte(O_QMAX) = min(owerte(O_QMAX), 4.0D0*PI/rlambda)
+     elseif(lpresent(O_QMAX)) then
+        rlambda = min(0.15D0, 4.0D0*PI/owerte(O_QMAX))
+     endif
   endif
 endif
 !
@@ -4574,33 +4603,33 @@ endif
 if(l_refine) then
    if(ref_dif(O_STYLE,1)=='single' ) then
       call write_refine_single_part4(substance, &
-           ilist, c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, hkl_max, P_ncycle)
+           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, hkl_max, P_ncycle)
    elseif(ref_dif(O_STYLE,1)=='powder' ) then
       call write_refine_powder_part4(substance,  &
-           ilist, c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
+           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
    elseif(ref_dif(O_STYLE,1)=='pdf_nano' ) then
       call write_refine_pdf_part4_nano(substance,  &
-           ilist, c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
+           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
    elseif(ref_dif(O_STYLE,1)=='pdf_bulk' ) then
       call write_refine_pdf_part4_bulk(substance,  &
-           ilist, c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
+           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
    endif
 endif
 if(l_diffev) then
    if(ref_dif(O_STYLE,2)=='single' ) then 
       call write_diffev_single_part4(substance, &
-           ilist, c_form, ref_dif(O_LAMBDA, 2), ref_dif(O_SYMBOL, 2),  &
+           ilist, ref_dif(O_RADIATION, 2), c_form, ref_dif(O_LAMBDA, 2), ref_dif(O_SYMBOL, 2),  &
             ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2), P_exti, hkl_max, P_ncycle)
    elseif(ref_dif(O_STYLE,2)=='powder' ) then 
-      call write_diffev_powder_part4(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
+      call write_diffev_powder_part4(substance, ref_dif(O_RADIATION, 2), ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
            ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
            )
    elseif(ref_dif(O_STYLE,2)=='pdf_nano'         ) then     ! PDF
-      call write_diffev_pdf_part4_nano(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
+      call write_diffev_pdf_part4_nano(substance, ref_dif(O_RADIATION, 2), ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
            ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
            )
    elseif(ref_dif(O_STYLE,2)=='pdf_bulk'         ) then     ! PDF
-      call write_diffev_pdf_part4_bulk(substance, ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
+      call write_diffev_pdf_part4_bulk(substance, ref_dif(O_RADIATION, 2), ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
            ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
            )
    endif
