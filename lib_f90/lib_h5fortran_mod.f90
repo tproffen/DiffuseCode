@@ -38,6 +38,9 @@ interface h5f_write
                     write_real_3D         !  Write valued 3D array
 end interface h5f_write
 !
+logical :: H5F_INITIALIZED = .false.
+integer :: H5F_ACC_TRUNC_F_LOCAL
+!
 ! error numbers:
 ! -1  File does not exist
 ! -2  Data set does not exist
@@ -58,9 +61,17 @@ subroutine h5f_reset
 ! Reset two HDF5 flags to zero to avoid issues in h5fortran libraries with multiple open
 !-
 !
-! To avoid h5fortran library issue with h5_open, reset these to zero
+! To avoid h5fortran library issue with h5_open, reset these to zero,
+! If H5fortran had been used, set H5F_ACC_TRUNC_F to its previous value
+!                             might be OS dependent?
+!write(*,*) H5F_ACC_RDONLY_F , H5F_ACC_TRUNC_F
 H5F_ACC_RDONLY_F  = 0
 H5F_ACC_TRUNC_F   = 0
+if(H5F_INITIALIZED) then
+   H5F_ACC_TRUNC_F   = H5F_ACC_TRUNC_F_LOCAL
+endif
+!write(*,*) H5F_ACC_RDONLY_F , H5F_ACC_TRUNC_F,  &
+!           H5F_ACC_RDONLY_F/= H5F_ACC_TRUNC_F 
 !
 end subroutine h5f_reset
 !
@@ -104,6 +115,12 @@ if(read_write=='r') then
 endif
 if(lexist.or. read_write=='w') then         ! Input file exists or write
    call h5f%open(infile, action=read_write) !, debug=debug, ok=ok)
+!write(*,*) H5F_ACC_RDONLY_F , H5F_ACC_TRUNC_F,  &
+!           H5F_ACC_RDONLY_F/= H5F_ACC_TRUNC_F 
+   H5F_INITIALIZED = .true.
+   H5F_ACC_TRUNC_F_LOCAL = H5F_ACC_TRUNC_F
+!write(*,*) H5F_ACC_RDONLY_F , H5F_ACC_TRUNC_F,  &
+!           H5F_ACC_RDONLY_F/= H5F_ACC_TRUNC_F 
 else
    ier_num = -1
    ier_msg(1) = infile
