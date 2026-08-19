@@ -31,11 +31,12 @@ implicit none
 !integer, parameter :: IS_GUESS      =  4
 !
 character(len=4) :: trial  ! Test atom name
+character(len=4) :: trial_full  ! Test atom name
 integer          :: is_cond     ! Dummy loop indices
 integer          :: i      ! Dummy loop indices
 !
 loop_main: do i=1, cr_nscat
-   call  guess_element(trial, is_cond, cr_at_lis(i), scat_equ=cr_scat_equ(i),   &
+   call  guess_element(trial, trial_full, is_cond, cr_at_lis(i), scat_equ=cr_scat_equ(i),   &
                                                      scat_equ_name=cr_at_equ(i))
 !write(*,'(2a,l2,2a5,i3)') ' ATOM_NAME ',cr_at_lis(i), cr_scat_equ(i), cr_at_equ(i), trial, is_cond
    if(is_cond==IS_EQUIVALENT) then

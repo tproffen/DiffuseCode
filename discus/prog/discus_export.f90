@@ -301,6 +301,7 @@ INTEGER           , dimension(:)  , allocatable :: shelx_n
 real(kind=PREC_DP), DIMENSION(:)  , ALLOCATABLE :: true_occ
 real(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: n_atoms 
 character(len=4)                             :: atom_name
+character(len=4)                             :: atom_full   ! Full atom name, might be ion
 CHARACTER (LEN=2), DIMENSION(:), ALLOCATABLE :: unique_names
 CHARACTER (LEN=4), DIMENSION(:,:), ALLOCATABLE :: shelx_names
 integer           ,DIMENSION(:,:), ALLOCATABLE :: shelx_types 
@@ -485,7 +486,7 @@ unique_n = 1
 !atom_name= cr_at_lis(1)(1:2)
 !i1 = iachar(  atom_name(2:2))
 !if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
-call guess_element(atom_name, is_cond, cr_at_lis(1), scat_equ=cr_scat_equ(1),   &
+call guess_element(atom_name, atom_full, is_cond, cr_at_lis(1), scat_equ=cr_scat_equ(1),   &
                                                      scat_equ_name=cr_at_equ(1))
 unique_names(1)   = atom_name(1:2)       ! Chemical element name only
 unique_n_atoms(1) = n_atoms(2,1)
@@ -494,7 +495,7 @@ loop_types: DO i=2, cr_nscat
 !     atom_name= cr_at_lis(i)(1:2)
 !     i1 = iachar(  atom_name(2:2))
 !     if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
-      call guess_element(atom_name, is_cond, cr_at_lis(i), scat_equ=cr_scat_equ(i),   &
+      call guess_element(atom_name, atom_full, is_cond, cr_at_lis(i), scat_equ=cr_scat_equ(i),   &
                                                            scat_equ_name=cr_at_equ(i))
       if(unique_names(j) == atom_name(1:2)) then  ! Previous name
          unique_n_atoms(j) = unique_n_atoms(j) + n_atoms(2,i)
@@ -504,7 +505,7 @@ loop_types: DO i=2, cr_nscat
 !  atom_name= cr_at_lis(i)(1:2)
 !  i1 = iachar(  atom_name(2:2))
 !  if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
-   call guess_element(atom_name, is_cond, cr_at_lis(i), scat_equ=cr_scat_equ(i),   &
+   call guess_element(atom_name, atom_full, is_cond, cr_at_lis(i), scat_equ=cr_scat_equ(i),   &
                                                         scat_equ_name=cr_at_equ(i))
    unique_n = unique_n + 1
    unique_names(unique_n) = atom_name(1:2)
@@ -564,7 +565,7 @@ shelx_n        = 0
 shelx_look     = 0
 loop_shelx: do i=1,cr_natoms
    j = cr_iscat(1,i)
-   call guess_element(atom_name, is_cond, cr_at_lis(j), scat_equ=cr_scat_equ(j),   &
+   call guess_element(atom_name, atom_full, is_cond, cr_at_lis(j), scat_equ=cr_scat_equ(j),   &
                                                         scat_equ_name=cr_at_equ(j))
    uu = 1
    loop_unique: do j=1, unique_n
