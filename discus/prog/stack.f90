@@ -262,6 +262,9 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
+            ier_msg(1) = 'Number of matrix elements does not match'
+            ier_msg(2) = 'the number of layer types. CHeck the layer'
+            ier_msg(3) = 'command. Add a ''reset'' prior to layers  '
          ENDIF 
       ENDIF 
 !                                                                       
@@ -1156,6 +1159,10 @@ if_distr: IF(st_distr.eq.ST_DIST_MATRIX) then
    ELSE
       IF(st_first>0 .AND. st_first<=st_ntypes) THEN
          st_type (i) = st_first
+         st_origin (1, 1) = 0.0 
+         st_origin (2, 1) = 0.0 
+         st_origin (3, 1) = 0.0 
+         st_number (st_type (1) ) = 1 
       ELSE 
          ier_num = -139 
          ier_typ = ER_APPL 
