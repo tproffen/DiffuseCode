@@ -960,7 +960,7 @@ if(exp_qfirst_o>0.0) then
 else
   xx = max(0.0D0, exp_temp_x(1)) !qmin_f
 endif
-ikk = exp_kfq
+ikk = exp_kfq+1  ! Use F(q) smoothed 
 !
 !
    iaf(iwin) = 2
@@ -1026,7 +1026,9 @@ ikk = exp_kfq
 !  Set range for frame 2
    infra(iwin, 2, 1) = ikk
    iframe = 2
-   write(string,'(a,i4,a,i4,a)')  'xmax[', ikk , ']-4.0, xmax[' , ikk , ']+0.1'
+   write(string,'(f5.2,a,f5.2,a,i4,a)') exp_qmax_f-4.0D0, ', min(',exp_qmax_f+4.0D0,', xmax[' , ikk , '])'
+!write(*,*) string(1:len_trim(string))
+!  write(string,'(a,i4,a,i4,a)')  'xmax[', ikk , ']-4.0, xmax[' , ikk , ']+0.1'
    length = len_trim(string)
    call set_skal(string,length)
    iframe = 1
@@ -1176,8 +1178,8 @@ frame(iwin, 3, 4) = 0.55
 !
 infra(iwin,1:3, :) = 0              ! Remove all data sets from frame
 !  Set range for frame 2
-infra(iwin, 2, 1) = ikk
 iframe = 2
+infra(iwin, 2, 1) = ikk
 write(string,'(f8.3,a, f8.3)' ) max(0.0D0,exp_temp_x(1) - 0.25D0), ',',max(exp_temp_x(1), exp_qmin_f) + 2.5
 length = len_trim(string)
 call set_skal(string,length)
@@ -1190,11 +1192,11 @@ write(string,'(f8.3,a, f8.3)' ) min(exp_qmax_f-2.0D0, xmax(ikk)-4.0), ',', min(e
 length = len_trim(string)
 call set_skal(string,length)
 !
-if(ey(1,2,2)/ey(1,3,2) > ey(1,2,1)/ey(1,3,1)) then
-   ey(1,2,1) = abs(ey(1,2,1))/ey(1,2,1) * abs(ey(1,2,2)) * abs(ey(1,3,1)/ey(1,3,2))
-elseif(ey(1,2,2)/ey(1,3,2) < ey(1,2,1)/ey(1,3,1)) then
-   ey(1,2,2) = abs(ey(1,2,2))/ey(1,2,2) * abs(ey(1,2,1)) * abs(ey(1,3,2)/ey(1,3,1))
-endif
+!Q if(ey(1,2,2)/ey(1,3,2) > ey(1,2,1)/ey(1,3,1)) then
+!Q    ey(1,2,1) = abs(ey(1,2,1))/ey(1,2,1) * abs(ey(1,2,2)) * abs(ey(1,3,1)/ey(1,3,2))
+!Q elseif(ey(1,2,2)/ey(1,3,2) < ey(1,2,1)/ey(1,3,1)) then
+!Q    ey(1,2,2) = abs(ey(1,2,2))/ey(1,2,2) * abs(ey(1,2,1)) * abs(ey(1,3,2)/ey(1,3,1))
+!Q endif
 !
 iframe = 1
 infra(iwin,1:3, :) = 0              ! Remove all data sets from frame
@@ -1316,6 +1318,10 @@ frame(iwin, iframe, 1) = 0.0                !Standard region for a single frame
 frame(iwin, iframe, 2) = 0.0
 frame(iwin, iframe, 3) = 1.0
 frame(iwin, iframe, 4) = 1.0
+ibuf (iwin, :, 1) = 0.1
+ibuf (iwin, :, 2) = 0.1
+ibuf (iwin, :, 3) = 0.1
+ibuf (iwin, :, 4) = 0.1
 !
 if(exp_kback>0) then                   ! With background
    infra(iwin,iframe, :) = 0                ! Remove all data sets from frame
