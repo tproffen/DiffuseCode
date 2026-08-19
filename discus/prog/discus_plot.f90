@@ -929,6 +929,7 @@ USE get_params_mod
 use errlist_mod
 use prompt_mod
 use take_param_mod
+use class_macro_internal, only: lmakro
 !
 implicit none
 !
@@ -945,6 +946,7 @@ LOGICAL :: labs = .FALSE.
 LOGICAL :: lord = .FALSE.
 LOGICAL :: lnor = .FALSE.
 logical :: l_select
+logical :: did_kill
 !
 INTEGER, PARAMETER :: NOPTIONAL = 13
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
@@ -1023,7 +1025,11 @@ owerte =   (/  0.00      ,  0.00      ,  0.        ,  0.        ,  0.0       ,  
                                        ier_typ = ER_APPL 
                                     ENDIF
                                  elseif(opara(OKILL)=='yes') THEN
-                                    call jmol_kill(.TRUE. , .FALSE.)
+                                    call jmol_kill(.TRUE. , .FALSE., did_kill)
+                                    if(did_kill .and. .not. lmakro) then
+                                       call sleep(1)
+                                       call sleep(1)
+                                    endif
                                  ENDIF
                               ENDIF
                            ENDIF
@@ -1521,6 +1527,7 @@ USE prompt_mod
 USE trig_degree_mod
 USE matrix_mod
 !
+use class_macro_internal, only: lmakro
 USE take_param_mod
 USE support_mod
 USE lib_do_operating_mod
@@ -1556,6 +1563,7 @@ INTEGER             :: length
 integer, dimension(2) :: pl_min_pos
 LOGICAL             :: lsecond  = .false.
 LOGICAL             :: lunit    = .false.
+LOGICAL             :: did_kill
 INTEGER, SAVE       :: jmol_no  = 0   ! Jmol instance number
 REAL(kind=PREC_DP), DIMENSION(4)  :: hkl      !Normal in reciprocal space for augmented matrix
 REAL(kind=PREC_DP), DIMENSION(3)  :: n_hkl    !Normal in reciprocal space
@@ -1606,7 +1614,7 @@ WRITE(geom,'(a3,i4.4,a1,i4.4)') ' -g', px, 'x', py
 !
 IF(pl_prog=='jmol') THEN
    IF(kill=='yes') THEN
-      CALL jmol_kill(.TRUE., .FALSE.)
+      CALL jmol_kill(.TRUE., .FALSE., did_kill)
    ENDIF
 !
 ! Determine window position and size
@@ -1936,6 +1944,10 @@ IF(pl_prog=='jmol') THEN
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
    CALL execute_command_line(line, wait=.true., &
         cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
+   if(did_kill .and. .not. lmakro) then
+      call sleep(1)
+      call sleep(1)
+   endif
 ENDIF
 !
 pl_jmol_used = .true.
@@ -2118,7 +2130,7 @@ end subroutine plot_jmol_pos
 !
 !*****7*****************************************************************
 !
-SUBROUTINE jmol_kill(lout, lfinal)
+SUBROUTINE jmol_kill(lout, lfinal, did_kill)
 !-
 ! Kill jmol processes that were started by this discus_suite 
 !
@@ -2128,11 +2140,13 @@ USE prompt_mod
 USE support_mod
 USE lib_do_operating_mod
 use lib_errlist_func
+use class_macro_internal , only: lmakro
 !
 IMPLICIT NONE
 !
 LOGICAL, INTENT(IN) :: lout   ! Flag info on screen for Linux
 LOGICAL, INTENT(IN) :: lfinal ! Flag info on screen for all systems
+LOGICAL, intent(out) :: did_kill
 !
 INTEGER, PARAMETER  :: ITMP     = 78  ! temporary unit number
 !
@@ -2145,7 +2159,6 @@ INTEGER             :: ios
 INTEGER             :: ier_cmd, exit_msg
 !
 LOGICAL :: lpresent
-LOGICAL :: did_kill
 !
 WRITE(kill_file, '(a,a,I10.10,a)') tmp_dir(1:LEN_TRIM(tmp_dir)),'/jmol.',PID,'.pid'
 INQUIRE(FILE=kill_file, EXIST=lpresent)
@@ -2204,9 +2217,13 @@ IF(ier_num==0) THEN
       READ(ITMP,*,IOSTAT=ios) jmol_pid!, jppid
    ENDDO
    CLOSE(ITMP)
-   IF(operating=='Linux' .AND. lout) THEN
-      IF(did_kill) WRITE(output_io,*) ' Processes were killed, hit ENTER to retrieve prompt'
-   ENDIF
+!   IF(operating=='Linux' .AND. lout) THEN
+      IF(did_kill .and. .not. lmakro) then
+!        call sleep(1)
+!        call sleep(1)
+         WRITE(output_io,*) ' Processes were killed, hit ENTER to retrieve prompt'
+      endif
+!  ENDIF
 ENDIF
 !
 WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
