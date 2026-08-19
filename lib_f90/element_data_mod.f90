@@ -11,6 +11,7 @@ IMPLICIT NONE
    PUBLIC get_ordi       ! Get Element Ordinal number
    PUBLIC get_charge     ! Get Element Ordinal number
    PUBLIC get_element    ! Get Element name as in Periodic table, no charge
+   PUBLIC get_element_name    ! Get Element name as in Periodic table, with charge
    PUBLIC guess_element    ! Guess Element name as in Periodic table, no charge
    PUBLIC get_mass       ! Get Element mass
    PUBLIC get_radius     ! Get Element radius
@@ -2593,7 +2594,7 @@ REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_radius = (/ &
         'FEA1','FEA2','FEB ','FE  ','FE12','FE12',&
         'COA1','COA2','COB ','CO  ','CO12','CO12',&
         'CUA1','CUA2','CUB ','CU  ','CU12','CUNI',&
-        'MOA1','MOA2','MOB ','MO  ','MO12','MO12',&
+        'MOA1','MOA2','MOB ','MO  ','MO12','MOZR',&
         'AGA1','AGA2','AGB ','AG  ','AG12','AG12',&
         'TAA1','TAA2','TAB ','TA  ','TA12','TA12',&
         'WA1 ','WA2 ','WB  ','W   ','W12 ','W12 ',&
@@ -2632,7 +2633,7 @@ REAL(kind=PREC_DP)              , DIMENSION(1:PER_MAX_WAVE), PARAMETER :: per_wa
           0.000000_PREC_DP, &
           0.000000_PREC_DP, &
           0.005000_PREC_DP, &  ! Cu
-          0.000000_PREC_DP, &
+          0.002000_PREC_DP, &  ! Mo
           0.000000_PREC_DP, &
           0.000000_PREC_DP, &
           0.000000_PREC_DP, &
@@ -2645,7 +2646,7 @@ REAL(kind=PREC_DP)              , DIMENSION(1:PER_MAX_WAVE), PARAMETER :: per_wa
           0.000000_PREC_DP, &
           0.000000_PREC_DP, &
           0.000160_PREC_DP, &  ! Cu
-          0.000000_PREC_DP, &
+          0.000160_PREC_DP, &  ! Mo
           0.000000_PREC_DP, &
           0.000000_PREC_DP, &
           0.000000_PREC_DP, &
@@ -2658,7 +2659,7 @@ REAL(kind=PREC_DP)              , DIMENSION(1:PER_MAX_WAVE), PARAMETER :: per_wa
           0.000000_PREC_DP, 0.000000_PREC_DP, &
           0.000000_PREC_DP, 0.000000_PREC_DP, &
           1.490000_PREC_DP, 1.560000_PREC_DP, &  ! Cu
-          0.000000_PREC_DP, 0.000000_PREC_DP, &
+          0.690000_PREC_DP, 0.800000_PREC_DP, &
           0.000000_PREC_DP, 0.000000_PREC_DP, &
           0.000000_PREC_DP, 0.000000_PREC_DP, &
           0.000000_PREC_DP, 0.000000_PREC_DP, &
@@ -2831,7 +2832,24 @@ end function  get_element
 !
 !*******************************************************************************
 !
-subroutine guess_element(at_name, is_cond, el_name, el_number, scat_equ, scat_equ_name)
+character(len=4) function get_element_name(el_number) result(at_name)
+!
+implicit none
+!
+integer          , intent(in)   :: el_number
+!
+!
+at_name = 'NONE'
+!
+if(el_number>0 .and. el_number<=PER_MAXELEMENT) then
+   at_name = per_name(el_number)
+endif
+!
+end function  get_element_name
+!
+!*******************************************************************************
+!
+subroutine guess_element(at_name, at_full, is_cond, el_name, el_number, scat_equ, scat_equ_name)
 !-
 !  Guess element name for atom types like H1N1, H22 etc.
 !+
@@ -2843,6 +2861,7 @@ use string_convert_mod
 implicit none
 !
 character(len=4)           , intent(out)  :: at_name       ! Chemical element name
+character(len=4)           , intent(out)  :: at_full       ! Chemical element name , might be ion
 integer                    , intent(out)  :: is_cond       ! Return condition
 character (len=*),           intent(in)   :: el_name
 integer          , optional, intent(in)   :: el_number
@@ -2862,6 +2881,10 @@ j = 0
 cond_number: if(present(el_number)) then
    j = el_number
 else cond_number
+   k =index(el_name,'+') 
+   if(k==3 .or. k==4) exit cond_number      ! Is ion
+   k =index(el_name,'-') 
+   if(k==3 .or. k==4) exit cond_number      ! Is ion
    if(present(scat_equ)) then               ! Optional scat_equ  is present
       if(scat_equ) then                     ! Atom is assigned to equivalent name
          if(present(scat_equ_name)) then    ! Equivalent atom name
@@ -2881,18 +2904,28 @@ endif cond_number
 !
 cond_guess: if(j>0) then                    ! el_number was present or equivalent successful
    at_name = per_element(j)
+   at_full = per_element(j)
    is_cond = IS_NEUTRAL
 else cond_guess                             ! Need for guesswork ... ...
    k = len_trim(el_name)
-   cond_ion: if(el_name(k:k)=='+' .or. el_name(k:k)=='-') then  ! Try ion
+   k = 0
+   if(el_name(3:3)=='+' .or. el_name(3:3)=='-') then  ! Try ion
+      k= 3
+   elseif(el_name(4:4)=='+' .or. el_name(4:4)=='-') then 
+      k= 4
+   endif
+!  cond_ion: if(el_name(k:k)=='+' .or. el_name(k:k)=='-') then  ! Try ion
+   cond_ion: if(k==3 .or. k==4)                           then  ! Try ion
       if(k>2) then             ! Sufficient digits for N3-, Ba2+ etc
          trial = el_name(1:k-2)
+         trial = el_name(1:k  )
       elseif(k==2) then
          exit cond_ion         ! Too short, try guess work
       endif
       call symbf(trial, j)
       if(j>0) then
          at_name = per_element(j)
+         at_full = per_name   (j)
          is_cond = IS_ION
          return
       endif
@@ -2908,6 +2941,7 @@ else cond_guess                             ! Need for guesswork ... ...
    call symbf(trial, j)
    if(j>0) then
       at_name = per_element(j)
+      at_full = per_element(j)
       is_cond = IS_GUESS
    else
 !     Try first two letters only
@@ -2915,6 +2949,7 @@ else cond_guess                             ! Need for guesswork ... ...
       call symbf(trial, j)
       if(j>0) then
          at_name = per_element(j)
+         at_full = per_element(j)
          is_cond = IS_GUESS_2
       else
 !     Try first letters only
@@ -2922,9 +2957,11 @@ else cond_guess                             ! Need for guesswork ... ...
          call symbf(trial, j)
          if(j>0) then
             at_name = per_element(j)
+            at_full = per_element(j)
             is_cond = IS_GUESS_1
          else
             at_name = 'NONE'
+            at_full = 'NONE'
             is_cond = IS_FAIL
          endif
       endif
