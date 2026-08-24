@@ -24,8 +24,8 @@ INTEGER                 ::  patt_origin   = 0
 INTEGER                 ::  ftyp          = 0
 LOGICAL                 ::  patt_excl9999 = .false.
 LOGICAL                 ::  patt_rsym     = .false.
-REAL(kind=PREC_DP)   , DIMENSION(3,3) ::  rho_eck       = reshape((/0,0,0, 1,0,0, 0,1,0/),shape(rho_eck))
-REAL(kind=PREC_DP)   , DIMENSION(3,2) ::  rho_vi        = reshape((/0.02,0.0,0.0, 0.0, 0.02,0.0/),shape(rho_vi))
+REAL(kind=PREC_DP)   , DIMENSION(3,4) ::  rho_eck       = reshape((/0,0,0, 1,0,0, 0,1,0, 0,0,1/),shape(rho_eck))
+REAL(kind=PREC_DP)   , DIMENSION(3,3) ::  rho_vi        = reshape((/0.02,0.0,0.0, 0.0, 0.02,0.0, 0.0,0.0,0.02/),shape(rho_vi))
 REAL(kind=PREC_DP)                    ::  patt_scale    = 1.0
 REAL(kind=PREC_DP)                    ::  patt_excl_val = -9999.0
 REAL(kind=PREC_DP)   , DIMENSION(20)  ::  e_aver_f2     = 0.0
