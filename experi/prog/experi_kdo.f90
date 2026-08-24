@@ -6,6 +6,7 @@ subroutine experi_mache_kdo(line, lend, length)
 use experi_reset
 !
 use exp2pdf_menu
+use exp3_pdf_menu
 !
 use blanks_mod
 use charact_mod
@@ -85,11 +86,16 @@ is_befehl: if(cmd(1:1) .eq.'@') then
    endif
 elseif(str_comp(cmd, 'exit', 2, lcmd, 4)) then  is_befehl
    lend = .TRUE.
-                                                                       
+!
 !-------Transform experimental powder pattern to PDF 'exp2pdf'
 !                                                                       
 elseif(str_comp(cmd, 'exp2pdf', 5, lcmd, 7)) then
    call exp2pdf
+!
+!-------Transform experimental powder pattern to PDF 'exp2pdf'
+!                                                                       
+elseif(str_comp(cmd, 'hkl2pdf', 5, lcmd, 7)) then
+   call exp3_pdf
 !                                                                 
 !------- reset to system start 'reset'
 !
