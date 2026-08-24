@@ -1,9 +1,10 @@
-MODULE patters_menu
+module patters_menu
 !
 CONTAINS
+!
 !*****7*****************************************************************
 !                                                                       
-      SUBROUTINE patterson (inverse_type) 
+SUBROUTINE patterson (inverse_type) 
 !-                                                                      
 !     patterson sets up the menu for inverse Fourier and Patterson      
 !     calculations.                                                     
@@ -40,55 +41,31 @@ USE lib_macro_func
 USE precision_mod
 USE str_comp_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER, INTENT(INOUT)  :: inverse_type
+INTEGER, INTENT(INOUT)  :: inverse_type
 !
       INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at leaset these no of parameters
-      INTEGER maxw 
+      INTEGER :: maxw 
 !                                                                       
       CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara 
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara 
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
 !
-      CHARACTER(1) extr_achs (0:3) 
-      CHARACTER(1) rho_extr_achs (0:3) 
       CHARACTER(len=10) :: befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(14) cvalue (0:6) 
-      CHARACTER(15) cgraphik (0:5) 
       CHARACTER(LEN=PREC_STRING) :: zeile
       CHARACTER(LEN=PREC_STRING) :: line 
-      LOGICAL lspace 
-      LOGICAL ltwo_files 
-      INTEGER e_io 
-      INTEGER i, j, ianz, lp, length 
-      INTEGER, dimension(3)    :: n_qxy    = 1 ! Number of data points in direct space
-      INTEGER indxg, lbef 
-REAL(kind=PREC_DP) :: divis (2) 
-REAL(kind=PREC_DP) :: rho_divis (2) 
-REAL(kind=PREC_DP) :: dvi1, dvi2, dvi3, dvi4, dvi5 
-real(kind=PREC_DP), dimension(3) :: u
-real(kind=PREC_DP), dimension(3) :: v
-real(kind=PREC_DP), dimension(3) :: w
+      INTEGER :: e_io 
+      INTEGER :: i, j, ianz, lp, length 
+      INTEGER :: indxg, lbef 
+!real(kind=PREC_DP), dimension(3) :: u
+!real(kind=PREC_DP), dimension(3) :: v
+!real(kind=PREC_DP), dimension(3) :: w
 !                                                                       
-!                                                                       
-      DATA extr_achs / ' ', 'h', 'k', 'l' / 
-      DATA rho_extr_achs / ' ', 'x', 'y', 'z' / 
-!                                                                       
-      DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map',      &
-      'Gnuplot', 'SHELXL', 'HKL F4' /                                   
-!                                                                       
-      DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude=Fobs'&
-     &, 'Phase angle   ', 'Real Part     ', 'Imaginary Part', 'Fcalc    &
-     &     ' /                                                          
 !
-
 diff_lsingle = .TRUE.
       maxw     = MAX(MIN_PARA,MAXSCAT+1)
-!     n_qxy    = 1
-!     n_nscat  = 1
-!     n_natom  = 1
 !                                                                       
       IF (cr_natoms.gt.0.and.as_natoms.gt.0) then 
          patt_scale = REAL(cr_ncatoms, kind=PREC_DP) / REAL(cr_natoms, kind=PREC_DP) 
@@ -105,38 +82,63 @@ diff_lsingle = .TRUE.
          prompt = prompt (1:len_str (prompt) ) //'/patterson' 
       ENDIF 
 !                                                                       
-!   10 CONTINUE 
 loop_main: do                ! Main command loop
+   IF (ier_num /= 0) THEN 
+      CALL errlist 
+      IF (ier_sta.ne.ER_S_LIVE) THEN 
+         IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
+            IF(sprompt /= prompt ) THEN
+               ier_num = -10
+               ier_typ = ER_COMM
+               ier_msg(1) = ' Error occured in '//prompt(8:LEN_TRIM(prompt))
+               prompt_status = PROMPT_ON 
+               prompt = orig_prompt
+               RETURN
+            ELSE
+               IF(lmacro_close) THEN
+                  CALL macro_close(-1)
+                  prompt_status = PROMPT_ON 
+               ENDIF 
+            ENDIF 
+         ENDIF 
+         IF (lblock) THEN 
+            ier_num = - 11 
+            ier_typ = ER_COMM 
+            prompt_status = PROMPT_ON 
+            prompt = orig_prompt
+            RETURN 
+         ENDIF 
+         CALL no_error 
+         lmakro_error = .FALSE.
+         sprompt = ' '
+      ENDIF 
+   ENDIF 
 !                                                                       
-      CALL no_error 
+   CALL no_error 
 !                                                                       
-      divis (1) = REAL(max (1, inc (1) - 1) , kind=PREC_DP) 
-      divis (2) = REAL(max (1, inc (2) - 1) , kind=PREC_DP) 
-      rho_divis (1) = REAL(max (1, rho_inc (1) - 1) , kind=PREC_DP) 
-      rho_divis (2) = REAL(max (1, rho_inc (2) - 1) , kind=PREC_DP) 
-!                                                                       
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
-      IF (ier_num.eq.0) then 
-         IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
-             line == char(13) .or. line(1:1) == '!'  ) cycle loop_main
+   CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
+   IF (ier_num /= 0) cycle loop_main
+   IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
+       line == char(13) .or. line(1:1) == '!'  ) cycle loop_main
 !                                                                       
 !     search for "="                                                    
 !                                                                       
-indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
-              .AND. INDEX(line,'==') == 0                            ) THEN
+   indxg = index (line, '=') 
+   IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
+                 .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+                 .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
+                             str_comp (befehl, '?   ', 2, lbef, 4) )    &
+                 .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     --evaluatean expression and assign the value to a variabble       
 !                                                                       
-            CALL do_math (line, indxg, length) 
-         ELSE 
+      CALL do_math (line, indxg, length) 
+      cycle loop_main
+   endif 
 !                                                                       
 !------ execute a macro file                                            
 !                                                                       
-            IF (befehl (1:1) .eq.'@') then 
+   IF(befehl (1:1) .eq.'@') then 
                IF (length.ge.2) then 
                   line(1:length-1) = line(2:length)
                   line(length:length) = ' '
@@ -149,132 +151,142 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Define the ascissa 'absc'                                         
 !                                                                       
-            ELSEIF (str_comp (befehl, 'abscissa', 1, lbef, 8) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ianz.eq.1) then 
-                  IF (cpara (1) .eq.'h') then 
-                     extr_abs = 1 
-                  ELSEIF (cpara (1) .eq.'k') then 
-                     extr_abs = 2 
-                  ELSEIF (cpara (1) .eq.'l') then 
-                     extr_abs = 3 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
+   ELSEIF (str_comp (befehl, 'abscissa', 1, lbef, 8) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ianz.eq.1) then 
+         IF (cpara (1) .eq.'h') then 
+            extr_abs = 1 
+         ELSEIF (cpara (1) .eq.'k') then 
+            extr_abs = 2 
+         ELSEIF (cpara (1) .eq.'l') then 
+            extr_abs = 3 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!     Define the top axis 'top'                                         
+!                                                                       
+   ELSEIF (str_comp (befehl, 'top', 1, lbef, 3) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ianz.eq.1) then 
+         IF (cpara (1) .eq.'h') then 
+            extr_top = 1 
+         ELSEIF (cpara (1) .eq.'k') then 
+            extr_top = 2 
+         ELSEIF (cpara (1) .eq.'l') then 
+            extr_top = 3 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
 !                                                                       
 !     continues a macro 'continue'                                      
 !                                                                       
-            ELSEIF (str_comp (befehl, 'continue', 1, lbef, 8) ) then 
+   ELSEIF (str_comp (befehl, 'continue', 1, lbef, 8) ) then 
                CALL macro_continue (zeile, lp) 
 !                                                                       
 !------ Echo a string, just for interactive check in a macro 'echo'     
 !                                                                       
-            ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
                CALL echo (zeile, lp) 
 !                                                                       
 !      Evaluate an expression, just for interactive check 'eval'        
 !                                                                       
-            ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
+   ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
                CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     Terminate invers Fourier / Patterson 'exit'                       
 !                                                                       
-            ELSEIF (str_comp (befehl, 'exit', 3, lbef, 4) ) then 
-               exit loop_main
+   ELSEIF (str_comp (befehl, 'exit', 3, lbef, 4) ) then 
+      exit loop_main
 !                                                                       
 !     define the input file names 'file'                                
 !                                                                       
-            ELSEIF (str_comp (befehl, 'file', 1, lbef, 4) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.ge.2) then 
+   ELSEIF (str_comp (befehl, 'file', 1, lbef, 4) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.gt.2) then 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+         cycle loop_main
+      ENDIF 
       IF (str_comp (cpara (1) , 'a    ', 1, lpara (2) , 5) ) then 
-                        CALL do_build_name (ianz, cpara, lpara, werte,  &
-                        maxw, 2)                                        
-                        IF (ier_num.eq.0) then 
-                           i = 1 
-                           rho_file (i) = cpara (2) (1:lpara(2))
-                        ENDIF 
+         CALL do_build_name (ianz, cpara, lpara, werte, maxw, 2)
+         IF (ier_num.eq.0) then 
+            i = 1 
+            rho_file (i) = cpara (2) (1:lpara(2))
+         ENDIF 
       ELSEIF (str_comp (cpara (1) , 'b    ', 1, lpara (2) , 5) ) then 
-                        CALL do_build_name (ianz, cpara, lpara, werte,  &
-                        maxw, 2)                                        
-                        IF (ier_num.eq.0) then 
-                           i = 2 
-                           rho_file (i) = cpara (2) (1:lpara(2))
-                        ENDIF 
-                     ELSE 
-                        ier_num = - 41 
-                        ier_typ = ER_APPL 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+         CALL do_build_name (ianz, cpara, lpara, werte, maxw, 2)
+         IF (ier_num.eq.0) then 
+            i = 2 
+            rho_file (i) = cpara (2) (1:lpara(2))
+         ENDIF 
+      ELSE 
+         ier_num = - 41 
+         ier_typ = ER_APPL 
+      ENDIF 
 !                                                                       
 !     Determine format for input 'format'                               
 !                                                                       
-            ELSEIF (str_comp (befehl, 'format', 1, lbef, 6) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.1.or.ianz.eq.2) then 
+   ELSEIF (str_comp (befehl, 'format', 1, lbef, 6) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.eq.1.or.ianz.eq.2) then 
 !                                                                       
 !     --Switch input type to GNUPLOT 'gnup'                             
 !                                                                       
-                     IF (str_comp (cpara (1) , 'gnup', 1, lpara (1) , 4)&
-                     ) then                                             
-                        ftyp = 3 
+      IF (str_comp (cpara (1) , 'gnup', 1, lpara (1) , 4)) then
+         ftyp = 3 
 !                                                                       
 !     Switch input type to standard  'stan'                             
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'stan', 2, lpara (1) &
-                     , 4) ) then                                        
-                        ftyp = 0 
+      ELSEIF (str_comp (cpara (1) , 'stan', 2, lpara (1)  , 4) ) then
+         ftyp = 0 
 !                                                                       
 !     Switch input type to SHELXL List Type 5 'shelxl'                  
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'shelx', 2, lpara (1)&
-                     , 5) ) then                                        
-                        ftyp = 4 
-                        rho_type (1) = AMPLITUDE 
-                        IF (ianz.eq.2) then 
-                           IF (str_comp (cpara (2) , 'fobs', 2, lpara ( &
-                           2) , 4) ) then                               
+      ELSEIF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) then
+         ftyp = 4 
+         rho_type (1) = AMPLITUDE 
+         IF (ianz.eq.2) then 
+            IF (str_comp (cpara (2) , 'fobs', 2, lpara (  2) , 4) ) then
                               rho_type (1) = AMPLITUDE 
-                           ELSEIF (str_comp (cpara (2) , 'fcalc', 2,    &
-                           lpara (2) , 5) ) then                        
-                              rho_type (1) = FCALC 
-                           ELSE 
-                              ier_num = - 52 
-                              ier_typ = ER_APPL 
-                           ENDIF 
-                        ENDIF 
+            ELSEIF (str_comp (cpara (2) , 'fcalc', 2, lpara (2) , 5) ) then
+               rho_type (1) = FCALC 
+            ELSE 
+               ier_num = - 52 
+               ier_typ = ER_APPL 
+            ENDIF 
+        ENDIF 
 !                                                                       
 !     Switch input type to SHELXS 'hklf4'                               
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'hklf4', 2, lpara (1)&
-                     , 5) ) then                                        
-                        ftyp = 5 
-                        rho_type (1) = INTENSITY 
-                        inverse_type = INV_PATT 
-                     ELSE 
-                        ier_num = - 9 
-                        ier_typ = ER_APPL 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+      ELSEIF (str_comp (cpara (1) , 'hklf4', 2, lpara (1) , 5) ) then                                        
+            ftyp = 5 
+            rho_type (1) = INTENSITY 
+            inverse_type = INV_PATT 
+         ELSE 
+            ier_num = - 9 
+            ier_typ = ER_APPL 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
 !                                                                       
 !     help 'help' , '?'                                                 
 !                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
+   ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
      &, '?   ', 1, lbef, 4) ) then                                      
                IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
                   lp = lp + 7 
@@ -294,7 +306,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define the whole layer 'laye'                                     
 !                                                                       
-            ELSEIF (str_comp (befehl, 'layer', 2, lbef, 5) ) then 
+   ELSEIF (str_comp (befehl, 'layer', 2, lbef, 5) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.11) then 
@@ -307,14 +319,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDDO 
                         inc (1) = nint (werte (10) ) 
                         inc (2) = nint (werte (11) ) 
-                        divis (1) = REAL(max (1, inc (1) - 1) , kind=PREC_DP) 
-                        divis (2) = REAL(max (1, inc (2) - 1) , kind=PREC_DP) 
-                        DO i = 1, 3 
-                        vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis (&
-                        1)                                              
-                        vi (i, 2) = (eck (i, 3) - eck (i, 1) ) / divis (&
-                        2)                                              
-                        ENDDO 
                      ENDIF 
                   ELSE 
                      ier_num = - 6 
@@ -324,7 +328,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define the lower left corner 'll'                                 
 !                                                                       
-      ELSEIF (str_comp (befehl, 'll  ', 2, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'll  ', 2, lbef, 4) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.3) then 
@@ -333,12 +337,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         j = 1 
                         DO i = 1, 3 
                         eck (i, j) = werte (i) 
-                        ENDDO 
-                        DO i = 1, 3 
-                        vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis (&
-                        1)                                              
-                        vi (i, 2) = (eck (i, 3) - eck (i, 1) ) / divis (&
-                        2)                                              
                         ENDDO 
                      ENDIF 
                   ELSE 
@@ -349,7 +347,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define the lower right corner 'lr'                                
 !                                                                       
-      ELSEIF (str_comp (befehl, 'lr  ', 2, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'lr  ', 2, lbef, 4) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.3) then 
@@ -359,49 +357,35 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         DO i = 1, 3 
                         eck (i, j) = werte (i) 
                         ENDDO 
-                        DO i = 1, 3 
-                        vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis (&
-                        1)                                              
-                        vi (i, 2) = (eck (i, 3) - eck (i, 1) ) / divis (&
-                        2)                                              
-                        ENDDO 
                      ENDIF 
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
                ENDIF 
-!                                                                       
+!
 !     define the number of points along the abscissa 'na'               
 !                                                                       
-            ELSEIF (str_comp (befehl, 'nabs', 2, lbef, 4) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.1) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
-                        IF (werte (1) .gt.0) then 
-                           inc (1) = nint (werte (1) ) 
-                           divis (1) = REAL(max (1, inc (1) - 1) , kind=PREC_DP) 
-                           DO i = 1, 3 
-                           vi (i, 1) = (eck (i, 2) - eck (i, 1) )       &
-                           / divis (1)                                  
-                           vi (i, 2) = (eck (i, 3) - eck (i, 1) )       &
-                           / divis (2)                                  
-                           ENDDO 
-                        ELSE 
-                           ier_num = - 12 
-                           ier_typ = ER_APPL 
-                        ENDIF 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+   ELSEIF (str_comp (befehl, 'nabs', 2, lbef, 4) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.eq.1) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num /= 0) cycle loop_main
+         IF (werte (1) .gt.0) then 
+            inc (1) = nint (werte (1) ) 
+         ELSE 
+            ier_num = - 12 
+            ier_typ = ER_APPL 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!
 !     define the number of points along the ordinate 'no'               
 !                                                                       
-            ELSEIF (str_comp (befehl, 'nord', 2, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'nord', 2, lbef, 4) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.1) then 
@@ -409,13 +393,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ier_num.eq.0) then 
                         IF (werte (1) .gt.0) then 
                            inc (2) = nint (werte (1) ) 
-                           divis (2) = REAL(max (1, inc (2) - 1) , kind=PREC_DP) 
-                           DO i = 1, 3 
-                           vi (i, 1) = (eck (i, 2) - eck (i, 1) )       &
-                           / divis (1)                                  
-                           vi (i, 2) = (eck (i, 3) - eck (i, 1) )       &
-                           / divis (2)                                  
-                           ENDDO 
                         ELSE 
                            ier_num = - 12 
                            ier_typ = ER_APPL 
@@ -426,10 +403,29 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_COMM 
                   ENDIF 
                ENDIF 
+!
+!     define the number of points along the top axis 'nt'               
+!                                                                       
+   ELSEIF (str_comp (befehl, 'ntop', 2, lbef, 4) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.eq.1) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num /= 0) cycle loop_main
+         IF (werte (1) .gt.0) then 
+            inc (3) = nint (werte (1) ) 
+         ELSE 
+            ier_num = - 12 
+            ier_typ = ER_APPL 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
 !                                                                       
 !     define the ordinate  'ordi'                                       
 !                                                                       
-            ELSEIF (str_comp (befehl, 'ordinate', 2, lbef, 8) ) then 
+   ELSEIF (str_comp (befehl, 'ordinate', 2, lbef, 8) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.1) then 
                   IF (cpara (1) .eq.'h') then 
@@ -446,169 +442,27 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Define the real space ascissa 'rhoabsc'                           
 !                                                                       
-            ELSEIF (str_comp (befehl, 'rhoabs', 4, lbef, 6) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ianz.eq.1) then 
-                  IF (cpara (1) .eq.'x') then 
-                     rho_extr_abs = 1 
-                  ELSEIF (cpara (1) .eq.'y') then 
-                     rho_extr_abs = 2 
-                  ELSEIF (cpara (1) .eq.'z') then 
-                     rho_extr_abs = 3 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-!                                                                       
-!     define the whole real space layer 'rholayer'                      
-!                                                                       
-            ELSEIF (str_comp (befehl, 'rholayer', 5, lbef, 8) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.11) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
-                        DO j = 1, 3 
-                        DO i = 1, 3 
-                        rho_eck (i, j) = werte ( (j - 1) * 3 + i) 
-                        ENDDO 
-                        ENDDO 
-                        rho_inc (1) = nint (werte (10) ) 
-                        rho_inc (2) = nint (werte (11) ) 
-                        rho_divis (1) = REAL(max (1, rho_inc (1)      &
-                        - 1) , kind=PREC_DP)                                          
-                        rho_divis (2) = REAL(max (1, rho_inc (2)      &
-                        - 1) , kind=PREC_DP)                                          
-                        DO i = 1, 3 
-                        rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i, 1)&
-                        ) / rho_divis (1)                               
-                        rho_vi (i, 2) = (rho_eck (i, 3) - rho_eck (i, 1)&
-                        ) / rho_divis (2)                               
-                        ENDDO 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!     define the real space lower left corner 'rholl'                   
-!                                                                       
-            ELSEIF (str_comp (befehl, 'rholl', 5, lbef, 5) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.3) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
-                        j = 1 
-                        DO i = 1, 3 
-                        rho_eck (i, j) = werte (i) 
-                        ENDDO 
-                        DO i = 1, 3 
-                        rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i, 1)&
-                        ) / rho_divis (1)                               
-                        rho_vi (i, 2) = (rho_eck (i, 3) - rho_eck (i, 1)&
-                        ) / rho_divis (2)                               
-                        ENDDO 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!     define the real space lower right corner 'rholr'                  
-!                                                                       
-            ELSEIF (str_comp (befehl, 'rholr', 5, lbef, 5) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.3) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
-                        j = 2 
-                        DO i = 1, 3 
-                        rho_eck (i, j) = werte (i) 
-                        ENDDO 
-                        DO i = 1, 3 
-                        rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i, 1)&
-                        ) / rho_divis (1)                               
-                        rho_vi (i, 2) = (rho_eck (i, 3) - rho_eck (i, 1)&
-                        ) / rho_divis (2)                               
-                        ENDDO 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------ define the real space number of points along the                
-!       abscissa 'rhonabs'                                              
-!                                                                       
-            ELSEIF (str_comp (befehl, 'rhona', 5, lbef, 5) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.1) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
-                        IF (werte (1) .gt.0) then 
-                           rho_inc (1) = nint (werte (1) ) 
-                           rho_divis (1) = REAL(max (1, rho_inc (1)   &
-                           - 1) , kind=PREC_DP)                                       
-                           DO i = 1, 3 
-                           rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i,&
-                           1) ) / rho_divis (1)                         
-                           rho_vi (i, 2) = (rho_eck (i, 3) - rho_eck (i,&
-                           1) ) / rho_divis (2)                         
-                           ENDDO 
-                        ELSE 
-                           ier_num = - 12 
-                           ier_typ = ER_APPL 
-                        ENDIF 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------ define the real space number of points along the                
-!       ordinate 'rhonord'                                              
-!                                                                       
-            ELSEIF (str_comp (befehl, 'rhono', 5, lbef, 5) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.1) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
-                        IF (werte (1) .gt.0) then 
-                           rho_inc (2) = nint (werte (1) ) 
-                           rho_divis (2) = REAL(max (1, rho_inc (2)   &
-                           - 1) , kind=PREC_DP)                                       
-                           DO i = 1, 3 
-                           rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i,&
-                           1) ) / rho_divis (1)                         
-                           rho_vi (i, 2) = (rho_eck (i, 3) - rho_eck (i,&
-                           1) ) / rho_divis (2)                         
-                           ENDDO 
-                        ELSE 
-                           ier_num = - 12 
-                           ier_typ = ER_APPL 
-                        ENDIF 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+   ELSEIF (str_comp (befehl, 'rhoabs', 4, lbef, 6) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ianz.eq.1) then 
+         IF (cpara (1) .eq.'x') then 
+            rho_extr_abs = 1 
+         ELSEIF (cpara (1) .eq.'y') then 
+            rho_extr_abs = 2 
+         ELSEIF (cpara (1) .eq.'z') then 
+            rho_extr_abs = 3 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
 !                                                                       
 !     define the real space ordinate  'rhoordi'                         
 !                                                                       
-            ELSEIF (str_comp (befehl, 'rhoor', 5, lbef, 5) ) then 
+   ELSEIF (str_comp (befehl, 'rhoord', 5, lbef, 6) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.1) then 
                   IF (cpara (1) .eq.'x') then 
@@ -623,24 +477,41 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ENDIF 
                ENDIF 
 !                                                                       
-!     define the real space  upper left corner 'rhoul'                  
+!     Define the real space top axis 'rhotop'                           
 !                                                                       
-            ELSEIF (str_comp (befehl, 'rhoul', 4, lbef, 5) ) then 
+   ELSEIF (str_comp (befehl, 'rhotop', 4, lbef, 6) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ianz.eq.1) then 
+         IF (cpara (1) .eq.'x') then 
+            rho_extr_top = 1 
+         ELSEIF (cpara (1) .eq.'y') then 
+            rho_extr_top = 2 
+         ELSEIF (cpara (1) .eq.'z') then 
+            rho_extr_top = 3 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!     define the whole real space layer 'rholayer'                      
+!                                                                       
+   ELSEIF (str_comp (befehl, 'rholayer', 5, lbef, 8) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
-                  IF (ianz.eq.3) then 
+                  IF (ianz.eq.11) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      IF (ier_num.eq.0) then 
-                        j = 3 
+                        DO j = 1, 3 
                         DO i = 1, 3 
-                        rho_eck (i, j) = werte (i) 
+                        rho_eck (i, j) = werte ( (j - 1) * 3 + i) 
                         ENDDO 
-                        DO i = 1, 3 
-                        rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i, 1)&
-                        ) / rho_divis (1)                               
-                        rho_vi (i, 2) = (rho_eck (i, 3) - rho_eck (i, 1)&
-                        ) / rho_divis (2)                               
                         ENDDO 
+                        rho_inc (1) = nint (werte (10) ) 
+                        rho_inc (2) = nint (werte (11) ) 
                      ENDIF 
                   ELSE 
                      ier_num = - 6 
@@ -648,237 +519,234 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ENDIF 
                ENDIF 
 !                                                                       
+!     define the real space lower left corner 'rholl'                   
+!                                                                       
+   ELSEIF (str_comp (befehl, 'rholl', 5, lbef, 5) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.eq.3) then 
+         CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            rho_eck(:, 1) = werte(1:3) 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!              ENDIF 
+!                                                                       
+!     define the real space lower right corner 'rholr'                  
+!                                                                       
+   ELSEIF (str_comp (befehl, 'rholr', 5, lbef, 5) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.eq.3) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            rho_eck (:, 2) = werte (1:3) 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!
+!     define the real space  left lower top corner 'rhotl'                  
+!                                                                       
+   ELSEIF (str_comp (befehl, 'rhotl', 4, lbef, 5) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.eq.3) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            rho_eck(:, 4) = werte (1:3) 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!
+!     define the real space  upper left corner 'rhoul'                  
+!                                                                       
+   ELSEIF (str_comp (befehl, 'rhoul', 4, lbef, 5) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.eq.3) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            rho_eck (:, 3) = werte (1:3) 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!------ define the real space number of points along the                
+!       abscissa 'rhonabs'                                              
+!                                                                       
+   ELSEIF (str_comp (befehl, 'rhona', 5, lbef, 5) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.eq.1) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (werte (1) .gt.0) then 
+               rho_inc (1) = nint (werte (1) ) 
+            ELSE 
+               ier_num = - 12 
+               ier_typ = ER_APPL 
+            ENDIF 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!------ define the real space number of points along the                
+!       ordinate 'rhonord'                                              
+!                                                                       
+   ELSEIF (str_comp (befehl, 'rhono', 5, lbef, 5) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.eq.1) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (werte (1) .gt.0) then 
+               rho_inc (2) = nint (werte (1) ) 
+            ELSE 
+               ier_num = - 12 
+               ier_typ = ER_APPL 
+            ENDIF 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!------ define the real space number of points along the                
+!       top axis 'rhontop'                                              
+!                                                                       
+   ELSEIF (str_comp (befehl, 'rhont', 5, lbef, 5) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz.eq.1) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (werte (1) .gt.0) then 
+               rho_inc (3) = nint (werte (1) ) 
+            ELSE 
+               ier_num = - 12 
+               ier_typ = ER_APPL 
+            ENDIF 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
 !     Reset the Fourier settings 'reset'
 !                                                                       
-            ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
+   ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
                CALL fourier_reset
 !                                                                       
 !     start the inverse Fourier transform 'run'                         
 !                                                                       
-            ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
 !                                                                       
-               IF (cr_v.le.0.0) then 
-                  ier_num = - 35 
-                  ier_typ = ER_APPL 
-                  ier_msg (1) = 'A proper unit cell must be defined' 
-                  ier_msg (2) = 'for this command to operate       ' 
-               ELSE 
-!                IF (inc(1)     * inc(2)     .gt. MAXQXY  .OR.          &
-                 if(any(rho_inc/=ubound(csf))) then
-                    n_qxy = rho_inc
-                    call alloc_diffuse_four (n_qxy )
-                    if(ier_num/=0) return
-                 endif
-                 if(cr_nscat/=ubound(cfact,2)) then
-                    call alloc_diffuse_scat(cr_nscat)
-                    if(ier_num/=0) return
-                 endif
-                 if(cr_natoms/=ubound(xat,1)) then
-                    call alloc_diffuse_atom(cr_natoms)
-                    if(ier_num/=0) return
-                 endif
-!                if(inc(1)>MAXQXY(1) .or. inc(2)>MAXQXY(2) .or. inc(3)>MAXQXY(3) .or. &
-!                    rho_inc(1)>MAXQXY(1) .or. rho_inc(2)>MAXQXY(2)  .OR.          &
-!                    cr_nscat>DIF_MAXSCAT              ) THEN
-!                   n_qxy   = MAX(1, n_qxy,inc MAXQXY)
-!                   n_qxy(3) = 1
-!                   n_qxy(1) = max(n_qxy(1), rho_inc(1))
-!                   n_qxy(2) = max(n_qxy(2), rho_inc(2))
-!                   n_qxy   = MAX(1, n_qxy,inc(1) * inc(2),rho_inc(1)*rho_inc(2),MAXQXY)
-!                   n_nscat = MAX(1, n_nscat,cr_nscat,DIF_MAXSCAT)
-!                   n_natom = MAX(1, n_natom,cr_natoms, NMAX, DIF_MAXAT)
-!                   call alloc_diffuse_four (n_qxy)
-!                   call alloc_diffuse_scat (n_nscat)
-!                   call alloc_diffuse_atom (n_natom )
-!                   IF (ier_num.ne.0) THEN
-!                     RETURN
-!                   ENDIF
-!                 ENDIF
-!                 IF (rho_inc (1) * rho_inc (2) .le.MAXQXY) then 
-                  if (rho_inc(1)<=MAXQXY(1) .and. rho_inc(2)<=MAXQXY(2)) then 
-                     IF (rho_type (2) .eq.INTENSITY.or.rho_type (2)     &
-                     .eq.AMPLITUDE.or.rho_type (2) .eq.REAL_PART) then  
-                        line = ' ' 
-                        line = rho_file (2) 
-                        i = rho_type (2) 
-                        rho_file (2) = rho_file (1) 
-                        rho_type (2) = rho_type (1) 
-                        rho_file (1) = trim(line)
-                        rho_type (1) = i 
-                     ENDIF 
-                     IF (ftyp.eq.4) then 
-                        ltwo_files = .false. 
-                        IF (rho_type (1) .eq.AMPLITUDE.or.rho_type (1)  &
-                        .eq.FCALC) then                                 
-                           CALL no_error 
-                        ELSE 
-                           ier_num = - 51 
-                           ier_typ = ER_APPL 
-                        ENDIF 
-                     ELSE 
-                        ltwo_files = .true. 
-                        IF (inverse_type.eq.INV_INV) then 
-                           IF (rho_type (1) .eq.INTENSITY.and.rho_type (&
-                           2) .eq.PHASE_ANG.or.rho_type (1)             &
-                           .eq.AMPLITUDE.and.rho_type (2)               &
-                           .eq.PHASE_ANG.or.rho_type (1)                &
-                           .eq.REAL_PART.and.rho_type (2) .eq.IMAG_PART)&
-                           then                                         
-                              CALL no_error 
-                           ELSE 
-                              ier_num = - 36 
-                              ier_typ = ER_APPL 
-                           ENDIF 
-                        ELSEIF (inverse_type.eq.INV_PATT) then 
-                           IF (rho_type (1) .eq.INTENSITY.or.rho_type ( &
-                           1) .eq.AMPLITUDE.or.rho_type (1)             &
-                           .eq.REAL_PART.and.rho_type (2) .eq.IMAG_PART)&
-                           then                                         
-                              CALL no_error 
-                           ELSE 
-                              ier_num = - 38 
-                              ier_typ = ER_APPL 
-                           ENDIF 
-                           IF (rho_type (1) .eq.INTENSITY) then 
-                              ltwo_files = .false. 
-      IF (patt_mode.eq.PATT_SHARP.or.patt_mode.eq.PATT_SUPER) then 
-                                 IF (ftyp.eq.5) then 
-                                    cpara (1) = 'screen' 
-                                    lpara (1) = 6 
-                                    cpara (2) = rho_file (1) 
-                                    lpara (2) = len_str (cpara (2) ) 
-                                    CALL e_create (e_io, cpara (2),     &
-                                    lpara (2), .false.)                 
-                                 ELSE 
-                                    ier_num = - 38 
-                                    ier_typ = ER_APPL 
-                                 ENDIF 
-                              ENDIF 
-                           ENDIF 
-                        ELSEIF (inverse_type.eq.INV_DIFF) then 
-                           ltwo_files = .false. 
-                        ENDIF 
-                     ENDIF 
-                     IF (ier_num.eq.0) then 
-                        CALL do_patters (inverse_type, ltwo_files,      &
-                        cr_vr, cr_acentric)                             
-                        four_was_run = .true.
-                        ! Specify the fourier type that was calculated
-                        four_last = 0
-                        IF(inc(1)>1) four_last = four_last + 1
-                        IF(inc(2)>1) four_last = four_last + 1
-                        IF(inc(3)>1) four_last = four_last + 1
-                        four_last = four_last + 4  ! Patt    N-Dim
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 71 
-                     ier_typ = ER_APPL 
-                  ENDIF 
-               ENDIF 
+      call patterson_check_values(inverse_type) !, lspace)
+      call patterson_run(inverse_type)
 !                                                                       
 !     Run statistics on the normalized structure factor 'stat'          
 !                                                                       
-            ELSEIF (str_comp (befehl, 'statistics', 1, lbef, 10) ) then 
-               IF (cr_v.le.0.0) then 
-                  ier_num = - 35 
-                  ier_typ = ER_APPL 
-                  ier_msg (1) = 'A proper unit cell must be defined' 
-      ier_msg (2)  = 'for this command to operate       ' 
-               ELSE 
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.ge.1) then 
-                        IF (str_comp (cpara (1) , 'screen', 2, lpara (1)&
-                        , 6) ) then                                     
-                           e_io = 6 
-                        ELSEIF (str_comp (cpara (1) , 'file', 2, lpara (&
-                        1) , 4) ) then                                  
-                           e_io = 38 
-                           CALL do_build_name (ianz, cpara, lpara,      &
-                           werte, maxw, 2)                              
-                        ELSE 
-                           ier_num = - 6 
-                           ier_typ = ER_COMM 
-                        ENDIF 
-                        IF (ier_num.eq.0) then 
-                           CALL e_create (e_io, cpara (2), lpara (2),   &
-                           .true.)                                      
-                        ENDIF 
-                     ELSE 
-                        ier_num = - 6 
-                        ier_typ = ER_COMM 
-                     ENDIF 
-                  ENDIF 
-               ENDIF 
+   ELSEIF (str_comp (befehl, 'statistics', 1, lbef, 10) ) then 
+      IF (cr_v.le.0.0) then 
+         ier_num = - 35 
+         ier_typ = ER_APPL 
+         ier_msg (1) = 'A proper unit cell must be defined' 
+         ier_msg (2)  = 'for this command to operate       ' 
+         cycle loop_main
+      endif
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.ge.1) then 
+            IF (str_comp (cpara (1) , 'screen', 2, lpara (1), 6) ) then                                     
+               e_io = 6 
+            ELSEIF (str_comp (cpara (1) , 'file', 2, lpara (1) , 4) ) then                                  
+               e_io = 38 
+               CALL do_build_name (ianz, cpara, lpara, werte, maxw, 2)                              
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+            IF (ier_num.eq.0) then 
+               CALL e_create (e_io, cpara (2), lpara (2), .true.)                                      
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
 !                                                                       
 !     Define the type of the input file 'type'                          
 !                                                                       
-            ELSEIF (str_comp (befehl, 'type', 1, lbef, 4) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.2) then 
-      IF (str_comp (cpara (1) , 'a    ', 1, lpara (1) , 5) ) then 
-                        i = 1 
-      ELSEIF (str_comp (cpara (1) , 'b    ', 1, lpara (1) , 5) ) then 
-                        i = 2 
-                     ELSE 
-                        ier_num = - 41 
-                        ier_typ = ER_APPL 
-                        RETURN
-                     ENDIF 
-                     IF (ier_num.eq.0) then 
-                        IF (str_comp (cpara (2) , 'intensity', 2, lpara (2) &
-                        , 9) ) then                                     
+   ELSEIF (str_comp (befehl, 'type', 1, lbef, 4) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num /= 0) cycle loop_main
+      IF (ianz /= 2) then 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+         cycle loop_main
+      ENDIF 
+      IF (str_comp(cpara(1), 'a    ', 1, lpara(1), 5) ) then 
+         i = 1 
+      ELSEIF (str_comp(cpara(1), 'b    ', 1, lpara(1), 5) ) then 
+         i = 2 
+      ELSE 
+         ier_num = -41 
+         ier_typ = ER_APPL 
+         RETURN
+      ENDIF 
+      IF (ier_num.eq.0) then 
+         IF (str_comp (cpara (2) , 'intensity', 2, lpara (2) , 9) ) then                                     
                            rho_type (i) = INTENSITY 
-                        ELSEIF (str_comp (cpara (2) , 'amplitude', 1, lpara &
-                        (2) , 9) ) then                                 
+         ELSEIF (str_comp (cpara (2) , 'amplitude', 1, lpara (2) , 9) ) then                                 
                            rho_type (i) = AMPLITUDE 
-                        ELSEIF (str_comp (cpara (2) , 'phase', 1, lpara &
-                        (2) , 5) ) then                                 
+         ELSEIF (str_comp (cpara (2) , 'phase', 1, lpara (2) , 5) ) then                                 
                            rho_type (i) = PHASE_ANG 
-                        ELSEIF (str_comp (cpara (2) , 'real ', 1, lpara &
-                        (2) , 5) ) then                                 
+         ELSEIF (str_comp (cpara (2) , 'real ', 1, lpara (2) , 5) ) then                                 
                            rho_type (i) = REAL_PART 
-                        ELSEIF (str_comp (cpara (2) , 'imaginary', 2, lpara &
-                        (2) , 9) ) then                                 
+         ELSEIF (str_comp (cpara (2) , 'imaginary', 2, lpara (2) , 9) ) then                                 
                            rho_type (i) = IMAG_PART 
-                        ELSEIF (str_comp (cpara (2) , 'fobs', 2, lpara (&
-                        2) , 4) ) then                                  
+         ELSEIF (str_comp (cpara (2) , 'fobs', 2, lpara (2) , 4) ) then                                  
                            rho_type (i) = AMPLITUDE 
-                        ELSEIF (str_comp (cpara (2) , 'fcalc', 2, lpara &
-                        (2) , 5) ) then                                 
+         ELSEIF (str_comp (cpara (2) , 'fcalc', 2, lpara(2) , 5) ) then                                 
                            rho_type (i) = FCALC 
-                        ELSE 
-                           rho_type (i) = 0 
-                           ier_num = - 42 
-                           ier_typ = ER_APPL 
-                        ENDIF 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+         ELSE 
+            rho_type (i) = 0 
+            ier_num = - 42 
+            ier_typ = ER_APPL 
+         ENDIF 
+      ENDIF 
+!              ENDIF 
 !                                                                       
 !     define the scale factor                                           
 !                                                                       
-            ELSEIF (str_comp (befehl, 'scale', 2, lbef, 5) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.1) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
-                        patt_scale = werte (1) 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+   ELSEIF (str_comp (befehl, 'scale', 2, lbef, 5) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.eq.1) then 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF (ier_num.eq.0) then 
+               patt_scale = werte (1) 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
 !                                                                       
 !     set various parameters 'set'                                      
 !                                                                       
-            ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
+   ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.2) then 
@@ -953,259 +821,323 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define the sign for inverse or direct Fourier 'sign'              
 !                                                                       
-            ELSEIF (str_comp (befehl, 'sign', 2, lbef, 4) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (str_comp (cpara (1) , 'inverse', 1, lpara (1) , 7)&
-                  ) then                                                
-                     patt_sign = - 1 
-                  ELSEIF (str_comp (cpara (1) , 'fourier', 1, lpara (1) &
-                  , 7) ) then                                           
-                     patt_sign = 1 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+   ELSEIF (str_comp (befehl, 'sign', 2, lbef, 4) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.eq.0) then 
+         IF(str_comp(cpara(1), 'inverse', 1, lpara(1), 7)) then
+            patt_sign = - 1 
+         ELSEIF(str_comp(cpara(1), 'fourier', 1, lpara(1), 7) ) then
+            patt_sign = 1 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
 !                                                                       
 !     Show the current settings for the Fourier 'show'                  
 !                                                                       
-            ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-               IF (inverse_type.eq.INV_INV) then 
-      WRITE (output_io,  * ) ' technique           : inverse Fourier' 
-               ELSEIF (inverse_type.eq.INV_DIFF) then 
-!23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
-      WRITE (output_io,  * ) ' technique           : Difference Fourier &
-     &'                                                                 
-               ELSEIF (inverse_type.eq.INV_PATT) then 
-                  IF (patt_mode.eq.PATT_NORMAL) then 
-      WRITE (output_io,  * ) ' technique           : Patterson ' 
-                  ELSEIF (patt_mode.eq.PATT_SHARP) then 
-      WRITE (output_io,  * ) ' technique           : ', 'sharpened Patte&
-     &rson '                                                            
-                  ELSEIF (patt_mode.eq.PATT_SUPER) then 
-      WRITE (output_io,  * ) ' technique           : ', 'super sharpened&
-     & Patterson '                                                      
-                  ENDIF 
-                  IF (patt_origin.eq.PATT_SUBTRACT) then 
-      WRITE (output_io,  * ) ' origin peak         : removed' 
-                  ENDIF 
-               ENDIF 
-               IF (patt_accu.eq.PATT_INIT) then 
-      WRITE (output_io,  * ) ' Accumulation mode   : Initialize' 
-               ELSEIF (patt_accu.eq.PATT_ADD) then 
-      WRITE (output_io,  * ) ' Accumulation mode   : Add to previous' 
-               ENDIF 
-               IF (patt_excl9999) then 
-                  WRITE (output_io, 30605) patt_excl_val 
-30605 FORMAT     ('  Exclusions          : Data points equal to ',      &
-     &           g13.6e2,' will be excluded')                           
-               ELSE 
-      WRITE (output_io,  * ) ' Exclusions          : All data points wil&
-     &l ', 'be treated as data'                                         
-               ENDIF 
-               WRITE (output_io, * ) 
-      WRITE (output_io,  * ) ' Geometry            : reciprocal space' 
-               IF (ftyp.eq.4.or.ftyp.eq.5) then 
-                  IF (patt_rsym) then 
-      WRITE (output_io,  * ) ' Input file format   : ', cgraphik (ftyp) &
-     &, ' reciprocal space symmetry is applied'                         
-                  ELSE 
-      WRITE (output_io,  * ) ' Input file format   : ', cgraphik (ftyp) &
-     &, ' reciprocal space symmetry is ignored'                         
-                  ENDIF 
-               ELSE 
-      WRITE (output_io,  * ) ' Input file format   : ', cgraphik (ftyp) 
-               ENDIF 
-      WRITE (output_io,  * ) ' Input file A        : ', rho_file (1) 
-      WRITE (output_io,  * ) ' File type  A        : ', cvalue (rho_type&
-     & (1) )                                                            
-      WRITE (output_io,  * ) ' Input file B        : ', rho_file (2) 
-      WRITE (output_io,  * ) ' File type  B        : ', cvalue (rho_type&
-     & (2) )                                                            
-      WRITE (output_io,  * ) ' Scale factor        : ', patt_scale 
-      WRITE (output_io,  * ) ' Sign in exponent    : ', patt_sign 
+   ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
+      call patterson_check_values(inverse_type) !, lspace)
+      call patterson_show(inverse_type) !, lspace)
 !                                                                       
-!     --Output of reciprocal space geometry only for non-SHELXL files   
+!     define the left lower top corner 'tl'                                 
 !                                                                       
-               IF (ftyp.ne.4.and.ftyp.ne.5) then 
-                  WRITE (output_io, 3060) ( (eck (i, j), i = 1, 3),     &
-                  j = 1, 3)                                             
-                  WRITE (output_io, 3061) inc 
-                  DO i = 1, 3 
-                  u (i) = vi (i, 1) 
-                  v (i) = 0.0 
-                  w (i) = vi (i, 2) 
-                  ENDDO 
-                  lspace = .false. 
-                  dvi1 = do_blen (lspace, u, v) 
-                  dvi2 = do_blen (lspace, w, v) 
-                  IF (inc (1) .gt.1.and.inc (2) .gt.1) then 
-                     dvi3 = do_bang (lspace, u, v, w) 
-                  ELSE 
-                     dvi3 = 0.0 
-                  ENDIF 
-                  IF (dvi3.gt.0) then 
-                     dvi4 = dvi2 / dvi1 
-                     IF (abs (u (extr_abs) ) .gt.0.0.and.abs (w (       &
-                     extr_ord) ) .gt.0.0) then                          
-                        dvi5 = (dvi2 / w (extr_ord) ) / (dvi1 / u (     &
-                        extr_abs) )                                     
-                     ELSE 
-                        ier_num = - 4 
-                        ier_typ = ER_FOUR 
-                     ENDIF 
-                  ELSE 
-                     dvi4 = 0.0 
-                     dvi5 = 0.0 
-                  ENDIF 
-                  WRITE (output_io, 3062) (vi (i, 1), i = 1, 3),        &
-                  dvi1, (vi (i, 2), i = 1, 3), dvi2, dvi3, dvi4, dvi5   
-                  WRITE (output_io, 3063) extr_achs (extr_abs) 
-                  WRITE (output_io, 3064) extr_achs (extr_ord) 
-                  IF (ier_num.ne.0) then 
-                     CALL errlist 
-                     CALL no_error 
-                  ENDIF 
+   ELSEIF (str_comp (befehl, 'tl  ', 1, lbef, 4) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.eq.3) then 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.eq.0) then 
+                  eck (:, 4) = werte (1:3) 
                ENDIF 
-!                                                                       
-               WRITE (output_io, * ) 
-      WRITE (output_io,  * ) ' Geometry   : real space' 
-               WRITE (output_io, * ) 
-               WRITE (output_io, 3260) ( (rho_eck (i, j), i = 1, 3),    &
-               j = 1, 3)                                                
-               WRITE (output_io, 3061) rho_inc (1:2)
-               DO i = 1, 3 
-               u (i) = rho_vi (i, 1) 
-               v (i) = 0.0 
-               w (i) = rho_vi (i, 2) 
-               ENDDO 
-               lspace = .true. 
-               dvi1 = do_blen (lspace, u, v) 
-               dvi2 = do_blen (lspace, w, v) 
-               IF (rho_inc (1) .gt.1.and.rho_inc (2) .gt.1) then 
-                  dvi3 = do_bang (lspace, u, v, w) 
-               ELSE 
-                  dvi3 = 0.0 
-               ENDIF 
-               IF (dvi3.gt.0) then 
-                  dvi4 = dvi2 / dvi1 
-                  IF (abs (u (rho_extr_abs) ) .gt.0.0.and.abs (w (      &
-                  rho_extr_ord) ) .gt.0.0) then                         
-                     dvi5 = (dvi2 / w (rho_extr_ord) ) / (dvi1 / u (    &
-                     rho_extr_abs) )                                    
-                  ELSE 
-                     ier_num = - 4 
-                     ier_typ = ER_FOUR 
-                  ENDIF 
-               ELSE 
-                  dvi4 = 0.0 
-                  dvi5 = 0.0 
-               ENDIF 
-               WRITE (output_io, 3262) (rho_vi (i, 1), i = 1, 3),       &
-               dvi1, (rho_vi (i, 2), i = 1, 3), dvi2, dvi3, dvi4, dvi5  
-               WRITE (output_io, 3063) rho_extr_achs (rho_extr_abs) 
-               WRITE (output_io, 3064) rho_extr_achs (rho_extr_ord) 
-               IF (ier_num.ne.0) then 
-                  CALL errlist 
-                  CALL no_error 
-               ENDIF 
+            ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
 !                                                                       
 !     define the upper left corner 'ul'                                 
 !                                                                       
-      ELSEIF (str_comp (befehl, 'ul  ', 1, lbef, 4) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+   ELSEIF (str_comp (befehl, 'ul  ', 1, lbef, 4) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.eq.3) then 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) then 
-                  IF (ianz.eq.3) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
-                        j = 3 
-                        DO i = 1, 3 
-                        eck (i, j) = werte (i) 
-                        ENDDO 
-                        DO i = 1, 3 
-                        vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis (&
-                        1)                                              
-                        vi (i, 2) = (eck (i, 3) - eck (i, 1) ) / divis (&
-                        2)                                              
-                        ENDDO 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
+                  j = 3 
+                  eck (:, j) = werte (1:3) 
                ENDIF 
+            ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
 !                                                                       
 !     prepare Wilson statistics 'wilson'                                
 !                                                                       
-            ELSEIF (str_comp (befehl, 'wilson', 1, lbef, 6) ) then 
-               IF (cr_v.le.0.0) then 
-                  ier_num = - 35 
-                  ier_typ = ER_APPL 
-                  ier_msg (1) = 'A proper unit cell must be defined' 
-      ier_msg (2)  = 'for this command to operate       ' 
-               ELSE 
-                  CALL wilson_calc 
-               ENDIF 
+   ELSEIF (str_comp (befehl, 'wilson', 1, lbef, 6) ) then 
+      IF (cr_v.le.0.0) then 
+         ier_num = - 35 
+         ier_typ = ER_APPL 
+         ier_msg (1) = 'A proper unit cell must be defined' 
+         ier_msg (2)  = 'for this command to operate       ' 
+      ELSE 
+         CALL wilson_calc 
+      ENDIF 
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-            ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
-               IF (zeile.ne.' ') then 
-                  CALL do_operating (zeile (1:lp), lp) 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
+   ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
+      IF (zeile.ne.' ') then 
+         CALL do_operating (zeile (1:lp), lp) 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
 !                                                                       
 !                                                                       
 !     waiting for user input                                            
 !                                                                       
-            ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
-               CALL do_input (zeile, lp) 
+   ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+      CALL do_input (zeile, lp) 
 !                                                                       
 !     unknown command                                                   
 !                                                                       
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ENDIF 
-      ENDIF 
-      IF (ier_num.ne.0) THEN 
-         CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) THEN 
-            IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-               IF(sprompt /= prompt ) THEN
-                  ier_num = -10
-                  ier_typ = ER_COMM
-                  ier_msg(1) = ' Error occured in '//prompt(8:LEN_TRIM(prompt))
-                  prompt_status = PROMPT_ON 
-                  prompt = orig_prompt
-                  RETURN
-               ELSE
-                  IF(lmacro_close) THEN
-                     CALL macro_close(-1)
-                     prompt_status = PROMPT_ON 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-            IF (lblock) THEN 
-               ier_num = - 11 
-               ier_typ = ER_COMM 
-               prompt_status = PROMPT_ON 
-               prompt = orig_prompt
-               RETURN 
-            ENDIF 
-            CALL no_error 
-            lmakro_error = .FALSE.
-            sprompt = ' '
-         ENDIF 
-      ENDIF 
+   ELSE 
+      ier_num = - 8 
+      ier_typ = ER_COMM 
+   ENDIF 
+!
 enddo loop_main
 !
 !
-      prompt = orig_prompt
+prompt = orig_prompt
+!                                                                       
+END SUBROUTINE patterson                      
+!
+!*****7*****************************************************************
+!
+subroutine patterson_check_values(inverse_type)! , lspace)
+!-
+!  Check / set values for Patterson
+!
+use diffuse_mod 
+use inverse_mod
+use metric_mod
+use output_mod
+use patters_mod
+!
+use errlist_mod
+use lib_errlist_func
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer, intent(inout)  :: inverse_type
+!logical, intent(inout)     :: lspace 
+!
+integer :: i
+!
+inc(1) = max(1, inc(1))       ! Set default to at least 1
+inc(2) = max(1, inc(2))       ! Set default to at least 1
+inc(3) = max(1, inc(3))       ! Set default to at least 1
+rho_inc(1) = max(1, rho_inc(1))       ! Set default to at least 1
+rho_inc(2) = max(1, rho_inc(2))       ! Set default to at least 1
+rho_inc(3) = max(1, rho_inc(3))       ! Set default to at least 1
+DO i = 1, 3 
+   vi(i, 1) = (eck(i, 2) - eck(i, 1) ) / (inc(1)-1)
+   vi(i, 2) = (eck(i, 3) - eck(i, 1) ) / (inc(2)-1)
+   vi(i, 3) = (eck(i, 4) - eck(i, 1) ) / (inc(3)-1)
+   rho_vi(i, 1) = (rho_eck(i, 2) - rho_eck(i, 1) ) / (rho_inc(1)-1)
+   rho_vi(i, 2) = (rho_eck(i, 3) - rho_eck(i, 1) ) / (rho_inc(2)-1)
+   rho_vi(i, 3) = (rho_eck(i, 4) - rho_eck(i, 1) ) / (rho_inc(3)-1)
+ENDDO 
+!
+end subroutine patterson_check_values
+!
+!*****7*****************************************************************
+!
+subroutine patterson_show(inverse_type) !, lspace)
+!-
+!  show current patterson settings
+!
+use diffuse_mod 
+use inverse_mod
+use metric_mod
+use output_mod
+use patters_mod
+!
+use errlist_mod
+use lib_errlist_func
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer, intent(inout)  :: inverse_type
+logical                    :: lspace 
+!
+character(len=1) :: extr_achs (0:3) 
+character(len=1) :: rho_extr_achs (0:3) 
+character(len=15) :: cgraphik (0:5) 
+character(len=14) :: cvalue (0:6) 
+integer :: i,j
+real(kind=PREC_DP) :: dvi1, dvi2, dvi3, dvi4, dvi5 
+real(kind=PREC_DP), dimension(3) :: u
+real(kind=PREC_DP), dimension(3) :: v
+real(kind=PREC_DP), dimension(3) :: w
+!                                                                       
+DATA extr_achs / ' ', 'h', 'k', 'l' / 
+DATA rho_extr_achs / ' ', 'x', 'y', 'z' / 
+!                                                                       
+DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map',      &
+                'Gnuplot' , 'SHELXL'    , 'HKL F4' /                                   
+!                                                                       
+DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude=Fobs'            &
+            , 'Phase angle   ', 'Real Part     ', 'Imaginary Part', 'Fcalc     ' /                                                          
+!
+IF (inverse_type.eq.INV_INV) then 
+      WRITE (output_io,  * ) ' technique           : inverse Fourier' 
+ELSEIF (inverse_type.eq.INV_DIFF) then 
+!23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
+      WRITE(output_io,  * ) ' technique           : Difference Fourier &
+     &'                                                                 
+ELSEIF (inverse_type.eq.INV_PATT) then 
+   IF (patt_mode.eq.PATT_NORMAL) then 
+      WRITE(output_io,  * ) ' technique           : Patterson ' 
+   ELSEIF (patt_mode.eq.PATT_SHARP) then 
+      WRITE(output_io,  * ) ' technique           : ', 'sharpened Patterson '                                                            
+   ELSEIF (patt_mode.eq.PATT_SUPER) then 
+      WRITE(output_io,  * ) ' technique           : ', 'super sharpened Patterson '                                                      
+   ENDIF 
+   IF (patt_origin.eq.PATT_SUBTRACT) then 
+      WRITE(output_io,  * ) ' origin peak         : removed' 
+   ENDIF 
+ENDIF 
+!
+IF (patt_accu.eq.PATT_INIT) then 
+   WRITE (output_io,  * ) ' Accumulation mode   : Initialize' 
+ELSEIF (patt_accu.eq.PATT_ADD) then 
+   WRITE (output_io,  * ) ' Accumulation mode   : Add to previous' 
+ENDIF 
+!
+IF (patt_excl9999) then 
+                  WRITE (output_io, 30605) patt_excl_val 
+30605 FORMAT     ('  Exclusions          : Data points equal to ',      &
+     &           g13.6e2,' will be excluded')                           
+ELSE 
+   WRITE (output_io,  * ) ' Exclusions          : All data points will ', 'be treated as data'                                         
+ENDIF 
+!
+WRITE (output_io, * ) 
+WRITE (output_io,  * ) ' Geometry            : reciprocal space' 
+!
+IF (ftyp.eq.4.or.ftyp.eq.5) then 
+   IF (patt_rsym) then 
+      WRITE (output_io,  * ) ' Input file format   : ', cgraphik (ftyp) &
+     &, ' reciprocal space symmetry is applied'                         
+   ELSE 
+      WRITE (output_io,  * ) ' Input file format   : ', cgraphik (ftyp) &
+     &, ' reciprocal space symmetry is ignored'                         
+   ENDIF 
+ELSE 
+   WRITE (output_io,  * ) ' Input file format   : ', cgraphik (ftyp) 
+ENDIF 
+!
+WRITE (output_io,  * ) ' Input file A        : ', rho_file (1) (1:len_trim(rho_file(1)))
+WRITE (output_io,  * ) ' File type  A        : ', cvalue (rho_type(1) )                                                            
+WRITE (output_io,  * ) ' Input file B        : ', rho_file (2) (1:len_trim(rho_file(2)))
+WRITE (output_io,  * ) ' File type  B        : ', cvalue (rho_type(2) )                                                            
+WRITE (output_io,  * ) ' Scale factor        : ', patt_scale 
+WRITE (output_io,  * ) ' Sign in exponent    : ', patt_sign 
+!                                                                       
+!     --Output of reciprocal space geometry only for non-SHELXL files   
+!                                                                       
+IF (ftyp.ne.4.and.ftyp.ne.5) then 
+   WRITE (output_io, 3060) ( (eck (i, j), i = 1, 3), j = 1, 3)                                             
+   WRITE (output_io, 3061) inc 
+   DO i = 1, 3 
+      u (i) = vi (i, 1) 
+      v (i) = 0.0 
+      w (i) = vi (i, 2) 
+   ENDDO 
+   lspace = .false. 
+   dvi1 = do_blen (lspace, u, v) 
+   dvi2 = do_blen (lspace, w, v) 
+   IF (inc (1) .gt.1.and.inc (2) .gt.1) then 
+      dvi3 = do_bang (lspace, u, v, w) 
+   ELSE 
+      dvi3 = 0.0 
+   ENDIF 
+   IF (dvi3.gt.0) then 
+      dvi4 = dvi2 / dvi1 
+      IF (abs (u (extr_abs) ) .gt.0.0.and.abs (w (       &
+                  extr_ord) ) .gt.0.0) then                          
+         dvi5 = (dvi2 / w (extr_ord) ) / (dvi1 / u (extr_abs) )                                     
+      ELSE 
+         ier_num = - 4 
+         ier_typ = ER_FOUR 
+      ENDIF 
+   ELSE 
+                  dvi4 = 0.0 
+                  dvi5 = 0.0 
+   ENDIF 
+   WRITE (output_io, 3062) (vi (i, 1), i = 1, 3), dvi1, &
+                           (vi (i, 2), i = 1, 3), dvi2, &
+                           (vi (i, 3), i = 1, 3), 1.00, &
+                            dvi3, dvi4, dvi5   
+   WRITE (output_io, 3063) extr_achs (extr_abs) 
+   WRITE (output_io, 3064) extr_achs (extr_ord) 
+   IF (ier_num.ne.0) then 
+      CALL errlist 
+      CALL no_error 
+   ENDIF 
+ENDIF 
+!                                                                       
+WRITE (output_io, * ) 
+WRITE (output_io,  * ) ' Geometry   : real space' 
+WRITE (output_io, * ) 
+WRITE (output_io, 3260) ( (rho_eck(i, j), i = 1, 3), j = 1, 4)                                                
+WRITE (output_io, 3061) rho_inc (1:3)
+DO i = 1, 3 
+   u (i) = rho_vi (i, 1) 
+   v (i) = 0.0 
+   w (i) = rho_vi (i, 2) 
+ENDDO 
+lspace = .true. 
+dvi1 = do_blen (lspace, u, v) 
+dvi2 = do_blen (lspace, w, v) 
+IF (rho_inc (1) .gt.1.and.rho_inc (2) .gt.1) then 
+   dvi3 = do_bang (lspace, u, v, w) 
+ELSE 
+   dvi3 = 0.0 
+ENDIF 
+!
+IF (dvi3.gt.0) then 
+   dvi4 = dvi2 / dvi1 
+   IF (abs (u (rho_extr_abs) ) .gt.0.0.and.abs (w (rho_extr_ord) ) .gt.0.0) then                         
+      dvi5 = (dvi2 / w (rho_extr_ord) ) / (dvi1 / u (rho_extr_abs) )                                    
+   ELSE 
+      ier_num = - 4 
+      ier_typ = ER_FOUR 
+   ENDIF 
+ELSE 
+   dvi4 = 0.0 
+   dvi5 = 0.0 
+ENDIF 
+!
+WRITE (output_io, 3262) (rho_vi (i, 1), i = 1, 3), dvi1,   &
+                        (rho_vi (i, 2), i = 1, 3), dvi2,   &
+                        (rho_vi (i, 3), i = 1, 3), 1.00,   &
+                        dvi3, dvi4, dvi5  
+WRITE (output_io, 3063) rho_extr_achs (rho_extr_abs) 
+WRITE (output_io, 3064) rho_extr_achs (rho_extr_ord) 
+!
+IF (ier_num.ne.0) then 
+   CALL errlist 
+   CALL no_error 
+ENDIF 
 !
  3060 FORMAT    (/' reciprocal layer    :'/                             &
      &                  ' lower left  corner  : ',3(2x,f9.4)/           &
@@ -1213,7 +1145,8 @@ enddo loop_main
      &                  ' upper left  corner  : ',3(2x,f9.4))           
  3061 FORMAT    (/' number of points '/                                 &
      &                  ' horizontally        : ',2x,i4/                &
-     &                  ' vertically          : ',2x,i4)                
+     &                  ' vertically          : ',2x,i4/                &
+     &                  ' top                 : ',2x,i4)                
  3062 FORMAT    (' increment vectors   :',                              &
      &             7x,'h',10x,'k',10x,'l',15x,'A**-1'/                  &
      &             ' horizontally        : ',3(2x,f9.4) ,7x,F9.4/       &
@@ -1225,17 +1158,151 @@ enddo loop_main
  3260 FORMAT    (/' real space layer    :'/                             &
      &                  ' lower left  corner  : ',3(2x,f9.4)/           &
      &                  ' lower right corner  : ',3(2x,f9.4)/           &
-     &                  ' upper left  corner  : ',3(2x,f9.4))           
+     &                  ' upper left  corner  : ',3(2x,f9.4)/           &
+     &                  ' top   left  corner  : ',3(2x,f9.4))           
  3262 FORMAT    (' increment vectors   :',                              &
      &             7x,'x',10x,'y',10x,'z',15x,'A'/                      &
      &             ' horizontally        : ',3(2x,f9.4) ,7x,F9.4/       &
      &             ' vertically          : ',3(2x,f9.4) ,7x,F9.4/       &
+     &             ' top                 : ',3(2x,f9.4) ,7x,F9.4/       &
      &            /' Angle               : ',2x,f9.4,' degrees'/        &
      &             ' Ratio/Aver    v/h   : ',2(2x,F9.4))                
-!                                                                       
-      END SUBROUTINE patterson                      
+!
+end subroutine patterson_show
+!
 !*****7*****************************************************************
-      SUBROUTINE do_patters (inverse_type, ltwo_files, vr, acentric) 
+!
+subroutine patterson_run(inverse_type)
+!-
+!  Check parameter values perform actual patterson
+!+
+!
+use crystal_mod
+use discus_allocate_appl_mod
+use diffuse_mod
+use intens_mod
+use inverse_mod
+use patters_mod
+!
+use errlist_mod
+use lib_errlist_func
+use lib_length
+use precision_mod
+!
+implicit none
+!
+INTEGER, INTENT(INOUT)  :: inverse_type
+!
+integer, parameter :: e_io  = 36
+!
+character(len=PREC_STRING) :: line
+character(len=PREC_STRING) :: cpara
+integer                    :: lpara
+integer                    :: i
+integer, dimension(3) :: n_qxy
+logical :: ltwo_files 
+!write(*,*) ' ier_num, ier_typ', ier_num, ier_typ
+!
+IF (cr_v.le.0.0) then 
+   ier_num = - 35 
+   ier_typ = ER_APPL 
+   ier_msg (1) = 'A proper unit cell must be defined' 
+   ier_msg (2) = 'for this command to operate       ' 
+   return
+endif
+!                IF (inc(1)     * inc(2)     .gt. MAXQXY  .OR.          &
+if(any(rho_inc/=ubound(csf))) then
+  n_qxy = rho_inc
+  call alloc_diffuse_four (n_qxy )
+  if(ier_num/=0) return
+endif
+!
+if(cr_nscat/=ubound(cfact,2)) then
+   call alloc_diffuse_scat(cr_nscat)
+   if(ier_num/=0) return
+endif
+if(cr_natoms/=ubound(xat,1)) then
+   call alloc_diffuse_atom(cr_natoms)
+   if(ier_num/=0) return
+endif
+!
+if (.not.(rho_inc(1)<=MAXQXY(1) .and. rho_inc(2)<=MAXQXY(2))) then 
+   ier_num = - 71 
+   ier_typ = ER_APPL 
+   return
+endif
+!
+IF (rho_type (2) .eq.INTENSITY.or.rho_type (2).eq.AMPLITUDE.or. &
+    rho_type (2) .eq.REAL_PART                                 ) then  
+   line = ' ' 
+   line = rho_file (2) 
+   i = rho_type (2) 
+   rho_file (2) = rho_file (1) 
+   rho_type (2) = rho_type (1) 
+   rho_file (1) = trim(line)
+   rho_type (1) = i 
+ENDIF 
+!
+cond_ftyp: IF (ftyp.eq.4) then 
+   ltwo_files = .false. 
+   IF (rho_type (1) .eq.AMPLITUDE.or.rho_type (1) .eq.FCALC) then                                 
+      CALL no_error 
+   ELSE 
+      ier_num = - 51 
+      ier_typ = ER_APPL 
+   ENDIF 
+ELSE cond_ftyp
+   ltwo_files = .true. 
+   IF (inverse_type.eq.INV_INV) then 
+      IF (rho_type (1) .eq.INTENSITY.and.rho_type (2) .eq.PHASE_ANG.or. &
+          rho_type (1) .eq.AMPLITUDE.and.rho_type (2) .eq.PHASE_ANG.or. &
+          rho_type (1) .eq.REAL_PART.and.rho_type (2) .eq.IMAG_PART     ) then                                         
+         CALL no_error 
+      ELSE 
+         ier_num = - 36 
+         ier_typ = ER_APPL 
+         return
+      ENDIF 
+   ELSEIF (inverse_type.eq.INV_PATT) then 
+      IF (rho_type (1) .eq.INTENSITY.or.rho_type ( 1) .eq.AMPLITUDE.or. &
+          rho_type (1) .eq.REAL_PART.and.rho_type (2) .eq.IMAG_PART     ) then                                         
+         CALL no_error 
+      ELSE 
+         ier_num = - 38 
+         ier_typ = ER_APPL 
+         return
+      ENDIF 
+      IF (rho_type (1) .eq.INTENSITY) then 
+         ltwo_files = .false. 
+         IF (patt_mode.eq.PATT_SHARP.or.patt_mode.eq.PATT_SUPER) then 
+            IF (ftyp.eq.5) then 
+               cpara     = rho_file (1) 
+               lpara     = len_str (cpara     ) 
+!write(*,*) ' cpara ', cpara(1:len_trim(cpara)), lpara
+               CALL e_create (e_io, cpara, lpara, .false.)                 
+            ELSE 
+               ier_num = - 38 
+               ier_typ = ER_APPL 
+               return
+            ENDIF 
+         ENDIF 
+      ENDIF 
+   ELSEIF (inverse_type.eq.INV_DIFF) then 
+      ltwo_files = .false. 
+   ENDIF 
+ENDIF  cond_ftyp
+!
+!write(*,*) ' IER_NUM, ier_typ', ier_num, ier_typ
+IF (ier_num.eq.0) then 
+   CALL do_patters (inverse_type, ltwo_files, cr_vr, cr_acentric)
+   four_was_run = .true.
+ENDIF 
+!
+end subroutine patterson_run
+!
+!*****7*****************************************************************
+!
+SUBROUTINE do_patters (inverse_type, ltwo_files, vr, acentric) 
 !-                                                                      
 !     Reads the files, if necessary calculates the values and           
 !     calls the patterson function                                      
@@ -1319,23 +1386,24 @@ ENDIF
          ENDIF 
       ENDIF 
 !                                                                       
-      IF (patt_accu.eq.PATT_INIT) then 
-         ii = 0                                                               ! Initialize the ii counter
-         DO i = 1, rho_inc (1)                                                ! Loop over the number of points in the first direction
-         DO j = 1, rho_inc (2)                                                ! Loop over the number of points in the second direction
-         ii = ii + 1                                                          ! Increase the counter
-         !csf (ii) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))                   ! Neder's original code 
-         csf (i,j, 1) = cmplx (0.0D0, 0.0D0, kind=PREC_DP)                                  ! My declaration. Why only two dimensions again ? i and j are again running on the outer loop. 
-         ENDDO                                                                ! End of the loop over the second direction
-         ENDDO                                                                ! End of the loop over the first direction
-      ENDIF 
-y = 0.0D0
+IF (patt_accu.eq.PATT_INIT) then 
+   csf(1:rho_inc(1), 1:rho_inc(2), 1:rho_inc(3) ) = cmplx (0.0D0, 0.0D0, kind=PREC_DP)
+!        ii = 0                                                               ! Initialize the ii counter
+!        DO i = 1, rho_inc (1)                                                ! Loop over the number of points in the first direction
+!        DO j = 1, rho_inc (2)                                                ! Loop over the number of points in the second direction
+!        ii = ii + 1                                                          ! Increase the counter
+!        !csf (ii) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))                   ! Neder's original code 
+!        csf (i,j, 1) = cmplx (0.0D0, 0.0D0, kind=PREC_DP)                                  ! My declaration. Why only two dimensions again ? i and j are again running on the outer loop. 
+!        ENDDO                                                                ! End of the loop over the second direction
+!         ENDDO                                                                ! End of the loop over the first direction
+ENDIF 
+y   = 0.0D0
 a_b = (0.0D0,0.0D0)
 !write(*,'(a,2f10.6,2x,3f5.1)') 'MINVALS ', minval(real(csf)), minval(imag(csf)), y
 !write(*,'(a,2f10.6,2x,3f5.1)') 'MAXVALS ', maxval(real(csf)), maxval(imag(csf)), a_b
 !                                                                       
 cond_main: IF (ftyp.eq.SHELXL.and. (.not.patt_rsym) ) then 
-!  10    CONTINUE 
+!
    loop_shelxl: do       
 !                                                                       
 !     ----read hkl,fobs,fcalc,phase                                     
@@ -1417,6 +1485,7 @@ ELSEIF (ftyp.eq.HKLF4.and.patt_rsym) then  cond_main
 !write(*,*) ' PATT MOD', patt_mode.eq.PATT_NORMAL, patt_mode.eq.PATT_SHARP, patt_mode.eq.PATT_SUPER
 !write(*,*) ' PATT SUB', patt_origin.eq.PATT_SUBTRACT
 !  30    CONTINUE 
+j = 0
    loop_hklf4: do
 !                                                                       
 !     ----read hkl,intensity,sigma(intensity)                           
@@ -1523,58 +1592,58 @@ ELSEIF (ftyp.eq.HKLF4.and. (.not.patt_rsym) ) then  cond_main
 !     ----read hkl,intensity,sigma(intensity)                           
 !                                                                       
 !        READ (ifa, *, end = 60, err = 900) y, zz1 
-         line = ' '
-         READ(ifa,'(a)', END=60, ERR=900) line
-         READ(line,*,IOSTAT=iostatus) ihkl, zz1
-         IF(iostatus /= 0) THEN
-            READ (line, '(3I4,F8.2)', end = 60, err = 900) ihkl, zz1
-         ENDIF
+      line = ' '
+      READ(ifa,'(a)', END=60, ERR=900) line
+      READ(line,*,IOSTAT=iostatus) ihkl, zz1
+      IF(iostatus /= 0) THEN
+         READ (line, '(3I4,F8.2)', end = 60, err = 900) ihkl, zz1
+      ENDIF
 !        y(:) = REAL(ihkl(:), kind=PREC_DP)
-         y = real(ihkl, kind=PREC_DP)
+      y = real(ihkl, kind=PREC_DP)
 !1111 FORMAT   (3I4,2F10.2,F7.2) 
 !                                                                       
 !     ----Calculate |F|**2, |EF| or |E|**2                              
 !         subtract sum(fj**2)                                           
 !                                                                       
-         dummy = zz1 
-         IF (patt_mode.eq.PATT_NORMAL) then 
-            IF (patt_origin.eq.PATT_SUBTRACT) then 
+      dummy = zz1 
+      IF (patt_mode.eq.PATT_NORMAL) then 
+         IF (patt_origin.eq.PATT_SUBTRACT) then 
 !              dstar2 = quad (y, y, cr_rten) 
-               dstar2 = skalpro (y, y, cr_rten) 
-               dummy = zz1 * wilson_scale-fj2 (dstar2) 
+            dstar2 = skalpro (y, y, cr_rten) 
+            dummy = zz1 * wilson_scale-fj2 (dstar2) 
+         ELSE 
+            dummy = zz1 * wilson_scale 
+         ENDIF 
+         a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
+      ELSEIF (patt_mode.eq.PATT_SHARP) then 
+         dummy = 0.0 
+!           dstar2 = quad (y, y, cr_rten) 
+         dstar2 = skalpro (y, y, cr_rten) 
+         j = e_hist (y) 
+         IF (e_aver_f2 (j) .gt.0.0) then 
+            e_f = sqrt (abs (zz1) ) / e_aver_f2 (j) 
+            IF (patt_origin.eq.PATT_SUBTRACT) then 
+               dummy = sqrt (abs (zz1) ) * e_f * sqrt (wilson_scale) &
+               - sqrt (fj2 (dstar2) )                                
             ELSE 
-               dummy = zz1 * wilson_scale 
+               dummy = sqrt (abs (zz1) ) * e_f * sqrt (wilson_scale) 
             ENDIF 
-            a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
-         ELSEIF (patt_mode.eq.PATT_SHARP) then 
-            dummy = 0.0 
+         ENDIF 
+         a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
+      ELSEIF (patt_mode.eq.PATT_SUPER) then 
+         dummy = 0.0 
 !           dstar2 = quad (y, y, cr_rten) 
-            dstar2 = skalpro (y, y, cr_rten) 
-            j = e_hist (y) 
-            IF (e_aver_f2 (j) .gt.0.0) then 
-               e_f = sqrt (abs (zz1) ) / e_aver_f2 (j) 
-               IF (patt_origin.eq.PATT_SUBTRACT) then 
-                  dummy = sqrt (abs (zz1) ) * e_f * sqrt (wilson_scale) &
-                  - sqrt (fj2 (dstar2) )                                
-               ELSE 
-                  dummy = sqrt (abs (zz1) ) * e_f * sqrt (wilson_scale) 
-               ENDIF 
+         dstar2 = skalpro (y, y, cr_rten) 
+         j = e_hist (y) 
+         IF (e_aver_f2 (j) .gt.0.0) then 
+            e_f = sqrt (abs (zz1) ) / e_aver_f2 (j) 
+            IF (patt_origin.eq.PATT_SUBTRACT) then 
+               dummy = e_f**2 - 1.0 
+            ELSE 
+               dummy = e_f**2 
             ENDIF 
-            a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
-         ELSEIF (patt_mode.eq.PATT_SUPER) then 
-            dummy = 0.0 
-!           dstar2 = quad (y, y, cr_rten) 
-            dstar2 = skalpro (y, y, cr_rten) 
-            j = e_hist (y) 
-            IF (e_aver_f2 (j) .gt.0.0) then 
-               e_f = sqrt (abs (zz1) ) / e_aver_f2 (j) 
-               IF (patt_origin.eq.PATT_SUBTRACT) then 
-                  dummy = e_f**2 - 1.0 
-               ELSE 
-                  dummy = e_f**2 
-               ENDIF 
-            ENDIF 
-            a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
+         ENDIF 
+         a_b = cmplx (dummy, 0.0, kind=PREC_DP) 
          ENDIF 
          a_b = cmplx (dummy, 0.0, kind=PREC_DP) * patt_scale * vr 
          CALL calc_patters (a_b, y) 
@@ -1738,8 +1807,10 @@ ENDIF  cond_main
 !                                                                       
  1000 FORMAT    (a) 
       END SUBROUTINE do_patters                     
+!
 !*****7*****************************************************************
-      SUBROUTINE calc_patters (a_b, h) 
+!
+SUBROUTINE calc_patters (a_b, h) 
 !-                                                                      
 !     Calculates the patterson or inverse Fourier at all points         
 !     in real space.                                                    
@@ -1757,47 +1828,76 @@ ENDIF  cond_main
 COMPLEX (KIND=KIND(0.0D0))      , intent(in) :: a_b 
 REAL(kind=PREC_DP), dimension(3), intent(in) :: h (3) 
 !                                                                       
-      REAL(kind=PREC_DP) :: xarg0, xincu, xincv 
-      INTEGER (KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iincv, iadd 
-      INTEGER :: i, j, ii 
+REAL(kind=PREC_DP) :: xarg0, xincu, xincv, xincw
+INTEGER (KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iincv, iincw!,iadd 
+INTEGER :: i, j, k!, ii 
 !                                                                       
-      INTEGER :: ISHFT, IAND 
+INTEGER :: ISHFT, IAND 
+!integer, save ::  istart = 0
 !                                                                       
-      CALL four_cexpt 
-      ii = max (5, rho_inc (2) / 10) 
+CALL four_cexpt 
+!ii = max (5, rho_inc (2) / 10) 
+patt_sign = 1.0D0
 !                                                                       
-!write(*,*) ' hkl          ' , h
-!write(*,*) ' RHO_ECK ll 1 ', rho_eck(:, 1)
-!write(*,*) ' RHO_ECK lr 1 ', rho_eck(:, 2)
-!write(*,*) ' RHO_ECK ul 1 ', rho_eck(:, 3)
-!write(*,*) ' RHO_vi     1 ', rho_vi (:, 1)
-!write(*,*) ' RHO_vi     2 ', rho_vi (:, 2)
+!if(istart==0) then
+! write(*,*) ' hkl          ' , h
+! write(*,*) ' RHO_ECK ll 1 ', rho_eck(:, 1)
+! write(*,*) ' RHO_ECK lr 1 ', rho_eck(:, 2)
+! write(*,*) ' RHO_ECK ul 1 ', rho_eck(:, 3)
+! write(*,*) ' RHO_ECK tl 1 ', rho_eck(:, 4)
+! write(*,*) ' RHO_vi     1 ', rho_vi (:, 1)
+! write(*,*) ' RHO_vi     2 ', rho_vi (:, 2)
+! write(*,*) ' RHO_vi     3 ', rho_vi (:, 3)
+!endif
 xarg0 = rho_eck(1, 1) * h (1) + rho_eck(2, 1) * h (2) + rho_eck(3, 1) * h (3)                                                    
 xincu = rho_vi (1, 1) * h (1) + rho_vi (2, 1) * h (2) + rho_vi (3, 1) * h (3)                                                        
 xincv = rho_vi (1, 2) * h (1) + rho_vi (2, 2) * h (2) + rho_vi (3, 2) * h (3)                                                        
+xincw = rho_vi (1, 3) * h (1) + rho_vi (2, 3) * h (2) + rho_vi (3, 3) * h (3)                                                        
 !                                                                       
 iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 0.0d0) ) 
-iincu = nint (64 * I2PI * (xincu - int (xincu) + 0.0d0) ) 
-iincv = nint (64 * I2PI * (xincv - int (xincv) + 0.0d0) ) 
+iincu = nint (64 * I2PI * (xincu - int (xincu) + 0.0d0) )  * patt_sign
+iincv = nint (64 * I2PI * (xincv - int (xincv) + 0.0d0) )  * patt_sign
+iincw = nint (64 * I2PI * (xincw - int (xincw) + 0.0d0) )  * patt_sign
 !                                                                       
 iarg0 = patt_sign * iarg0 
 iarg = iarg0 
-!write(*,*) iarg0, iincu, iincv, patt_sign
-!write(*,*) xarg0, xincu, xincv
+!if(istart==0) then
+! write(*,*) iarg0, iincu, iincv, iincw, patt_sign
+! write(*,*) xarg0, xincu, xincv, xincw
+!istart = 1
+!endif
 !                                                                       
-ii = 0                                                                                 ! Initialize the ii counter 
+!ii = 0                                                                  ! Initialize the ii counter 
 !                                                                       
-DO j = 1, rho_inc (1)                                                                  ! Loop over the number of points in the first direction
-   DO i = 1, rho_inc (2)                                                               ! Loop over the number of points in the second direction
-      iadd = ISHFT (iarg, - 6) 
-      iadd = IAND (iadd, MASK) 
-      ii = ii + 1                                                                      ! Increase the counter
-      !csf (ii) = csf (ii) + cex (iadd) * a_b                                          ! Neder's original code 
-      csf (j,i,1) = csf (j,i,1) + cex (iadd) * a_b                                         ! My declaration. Why only two dimensions again ? i and j are again running on the outer loop.
-      iarg = iarg + iincv * patt_sign 
+DO j = 1, rho_inc (1)                                                   ! Loop over the number of points in the first direction
+   DO i = 1, rho_inc (2)                                                ! Loop over the number of points in the second direction
+      DO k = 1, rho_inc (3)                                             ! Loop over the number of points in the third direction
+
+!     iadd = ISHFT (iarg, - 6) 
+!     iadd = IAND (iadd, MASK) 
+!     ii = ii + 1                                                       ! Increase the counter
+      !csf (ii) = csf (ii) + cex (iadd) * a_b                           ! Neder's original code 
+      csf(j,i,k) = csf(j,i,k) + cex(IAND(ISHFT(iarg, -6), MASK)) * a_b  ! 
+      iarg = iarg + iincw !* patt_sign 
+      ENDDO                                                                               ! End of the loop over the third direction
+   iarg = iarg0 + (iincu * (j-1) + iincv*i) !* patt_sign 
    ENDDO                                                                               ! End of the loop over the second direction
-   iarg = iarg0 + iincu * j * patt_sign 
 ENDDO                                                                                  ! End of the loop over the first direction
+!                                                                       
+!OLDDO j = 1, rho_inc (1)                                                                  ! Loop over the number of points in the first direction
+!OLD   DO i = 1, rho_inc (2)                                                               ! Loop over the number of points in the second direction
+!OLD      DO k = 1, rho_inc (3)                                                               ! Loop over the number of points in the second direction
+!OLD
+!OLD      iadd = ISHFT (iarg, - 6) 
+!OLD      iadd = IAND (iadd, MASK) 
+!OLD      ii = ii + 1                                                                      ! Increase the counter
+!OLD      !csf (ii) = csf (ii) + cex (iadd) * a_b                                          ! Neder's original code 
+!OLD      csf (j,i,1) = csf (j,i,1) + cex (iadd) * a_b                                         ! My declaration. Why only two dimensions again ? i and j are again running on the outer loop.
+!OLD      iarg = iarg + iincv * patt_sign 
+!OLD      ENDDO                                                                               ! End of the loop over the second direction
+!OLD   ENDDO                                                                               ! End of the loop over the second direction
+!OLD   iarg = iarg0 + iincu * j * patt_sign 
+!OLDENDDO                                                                                  ! End of the loop over the first direction
 !                                                                       
 END SUBROUTINE calc_patters                   
 !
@@ -2948,7 +3048,8 @@ use precision_mod
 !                                                                       
       END SUBROUTINE e_write                        
 !*****7*****************************************************************
-      SUBROUTINE wilson_calc 
+!
+SUBROUTINE wilson_calc 
 !-                                                                      
 !     Calculates a Wilson plot                                          
 !+                                                                      
@@ -3118,7 +3219,8 @@ USE support_mod
 !                                                                       
  1000 FORMAT    (f8.5,2x,g17.8e3) 
 !                                                                       
-      END SUBROUTINE wilson_calc                    
+END SUBROUTINE wilson_calc                    
+!
 !*****7*****************************************************************
       REAL(kind=PREC_DP) function fj2 (dstar2) 
 !-                                                                      
