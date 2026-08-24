@@ -12,6 +12,7 @@ INTEGER                 ::  extr_ord     = 2
 INTEGER                 ::  extr_top     = 3
 INTEGER                 ::  rho_extr_abs = 1
 INTEGER                 ::  rho_extr_ord = 2
+INTEGER                 ::  rho_extr_top = 3
 INTEGER                 ::  out_extr_abs = 1
 INTEGER                 ::  out_extr_ord = 2
 INTEGER                 ::  out_extr_top = 3
