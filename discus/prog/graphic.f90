@@ -2150,13 +2150,13 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             ENDDO 
          ENDDO 
 !                                                                       
-         DO i = 1, 2 
+         DO i = 1, 3 
             DO j = 1, 3 
                out_vi (j, i) = rho_vi (j, i) 
             ENDDO 
             out_inc (i) = rho_inc (i) 
          ENDDO 
-         out_inc(3) = 1
+!        out_inc(3) = 1
       ELSE 
          out_extr_abs = extr_abs 
          out_extr_ord = extr_ord 
@@ -2580,7 +2580,6 @@ elseif(data_style==5) then
    data_type_axes       = 'hkl'
    coordinate_unit      = 'basecell_fractional'
 endif
-write(*,*) ' Data style ', data_type_style, data_style, data_type_axes
 !
 if(value==14 .or. value==15 .or. value==16) data_type_reciprocal = 'patterson'   ! Patterson space
 data_type_content    = cvalue(value)        ! Data content 'Intensity etc'
