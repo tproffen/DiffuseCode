@@ -106,10 +106,11 @@ REAL(kind=PREC_DP), DIMENSION(n), INTENT(OUT):: y2
 !
 !     PARAMETER (nmax = maxarray) 
 !     DIMENSION x (n), y (n), y2 (n), u (nmax) 
-REAL(kind=PREC_DP), DIMENSION(n) :: u
+REAL(kind=PREC_DP), DIMENSION(:), allocatable :: u
 REAL(kind=PREC_DP)    :: sig, p, qn, un
 INTEGER :: i, k
 !
+allocate(u(1:n))
 !write(*,*) ' Boundaries n', n
 !write(*,*) ' BOUNDARIES x', lbound(x), ubound(x), x(1), x(2), x(3)
 !write(*,*) ' BOUNDARIES y', lbound(y), ubound(y), y(1), y(2), y(3)
@@ -145,6 +146,8 @@ scnd: DO k = n - 1, 1, -1
 END DO scnd
 !write(*,*) ' AFTER SCND ', p, x(3), x(1), y2(1), y2(2), y2(n-1), y2(n), maxval(y2)
 !     RETURN 
+deallocate(u)
+!
 END SUBROUTINE spline                         
 !                                                                       
 SUBROUTINE splint (n, xa, ya, y2a, x, y, ier) 
