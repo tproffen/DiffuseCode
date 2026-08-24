@@ -36,6 +36,7 @@ set( SOURCES_ALL  discus_allocate_appl_mod.f90 atom_env_mod.f90
 	deco_mod.f90 demolec.f90 demolec_mod.f90 discus_mrc.f90
 	debye_mod.f90 diffuse_mod.f90 discus_discamb.f90 discus_estimate.f90 discus_exp2pdf.f90
         discus_exp2pdf_data.f90 discus_exp2pdf_load.f90 discus_exp2pdf_run.f90 discus_exp2pdf_supp.f90
+        discus_exp3_pdf.f90 discus_exp3_pdf_data.f90 discus_exp3_pdf_load.f90
         discus_guess_atoms.f90
 	discus_loop.f90 discus_prepare_refine.f90 discus_reduce.f90 discus_setup.f90 discus_set_sub.f90 
         discus_s_out_file.f90 discus_s_pdf_file.f90 discus_s_powder_file.f90
