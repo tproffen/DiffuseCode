@@ -1174,7 +1174,10 @@ else                   ! normal write
       ENDIF
 !     rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
 !
-      ALLOCATE(y2a(0:POW_WR_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
+      ALLOCATE(y2a(0:npkt_pdf+1),stat = all_status) ! Allocate array for calculated powder pattern
+!write(*,*) ' NPKT ', npkt_pdf_temp+1, ubound(xwrt_pdf_temp), ubound(ywrt_pdf_temp)
+!write(*,*) ' Y2A  ', POW_WR_MAXPKT, npkt_wrt, npkt_pdf
+!write(*,*) ' Y2A  ', allocated(y2a), ubound(y2a)
       call spline(npkt_pdf_temp+1, xwrt_pdf_temp, ywrt_pdf_temp, 1.d31, 1.d31, y2a)
       npkt_wrt = npkt_pdf
 !
