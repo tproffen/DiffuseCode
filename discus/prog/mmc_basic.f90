@@ -2773,7 +2773,7 @@ IF(lout .AND. lfirst) THEN
    WRITE(output_io, 3100) ic, 'GR1 ', 'GR2 ', target_corr, achieved ,          &
          target_corr - achieved, (target_corr - achieved)/divisor, pneig(1,2,ic) !nneigh
 ENDIF
-            mmc_ach_pairs(ic, je, is, js) = 0
+!           mmc_ach_pairs(ic, je, is, js) = 0
 !write(*,*) ' DEPTH , change ', mmc_depth(ic, MC_GROUP, 1:2, 1:2), -change
 !     ENDIF 
 !do is=0,cr_nscat
