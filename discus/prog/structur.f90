@@ -3813,7 +3813,7 @@ logical             :: l_free_profile
 logical             :: l_free_asym
 logical             :: l_free_preferred
 !
-integer, parameter :: NOPTIONAL   = 10
+integer, parameter :: NOPTIONAL   = 11
 integer, parameter :: O_QMAX      = 1
 integer, parameter :: O_STYLE     = 2
 integer, parameter :: O_LAMBDA    = 3
@@ -3823,6 +3823,7 @@ integer, parameter :: O_REFINE    = 6
 integer, parameter :: O_DIFFEV    = 7
 integer, parameter :: O_FREE      = 8
 integer, parameter :: O_RADIATION = 9
+integer, parameter :: O_DISORDER  =10
 integer, parameter :: O_SYMBOL  = NOPTIONAL
 character(len=   9)       , dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(len=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
@@ -3830,13 +3831,15 @@ integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
-integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
+integer, parameter                        :: ncalc = 1 ! Number of values to calculate 
 character(len=PREC_STRING), dimension(NOPTIONAL,2) :: ref_dif
 !
-DATA oname  / 'qmax  ', 'style ' , 'lambda'   , 'compute'  , 'form  ',  &
-              'refine', 'diffev' , 'free   '  , 'radiation', 'UNUSED' /
+DATA oname  / 'qmax  ', 'style ' , 'lambda'   , 'compute'  , 'form  ',   &
+              'refine', 'diffev' , 'free   '  , 'radiation', 'disorder', &
+              'UNUSED' /
 DATA loname /  4      ,  5       ,  6         ,  7         ,  4      ,  &
-               6      ,  6       ,  4         ,  9         ,  6       /
+               6      ,  6       ,  4         ,  9         ,  8      ,  &
+               6       /
 !
 !                                                                       
 DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
@@ -3850,15 +3853,15 @@ DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
 !
 opara  =  (/ '7.500   ', 'powder  ', '1.540592', 'serial  ', 'waas    ',  &
              'no      ', 'no      ', 'none    ', 'xray    ',  &
-             'unused  '   &
+             'none    ', 'unused  '   &
            /)   ! Always provide fresh default values
 lopara =  (/  5        ,  6        ,  8        ,  6        ,  4        ,  &
               2        ,  2        ,  4        ,  4        ,  &
-              6           &
+              4        ,  6           &
           /)
 owerte =  (/  7.500  ,  0.0    ,   1.540592,  0.0      ,  0.0      ,  &
               0.0    ,  0.0    ,   0.0     ,  1.0      ,  &
-              0.0         &
+              0.0    ,  0.0         &
           /)
 !
 fv = 0.0_PREC_DP
@@ -4271,7 +4274,7 @@ if(l_diffev) then     ! Interpret the diffev parameters
      write(ref_dif(O_LAMBDA,2), '(f8.6)') rlambda     ! Use SHELX input
      ref_dif(O_SYMBOL, 2) = ' '
   else
-     call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, opara(O_LAMBDA), ref_dif, 2)
+     call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, opara(O_LAMBDA), ref_dif, rlambda, 2)
   endif
   if(opara(O_STYLE)=='powder') then        ! Powder diffraction
      owerte(O_QMAX) = min(owerte(O_QMAX), 4.0D0*PI/rlambda)
@@ -4316,7 +4319,7 @@ if(l_refine) then     ! Interpret the refine parameters
      write(ref_dif(O_LAMBDA,1), '(f8.6)') rlambda     ! Use SHELX input
      ref_dif(O_SYMBOL, 1) = ' '
   else
-     call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, opara(O_LAMBDA), ref_dif, 1)
+     call get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, opara(O_LAMBDA), ref_dif, rlambda, 1)
   endif
   if(opara(O_STYLE)=='powder') then        ! Powder diffraction
      owerte(O_QMAX) = min(owerte(O_QMAX), 4.0D0*PI/rlambda)
@@ -4353,7 +4356,7 @@ endif
 !===============================================================================
 if(l_refine) then
    if(ref_dif(O_STYLE,1)=='single' ) then
-      call write_refine_single_part1(substance, ilist, fv(1))
+      call write_refine_single_part1(substance, ilist, fv(1), ref_dif(O_DISORDER,1))
    elseif(ref_dif(O_STYLE,1)=='powder' ) then
       call write_refine_powder_part1(substance, 0, 1.000_PREC_DP,  &
            spcgr_syst(space_number), latt, ref_dif(O_STYLE,1))
@@ -4603,34 +4606,48 @@ endif
 if(l_refine) then
    if(ref_dif(O_STYLE,1)=='single' ) then
       call write_refine_single_part4(substance, &
-           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, hkl_max, P_ncycle)
+           ilist, ref_dif(O_DISORDER, 1), ref_dif(O_RADIATION, 1), c_form, &
+           ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, hkl_max, P_ncycle)
    elseif(ref_dif(O_STYLE,1)=='powder' ) then
       call write_refine_powder_part4(substance,  &
-           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
+           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), &
+           owerte(O_QMAX), P_exti, spcgr_syst(space_number), latt, hkl_max)
    elseif(ref_dif(O_STYLE,1)=='pdf_nano' ) then
+      if(ref_dif(O_DISORDER,1)=='none') then
       call write_refine_pdf_part4_nano(substance,  &
-           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
+           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), &
+           owerte(O_QMAX), P_exti, spcgr_syst(space_number), latt, hkl_max)
+      elseif(ref_dif(O_DISORDER,1)=='stack') then
+      call write_refine_pdf_part4_nano_stack(substance,  &
+           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), &
+           owerte(O_QMAX), P_exti, spcgr_syst(space_number), latt, hkl_max)
+      endif
    elseif(ref_dif(O_STYLE,1)=='pdf_bulk' ) then
       call write_refine_pdf_part4_bulk(substance,  &
-           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), P_exti, spcgr_syst(space_number), latt, hkl_max)
+           ilist, ref_dif(O_RADIATION, 1), c_form, ref_dif(O_LAMBDA, 1), ref_dif(O_SYMBOL, 1), &
+           owerte(O_QMAX), P_exti, spcgr_syst(space_number), latt, hkl_max)
    endif
 endif
 if(l_diffev) then
    if(ref_dif(O_STYLE,2)=='single' ) then 
       call write_diffev_single_part4(substance, &
-           ilist, ref_dif(O_RADIATION, 2), c_form, ref_dif(O_LAMBDA, 2), ref_dif(O_SYMBOL, 2),  &
+           ilist, ref_dif(O_DISORDER, 2), ref_dif(O_RADIATION, 2), c_form, &
+           ref_dif(O_LAMBDA, 2), ref_dif(O_SYMBOL, 2),  &
             ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2), P_exti, hkl_max, P_ncycle)
    elseif(ref_dif(O_STYLE,2)=='powder' ) then 
       call write_diffev_powder_part4(substance, ref_dif(O_RADIATION, 2), ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
-           ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
+           ref_dif(O_SYMBOL, 2), &
+           owerte(O_QMAX), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
            )
    elseif(ref_dif(O_STYLE,2)=='pdf_nano'         ) then     ! PDF
       call write_diffev_pdf_part4_nano(substance, ref_dif(O_RADIATION, 2), ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
-           ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
+           ref_dif(O_SYMBOL, 2), &
+           owerte(O_QMAX), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
            )
    elseif(ref_dif(O_STYLE,2)=='pdf_bulk'         ) then     ! PDF
       call write_diffev_pdf_part4_bulk(substance, ref_dif(O_RADIATION, 2), ref_dif(O_FORM, 2), ref_dif(O_LAMBDA, 2), &
-           ref_dif(O_SYMBOL, 2), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
+           ref_dif(O_SYMBOL, 2), &
+           owerte(O_QMAX), ref_dif(O_COMPUTE,2), ref_dif(O_STYLE,2) &
            )
    endif
 endif
@@ -4697,7 +4714,7 @@ END SUBROUTINE ins2discus
 !*****7*************************************************************************
 !
 subroutine get_wavelength(NOPTIONAL, O_LAMBDA, O_SYMBOL, lambda, ref_dif, &
-           iprog)
+           rlambda, iprog)
 !-
 !  Interpret wavelength 
 !+
@@ -4714,9 +4731,9 @@ integer                                   , intent(in)    :: O_LAMBDA  ! Entry n
 integer                                   , intent(in)    :: O_SYMBOL  ! Entry symbol
 character(len=*)                          , intent(in)    :: lambda    ! Input string or number
 character(len=*), dimension(NOPTIONAL, 2) , intent(inout) :: ref_dif   ! Actual values
+real(kind=PREC_DP)                        , intent(out)   :: rlambda   ! numerical value
 integer                                   , intent(in)    :: iprog     ! REFINE=1  or DIFFEV=2
 !
-real(kind=PREC_DP) :: rlambda   ! numerical value
 real(kind=PREC_DP) :: energy    ! numerical value
 logical, parameter :: l_energy = .false.
 integer            :: diff_radiation

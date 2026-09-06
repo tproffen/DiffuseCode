@@ -11,6 +11,7 @@ public write_refine_powder_part1
 public write_refine_powder_part4
 public write_refine_pdf_part4_bulk
 public write_refine_pdf_part4_nano
+public write_refine_pdf_part4_nano_stack
 public write_diffev_generic
 public write_diffev_single_part1
 public write_diffev_powder_part1
@@ -48,7 +49,7 @@ contains
 !
 !*****7**************************************************************** 
 !
-subroutine write_refine_single_part1(substance, ilist, fv_1)
+subroutine write_refine_single_part1(substance, ilist, fv_1, c_disorder)
 !
 !  Write main discus macro; single crystal PART 1
 !
@@ -60,6 +61,7 @@ implicit none
 character(len=*)   , intent(in) :: substance
 integer            , intent(in) :: ilist
 real(kind=PREC_DP) , intent(in) :: fv_1
+character(len=*)   , intent(in) :: c_disorder
 !
 character(len=PREC_STRING) :: refine_file
 integer :: i
@@ -85,33 +87,33 @@ endif
 open(unit=IDI_MA, file=discus_file, status='unknown')
 open(unit=IRE_NP, file='newpara.mac', status='unknown')
 !
-write(IDI_MA,'(a )') 'branch discus'
+write(IDI_MA,'(a )') 'branch discus                    ! Mandatory first line in work macro'
 write(IDI_MA,'(a )') '#'
 write(IDI_MA,'(a )') 'variable integer, ncell, dim:[3] ! number unit cells'
 write(IDI_MA,'(a )') 'ncell[1] = 1'
 write(IDI_MA,'(a )') 'ncell[2] = 1'
 write(IDI_MA,'(a )') 'ncell[3] = 1'
 write(IDI_MA,'(a )') '#'
-write(IDI_MA,'(a )') 'read'
+write(IDI_MA,'(a )') 'read                             ! Read as asymmetric unit only '
 write(IDI_MA,'(3a)') '  stru ', substance(1:i), '.cell'
 !
 if(lexist_hkl_file) then       ! An hkl file exists
    refine_file = 'refine_'//substance(1:i)//'_hkl.mac'
    open(unit=IRE_MA, file=refine_file, status='unknown')
-   write(IRE_MA,'(a )') 'refine'
-   write(IRE_MA,'(a )') 'rese'
+   write(IRE_MA,'(a )') 'refine                          ! Enter REFINE section '
+   write(IRE_MA,'(a )') 'reset                           ! Clear all previous settings'
    write(IRE_MA,'(2a)') 'data hklf4, ',hkl_file(1:len_trim(hkl_file))
 elseif(lexist_fcf_file) then    ! An fcf file exists, we will have merged hkl file
    refine_file = 'refine_'//substance(1:i)//'_merged.mac'
    open(unit=IRE_MA, file=refine_file, status='unknown')
-   write(IRE_MA,'(a )') 'refine'
-   write(IRE_MA,'(a )') 'rese'
+   write(IRE_MA,'(a )') 'refine                          ! Enter REFINE secion '
+   write(IRE_MA,'(a )') 'reset                           ! Clear all previous settings' 
    write(IRE_MA,'(2a)') 'data hklf4, ',hkl_file(1:len_trim(hkl_file))
 else                           !NO hkl file  assume an h5 file will be used
    refine_file = 'refine_'//substance(1:i)//'_dat.mac'
    open(unit=IRE_MA, file=refine_file, status='unknown')
-   write(IRE_MA,'(a )') 'refine'
-   write(IRE_MA,'(a )') 'rese'
+   write(IRE_MA,'(a )') 'refine                          ! Enter REFINE secion'
+   write(IRE_MA,'(a )') 'reset                           ! Clear all previous settings'
    write(IRE_MA,'(3a)') 'data h5, DATA/',hkl_file(1:len_trim(hkl_file)-4), '.h5'
 endif
 write(IRE_MA,'(a        )') '#'
@@ -234,7 +236,7 @@ end subroutine write_refine_single_part3
 !*****7**************************************************************** 
 !
 subroutine write_refine_single_part4( &
-        substance,  ilist, radiation, c_form, lambda, slambda, P_exti, hkl_max, P_ncycle)
+        substance,  ilist, c_disorder, radiation, c_form, lambda, slambda, P_exti, hkl_max, P_ncycle)
 !
 !  Write main discus macro; single crystal PART 4
 !  REFINE version
@@ -246,6 +248,7 @@ implicit none
 !
 character(len=*)                , intent(in) :: substance
 integer                         , intent(in) :: ilist
+character(len=*)                , intent(in) :: c_disorder
 character(len=*)                , intent(in) :: radiation
 character(len=*)                , intent(in) :: c_form
 character(len=*)                , intent(in) ::  lambda
@@ -271,7 +274,14 @@ call execute_command_line(line, wait=.false.)
 !
 j = 0
 i = len_trim(substance)
-call single_main_part4(IDI_MA, .true., substance, radiation, c_form, rlambda, slambda, P_exti)
+write(*,*) ' DISORDER ', c_disorder(1:len_trim(c_disorder))
+if(c_disorder=='none') then
+   call single_main_part4(IDI_MA, .true., substance, c_disorder, radiation,  &
+                          c_form, rlambda, slambda, P_exti)
+elseif(c_disorder=='stack') then
+   call single_stack_part4(IDI_MA, .true., substance, c_disorder, radiation,  &
+                          c_form, rlambda, slambda, P_exti)
+endif
 !
 write(IDI_MA,'(a )') 'branch kuplot'
 write(IDI_MA,'(a )') '  reset'
@@ -302,6 +312,7 @@ if(P_exti> 0.00001) then
 else
    write(IRE_NP,'(a,f8.5,a)') 'newpara P_exti, value:', P_exti, ', points:3, shift:0.001, status:fixed'
 endif
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_prob   , value:00.8000, points:3, shift:0.050, status:free, range:[0.00, 1.00]'
 write(IRE_MA,'(a,i5 )') 'set cycle, ', P_ncycle
 write(IRE_MA,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10, pshift:2.0, conf:1.0, lambda:65000.'
 write(IRE_MA,'(2a)') '@', discus_file(1:len_trim(discus_file))
@@ -314,10 +325,11 @@ elseif(lexist_fcf_file) then                      ! Single HKL refinement
    write(IRE_MA,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_fobs_fcalc.mac'
 else
    write(IRE_MA,'( a)') '  @k_inter.mac'
+   write(IRE_MA,'( a)') 'wait return'
    write(IRE_MA,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_inter.mac'
 endif
 write(IRE_MA,'(a )') '#'
-write(IRE_MA,'(a )') '@final_cell_cif.mac'
+write(IRE_MA,'(a )') '#@final_cell_cif.mac'
 write(IRE_MA,'(a )') '#'
 write(IRE_MA,'(a )') 'exit  ! Back to SUITE'
 close(IRE_MA)
@@ -387,7 +399,7 @@ end subroutine write_refine_single_part4
 !
 !*****7**************************************************************** 
 !
-subroutine single_main_part4(IWR, l_refine, substance, radiation, c_form, rlambda, slambda, P_exti)
+subroutine single_main_part4(IWR, l_refine, substance, c_disorder, radiation, c_form, rlambda, slambda, P_exti)
 !-
 !  Write the main discus macro Single crystal refinement 
 !  DIFFEV and REFINE
@@ -397,6 +409,7 @@ implicit none
 integer           , intent(in) :: IWR
 logical           , intent(in) :: l_refine     ! True == REFINE false==DIFFEV
 character(len=*)  , intent(in) :: substance
+character(len=*)  , intent(in) :: c_disorder
 character(len=*)  , intent(in) :: radiation
 character(len=*)  , intent(in) :: c_form
 real(kind=PREC_DP), intent(in) :: rlambda
@@ -506,6 +519,184 @@ else
 endif
 !
 end subroutine single_main_part4
+!
+!*******************************************************************************
+!
+subroutine single_stack_part4(IWR, l_refine, substance, c_disorder, radiation, c_form, rlambda, slambda, P_exti)
+!-
+!  Write the main discus macro Single crystal refinement 
+!  Disorder template is "stacking" fault
+!  DIFFEV and REFINE
+!+
+implicit none
+!
+integer           , intent(in) :: IWR
+logical           , intent(in) :: l_refine     ! True == REFINE false==DIFFEV
+character(len=*)  , intent(in) :: substance
+character(len=*)  , intent(in) :: c_disorder
+character(len=*)  , intent(in) :: radiation
+character(len=*)  , intent(in) :: c_form
+real(kind=PREC_DP), intent(in) :: rlambda
+character(len=*)  , intent(in) :: slambda
+real(kind=PREC_DP), intent(in) :: P_exti
+!
+character(len=PREC_STRING) :: line
+integer :: i, j
+!
+j = 0
+i = len_trim(substance)
+write(IWR,'(a )') 'save'
+write(IWR,'(3a)') '  outfile internal.',substance(1:i),'.cell'
+write(IWR,'(a )') '  write all'
+write(IWR,'(a )') '  run'
+write(IWR,'(a )') 'exit'
+write(IWR,'(a )') 'read    ! Read asymmetric unit into a layer in a-b-plane'
+write(IWR,'(3a)') '  cell internal.',substance(1:i),'.cell, ncell[1], ncell[2], 1'
+write(IWR,'(a )') 'save    ! Save internally as layer file number one and two'
+write(IWR,'(3a)') '  outfile internal.',substance(1:i),'.layer_1'
+write(IWR,'(a )') '  write all'
+write(IWR,'(a )') '  run'
+write(IWR,'(3a)') '  outfile internal.',substance(1:i),'.layer_2'
+write(IWR,'(a )') '  write all'
+write(IWR,'(a )') '  run'
+write(IWR,'(a )') 'exit'
+write(IWR,'(a )') 'read      ! Read asymmetric unit to ensure clean start '
+write(IWR,'(3a)') '  cell internal.',substance(1:i),'.cell'
+call stack_no_run(IWR, substance,i)   ! Write most of the stack menu
+write(IWR,'(a )') 'exit    ! Leave stacking fault menue back to main DISCUS'
+write(IWR,'(a )') 'variable integer, points_abs'
+write(IWR,'(a )') 'variable integer, points_ord'
+write(IWR,'(a )') 'variable integer, points_top'
+write(IWR,'(a )') 'if(abs(F_XSTP)>0.0) then'
+write(IWR,'(a )') '  points_abs = (F_XMAX-F_XMIN) / F_XSTP + 1'
+write(IWR,'(a )') 'else'
+write(IWR,'(a )') '  points_abs = 1'
+write(IWR,'(a )') 'endif'
+write(IWR,'(a )') 'if(abs(F_YSTP)>0.0) then'
+write(IWR,'(a )') '  points_ord = (F_YMAX-F_YMIN) / F_YSTP + 1'
+write(IWR,'(a )') 'else'
+write(IWR,'(a )') '  points_ord = 1'
+write(IWR,'(a )') 'endif'
+write(IWR,'(a )') 'if(abs(F_ZSTP)>0.0) then'
+write(IWR,'(a )') '  points_top = (F_ZMAX-F_ZMIN) / F_ZSTP + 1'
+write(IWR,'(a )') 'else'
+write(IWR,'(a )') '  points_top = 1'
+write(IWR,'(a )') 'endif'
+write(IWR,'(a )') 'fourier'
+if(lexist_hkl_file .or. lexist_fcf_file) then     ! Shelx HKL file exists
+   j= len_trim(hkl_file) - 4
+   if(c_form == 'discamb') then
+      write(IWR,'(3a)') '  xray table:discamb, file:', hkl_file(1:j), '.tsc'
+      if(lexist_fcf_file) then   
+         write(line, '(5a)') 'cp ', substance(1:i), '.ins', substance(1:i), '_merged.ins'
+         call execute_command_line(line, wait=.false.)
+      endif
+   else
+      if(radiation=='xray') then
+         write(IWR,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+      elseif(radiation=='neutron') then
+         write(IWR,'(2a)') '  neutron'
+      elseif(radiation=='electron') then
+         write(IWR,'(2a)') '  electron'
+      endif
+   endif
+else
+   if(radiation=='xray') then
+      write(IWR,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+   elseif(radiation=='neutron') then
+      write(IWR,'(2a)') '  neutron'
+   elseif(radiation=='electron') then
+      write(IWR,'(2a)') '  electron'
+   endif
+endif
+write(IWR,'(a )') '  temp use'
+write(IWR,'(a )') '  disp off'
+if(slambda == ' ') then
+   write(IWR,'(a, f7.5 )') '  wvle ', rlambda
+else
+   write(IWR,'(2a      )') '  wvle ', slambda(1:len_trim(slambda))
+endif
+write(IWR,'(a )') '  set aver, 0'
+if(P_exti> 0.00001) then
+   write(IWR,'(a )') '  set exti:P_exti'
+endif
+if(lexist_hkl_file .or. lexist_fcf_file) then                      ! Single HKL refinement
+   write(IWR,'(a )') '  set technique:turbo'
+   if(l_refine) then                          ! REFINE
+      write(IWR,'(3a)') '  hkl in:',hkl_file(1:len_trim(hkl_file)), ', out:calc.hkl, scale:P_scale, style:hklf4'
+   else
+      write(IWR,'( a)') '  hkl in:"%c/DATA/%c", DATADIR, DATAFILE, out:"%c/INDI/indi.%4D", INDIDIR, REF_KID, scale:P_scale, style:hklf4'
+   endif
+   write(IWR,'(a )') 'exit'
+else
+   write(IWR,'(a )') '  set technique:nufft'
+!  write(IWR,'(a )') '  set scale:P_scale'
+   write(IWR,'(a )') '  ll F_XMIN, F_YMIN, F_ZMIN'
+   write(IWR,'(a )') '  lr F_XMAX, F_YMIN, F_ZMIN'
+   write(IWR,'(a )') '  ul F_XMIN, F_YMAX, F_ZMIN'
+   write(IWR,'(a )') '  tl F_XMIN, F_YMIN, F_ZMAX'
+   write(IWR,'(a )') '  na points_abs'
+   write(IWR,'(a )') '  no points_ord'
+   write(IWR,'(a )') '  nt points_top'
+   write(IWR,'(a )') '  !set filter:lanczos, damp:0.35, width:11, scale:1.0'
+   write(IWR,'(a )') '  !set symmetry:apply'
+   write(IWR,'(a )') '  run ! sigabs:[0.001, 1.0,0.0,0.0, sigord:[0.001, 0.0,1.0,0.0], sigtop:[0.001, 0.0,0.0,1.0]'
+   write(IWR,'(a )') 'exit'
+   write(IWR,'(a )') 'output'
+   if(l_refine) then
+      write(IWR,'(a )') '  outf CALCULATED/calc.h5'
+   else
+      write(IWR,'(a )') '  outf "%c/INDI/indi.%4D", INDIDIR, REF_KID'
+   endif
+   write(IWR,'(a )') '  form hdf5'
+   write(IWR,'(a )') '  value inte'
+   write(IWR,'(a )') 'exit        ! We do not calculate the Fourier but:'
+   write(IWR,'(a )') 'stack       ! Go back to the stacking fault menu'
+   write(IWR,'(a )') '  fourier   ! Run the single crystal fourier'
+   write(IWR,'(a )') 'exit'
+endif
+!
+end subroutine single_stack_part4
+!
+!*******************************************************************************
+!
+subroutine stack_no_run(IWR, substance,i)
+!-
+!  Write the main part of a stacking fault section, including 'create', no 'run'
+!+
+implicit none
+!
+integer         , intent(in) :: IWR
+character(len=*), intent(in) :: substance
+integer         , intent(in) :: i
+!
+write(IWR,'(a )') 'stack     ! Enter stacking fault menu'
+write(IWR,'(a )') '  reset   ! Clear all previous settings'
+write(IWR,'(3a)') '  layer internal.',substance(1:i), '.layer_1 ! Layer no 1'
+write(IWR,'(3a)') '  layer internal.',substance(1:i), '.layer_1 ! Layer no 2'
+write(IWR,'(a )') '  trans 1, 1,  0.0000, 0.0000, 1.0000   ! Perfect stacking '
+write(IWR,'(a )') '  trans 1, 2,  0.5000, 0.0000, 1.0000   ! Example for a fault'
+write(IWR,'(a )') '  trans 2, 1, -0.5000, 0.0000, 1.0000   ! Example for a fault'
+write(IWR,'(a )') '  trans 2, 1,  0.0000, 0.0000, 1.0000   ! Perfect stacking '
+write(IWR,'(a )') '  sigma 1, 1,  0.0000, 0.0000, 1.0000   ! Assume no uncertainties '
+write(IWR,'(a )') '  sigma 1, 2,  0.0000, 0.0000, 1.0000   ! Assume no uncertainties '
+write(IWR,'(a )') '  sigma 2, 1,  0.0000, 0.0000, 1.0000   ! Assume no uncertainties '
+write(IWR,'(a )') '  sigma 2, 1,  0.0000, 0.0000, 1.0000   ! Assume no uncertainties '
+write(IWR,'(a )') '  aver         0.0000, 0.0000, 1.0000   ! Average stacking along [001]'
+write(IWR,'(a )') '  modulus  1.0, 0.0, 0.0,  0.0,  1.0, 0.0 ! Shift layers back is outside these two vectors'
+write(IWR,'(a )') '  set mod, on                     ! Apply modulus function'
+write(IWR,'(a )') '  set trans, fixed                ! Fix average translation to aver command'
+write(IWR,'(a )') '  random prob, 0.00               ! Assume no random faults '
+write(IWR,'(a )') '  random offset, 0.00, 0.00, 0.00 ! Assume no random faults '
+write(IWR,'(a )') '  random sigma , 0.00, 0.00, 0.00 ! Assume no random faults '
+write(IWR,'(a )') '  rotate status, off              ! Assume no rotational faults '
+write(IWR,'(a )') '  distribution matrix             ! Layer to layer probab defined mby matrix'
+write(IWR,'(a )') '  crow 1, P_prob   , 1.-P_prob    ! Probabilities atop a layer type 1'
+write(IWR,'(a )') '  crow 2, 1.-P_prob, 1.-P_prob    ! Probabilities atop a layer type 2'
+write(IWR,'(a )') '  number n_layers                 ! Grand number of layers '
+write(IWR,'(a )') '  create                          ! Create the list of layer origins and time'
+!
+end subroutine stack_no_run
 !
 !*******************************************************************************
 !
@@ -729,7 +920,7 @@ write(IRE_MA,'(a )') '@newpara.mac'
 write(IRE_MA,'(a        )') '#'
 !
 write(IRE_NP,'(a,f9.4,a )') 'newpara P_scale, value:', P_scale , ', points:3, shift:0.100, status:free'
-write(IRE_NP,'(a,f9.4,a )') 'newpara P_zero , value:', 0.00000 , ', points:3,  move:0.001, status:free'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_zero , value:', 0.00000 , ', points:3,  move:0.001, status:fixed'
 write(IRE_NP,'(a )') '#'
 write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta  , value:', 0.50000 , ', points:3, shift:0.100, status:fixed'
 write(IRE_NP,'(a,f9.4,a )') 'newpara P_eta_l, value:', 0.00000 , ', points:3, shift:0.100, status:fixed'
@@ -790,7 +981,7 @@ end subroutine write_refine_powder_part1
 !*****7**************************************************************** 
 !
 subroutine write_refine_powder_part4(substance,                      &
-        ilist, radiation, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
+        ilist, radiation, c_form,  lambda, slambda, P_qmax, P_exti, spcgr_syst, lattice_para, hkl_max)
 !
 !  Write main discus macro; powder diffraction  PART 4
 !
@@ -806,6 +997,7 @@ character(len=*)                , intent(in) :: radiation
 character(len=*)                , intent(in) :: c_form
 character(len=*)                , intent(in) ::  lambda 
 character(len=*)                , intent(in) :: slambda 
+real(kind=PREC_DP), intent(in) :: P_qmax
 real(kind=PREC_DP)              , intent(in) :: P_exti
 integer            , intent(in) :: spcgr_syst
 real(kind=PREC_DP) , dimension(6), intent(in) :: lattice_para
@@ -908,9 +1100,10 @@ write(IRE_MA,'(a )') 'set relax, start:0.25'
 write(IRE_MA,'(2a)') '@', discus_file(1:len_trim(discus_file))
 write(IRE_MA,'( a)') 'branch kuplot'
 write(IRE_MA,'( a)') '  @k_inter.mac'
+write(IRE_MA,'( a)') 'wait return'
 write(IRE_MA,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_inter.mac'
 write(IRE_MA,'(a )') '#'
-write(IRE_MA,'(a )') '@final_cell_cif.mac'
+write(IRE_MA,'(a )') '#@final_cell_cif.mac'
 write(IRE_MA,'(a )') '#'
 write(IRE_MA,'(a )') 'exit  ! Back to SUITE'
 close(IRE_MA)
@@ -978,7 +1171,7 @@ end subroutine write_refine_powder_part4
 !*****7**************************************************************** 
 !
 subroutine write_refine_pdf_part4_bulk(substance,                      &
-        ilist, radiation, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
+        ilist, radiation, c_form,  lambda, slambda, P_qmax, P_exti, spcgr_syst, lattice_para, hkl_max)
 !
 !  Write main discus macro; powder diffraction  PART 4
 !
@@ -994,6 +1187,7 @@ character(len=*)                , intent(in) :: radiation
 character(len=*)                , intent(in) :: c_form
 character(len=*)                , intent(in) ::  lambda 
 character(len=*)                , intent(in) :: slambda 
+real(kind=PREC_DP), intent(in) :: P_qmax
 real(kind=PREC_DP)              , intent(in) :: P_exti
 integer            , intent(in) :: spcgr_syst
 real(kind=PREC_DP) , dimension(6), intent(in) :: lattice_para
@@ -1015,7 +1209,7 @@ i= len_trim(substance)
 j= len_trim(hkl_file) - 4
 !
 call write_powder_lattice(IDI_MA, spcgr_syst)
-call write_macro_powder(radiation, c_form, hkl_file, rlambda, slambda)
+call write_macro_powder_pdf_bulk(radiation, c_form, hkl_file, rlambda, slambda, P_qmax)
 !
 write(IDI_MA,'(a )') 'save'
 write(IDI_MA,'(3a)') '  outfile internal.',substance(1:i), '.cell'
@@ -1065,7 +1259,7 @@ write(IDI_PO,'(a )') 'mtyp 3, 0'
 write(IDI_PO,'(a )') 'fnam off'
 write(IDI_PO,'(a )') 'fset 2'
 write(IDI_PO,'(a )') 'grid on'
-write(IDI_PO,'(a,f9.7 )') 'achx Distance[\A]'
+write(IDI_PO,'(a,f9.7 )') 'achx Distance [\A]'
 write(IDI_PO,'(a )') 'achy PDF'
 write(IDI_PO,'(a )') 'rval 1,2, dat'
 write(IDI_PO,'(2a)') 'tit1 Substance: ', substance(1:i)
@@ -1080,9 +1274,10 @@ write(IRE_MA,'(a )') 'set relax, start:0.25'
 write(IRE_MA,'(2a)') '@', discus_file(1:len_trim(discus_file))
 write(IRE_MA,'( a)') 'branch kuplot'
 write(IRE_MA,'( a)') '  @k_inter.mac'
+write(IRE_MA,'( a)') 'wait return'
 write(IRE_MA,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_inter.mac'
 write(IRE_MA,'(a )') '#'
-write(IRE_MA,'(a )') '@final_cell_cif.mac'
+write(IRE_MA,'(a )') '#@final_cell_cif.mac'
 write(IRE_MA,'(a )') '#'
 write(IRE_MA,'(a )') 'exit  ! Back to SUITE'
 close(IRE_MA)
@@ -1150,7 +1345,7 @@ end subroutine write_refine_pdf_part4_bulk
 !*****7**************************************************************** 
 !
 subroutine write_refine_pdf_part4_nano(substance,                      &
-        ilist, radiation, c_form,  lambda, slambda, P_exti, spcgr_syst, lattice_para, hkl_max)
+        ilist, radiation, c_form,  lambda, slambda, P_qmax, P_exti, spcgr_syst, lattice_para, hkl_max)
 !
 !  Write main discus macro; PDF PART 4
 !
@@ -1166,6 +1361,7 @@ character(len=*)                , intent(in) :: radiation
 character(len=*)                , intent(in) :: c_form
 character(len=*)                , intent(in) ::  lambda 
 character(len=*)                , intent(in) :: slambda 
+real(kind=PREC_DP), intent(in) :: P_qmax
 real(kind=PREC_DP)              , intent(in) :: P_exti
 integer            , intent(in) :: spcgr_syst
 real(kind=PREC_DP) , dimension(6), intent(in) :: lattice_para
@@ -1184,7 +1380,7 @@ i= len_trim(substance)
 j= len_trim(hkl_file) - 4
 !
 call write_powder_lattice(IDI_MA, spcgr_syst)
-call write_macro_debye(radiation, c_form, hkl_file, rlambda, slambda)
+call write_macro_debye(radiation, c_form, hkl_file, rlambda, slambda, P_qmax)
 !
 write(IDI_MA,'(a )') 'save'
 write(IDI_MA,'(3a)') '  outfile internal.',substance(1:i), '.cell'
@@ -1262,9 +1458,10 @@ write(IRE_MA,'(a )') 'set relax, start:0.25'
 write(IRE_MA,'(2a)') '@', discus_file(1:len_trim(discus_file))
 write(IRE_MA,'( a)') 'branch kuplot'
 write(IRE_MA,'( a)') '  @k_inter.mac'
+write(IRE_MA,'( a)') 'wait return'
 write(IRE_MA,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_inter.mac'
 write(IRE_MA,'(a )') '#'
-write(IRE_MA,'(a )') '@final_cell_cif.mac'
+write(IRE_MA,'(a )') '#@final_cell_cif.mac'
 write(IRE_MA,'(a )') '#'
 write(IRE_MA,'(a )') 'exit  ! Back to SUITE'
 close(IRE_MA)
@@ -1293,6 +1490,174 @@ write(line,'(3a)') 'cp ', substance(1:len_trim(substance)),'.cell CELL'
 call execute_command_line(line, wait=.false.)
 !
 end subroutine write_refine_pdf_part4_nano
+!
+!*****7**************************************************************** 
+!
+subroutine write_refine_pdf_part4_nano_stack(substance,                      &
+        ilist, radiation, c_form,  lambda, slambda, P_qmax, P_exti, spcgr_syst, lattice_para, hkl_max)
+!
+!  Write main discus macro; PDF PART 4
+!
+use blanks_mod
+use lib_conv_shelx_mod
+use precision_mod
+!
+implicit none
+!
+character(len=*)                , intent(in) :: substance
+integer                         , intent(in) :: ilist
+character(len=*)                , intent(in) :: radiation
+character(len=*)                , intent(in) :: c_form
+character(len=*)                , intent(in) ::  lambda 
+character(len=*)                , intent(in) :: slambda 
+real(kind=PREC_DP), intent(in) :: P_qmax
+real(kind=PREC_DP)              , intent(in) :: P_exti
+integer            , intent(in) :: spcgr_syst
+real(kind=PREC_DP) , dimension(6), intent(in) :: lattice_para
+integer           , dimension(3), intent(inout) :: hkl_max
+!
+character(len=PREC_STRING) :: line
+integer :: i,j
+real(kind=PREC_DP)  :: rlambda
+!
+read(lambda, *) rlambda
+!
+line = 'mkdir -p GRCALC'
+call execute_command_line(line, wait=.false.)
+!
+i= len_trim(substance)
+j= len_trim(hkl_file) - 4
+!
+call write_powder_lattice(IDI_MA, spcgr_syst)
+call write_macro_debye(radiation, c_form, hkl_file, rlambda, slambda, P_qmax)
+!
+write(IDI_MA,'(a )') '# THIS IS NANO_PDF_STCK'
+write(IDI_MA,'(a )') 'save'
+write(IDI_MA,'(3a)') '  outfile internal.',substance(1:i), '.cell'
+write(IDI_MA,'(a )') '  write all'
+write(IDI_MA,'(a )') '  run'
+write(IDI_MA,'(a )') 'exit'
+write(IDI_MA,'(a )') 'variable integer, ncell_a'
+write(IDI_MA,'(a )') 'variable integer, ncell_b'
+write(IDI_MA,'(a )') 'variable integer, ncell_c'
+write(IDI_MA,'(a )') 'ncell_a = int(P_diam_a/lat[1]) + 4'
+write(IDI_MA,'(a )') 'ncell_b = int(P_diam_b/lat[2]) + 4'
+write(IDI_MA,'(a )') 'ncell_c = int(P_diam_c/lat[3]) + 4'
+write(IDI_MA,'(a )') '# Prepare as an example a template of two layers'
+write(IDI_MA,'(a )') 'read'
+write(IDI_MA,'(3a)') '  cell internal.',substance(1:i), '.cell, ncell_a, ncell_b, 1 ! as Example 1 unit cell thick'
+write(IDI_MA,'(a )') 'save     ! Save two layers as an example needs to be adapted'
+write(IDI_MA,'(3a)') '  outfile internal.',substance(1:i), '.layer_1'
+write(IDI_MA,'(a )') '  write all'
+write(IDI_MA,'(a )') '  run'
+write(IDI_MA,'(3a)') '  outfile internal.',substance(1:i), '.layer_2'
+write(IDI_MA,'(a )') '  write all'
+write(IDI_MA,'(a )') '  run'
+write(IDI_MA,'(a )') 'exit'
+write(IDI_MA,'(a )') 'read'
+write(IDI_MA,'(3a)') '  cell internal.',substance(1:i), '.cell, ncell_a, ncell_b, 1'
+call stack_no_run(IDI_MA, substance,i)
+write(IDI_MA,'(a )') '  run            ! Decorate the origins with actual layers'
+write(IDI_MA,'(a )') 'exit             ! Back to main DISCUS level'
+!write(IDI_MA,'(a )') 'read'
+!write(IDI_MA,'(3a)') '  cell internal.',substance(1:i), '.cell, ncell_a, ncell_b, ncell_c'
+write(IDI_MA,'(a )') '# Cut an ellipsoidal surface centered at the half height along the c-axis'
+write(IDI_MA,'(a )') 'surface'
+write(IDI_MA,'(a )') '  boundary ellipsoid, P_diam_a, P_diam_b, P_diam_c, centx:0.0, centy:0.0, centz:P_diam_c*0.5/P_lat_c'
+write(IDI_MA,'(a )') 'exit'
+write(IDI_MA,'(a )') 'purge type_yes'
+write(IDI_MA,'(a )') 'variable real, rlambda'
+write(IDI_MA,'(a,f11.6 )') 'rlambda = ', rlambda
+write(IDI_MA,'(a )') '@debye.mac'
+!
+write(IDI_MA,'(a )') 'output'
+write(IDI_MA,'(3a)') '  outf GRCALC/', substance(1:i), '.grcalc'
+write(IDI_MA,'(a )') '  value PDF'
+write(IDI_MA,'(a )') '  form pdf, r, F_XMIN, F_XMAX, F_XSTP'
+write(IDI_MA,'(a )') '  run'
+write(IDI_MA,'(a )') 'exit'
+write(IDI_MA,'(a )') 'branch kuplot'
+write(IDI_MA,'(a )') 'reset'
+write(IDI_MA,'(3a)') 'load xy, GRCALC/', substance(1:i), '.grcalc'
+write(IDI_MA,'(a )') 'exit  ! Back to DISCUS'
+write(IDI_MA,'(a )') 'exit  ! Back to REFINE'
+write(IDI_MA,'(a )') 'finished'
+close(IDI_MA)
+!
+i= len_trim(substance)
+open(IDI_PO, file='k_inter.mac', status='unknown')
+write(IDI_PO,'(a )') 'reset'
+write(IDI_PO,'(3a)') 'load xy, DATA/', substance(1:i), '.grobs'
+write(IDI_PO,'(3a)') 'load xy, GRCALC/', substance(1:i), '.grcalc'
+write(IDI_PO,'(a )') 'kcal sub, 1, 2'
+write(IDI_PO,'(a )') 'r[0] = min(ymin[1], ymin[2]) - ymax[3]'
+write(IDI_PO,'(a )') 'ccal add, wy, 3, r[0]'
+write(IDI_PO,'(a )') 'aver'
+write(IDI_PO,'(a )') 'scale'
+write(IDI_PO,'(a )') 'mark'
+write(IDI_PO,'(a )') 'ltyp 1, 1'
+write(IDI_PO,'(a )') 'ltyp 2, 1'
+write(IDI_PO,'(a )') 'ltyp 3, 1'
+write(IDI_PO,'(a )') 'lcol 1, blue'
+write(IDI_PO,'(a )') 'lcol 2, red'
+write(IDI_PO,'(a )') 'lcol 3, black'
+write(IDI_PO,'(a )') 'mtyp 1, 0'
+write(IDI_PO,'(a )') 'mtyp 2, 0'
+write(IDI_PO,'(a )') 'mtyp 3, 0'
+write(IDI_PO,'(a )') 'fnam off'
+write(IDI_PO,'(a )') 'fset 2'
+write(IDI_PO,'(a )') 'grid on'
+write(IDI_PO,'(a )') 'achx Distance [\A]'
+write(IDI_PO,'(a )') 'achy PDF'
+write(IDI_PO,'(a )') 'rval 1,2, dat'
+write(IDI_PO,'(2a)') 'tit1 Substance: ', substance(1:i)
+write(IDI_PO,'(a )') 'tit2 "wR-value %8.5f",res[2]'
+write(IDI_PO,'(a )') 'plot'
+write(IDI_PO,'(a )') 'exit '
+close(IDI_PO)
+!
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_diam_a , value:30.0000, points:3, shift:0.050, status:free'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_diam_b , value:40.0000, points:3, shift:0.050, status:free'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_diam_c , value:50.0000, points:3, shift:0.050, status:free'
+write(IRE_NP,'(a,f9.4,a )') 'newpara P_prob   , value:00.8000, points:3, shift:0.050, status:free, range:[0.00, 1.00]'
+write(IRE_MA,'(a )') 'set cycle,   5'
+write(IRE_MA,'(a )') 'set conver, status:on, dchi:0.050, chisq:1.10, pshift:2.0, conf:1.0, lambda:65000.'
+write(IRE_MA,'(a )') 'set relax, start:0.25'
+write(IRE_MA,'(2a)') '@', discus_file(1:len_trim(discus_file))
+write(IRE_MA,'( a)') 'branch kuplot'
+write(IRE_MA,'( a)') '  @k_inter.mac'
+write(IRE_MA,'( a)') 'wait return'
+write(IRE_MA,'(3a)') 'run ', discus_file(1:len_trim(discus_file)), ', plot:k_inter.mac'
+write(IRE_MA,'(a )') '#'
+write(IRE_MA,'(a )') '#@final_cell_cif.mac'
+write(IRE_MA,'(a )') '#'
+write(IRE_MA,'(a )') 'exit  ! Back to SUITE'
+close(IRE_MA)
+close(IRE_NP)
+!
+i= len_trim(substance)
+line = 'mkdir -p STRUCTURE_FINAL'
+call execute_command_line(line, wait=.false.)
+!
+open(IRE_MA, file='final_cell_cif.mac', status='unknown')
+write(IRE_MA,'( a)') 'branch discus'
+write(IRE_MA,'( a)') 'read'
+write(IRE_MA,'(3a)') '  stru internal.' , substance(1:i), '.cell'
+write(IRE_MA,'( a)') 'cd STRUCTURE_FINAL'
+write(IRE_MA,'( a)') 'save'
+write(IRE_MA,'(3a)') '  outf ', substance(1:i), '.cell'
+write(IRE_MA,'( a)') '  write all'
+write(IRE_MA,'( a)') '  run'
+write(IRE_MA,'( a)') 'exit'
+write(IRE_MA,'(3a)') 'export cif, ', substance(1:i), '.cif, spcgr:original'
+write(IRE_MA,'( a)') 'cd ..'
+write(IRE_MA,'( a)') 'exit  ! back to REFINE'
+close(IRE_MA)
+!
+write(line,'(3a)') 'cp ', substance(1:len_trim(substance)),'.cell CELL'
+call execute_command_line(line, wait=.false.)
+!
+end subroutine write_refine_pdf_part4_nano_stack
 !
 !*****7**************************************************************** 
 !
@@ -2229,7 +2594,7 @@ end subroutine write_diffev_single_part3
 !*****7**************************************************************** 
 !
 subroutine write_diffev_single_part4(&
-        substance,  ilist, radiation, c_form, lambda, slambda, compute, c_style,           &
+        substance,  ilist, c_disorder, radiation, c_form, lambda, slambda, compute, c_style,           &
         P_exti, hkl_max, P_ncycle  &
         )
 !
@@ -2243,6 +2608,7 @@ implicit none
 !
 character(len=*)                , intent(in) :: substance
 integer                         , intent(in) :: ilist
+character(len=*)                , intent(in) :: c_disorder
 character(len=*)                , intent(in) :: radiation
 character(len=*)                , intent(in) :: c_form
 character(len=*)                , intent(in) ::  lambda
@@ -2267,7 +2633,13 @@ read(lambda, *) rlambda
 !
 j = 0
 i = len_trim(substance)
-call single_main_part4(IDF_PO, .false., substance, radiation, c_form, rlambda, slambda, P_exti)
+if(c_disorder=='none') then
+   call single_main_part4(IDF_PO, .false., substance, c_disorder, radiation,  &
+                          c_form, rlambda, slambda, P_exti)
+elseif(c_disorder=='stack') then
+   call single_stack_part4(IDI_MA, .true., substance, c_disorder, radiation,  &
+                          c_form, rlambda, slambda, P_exti)
+endif
 close(IDF_PO)
 !
 if(P_exti> 0.00001) then
@@ -2362,7 +2734,7 @@ end subroutine write_diffev_single_part4
 !*****7**************************************************************** 
 !
 subroutine write_diffev_powder_part4(&
-           substance, radiation, c_form, lambda, slambda, compute, c_style )
+           substance, radiation, c_form, lambda, slambda, P_qmax, compute, c_style )
 !-
 ! Write main discus macro DIFFEV_VERSION, last part
 ! Write "diffev_setup.mac"              , last part
@@ -2377,6 +2749,7 @@ character(len=*), intent(in) :: radiation
 character(len=*), intent(in) :: c_form       ! Atom form factor
 character(len=*), intent(in) ::  lambda      ! Wave length numerical value
 character(len=*), intent(in) :: slambda      ! Wave length symbol
+real(kind=PREC_DP), intent(in) :: P_qmax
 character(len=*), intent(in) :: compute      ! 'serial' or 'parallel' 
 character(len=*), intent(in) :: c_style      ! 'powder' or 'pdf' 
 !
@@ -2397,7 +2770,7 @@ write(IDF_PO, '(a)') '#'
 write(IDF_PO, '(a)') '@powder.mac'
 !
 read(lambda, *) rlambda
-call write_macro_powder(radiation, c_form, hkl_file, rlambda, slambda)
+call write_macro_powder_pdf_bulk(radiation, c_form, hkl_file, rlambda, slambda, P_qmax)
 !
 write(IDF_PO, '(a)') 'output'
 write(IDF_PO, '(a)') '  outf "%c/INDI/indi.%4D.%4D", INDIDIR, REF_KID, REF_INDIV'
@@ -2429,7 +2802,7 @@ end subroutine write_diffev_powder_part4
 !*****7**************************************************************** 
 !
 subroutine write_diffev_pdf_part4_bulk(&
-           substance, radiation, c_form, lambda, slambda, compute, c_style )
+           substance, radiation, c_form, lambda, slambda, P_qmax, compute, c_style )
 !-
 ! Write main discus macro DIFFEV_VERSION, last part
 ! Write "diffev_setup.mac"              , last part
@@ -2444,6 +2817,7 @@ character(len=*), intent(in) :: radiation
 character(len=*), intent(in) :: c_form       ! Atom form factor
 character(len=*), intent(in) ::  lambda      ! Wave length numerical value
 character(len=*), intent(in) :: slambda      ! Wave length symbol
+real(kind=PREC_DP), intent(in) :: P_qmax
 character(len=*), intent(in) :: compute      ! 'serial' or 'parallel' 
 character(len=*), intent(in) :: c_style      ! 'powder' or 'pdf' 
 !
@@ -2464,7 +2838,7 @@ write(IDF_PO, '(a)') '#'
 write(IDF_PO, '(a)') '@powder.mac'
 !
 read(lambda, *) rlambda
-call write_macro_powder(radiation, c_form, hkl_file, rlambda, slambda)
+call write_macro_powder_pdf_bulk(radiation, c_form, hkl_file, rlambda, slambda, P_qmax)
 !
 write(IDF_PO, '(a)') 'output'
 write(IDF_PO, '(a)') '  outf "%c/INDI/indi.%4D.%4D", INDIDIR, REF_KID, REF_INDIV'
@@ -2496,7 +2870,7 @@ end subroutine write_diffev_pdf_part4_bulk
 !*****7**************************************************************** 
 !
 subroutine write_diffev_pdf_part4_nano(&
-           substance, radiation, c_form, lambda, slambda, compute, c_style )
+           substance, radiation, c_form, lambda, slambda, P_qmax, compute, c_style )
 !-
 ! Write main discus macro DIFFEV_VERSION, last part
 ! PDF version
@@ -2512,6 +2886,7 @@ character(len=*), intent(in) :: radiation
 character(len=*), intent(in) :: c_form       ! Atom form factor
 character(len=*), intent(in) ::  lambda      ! Wave length numerical value
 character(len=*), intent(in) :: slambda      ! Wave length symbol
+real(kind=PREC_DP), intent(in) :: P_qmax
 character(len=*), intent(in) :: compute      ! 'serial' or 'parallel' 
 character(len=*), intent(in) :: c_style      ! 'powder' or 'pdf' 
 !
@@ -2546,7 +2921,7 @@ write(IDF_PO, '(a)') '#'
 write(IDF_PO, '(a)') '@debye.mac'
 !
 read(lambda, *) rlambda
-call write_macro_debye(radiation, c_form, hkl_file, rlambda, slambda)
+call write_macro_debye(radiation, c_form, hkl_file, rlambda, slambda, P_qmax)
 !
 write(IDF_PO, '(a)') 'output'
 write(IDF_PO, '(a)') '  outf "%c/INDI/indi.%4D.%4D", INDIDIR, REF_KID, REF_INDIV'
@@ -3266,7 +3641,88 @@ end subroutine write_macro_powder
 !
 !*****7**************************************************************** 
 !
-subroutine write_macro_debye(radiation, c_form, hkl_file, rlambda, slambda)
+subroutine write_macro_powder_pdf_bulk(radiation, c_form, hkl_file, rlambda, slambda, P_qmax)
+!-
+!  Write the powder diffraction macro for a PDF calculation for bulk materials
+!+
+use precision_mod
+!
+implicit none
+!
+character(len=*)  , intent(in) :: radiation
+character(len=*)  , intent(in) :: c_form       ! Atom form factor
+character(len=*)  , intent(in) :: hkl_file     ! TSC file in case of DISCAMB
+real(kind=PREC_DP), intent(in) :: rlambda
+character(len=*)  , intent(in) :: slambda      ! Wave length symbol
+real(kind=PREC_DP), intent(in) :: P_qmax       ! Maximum Q for powder calculation
+!
+integer, parameter :: IDI = 49
+!
+open(unit=IDI, file='powder.mac', status='unknown') 
+!
+write(IDI,'(a )') 'variable real, rlambda'
+if(rlambda/=0.0D0) then
+   write(IDI,'(a, f8.6)') 'rlambda = ', rlambda
+else
+   write(IDI,'(a )') 'rlambda = 1.54061'
+endif
+write(IDI,'(a )') 'powder'
+if(c_form == 'discamb') then
+   write(IDI,'(3a)') '  xray table:discamb, file:', hkl_file(1:len_trim(hkl_file)), '.tsc'
+   write(IDI,'(a )') '  set axis, q'
+   write(IDI,'(a )') '  set calc, grid'
+else
+   if(radiation=='xray') then
+      write(IDI,'(2a)') '  xray table:', c_form(1:len_trim(c_form))
+   elseif(radiation=='neutron') then
+      write(IDI,'(2a)') '  neutron'
+   elseif(radiation=='electron') then
+      write(IDI,'(2a)') '  electron'
+   endif
+   write(IDI,'(a )') '  set axis, q'
+   write(IDI,'(a )') '  set calc, complete'
+endif
+!write(IDI,'(a,f7.5,a )') '  set qmin, max(F_XSTP, 4.*PI*sind(F_XMIN*0.5)/ rlambda -0.2)'
+!write(IDI,'(a,f7.5,a )') '  set qmax,             4.*PI*sind(F_XMAX*0.5)/ rlambda + 0.05'
+write(IDI,'(a,f8.5   )') '  set qmin, 0.800'
+write(IDI,'(a,f8.5   )') '  set qmax, ', P_qmax
+write(IDI, '(a)') '  set dq  , 0.00025'
+write(IDI,'(a )') '  set dh  , 1.0'
+write(IDI,'(a )') '  set dk  , 1.0'
+write(IDI,'(a )') '  set dl  , 1.0'
+write(IDI,'(a )') '  set profile, pseudo'
+write(IDI,'(a )') '  set profile, eta, P_eta, P_eta_l, P_eta_q'
+write(IDI,'(a )') '  set profile, uvw, P_u, P_v, P_w'
+write(IDI,'(a )') '  set profile, asym   , P_as1_c, P_as2_c'
+write(IDI,'(a )') '  set profile, asym_i1, P_as1_i, P_as2_i'
+write(IDI, '(a)') '# set profile, asym_l , P_as1_l, P_as2_l'
+write(IDI, '(a)') '# set profile, asym_q , P_as1_q, P_as2_q'
+write(IDI, '(a)') '  set profile, tthmax, 27.0'
+write(IDI, '(a)') '# set preferred, march'
+write(IDI, '(a)') '# set preferred, portion, P_portion'
+write(IDI, '(a)') '# set preferred, damping, P_damping'
+write(IDI, '(a)') '# set preferred, hkl, 0, 0, 1'
+write(IDI,'(a )') '  set temp, use'
+write(IDI,'(a )') '  set disp, off'
+if(slambda/=' ') then
+   write(IDI,'(2a)') '  set wvle, ', slambda(1:len_trim(slambda))
+else
+   write(IDI,'(a,f8.6)') '  set wvle, ', rlambda
+endif
+write(IDI,'(a )') '  set four, four'
+write(IDI,'(a )') '  set lpcor, bragg, 0.00'
+write(IDI,'(a )') '  set scale, P_scale'
+write(IDI,'(a )') '  set tthzero, P_zero'
+write(IDI,'(3a)') '  run'
+write(IDI,'(a )') 'exit'
+!
+close(IDI)
+!
+end subroutine write_macro_powder_pdf_bulk
+!
+!*****7**************************************************************** 
+!
+subroutine write_macro_debye(radiation, c_form, hkl_file, rlambda, slambda, P_qmax)
 !-
 !  Write the powder diffraction macro   debye scattering version
 !+
@@ -3279,6 +3735,7 @@ character(len=*)  , intent(in) :: c_form       ! Atom form factor
 character(len=*)  , intent(in) :: hkl_file     ! TSC file in case of DISCAMB
 real(kind=PREC_DP), intent(in) :: rlambda
 character(len=*)  , intent(in) :: slambda      ! Wave length symbol
+real(kind=PREC_DP), intent(in) :: P_qmax
 !
 integer, parameter :: IDI = 49
 !
@@ -3300,8 +3757,8 @@ elseif(radiation=='electron') then
 endif
 write(IDI,'(a )') '  set axis, q'
 write(IDI,'(a )') '  set calc, debye'
-write(IDI,'(a,f7.5,a )') '  set qmin, 0.5000'
-write(IDI,'(a,f7.5,a )') '  set qmax, 26.0000'
+write(IDI,'(a        )') '  set qmin, 0.5000'
+write(IDI,'(a,f8.5   )') '  set qmax ', P_qmax
 write(IDI, '(a)') '  set dq  , 0.00025'
 write(IDI,'(a )') '  set profile, pseudo'
 write(IDI,'(a )') '  set profile, eta, P_eta, P_eta_l, P_eta_q'
