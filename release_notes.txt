@@ -1,10 +1,18 @@
-6.22.01  DRAFT
+6.23.01  DRAFT
+
+6.23.00  RELEASE 2026_09_06
+
+GENERAL
+	      Revised WINDOWS WSL installation script 
 
 DISCUS
   save/read    Added a field to HDF5 files to specify if coordinates are in range
                of basecell or supercell fractional coordinates
+  export       Added a 'radiation' and 'qmax' to refine preparation
+EXPERI
+               Improved plots in interactive mode, added wave length input
 
-6.22.04  RELEASE 2026_07_16
+6.22.01  RELEASE 2026_07_16
 
 GENERAL
                Introduced two common file formats for:
