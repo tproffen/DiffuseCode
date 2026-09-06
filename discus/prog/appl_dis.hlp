@@ -2558,13 +2558,15 @@
    relative abundance:
    examples:   
    Pure gold        : Au
-   Ceria            : CeO2
-   Ceriai           : Ce O2.0
-   Nonstoiciometric : Fe1.0 O0.978 
+   Ceria            : Ce,O2
+   Ceriai           : Ce ,O2.0
+   Nonstoiciometric : Fe1.0 , O0.978 
 
    Blanks are not relevant. 
    Atom names must have a first capital letter and a 
-   lower case second letter.
+   lower case second letter. 
+   To avoid issues with Ho versus H and O, atoms must be
+   separated by a comma.
 3  data
 !p data  xy,  <data_file>
 !p data  csv, <data_file>
