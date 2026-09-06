@@ -406,11 +406,11 @@ ELSE
    WRITE (output_io, 1105) 'molecules' 
 ENDIF 
 !                                                                       
-WRITE (output_io, 1250) mo_cyc 
+WRITE (output_io, 1250) mo_cyc *1.0D0/cr_natoms
 if(mmc_feed_auto) then
   write(output_io,'(a)') '   Feedback/update intervall adjusted automatically'
 else
-  WRITE (output_io, 1300) mo_feed 
+  WRITE (output_io, 1300) mo_feed *1.0D0/cr_natoms
 endif
 WRITE (output_io, 1350) mmc_no_valid 
 WRITE (output_io, 1400) mo_kt 
@@ -945,8 +945,8 @@ endif
       ENDIF 
 !                                                                       
  1105 FORMAT (  '   Operation mode for MC        : ',a) 
- 1250 FORMAT (  '   Max. number of MC cycles     : ',i8) 
- 1300 FORMAT (  '   Feedback/update intervall    : ',i8) 
+ 1250 FORMAT (  '   Max. number of MC cycles     : ',f9.1,' per atom')
+ 1300 FORMAT (  '   Feedback/update intervall    : ',f9.1,' per atom')
  1350 FORMAT (  '   Maximum no. non_valid cycles : ',i8) 
  1400 FORMAT (  '   Temperature [kT]             : ',f8.4) 
  3000 FORMAT (/,' Correlation definitions        : ',/) 
