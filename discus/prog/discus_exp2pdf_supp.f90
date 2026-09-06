@@ -73,6 +73,9 @@ if(lpresent(O_COMP)) then
       exp_comp_current = .true.
    else
       exp_comp_current = .false.
+      if(opara(O_COMP)(1:1)=='[') opara(O_COMP)(1:1) = ' '
+      i = lopara(O_COMP)
+      if(opara(O_COMP)(i:i)==']') opara(O_COMP)(i:i) = ' '
       call rem_bl(opara(O_COMP), lopara(O_COMP))
       string = opara(O_COMP)
       length = lopara(O_COMP)
