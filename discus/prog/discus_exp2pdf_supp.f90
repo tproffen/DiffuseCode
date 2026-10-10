@@ -11,15 +11,20 @@ SUBROUTINE exp2pdf_composition(line, length)
 ! Set the composition either as current structure or 
 ! explicitly as list of atoms
 !
+use crystal_mod
 USE exp2pdf_data_mod
+use chem_aver_mod
 !
+use berechne_mod
 use blanks_mod
 use charact_mod
+use chem_aver_mod
 USE errlist_mod
 use lib_errlist_func, only: no_error
 USE ber_params_mod
 USE get_params_mod
 use element_data_mod, only: guess_element
+use param_mod
 USE precision_mod
 use string_convert_mod
 USE take_param_mod
@@ -30,6 +35,7 @@ CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: MAXW = 20
+integer, parameter :: LCOMP = 14
 !
 character(len=4)           :: atom_full
 character(len=4)           :: atom_name
@@ -42,6 +48,8 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz, iianz
 integer                              :: i, j
 logical :: l_number
+integer :: indx_colon
+integer :: laenge
 !
 integer, parameter :: NOPTIONAL = 1
 integer, parameter :: O_COMP    = 1
@@ -67,10 +75,20 @@ if(ier_num/=0) return
 call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 if(ier_num/=0) return
+!write(*,*) 'PARAMETER : ', cpara(1)(1:lpara(1))
+!write(*,*) 'OPTIONAL  : ', opara(1)(1:lopara(1))
 !
 if(lpresent(O_COMP)) then
    if(opara(O_COMP)=='current') then
       exp_comp_current = .true.
+      allocate(exp_atname(1:cr_nscat))
+      allocate(exp_atocc (1:cr_nscat))
+      do i=1, nint(res_para(0))
+         if(res_para(i)>0.0_PREC_DP) then
+            exp_atname(i) = cr_at_lis(i-1)
+            exp_atocc (i) = res_para(i)
+         endif
+      enddo
    else
       exp_comp_current = .false.
       if(opara(O_COMP)(1:1)=='[') opara(O_COMP)(1:1) = ' '
@@ -86,6 +104,19 @@ else                          ! User omitted "comp:"
    exp_comp_current = .false.
 endif
 !
+if(exp_comp_current) then   ! User provided comp:current
+   if(cr_natoms>0) then
+      call chem_get_composition(exp_composition)
+      return
+   else
+      ier_num = -198
+      ier_typ = ER_APPL
+      ier_msg(1) = 'The current structure appears empty.'
+      ier_msg(2) = 'Provide a structure or use a composition'
+      return
+   endif
+endif
+!
 if(allocated(exp_atname)) deallocate(exp_atname)
 if(allocated(exp_atocc )) deallocate(exp_atocc )
 !
@@ -93,8 +124,9 @@ i = len_trim(string)
 allocate(exp_atname(1:i))
 allocate(exp_atocc (1:i))
 exp_atname = ' '
-exp_atocc  = 0.0D0
+exp_atocc  = 1.0D0
 !
+!write(*,*) ' STRING     ', string(1:len_trim(string)), ' i ', i
 call get_params(string, ianz, cpara, lpara, MAXW, length)
 if(ianz==1) then     ! Just one atom or blanks
    call get_params_blank(string, ianz, cpara, lpara, MAXW, length)
@@ -104,21 +136,34 @@ exp_natom = 0
 iianz     = 1
 l_number  = .false.
 loop_params: do i=1, ianz      ! Loop over all params
-   wrong_atom = cpara(1)
-   call rem_bl(cpara(1), lpara(1))
-   call do_cap(cpara(1))
-!  write(*,*) ' CPARA ', i, cpara(1)(1:10), l_number
-   if(l_number) then           ! This might be a number for previous parameter
-      call ber_params(iianz, cpara, lpara, werte, maxw)    ! Try to calculate
-      if(ier_num==0) then   ! Success to calculate
-         exp_atocc(exp_natom) = werte(1)
-         l_number  = .false.        ! Next parameter is an atom name
-         call del_params(1, ianz, cpara, lpara, MAXW)
-         cycle loop_params          ! Work on next parameter
-      else
-        call no_error
-      endif
+!write(*,*) 'PARAMETER : ', cpara(1)(1:lpara(1))
+   exp_atocc(exp_natom+1) = 1.0_PREC_DP
+   indx_colon = index(cpara(1)(1:lpara(1)), ':')
+   if(indx_colon>1) then
+      line = cpara(1)(indx_colon+1:lpara(1))
+      iianz = 1
+      laenge=lpara(1)
+      werte(1) = berechne  (line, laenge)
+      exp_atocc(exp_natom+1) = werte(1)
+      cpara(1)(indx_colon:lpara(1)) = ' '
+   else
+      exp_atocc(exp_natom+1) = 1.0_PREC_DP
    endif
+   wrong_atom = cpara(i)
+   call rem_bl(cpara(i), lpara(i))
+   call do_cap(cpara(i))
+!  write(*,*) ' CPARA ', i, cpara(1)(1:10), l_number
+!  if(l_number) then           ! This might be a number for previous parameter
+!     call ber_params(iianz, cpara, lpara, werte, maxw)    ! Try to calculate
+!     if(ier_num==0) then   ! Success to calculate
+!        exp_atocc(exp_natom+1) = werte(1)
+!        l_number  = .false.        ! Next parameter is an atom name
+!        call del_params(1, ianz, cpara, lpara, MAXW)
+!        cycle loop_params          ! Work on next parameter
+!     else
+!       call no_error
+!     endif
+!  endif
 !
    atom_name = 'NONE'
    call guess_element(atom_name, atom_full, j, cpara(1))
@@ -128,6 +173,7 @@ loop_params: do i=1, ianz      ! Loop over all params
 
          exp_natom = exp_natom+1
          exp_atname(exp_natom) = atom_name
+         call do_low(exp_atname(exp_natom)(2:2))
          cpara(1)(1:len_trim(atom_name)) = ' '     ! CLear atom name
          if(cpara(1)/=' ') then
             call ber_params(iianz, cpara, lpara, werte, maxw)
@@ -137,10 +183,10 @@ loop_params: do i=1, ianz      ! Loop over all params
                return
             endif
             exp_atocc(exp_natom) = werte(1)
-            l_number  = .false.        ! Next parameter is an atom name
+!           l_number  = .false.        ! Next parameter is an atom name
          else
             exp_atocc(exp_natom) = 1.0D0  ! Default to one
-            l_number  = .true.         ! Next param might be number for current atom
+!           l_number  = .true.         ! Next param might be number for current atom
          endif
          call del_params(1, ianz, cpara, lpara, MAXW)
          cycle loop_params
@@ -165,10 +211,19 @@ loop_params: do i=1, ianz      ! Loop over all params
    endif cond_is_atom
 enddo loop_params
 !
-!write(*,*) 'FOUND ', exp_natom
-!do i=1, exp_natom
-!   write(*,*) ' ATOM NAME >', exp_atname(i)(1:len_trim(exp_atname(i))),'<< ', exp_atocc(i)
-!enddo
+exp_composition = ' '
+do i=1, exp_natom
+   j = (i-1) * LCOMP + 1
+   write(exp_composition(j:j+LCOMP-1),'(a4,a1,f7.4,a2)') exp_atname(i), ':', exp_atocc(i),' ,'
+enddo
+i = len_trim(exp_composition)
+exp_composition(i:i) = ' '
+!call rem_bl(exp_composition,i)
+!
+write(*,*) 'FOUND ', exp_natom, exp_composition(1:len_trim(exp_composition))
+do i=1, exp_natom
+   write(*,*) ' ATOM NAME >', exp_atname(i)(1:len_trim(exp_atname(i))),'<< ', exp_atocc(i)
+enddo
 !
 !do i=1, exp_natom
 !  write(*,*) 'Atom, occupancy ', exp_atname(i), exp_atocc(i)
@@ -230,6 +285,9 @@ call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 if(ier_num==-1 .and. ier_typ==2) then
    call no_error
+else
+   opara(O_LAMBDA) = ' '   ! No error, a numerical value was present
+   opara(O_ENERGY) = ' '   ! No error, a numerical value was present
 endif
 !
 !
@@ -253,12 +311,12 @@ endif
 if(lpresent(O_LAMBDA) .and. .not.lpresent(O_ENERGY)) then
    exp_is_rad = 1
    l_energy = .false.
-!  exp_rlambda = owerte(O_LAMBDA)
+   exp_rlambda = owerte(O_LAMBDA)
 !  exp_renergy = 12.39842/exp_rlambda
 elseif(.not.lpresent(O_LAMBDA) .and. lpresent(O_ENERGY)) then
    exp_is_rad = 2
    l_energy = .true.
-!  exp_renergy = owerte(O_ENERGY)
+   exp_renergy = owerte(O_ENERGY)
 !  exp_rlambda = 12.39842/exp_renergy
 elseif(lpresent(O_LAMBDA) .and. lpresent(O_ENERGY)) then
    ier_num = -6
@@ -311,7 +369,7 @@ INTEGER           , DIMENSION(MAXW) :: lpara
 !
 INTEGER                              :: ianz
 !
-integer, parameter :: NOPTIONAL = 8
+integer, parameter :: NOPTIONAL = 9
 integer, parameter :: O_RMIN    = 1
 integer, parameter :: O_RMAX    = 2
 integer, parameter :: O_RSTEP   = 3
@@ -320,7 +378,8 @@ integer, parameter :: O_GR      = 5
 integer, parameter :: O_IQ      = 6
 integer, parameter :: O_SQ      = 7
 integer, parameter :: O_FQ      = 8
-character(LEN=   5), dimension(NOPTIONAL) :: oname   !Optional parameter names
+integer, parameter :: O_FORMAT  = 9
+character(LEN=   6), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -328,11 +387,14 @@ logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
 integer, parameter                        :: ncalc = 4 ! Number of values to calculate 
 !
-data oname  / 'rmin ', 'rmax ', 'rstep', 'scale', 'gr', 'iq', 'sq', 'fq' /
-data loname /  4     ,  4     ,  5     ,  5     ,  2  ,  2  ,  2  ,  2   /
-opara  =  (/ '0.0100000000',  '100.01000000', '0.0100000000', '1.0000000000', 'discus.grobs', 'discus.iqobs', 'discus.sqobs', 'discus.fqobs' /) ! Always provide fresh default values
-lopara =  (/  12           ,   12           ,  12           ,  12           ,  12           ,  12           ,  12           ,  12            /)
-owerte =  (/  0.0100000000 ,   100.01000000 ,  0.0100000000 , 1.00000       ,  0.0000        ,  0.0000       ,  0.0000       ,  0.0000        /)
+data oname  / 'rmin ', 'rmax ', 'rstep', 'scale', 'gr', 'iq', 'sq', 'fq', 'format' /
+data loname /  4     ,  4     ,  5     ,  5     ,  2  ,  2  ,  2  ,  2  ,  6       /
+opara  =  (/ '0.0100000000',  '100.01000000', '0.0100000000', '1.0000000000', 'discus.grobs', &
+             'discus.iqobs', 'discus.sqobs', 'discus.fqobs' , 'stan        ' /) ! Always provide fresh default values
+lopara =  (/  12           ,  12           ,  12            ,  12           ,  12           ,  &
+              12           ,  12           ,  12            ,  4  /)
+owerte =  (/  0.0100000000 ,   100.01000000 ,  0.0100000000 , 1.00000       ,  0.0000       ,  &
+              0.0000       ,  0.0000       ,  0.0000        , 0.00000  /)
 !
 call get_params(line, ianz, cpara, lpara, MAXW, length)
 if(ier_num/=0) return
@@ -343,6 +405,13 @@ if(ier_num/=0) return
 if(lpresent(O_GR  )) then
    exp_outgr   = opara(O_GR)
    exp_outgr_l = .true.
+   if(lpresent(O_FORMAT)) then
+      if(opara(O_FORMAT)=='nexus' .or. opara(O_FORMAT)=='common') then
+         exp_outgr_f = 16    ! Common/nexus file format
+      elseif(opara(O_FORMAT)=='stan') then
+         exp_outgr_f =  0    ! Standard Ascii file
+      endif
+   endif
    exp_rmin  = nint(owerte(O_RMIN )*10000.0D0)/10000.0D0
    exp_rmax  = nint(owerte(O_RMAX )*10000.0D0)/10000.0D0
    exp_rstep = nint(owerte(O_RSTEP)*10000.0D0)/10000.0D0
@@ -705,6 +774,41 @@ else
 endif
 !
 end subroutine exp2pdf_qscale
+!
+!*******************************************************************************
+!
+subroutine exp2pdf_show
+!-
+!  Display current settings
+!+
+!
+use exp2pdf_data_mod
+!
+use prompt_mod
+!
+implicit none
+!
+write(output_io, '(a)') ' '
+write(output_io, '(a)') ' Experimental powder to PDF treatement '
+write(output_io, '(a)') ' '
+write(output_io, '(a,a)') ' Data       file     : ', exp_file_data(1:len_trim(exp_file_data))
+write(output_io, '(a,a)') ' Background file     : ', exp_file_back(1:len_trim(exp_file_back))
+write(output_io, '(a,a)') ' Sigma      file     : ', exp_file_sigma(1:len_trim(exp_file_sigma))
+if(exp_comp_current) then
+   write(output_io, '(3a )') ' Composition         : ', exp_composition, ' of current structure'
+else
+   write(output_io, '(a,a)') ' Composition         : ', exp_composition(1:len_trim(exp_composition))
+endif
+if(exp_radiation=='xray' .or. exp_radiation=='electron') then
+  write(output_io, '(3a,2(f10.5,a))') ' Radiation           : ', exp_radiation, ' lambda: ', exp_rlambda, ' A; Energy :', exp_renergy,' keV'
+elseif(exp_radiation=='neutron') then
+  write(output_io, '(3a,2(f10.5,a))') ' Radiation           : ', exp_radiation, ' lambda: ', exp_rlambda, ' A; Energy :', exp_renergy,' meV'
+endif
+write(output_io, '(a,i4)') ' Order of polynomial : ', exp_npoly
+write(output_io, '(a,2f10.5)') ' Instrumental limits : ', exp_qmin_i, exp_qmax_u
+write(output_io, '(a,2f10.5)') ' Fourier      limits : ', exp_qmin_f, exp_qmax_f
+!
+end subroutine exp2pdf_show
 !
 !*******************************************************************************
 !
