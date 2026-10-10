@@ -1,5 +1,12 @@
 6.23.01  DRAFT
 
+DISCUS
+  output       Convulution with profile function was erroneous 
+               for very short wavelengths at low Q
+
+KUPLOT
+  load         Data with large arrays with the y-dimension larger than the x-dimension caused a crash
+
 6.23.00  RELEASE 2026_09_06
 
 GENERAL
