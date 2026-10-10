@@ -338,7 +338,21 @@ subroutine unified_write_data(datafile, unit_cell_lengths, unit_cell_angles,    
                              data_values     , &
                              NMSG, ier_num, ier_msg,                                      &
                                             crystal_meta,                  &
-                             data_imag                                                    &
+                             data_imag,                                                   &
+                             sample_composition, &
+                             source_conversion , &
+                             source_file       , &
+                             source_back_scale , &
+                             source_dimension  , &
+                             source_abs_is_hkl , &
+                             source_ord_is_hkl , &
+                             source_top_is_hkl , &
+                             source_coordinate_unit , &
+                             source_corner  , &
+                             source_vector  , &
+                             source_inst_qmin_qmax, &
+                             source_fourier_qmin_qmax,&
+                             source_correction &
                              )
 !
 ! low level read
@@ -347,6 +361,7 @@ use lib_h5fortran_mod
 use lib_nx_transfer_mod
 use lib_unified_chars_mod
 use precision_mod
+use unified_dump_mod
 !
 use h5fortran, only: hdf5_file
 !
@@ -387,6 +402,25 @@ real(kind=PREC_DP)        , dimension(data_dimension(1), &
 real(kind=PREC_DP)        , dimension(data_dimension(1), &
                                       data_dimension(2), &
                                       data_dimension(3)), optional, intent(in) :: data_imag  ! Optional imaginary part of complex data values
+!
+!    Optional components for a powder_PDF or 3D PDF 
+!    values in reciprocal space
+!
+character(len=*)                                        , optional, intent(in) :: sample_composition      ! "Si 1, O2.0" or similar
+character(len=*)                                        , optional, intent(in) :: source_conversion       ! "pdfgetx3" "discus_EXPX2PDF" etc
+character(len=*)          , dimension(3)                , optional, intent(in) :: source_file             ! PDF file reciprocal space
+real(kind=PREC_DP)        , dimension(1)                , optional, intent(in) :: source_back_scale       ! PDF background scale file reciprocal space
+integer                   , dimension(3)                , optional, intent(in) :: source_dimension       ! Source Data have dimensions along (HKL) / (UVW) / Q / TwoTheta
+integer                                                 , optional, intent(in) :: source_abs_is_hkl      ! Source Abscissa is 1=h 2=k 3=l Meaningless for powder pdf
+integer                                                 , optional, intent(in) :: source_ord_is_hkl      ! Source Ordinate is 1=h 2=k 3=l Meaningless for powder pdf
+integer                                                 , optional, intent(in) :: source_top_is_hkl      ! Source top-axis is 1=h 2=k 3=l Meaningless for powder pdf
+character(len=32)                                       , optional, intent(in) :: source_coordinate_unit ! The Source axes coordinates are 'basecell_fractional', 'supercell_fractional'
+!                                                                                             ! 'degree#, 'radian', 'inverse_angstroem', 'inverse_nm', 'angstroem', 'nm'
+real(kind=PREC_DP)        , dimension(3   )             , optional, intent(in) :: source_corner          ! Source Lower left bottom corner in fractional coordinates
+real(kind=PREC_DP)        , dimension(3, 3)             , optional, intent(in) :: source_vector          ! Source Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
+real(kind=PREC_DP)        , dimension(2   )             , optional, intent(in) :: source_inst_qmin_qmax       ! For powder PDF: 
+real(kind=PREC_DP)        , dimension(2   )             , optional, intent(in) :: source_fourier_qmin_qmax       ! For powder PDF: 
+real(kind=PREC_DP)        , dimension(1   )             , optional, intent(in) :: source_correction              ! For powder PDF: 
 !
 integer                                                  , intent(in ) :: NMSG               ! Dimension of ier_msg
 integer                                                  , intent(out) :: ier_num            ! an error =0 if all is OK
@@ -565,9 +599,150 @@ if(data_type_number == 'complex') then
    if(ier_num/=0) return
 endif
 !
+! Optional part for powder PDF or 3D-PDF
+!
+if(data_type_style=='powder_pdf' .or. data_type_style=='single_pdf') then
+   if(present(sample_composition)) then
+      call h5f_write(h5f, 'sample_composition' , sample_composition , NMSG, ier_num, ier_msg)
+   else
+      call h5f_write(h5f, 'sample_composition' , 'unknown' , NMSG, ier_num, ier_msg)
+   endif
+!
+!  Source conversion program
+   if(present(source_conversion)) then
+      call h5f_write(h5f, 'source_conversion' , source_conversion , NMSG, ier_num, ier_msg)
+   else
+      call h5f_write(h5f, 'source_conversion' , 'unknown' , NMSG, ier_num, ier_msg)
+   endif
+!
+!  Source file reciprocal space
+   if(present(source_file)) then
+      call h5f_write(h5f, 'source_file_data' , source_file(1) , NMSG, ier_num, ier_msg)
+      call h5f_write(h5f, 'source_file_back' , source_file(2) , NMSG, ier_num, ier_msg)
+      call h5f_write(h5f, 'source_file_sigma' , source_file(3) , NMSG, ier_num, ier_msg)
+   else
+      call h5f_write(h5f, 'source_file_data' , 'unknown' , NMSG, ier_num, ier_msg)
+      call h5f_write(h5f, 'source_file_back' , 'unknown' , NMSG, ier_num, ier_msg)
+      call h5f_write(h5f, 'source_file_sigma' , 'unknown' , NMSG, ier_num, ier_msg)
+   endif
+!
+!  Source background scale factor
+   if(present(source_back_scale)) then
+      cdim(1) = ubound(source_back_scale,1)
+      call h5f_write(h5f, 'source_back_scale' , cdim(1), source_back_scale, NMSG, ier_num, ier_msg)
+      if(ier_num/=0) return
+   endif
+!
+!  Data dimension
+   if(present(source_dimension)) then
+      cdim(1) = 3
+      call h5f_write(h5f, 'source_dimension' , cdim(1), source_dimension, NMSG, ier_num, ier_msg)
+      if(ier_num/=0) return
+   endif
+!
+!  Single crystal PDF
+   if(data_type_style=='single_pdf') then
+!  Data axes types
+      if(present(source_abs_is_hkl) .and. present(source_ord_is_hkl) .and. present(source_top_is_hkl)) then
+         data_info( 1) = source_abs_is_hkl       ! Abscissa is 0=unknown 1=h 2=k 3=l
+         data_info( 2) = source_ord_is_hkl       ! Ordinate is 0=unknown 1=h 2=k 3=l
+         data_info( 3) = source_top_is_hkl       ! top-axis is 0=unknown 1=h 2=k 3=l
+         cdim(1) = 3
+         call h5f_write(h5f, 'source_axes' , cdim(1), data_info(1:3), NMSG, ier_num, ier_msg)
+         if(ier_num/=0) return
+      endif
+!
+! Axes coordinate type
+      if(present(source_coordinate_unit)) then
+         call h5f_write(h5f, 'source_coordinate_unit' , source_coordinate_unit , NMSG, ier_num, ier_msg)
+         if(ier_num/=0) return
+      endif
+!
+! Lower_left_bottom corner / transposed write
+      if(present(source_corner)) then
+         cdim(1) = 3
+         call h5f_write(h5f, 'source_corner' , cdim(1), source_corner, NMSG, ier_num, ier_msg)
+         if(ier_num/=0) return
+      endif
+!
+! Increment vectors / transposed write
+      if(present(source_vector)) then
+         cdim(1) = 3
+         cdim(2) = 3
+         cdim(3) = 3
+         call h5f_write(h5f, 'source_increment_vector' , cdim, source_vector, NMSG, ier_num, ier_msg)
+         if(ier_num/=0) return
+      endif
+   elseif(data_type_style=='powder_pdf') then
+!
+!    Qmin_Qmax
+      if(present(source_inst_qmin_qmax)) then
+         cdim(1) = 2
+         call h5f_write(h5f, 'source_inst_qmin_qmax' , cdim(1), source_inst_qmin_qmax, NMSG, ier_num, ier_msg)
+         if(ier_num/=0) return
+      endif
+!
+!    Qmin_Qmax
+      if(present(source_fourier_qmin_qmax)) then
+         cdim(1) = 2
+         call h5f_write(h5f, 'source_fourier_qmin_qmax' , cdim(1), source_fourier_qmin_qmax, NMSG, ier_num, ier_msg)
+         if(ier_num/=0) return
+      endif
+!
+!    Correction parameters
+      if(present(source_correction)) then
+         cdim(1) = ubound(source_correction,1)
+         call h5f_write(h5f, 'source_correction' , cdim(1), source_correction, NMSG, ier_num, ier_msg)
+         if(ier_num/=0) return
+      endif
+   endif
+endif
+!
 call h5f%close()
 call h5f_reset
 !
+l_dump = .true.
+if(l_dump) then
+   call unified_dump_data(unit_cell_lengths, unit_cell_angles,           &
+                             symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                             symmetry_mat,                                                &
+                             data_type_experiment, &
+                             data_type_style     , &
+                             data_type_axes      , &
+                             data_type_content   , &
+                             data_type_reciprocal, &
+                             data_type_with_bragg, &
+                             data_type_symmetrized, &
+                             data_type_number     , &
+                             data_rad_radiation , data_rad_symbol, data_rad_length, &
+                             data_dimension  , &
+                             data_abs_is_hkl     , &
+                             data_ord_is_hkl     , &
+                             data_top_is_hkl     , &
+                             coordinate_unit , &
+                             data_corner     , &
+                             data_vector     , &
+                             data_values     , &
+                             NMSG, ier_num, ier_msg,                                      &
+                                            crystal_meta,                  &
+                             data_imag         ,     &
+                             sample_composition       = sample_composition, &
+                             source_conversion        = source_conversion , &
+                             source_file              = source_file       , &
+                             source_back_scale        = source_back_scale , &
+                             source_dimension         = source_dimension  , &
+                             source_abs_is_hkl        = source_abs_is_hkl , &
+                             source_ord_is_hkl        = source_ord_is_hkl , &
+                             source_top_is_hkl        = source_top_is_hkl , &
+                             source_coordinate_unit   = source_coordinate_unit , &
+                             source_corner            = source_corner  , &
+                             source_vector            = source_vector  , &
+                             source_inst_qmin_qmax    = source_inst_qmin_qmax, &
+                             source_fourier_qmin_qmax = source_fourier_qmin_qmax,&
+                             source_correction        = source_correction &
+                            )
+endif
+l_dump = .false.
 !
 end subroutine unified_write_data
 !

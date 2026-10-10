@@ -400,7 +400,21 @@ subroutine unified_read_data( infile,  &
                              data_values     , &
                              NMSG, ier_num, ier_msg,                                      &
                              crystal_meta,  &
-                             data_imag  &
+                             data_imag,                                                   &
+                             sample_composition, &
+                             source_conversion , &
+                             source_file       , &
+                             source_back_scale , &
+                             source_dimension , &
+                             source_abs_is_hkl , &
+                             source_ord_is_hkl , &
+                             source_top_is_hkl , &
+                             source_coordinate_unit , &
+                             source_corner  , &
+                             source_vector  , &
+                             source_inst_qmin_qmax, &
+                             source_fourier_qmin_qmax, &
+                             source_correction &
                             )
 !-
 !  Read the Diffuse Developers common file format for diffraction data
@@ -455,10 +469,24 @@ character(len=*)          , dimension(NMSG)              , intent(out) :: ier_ms
 !logical                   , dimension(8)                 , intent(in)  :: optional_intended     ! These optional flags should be present
 !
 character(len=PREC_STRING), dimension(N_META)            , intent(out) :: crystal_meta       ! Metadata, see "c_meta"
+character(len=PREC_STRING)                               , intent(out) :: sample_composition        ! Metadata, see "c_meta"
+character(len=PREC_STRING)                               , intent(out) :: source_conversion         ! Metadata, see "c_meta"
+character(len=PREC_STRING), dimension(3)                 , intent(out) :: source_file               ! Source file reciprocal space
+real(kind=PREC_DP)        , dimension(1)                 , intent(out) :: source_back_scale         ! Source file reciprocal space
+integer                   , dimension(3)                 , intent(out) :: source_dimension   ! For pdf dimensions in reciprocal space
+integer                                                  , intent(out) :: source_abs_is_hkl      ! Abscissa is 1=h 2=k 3=l
+integer                                                  , intent(out) :: source_ord_is_hkl      ! Ordinate is 1=h 2=k 3=l
+integer                                                  , intent(out) :: source_top_is_hkl      ! top-axis is 1=h 2=k 3=l
+character(len=32)                                        , intent(out) :: source_coordinate_unit    ! 'basecell_fractional', 'supercell_fractional',  'unknown'
+real(kind=PREC_DP)        , dimension(3   )              , intent(out) :: source_corner          ! Lower left bottom corner in fractional coordinates
+real(kind=PREC_DP)        , dimension(3, 3)              , intent(out) :: source_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
+real(kind=PREC_DP)        , dimension(2   )              , intent(out) :: source_inst_qmin_qmax       ! Qmin and Qmax for POWDER PDF Instrumental limits
+real(kind=PREC_DP)        , dimension(2   )              , intent(out) :: source_fourier_qmin_qmax       ! Qmin and Qmax for POWDER PDF
+real(kind=PREC_DP)        , dimension(1)                 , intent(out) :: source_correction         ! PDF correction üarameters
 !
 type(hdf5_file) :: h5f
 integer, dimension(3) :: cdim
-integer, dimension(3) :: data_info
+integer, dimension(3) :: data_info, source_info
 !
 call h5f_reset
 call h5f_open(h5f, infile, 'r', NMSG, ier_num, ier_msg)
@@ -470,6 +498,9 @@ call h5f_check_read_meta(h5f, 2, crystal_meta, NMSG, ier_num, ier_msg)
 if(ier_num/=0) return            ! Fatal error in the meta fields
 !
 call h5f_check_data_fields(h5f, NMSG, ier_num, ier_msg)
+if(ier_num/=0) return
+!
+call h5f_check_source_fields(h5f, NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 !
 ! Unit cell parameters
@@ -640,6 +671,117 @@ if(data_type_number == 'complex') then
    cdim    = data_dimension
    call h5f_read(h5f, 'data_imag' , cdim   , data_imag , NMSG, ier_num, ier_msg)
    if(ier_num/=0) return
+endif
+!
+! Optional parts for a POWDER_PDF or 3DPDF
+!
+if(l_fields_source(INDX_sample_composition)) then   ! Composition is present
+call h5f_read(h5f, 'sample_composition' , sample_composition , NMSG, ier_num, ier_msg)
+  if(ier_num/=0) return
+else
+   sample_composition = 'UNKNOWN'
+endif
+!
+if(l_fields_source(INDX_source_conversion)            )   then
+   call h5f_read(h5f, 'source_conversion' , source_conversion , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_conversion = 'unknown'
+endif
+!
+if(l_fields_source(INDX_source_file_data)            )   then
+   call h5f_read(h5f, 'source_file_data' , source_file(1) , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_file(1) = 'unknown'
+endif
+!
+if(l_fields_source(INDX_source_file_back)            )   then
+   call h5f_read(h5f, 'source_file_back' , source_file(2) , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_file(2) = 'unknown'
+endif
+!
+if(l_fields_source(INDX_source_file_sigma)            )   then
+   call h5f_read(h5f, 'source_file_sigma' , source_file(3) , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_file(3) = 'unknown'
+endif
+!
+if(l_fields_source(INDX_source_back_scale)) then   ! Composition is present
+   cdim(1) = 1
+   call h5f_read(h5f, 'source_back_scale' , cdim(1), source_back_scale , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_back_scale = 0.0_PREC_DP
+endif
+!
+if(l_fields_source(INDX_source_dimension)) then   ! Composition is present
+   cdim(1) = 3
+   call h5f_read(h5f, 'source_dimension' , cdim(1), source_dimension , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_dimension = 1
+endif
+!
+if(l_fields_source(INDX_source_AXES)            )   then
+   cdim(1) =  3
+   call h5f_read(h5f, 'source_axes' , cdim(1), source_info , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_info            = (/ 1, 2, 3 /)
+endif
+source_abs_is_hkl       = source_info( 1) ! Abscissa is 1=h 2=k 3=l
+source_ord_is_hkl       = source_info( 2) ! Ordinate is 1=h 2=k 3=l
+source_top_is_hkl       = source_info( 3) ! top-axis is 1=h 2=k 3=l
+!
+if(l_fields_source(INDX_source_COORDINATE_UNIT)            )   then
+   call h5f_read(h5f, 'coordinate_unit' , source_coordinate_unit , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_coordinate_unit = 'unknown'
+endif
+!
+if(l_fields_source(INDX_source_corner)            )   then
+   cdim(1) = 3
+   call h5f_read(h5f, 'source_corner' , cdim(1), source_corner , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_corner = 0.0_PREC_DP
+endif
+!
+if(l_fields_source(INDX_source_increment_vector)            )   then
+   cdim(:) = 3
+   call h5f_read(h5f, 'source_increment_vector' , cdim   , source_vector , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_vector = 0.0_PREC_DP
+endif
+!
+if(l_fields_source(INDX_source_inst_qmin_qmax)            )   then
+   cdim(1) = 2
+   call h5f_read(h5f, 'source_inst_qmin_qmax' , cdim(1), source_inst_qmin_qmax , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_inst_qmin_qmax = 0.0_PREC_DP
+endif
+!
+if(l_fields_source(INDX_source_fourier_qmin_qmax)            )   then
+   cdim(1) = 2
+   call h5f_read(h5f, 'source_fourier_qmin_qmax' , cdim(1), source_fourier_qmin_qmax , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_fourier_qmin_qmax = 0.0_PREC_DP
+endif
+!
+if(l_fields_source(INDX_source_correction)) then   ! Composition is present
+   cdim(1) = 1
+   call h5f_read(h5f, 'source_correction' , cdim(1), source_correction , NMSG, ier_num, ier_msg)
+   if(ier_num/=0) return
+else
+   source_correction = 0.0_PREC_DP
 endif
 !
 call h5f%close()
