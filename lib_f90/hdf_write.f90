@@ -19,6 +19,7 @@ USE hdf5
 !use diffuse_mod
 !use fourier_sup
 use precision_mod
+use hdf5_state
 !
 IMPLICIT NONE
 !
@@ -92,7 +93,10 @@ TYPE(C_PTR)                            :: f_ptr           ! C-type pointer to da
 !  END FUNCTION qval
 !END INTERFACE
 !
-CALL H5open_f(hdferr)                                     ! Open access to HDF5 stream
+if(.not. hdf5_get_state()) then
+   CALL H5open_f(hdferr)                                     ! Open access to HDF5 stream
+   call hdf5_set_state
+endif
 IF(hdferr/=0) THEN
 ier_num = -2
 ier_typ = ER_IO
@@ -315,7 +319,7 @@ endif
 !
 CALL H5Fclose_f(file_id , hdferr)
 !
-CALL h5close_f(hdferr)
+!CALL h5close_f(hdferr)   ! Done only at final close
 DEALLOCATE(values)
 !
 ! To avoid h5fortran library issue with h5_open, reset these to zero
@@ -360,6 +364,7 @@ subroutine gen_hdf5_nexus_scattering(value, laver, outfile, out_inc,       &
 use hdf5
 !
 use precision_mod
+use hdf5_state
 !
 implicit none
 !
@@ -402,7 +407,10 @@ character(len=PREC_STRING)             :: attr_name
 !
 !write(*,*) ' in gen_hdf5_nexus_scattering ', outfile(1:LEN_TRIM(outfile))
 !
-call H5open_f(hdferr)                                     ! Open access to HDF5 stream
+if(.not. hdf5_get_state()) then
+   call H5open_f(hdferr)                                     ! Open access to HDF5 stream
+   call hdf5_set_state
+endif
 if(hdferr/=0) then
 ier_num = -2
 ier_typ = ER_IO
