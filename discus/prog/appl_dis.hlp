@@ -5603,11 +5603,13 @@
 !p       "vtk" | "mrc" | "vesta" | "xplor" 
 !p     | {"shel"|"hklf4"@"list5"} [,"maxval:"{"auto"|"bragg"|<value>"]" }
 !p     | "hdf5" [,"maxval:"{"auto"|"data"|<value>"]" }
+!p     | "common" [,"maxval:"{"auto"|"data"|<value>"]" }
+!p     | "nexus" [,"maxval:"{"auto"|"data"|<value>"]" }
 
    Defines the output format that will be used. 
    Valid parameters are:
 
-!p "gnu" 
+
    Sets the type of the output file to gnuplot. The intensities are
    written in blocks of intensities along the abscissa, with an empty
    line separating each block. Each line of each block contains:
@@ -5616,7 +5618,9 @@
 !p "hdf5" [,maxval:"auto"]
 !p "hdf5" [,maxval:"data"]
 !p "hdf5" [,maxval:<value>]
-   Sets the output to HDF5 file format. This applies to single
+
+   Obsolete format; use 'common' or 'nexus' instead.
+   Sets the output to a simple HDF5 file format. This applies to single
    crystal data only, not to powder diffraction pattern.
 
    The file format is compatible to the Yell program by Arkadiy 
@@ -5626,6 +5630,25 @@
    By default the data are scaled by a multiplier 1.0 to give the 
    maximum value in the output file as in the data. The same is 
    achieved by maxval:"data". 
+   Alternatively a scale factor can be applied such that the maximum
+   value in the output file is equal to <value>.
+
+!p "nexus" [,maxval:"auto"]
+!p "nexus" [,maxval:"data"]
+!p "nexus" [,maxval:<value>]
+
+!p "common" [,maxval:"auto"]
+!p "common" [,maxval:"data"]
+!p "common" [,maxval:<value>]
+
+   All versions set the output to a  HDF5 file format common to 
+     DISCUS; RMCprofile 
+
+   See the manual for details on the file format.
+
+   By default the data are scaled by a multiplier 1.0 to give the
+   maximum value in the output file as in the data. The same is
+   achieved by maxval:"data".
    Alternatively a scale factor can be applied such that the maximum
    value in the output file is equal to <value>.
 
@@ -8817,7 +8840,9 @@
    ASCII text file
 
    The "nexus" file format is a binary HDF5 file. It follows the
-   NeXus style.
+   NeXus style. This is the recommended file format for larger structures.
+   The file format is common to 
+      DISCUS; RMCprofile
 
    The non-keyword controlled format writes a simplified file that contains
    only the following information:
