@@ -718,4 +718,63 @@ ENDIF
 END SUBROUTINE get_displacement
 !
 !*******************************************************************************
+!
+subroutine chem_get_composition(sample_composition)
+!-
+! Create a string with sample composition
+! Format will be "Zr; 0.3333, O2-;0.6667"
+!+
+!
+use crystal_mod
+!
+use blanks_mod
+use element_data_mod
+use param_mod
+use string_convert_mod
+!
+implicit none
+!
+character(len=*), intent(out) :: sample_composition
+!
+character(len=4) :: at_name
+character(len=4) :: at_full
+integer           :: is_cond       ! Return condition
+character (len=4) :: el_name
+integer           :: el_number
+logical           :: scat_equ      ! Atom is assigned to equivalent element
+character(len=4)  :: scat_equ_name ! Atom is assigned to this element
+
+integer :: i
+integer :: length
+logical, parameter :: lout  = .false.
+!
+call chem_elem(lout)
+!
+sample_composition = ' '
+length = 0
+el_number = 0
+!
+do i=1, nint(res_para(0))
+   if(res_para(i)>0.0D0) then
+      el_name = cr_at_lis(i-1)
+      at_full = cr_at_lis(i-1)
+      if(el_name/='VOID') then
+         call guess_element(at_name, at_full, is_cond, el_name, el_number, scat_equ, scat_equ_name)
+         call do_low(at_full(2:2))   ! Ensure that Holmium is Ho
+      endif
+      sample_composition(length+1:length+4) = at_full
+      write(sample_composition(length+5:length+14),'(a1,f7.4,a2)') ':', res_para(i), ' ,'
+      length = length+10
+   endif
+enddo
+!
+length = len_trim(sample_composition)
+if(sample_composition(length:length)==',') sample_composition(length:length)=' '
+!
+!call rem_bl(sample_composition, length)
+!
+end subroutine chem_get_composition
+!
+!*******************************************************************************
+!
 END MODULE chem_aver_mod
