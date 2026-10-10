@@ -252,8 +252,8 @@ cond_dimen: if(ku_ndims(ik)==2) then      ! 2D data set  (NIPL)
    ik1_use_coor  = 1
    ik1_corners   = 0.0_PREC_DP
    ik1_vectors   = 0.0_PREC_DP
-   ik1_x   (1:dimen(1))     = x(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
-   ik1_y   (1:dimen(1))     = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
+   ik1_x   (1:dimen(1))     = x(offxy(ik-1)+1:offxy(ik-1)+nx(ik))
+   ik1_y   (1:dimen(2))     = y(offxy(ik-1)+1:offxy(ik-1)+ny(ik))
    do i=1, nx(ik)
       do j=1,ny(ik)
          ik1_data(i,j,1) = z(offz(ik-1) + (i - 1) * ny (ik) + j)
