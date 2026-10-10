@@ -215,7 +215,21 @@ subroutine unified_dump_data(unit_cell_lengths, unit_cell_angles,           &
                              data_values     , &
                              NMSG, ier_num, ier_msg,                                      &
                                             crystal_meta,                  &
-                             data_imag              &
+                             data_imag         ,     &
+                             sample_composition, &
+                             source_conversion , &
+                             source_file       , &
+                             source_back_scale , &
+                             source_dimension  , &
+                             source_abs_is_hkl , &
+                             source_ord_is_hkl , &
+                             source_top_is_hkl , &
+                             source_coordinate_unit , &
+                             source_corner  , &
+                             source_vector  , &
+                             source_inst_qmin_qmax, &
+                             source_fourier_qmin_qmax,&
+                             source_correction &
                             ) 
 !-
 !   Dump partion data info
@@ -262,7 +276,26 @@ integer                                                  , intent(in ) :: NMSG  
 integer                                                  , intent(out) :: ier_num            ! an error =0 if all is OK
 character(len=*)          , dimension(NMSG)              , intent(out) :: ier_msg            ! Error messages
 character(len=PREC_STRING), dimension(  5)               , intent(in ) :: crystal_meta       ! Metadata, see "c_meta"
-real(kind=PREC_DP)        , dimension(:,:,:), allocatable, intent(in ) :: data_imag
+real(kind=PREC_DP)        , dimension(:,:,:)             , intent(in ) :: data_imag
+!
+!    Optional components for a powder_PDF or 3D PDF 
+!    values in reciprocal space
+!
+character(len=*)                                        , optional, intent(in) :: sample_composition      ! "Si 1, O2.0" or similar
+character(len=*)                                        , optional, intent(in) :: source_conversion       ! "pdfgetx3" "discus_EXPX2PDF" etc
+character(len=*)          , dimension(3)                , optional, intent(in) :: source_file             ! PDF file reciprocal space
+real(kind=PREC_DP)        , dimension(1)                , optional, intent(in) :: source_back_scale       ! PDF background scale file reciprocal space
+integer                   , dimension(3)                , optional, intent(in) :: source_dimension       ! Source Data have dimensions along (HKL) / (UVW) / Q / TwoTheta
+integer                                                 , optional, intent(in) :: source_abs_is_hkl      ! Source Abscissa is 1=h 2=k 3=l Meaningless for powder pdf
+integer                                                 , optional, intent(in) :: source_ord_is_hkl      ! Source Ordinate is 1=h 2=k 3=l Meaningless for powder pdf
+integer                                                 , optional, intent(in) :: source_top_is_hkl      ! Source top-axis is 1=h 2=k 3=l Meaningless for powder pdf
+character(len=32)                                       , optional, intent(in) :: source_coordinate_unit ! The Source axes coordinates are 'basecell_fractional', 'supercell_fractional'
+!                                                                                             ! 'degree#, 'radian', 'inverse_angstroem', 'inverse_nm', 'angstroem', 'nm'
+real(kind=PREC_DP)        , dimension(3   )             , optional, intent(in) :: source_corner          ! Source Lower left bottom corner in fractional coordinates
+real(kind=PREC_DP)        , dimension(3, 3)             , optional, intent(in) :: source_vector          ! Source Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
+real(kind=PREC_DP)        , dimension(2   )             , optional, intent(in) :: source_inst_qmin_qmax       ! For powder PDF: 
+real(kind=PREC_DP)        , dimension(2   )             , optional, intent(in) :: source_fourier_qmin_qmax       ! For powder PDF: 
+real(kind=PREC_DP)        , dimension(1   )             , optional, intent(in) :: source_correction              ! For powder PDF:
 !
 integer :: i   ! Dummy loop index
 !
@@ -318,10 +351,35 @@ write(*,'(a, 3f11.6)') ' Data top_axis    ', data_vector(:,3)
 write(*,*)
 write(*,*) ' DATA_VALUES', data_values(1:2,1,1)
 write(*,*) ' DATA_MINMAX', minval(data_values), maxval(data_values)
-if(data_type_number == 'complex' .and. allocated(data_imag)) then
+if(data_type_number == 'complex') then
 write(*,*)
 write(*,*) ' DATA_IMAG  ', data_imag  (1:2,1,1)
 write(*,*) ' DATA_MINMAX', minval(data_imag  ), maxval(data_imag  )
+endif
+if(data_type_style=='single_pdf') then     ! Single 3D-Delta-PDF
+   write(*,'(a, a)') ' Sample conversion   ', source_conversion(1:len_trim(source_conversion ))
+   write(*,'(a, a)') ' Sample composition  ', sample_composition(1:len_trim(sample_composition))
+   write(*,'(a, a)') ' Sample data_file    ', source_file(1)(1:len_trim(source_file(1)    ))
+   write(*,'(a, a)') ' Sample Background   ', source_file(2)(1:len_trim(source_file(2)    ))
+   write(*,'(a, a)') ' Sample sigma file   ', source_file(3)(1:len_trim(source_file(3)    ))
+   write(*,'(a, 3i4)') ' Source dimension    ', source_dimension
+   write(*,'(a, i4)') ' Source abs is HKL   ', source_abs_is_hkl
+   write(*,'(a, i4)') ' Source ord is HKL   ', source_ord_is_hkl
+   write(*,'(a, i4)') ' Source top is HKL   ', source_top_is_hkl
+   write(*,'(a, a)') ' Source coordinate   ', source_coordinate_unit
+   write(*,'(a, 3f10.5)') ' Source left lower bottom ', source_corner
+   write(*,'(a, 3f10.5)') ' Source vector abscissa   ', source_vector(:,1)
+   write(*,'(a, 3f10.5)') ' Source vector ordinate   ', source_vector(:,2)
+   write(*,'(a, 3f10.5)') ' Source vector top axis   ', source_vector(:,3)
+elseif(data_type_style=='powder_pdf') then     ! Powder pdf 
+   write(*,'(a, a)') ' Sample conversion   ', source_conversion(1:len_trim(source_conversion ))
+   write(*,'(a, a)') ' Sample composition  ', sample_composition(1:len_trim(sample_composition))
+   write(*,'(a, a)') ' Sample data_file    ', source_file(1)(1:len_trim(source_file(1)    ))
+   write(*,'(a, a)') ' Sample Background   ', source_file(2)(1:len_trim(source_file(2)    ))
+   write(*,'(a, a)') ' Sample sigma file   ', source_file(3)(1:len_trim(source_file(3)    ))
+   write(*,'(a, 2f10.4)') ' Sample Inst    qmin/max', source_inst_qmin_qmax
+   write(*,'(a, 2f10.4)') ' Sample Fourier qmin/max', source_fourier_qmin_qmax
+   write(*,'(a, 3f10.4)') ' Sample correcteion para', source_correction
 endif
 write(*,*)
 !
