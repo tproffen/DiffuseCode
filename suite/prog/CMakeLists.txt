@@ -20,6 +20,7 @@ include_directories(${DIFFUSE_BINARY_DIR}/refine/prog)
 include_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 include_directories(${DIFFUSE_BINARY_DIR}/discus/prog)
 include_directories(${DIFFUSE_BINARY_DIR}/experi/prog)
+include_directories(${DIFFUSE_BINARY_DIR}/h5fortran)
 
 link_directories(${DIFFUSE_BINARY_DIR}/finufft)
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
