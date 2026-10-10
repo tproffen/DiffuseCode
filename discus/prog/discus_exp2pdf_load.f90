@@ -89,9 +89,9 @@ endif
 !
 if(ier_num /= 0) return
 !
-IF(line(1:6) == 'kuplot') THEN
    CALL get_params(line, ianz, cpara, lpara, MAXW, length)
    IF(ier_num/= 0) RETURN
+IF(line(1:6) == 'kuplot') THEN
    cpara(1) = '0'
    lpara(1) = 1
    CALL ber_params(ianz, cpara, lpara, werte, MAXW)
@@ -112,13 +112,16 @@ IF(line(1:6) == 'kuplot') THEN
    ENDIF
 ELSE                               ! Presume a "data xy, filename "
    IF(itype==1) THEN
-      exp_load = line
+      exp_load      = line
+      exp_file_data = cpara(2)
       exp_kload = iz - 1
    elseif(itype==2) THEN
       exp_cback = line
+      exp_file_back = cpara(2)
       exp_kback = iz - 1
    elseif(itype==3) then
       exp_csigma = line
+      exp_file_sigma = cpara(2)
       exp_ksigma = iz - 1
    elseif(itype==3) then
       exp_cfaver = line
