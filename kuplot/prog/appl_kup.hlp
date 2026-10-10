@@ -1892,8 +1892,9 @@
 !p  ni    xmin,xmax,ymin,ymax    no      Nipl file, given area
 !p  pg    xmin,xmax,ymin,ymax    no      PGM file (ASCII), given area
 !p  gn    xmin,xmax,ymin,ymax    no      XYZ file (gnuplot), given area
-!p  sx    y-value               yes      Cross section || x at y-value
-!p  sy    x-value               yes      Cross section || y at x-value
+!p  sx    y-value , [z-value]   yes, no  Cross section || x at y-value, z-value
+!p  sy    x-value , [z-value]   yes, no  Cross section || y at x-value, z-value
+!p  sz    x-value ,  y-value    yes, yes Cross section || z at x-value, y-value
 !p  mx    i                     yes      Cross section || x trough max #i
 !p  my    i                     yes      Cross section || y trough max #i
 !p  sk    ik                    yes      Cross section along xy of data set ik
@@ -1913,6 +1914,12 @@
 !p  xy    ,xmin,xmax
 !p  xy    ,"four"   
 !p  xy    ,"two"   
+
+   For data read with "load h5" or "load, nexus" the cuts require
+   both parameters:
+!p sx, y-value, z-value
+!p sy, x-value, z-value
+!p sz, x-value, y-value
 3  m999
 !p m999 "excl"|"data"
 
@@ -2058,6 +2065,20 @@
    array (see PDFFIT 'read data' for details). The parameter <fname>
    can also be a valid expression such as "*.asc" just as a directory
    command.
+3  nexus
+
+   This command allows to read a NeXus style file that usese a binary
+   file format common to DISCUS, RMCprofile, Yell. (Further programs to come)
+
+   DISCUS saves such a file in the 'output' menu as 
+   "form nexus" or "form common"
+   See the discus/kuplot manuals for full details.
+
+   The file may contain a 1-D , 2-D or 3D pattern.
+3  mrc
+
+   This command allows to read a file in the MRC file format as used by
+   the electron diffraction ADT program (see University of Mainz, Ute Kolb group)
 3  4d
 !p load 4d,<file>,<ix>,<iy>,<iz>,<ival>
 
