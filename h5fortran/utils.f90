@@ -34,6 +34,8 @@ end procedure id2name
 
 
 module procedure h5open
+!
+use hdf5_state
 
 integer :: ier
 integer(HID_T) :: fapl !< file access property list
@@ -55,6 +57,7 @@ endif
 if (.not. hdf5_is_initialized()) then
   if(self%debug) print '(a)', 'TRACE:h5fortran:h5open: initializing HDF5 library'
   call H5open_f(ier)
+  call hdf5_set_state
   call estop(ier, 'h5open:H5open HDF5 library initialize', filename, ok=ok)
   if (present(ok)) then
     if (.not. ok) return
@@ -245,7 +248,9 @@ end procedure is_open
 
 
 module procedure hdf5_is_initialized
-hdf5_is_initialized = H5F_ACC_RDONLY_F /= H5F_ACC_TRUNC_F
+use hdf5_state
+!hdf5_is_initialized = H5F_ACC_RDONLY_F /= H5F_ACC_TRUNC_F
+hdf5_is_initialized = hdf5_get_state()
 end procedure
 
 
