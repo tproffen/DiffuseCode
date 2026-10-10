@@ -74,6 +74,8 @@ use lib_data_types_mod
 use lib_use_coor_mod
 use precision_mod
 !
+use hdf5_state
+!
 IMPLICIT NONE
 !
 CHARACTER(LEN=1024), INTENT(INOUT) :: infile
@@ -173,7 +175,10 @@ h5_n_datasets = 0                                           ! Currently no datas
 !
 h5_dims    = 1
 one_maxdims = 1
-CALL H5open_f(hdferr)                                       ! Open access to HDF5 stream
+if(.not. hdf5_get_state()) then
+   CALL H5open_f(hdferr)                                       ! Open access to HDF5 stream
+   call hdf5_set_state
+endif
 CALL H5Eset_auto_f(1, hdferr)                              ! Turn Error messages off
 !
 CALL H5Fopen_f(h5_infile, H5F_ACC_RDWR_F, file_id, hdferr)     ! Open existing file
@@ -443,7 +448,7 @@ endif
 !
 CALL h5fclose_f(file_id, hdferr)                             ! Close the input file
 !
-CALL H5close_f(hdferr)                                    ! Close HDF interface
+!CALL H5close_f(hdferr)                                    ! Close HDF interface done at global exit
 !
 !  If full data are present, anylyse to get good estimates for the short 
 !  version of the steps
@@ -761,7 +766,23 @@ real(kind=PREC_DP)        , dimension(3   )               :: data_corner        
 real(kind=PREC_DP)        , dimension(3, 3)               :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: data_values  ! Actual data array
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: data_imag    ! Actual data array; optional complex part
-
+!
+character(len=PREC_STRING)                               :: sample_composition      ! "Si 1, O2.0" or similar
+character(len=PREC_STRING)                               :: source_conversion       ! "pdfgetx3" "discus_EXPX2PDF" etc
+character(len=PREC_STRING), dimension(3)                 :: source_file             ! PDF source file reciprocal space
+real(kind=PREC_DP)        , dimension(1)                 :: source_back_scale       ! PDF background scale factor
+integer                   , dimension(3)                 :: source_dimension       ! Source Data have dimensions along (HKL) / (UVW) / Q / TwoTheta
+integer                                                  :: source_abs_is_hkl      ! Source Abscissa is 1=h 2=k 3=l Meaningless for powder pdf
+integer                                                  :: source_ord_is_hkl      ! Source Ordinate is 1=h 2=k 3=l Meaningless for powder pdf
+integer                                                  :: source_top_is_hkl      ! Source top-axis is 1=h 2=k 3=l Meaningless for powder pdf
+character(len=32)                                        :: source_coordinate_unit ! The Source axes coordinates are 'basecell_fractional', 'supercell_fractional'
+!                                                                                             ! 'degree#, 'radian', 'inverse_angstroem', 'inverse_nm', 'angstroem', 'nm'
+real(kind=PREC_DP)        , dimension(3   )              :: source_corner          ! Source Lower left bottom corner in fractional coordinates
+real(kind=PREC_DP)        , dimension(3, 3)              :: source_vector          ! Source Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
+real(kind=PREC_DP)        , dimension(2   )              :: source_inst_qmin_qmax       ! For powder PDF: 
+real(kind=PREC_DP)        , dimension(2   )              :: source_fourier_qmin_qmax       ! For powder PDF: 
+real(kind=PREC_DP)        , dimension(1   )              :: source_correction       ! For powder PDF: 
+!
 !
 integer                                                   :: NMSG                 ! Dimension of ier_msg
 !
@@ -797,7 +818,21 @@ call unified_read_data( infile, unit_cell_lengths, unit_cell_angles,           &
                              data_values     , &
                              NMSG, ier_num, ier_msg,                                      &
                                             crystal_meta ,                                &
-                             data_imag         &
+                             data_imag,                                                   &
+                             sample_composition, &
+                             source_conversion , &
+                             source_file       , &
+                             source_back_scale , &
+                             source_dimension , &
+                             source_abs_is_hkl , &
+                             source_ord_is_hkl , &
+                             source_top_is_hkl , &
+                             source_coordinate_unit , &
+                             source_corner  , &
+                             source_vector  , &
+                             source_inst_qmin_qmax, &
+                             source_fourier_qmin_qmax, &
+                             source_correction &
                             )
 if(ier_num/=0) then       ! Error in the unified read
    ier_typ = ER_HDF
@@ -1389,7 +1424,7 @@ IF(ALLOCATED(h5_data))     DEALLOCATE(h5_data)
 ! CLOSE up, ignore error messages
 IF(dset_id /= 0) CALL H5Dclose_f(dset_id , hdferr)                         ! Close dataset
 IF(file_id /= 0) CALL h5fclose_f(file_id, hdferr)                          ! Close the input file
-CALL H5close_f(hdferr)                                    ! Close HDF interface
+!CALL H5close_f(hdferr)                                    ! Close HDF interface; done at final exit only
 !
 END SUBROUTINE hdf5_error
 !
