@@ -37,6 +37,7 @@ set( SOURCES_ALL  discus_allocate_appl_mod.f90 atom_env_mod.f90
 	debye_mod.f90 diffuse_mod.f90 discus_discamb.f90 discus_estimate.f90 discus_exp2pdf.f90
         discus_exp2pdf_data.f90 discus_exp2pdf_load.f90 discus_exp2pdf_run.f90 discus_exp2pdf_supp.f90
         discus_exp3_pdf.f90 discus_exp3_pdf_data.f90 discus_exp3_pdf_load.f90
+        discus_exp2pdf_write.f90
         discus_guess_atoms.f90
 	discus_loop.f90 discus_prepare_refine.f90 discus_reduce.f90 discus_setup.f90 discus_set_sub.f90 
         discus_s_out_file.f90 discus_s_pdf_file.f90 discus_s_powder_file.f90
@@ -55,6 +56,7 @@ set( SOURCES_ALL  discus_allocate_appl_mod.f90 atom_env_mod.f90
 	interpret.f90 inverse_mod.f90 discus_kdo.f90 discus_kdo_common.f90 mc_mod.f90 metric.f90 micro_mod.f90
 	mmc.f90 mmc_mod.f90 mmc_basic.f90 mmc_mole.f90 modify_func_mod.f90 modify_mod.f90 mole_env_mod.f90
 	molecule_alloc.f90 molecule_func.f90 molecule_mod.f90 output_mod.f90 patters.f90 patters_mod.f90 
+        output_format_mod.f90
         phases_mod.f90 phases_set_mod.f90 phases_set_form.f90 phases_stack.f90
 	place_molecule.f90  read_internal_mod.f90
 	perioditize.f90 pdf.f90 pdf_mod.f90
