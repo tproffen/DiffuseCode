@@ -17,6 +17,7 @@ public h5f_write                         ! Interface to all writing routines
 public h5f_check_read_meta               ! Checkes presence of all meta and reads these
 public h5f_check_crystal_fields          ! Checks presence of all required fields
 public h5f_check_data_fields             ! Checks presence of all required fields
+public h5f_check_source_fields           ! Checks presence of all optional source fields
 !
 interface h5f_read
    module procedure read_char,         & !  Read a character string
@@ -894,6 +895,39 @@ do i=1, N_FIELDS_DATA             ! Go through all required fields
 enddo
 
 end subroutine h5f_check_data_fields
+!
+!*******************************************************************************
+!
+subroutine h5f_check_source_fields(h5f, NMSG, ier_num, ier_msg)
+!-
+!  Check if all source_fields are present
+!+
+!
+use h5fortran, only: hdf5_file
+use lib_unified_chars_mod
+use precision_mod
+!
+type(hdf5_file)                    , intent(inout) :: h5f
+integer                            , intent(out)   :: ier_num
+integer                            , intent(in )   :: NMSG
+character(len=*)  , dimension(NMSG), intent(out)   :: ier_msg
+!
+character(len=PREC_STRING) :: string
+integer :: i    ! Dummy loop index
+!
+l_fields_source = .false.
+!
+do i=1, N_FIELDS_SOURCE             ! Go through all required fields
+   string = '/entry/data/' // c_fields_source(i)
+   if(h5f%exist(string(1:len_trim(string)))) then
+      l_fields_source(i) = .true.
+      if(l_dump) write(*,'(a8, i3, 1x, a32, a)') ' FIELD ', i, c_fields_source(i), ' is present'
+   else
+      if(l_dump) write(*,'(a8, i3, 1x, a32, a)') ' FIELD ', i, c_fields_source(i), ' is absent'
+   endif
+enddo
+
+end subroutine h5f_check_source_fields
 !
 !*******************************************************************************
 !
