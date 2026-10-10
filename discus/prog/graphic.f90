@@ -18,6 +18,7 @@ USE nexus_discus
 USE discus_xplor
 USE vtk_mod
 USE output_mod 
+use output_format_mod
 use powder_mod           , only:pow_lperiod, pow_l_partial
 USE powder_write_mod
 use powder_pdf_hist_mod  , only:pow_pdf_hist_prep_period
@@ -224,27 +225,27 @@ loop_main: do             ! Main command loop
 !     ------Switch output type to ASCII 3D  '3d'                      
 !                                                                       
                IF(str_comp(cpara(1),'3d',2,lpara(1),2)) THEN                                        
-                  ityp = 9 
+                  ityp = OUTPUT_FORMAT_3d
 !                                                                       
 !     ------Switch output type to GNUPLOT 'gnup'                        
 !                                                                       
                ELSEIF(str_comp(cpara(1),'gnup',1,lpara(1),4)) THEN                                             
-                  ityp = 3 
+                  ityp = OUTPUT_FORMAT_GNU
 !                                                                       
 !     ------Switch output type to pgm 'pgm'                             
 !                                                                       
                ELSEIF(str_comp(cpara(1),'pgm ',2,lpara(1),4)) THEN                                        
-                  ityp = 2 
+                  ityp = OUTPUT_FORMAT_PGM
 !                                                                       
 !     ------Switch output type to postscript 'post'                     
 !                                                                       
                ELSEIF(str_comp(cpara(1),'post',3,lpara(1),4)) THEN                                        
-                  ityp = 1 
+                  ityp = OUTPUT_FORMAT_POST
 !                                                                       
 !     ------Switch output type to powder pattern 'powd'                 
 !                                                                       
                ELSEIF(str_comp(cpara(1),'powd',3,lpara(1),4)) THEN                                        
-                  ityp = 5 
+                  ityp = OUTPUT_FORMAT_POWDER
                   IF (ianz >= 2) THEN 
                      IF(str_comp(cpara(2), 'tth', 2, lpara(2), 3)) THEN
                         cpow_form = 'tth' 
@@ -280,7 +281,7 @@ loop_main: do             ! Main command loop
 !     ------Switch output type to PDF 'pdf'                 
 !                                                                       
                ELSEIF(str_comp(cpara(1),'pdf',3,lpara(1),3)) THEN                                        
-                  ityp = 5 
+                  ityp = OUTPUT_FORMAT_POWDER
                   IF (ianz >= 2) THEN 
                      IF(str_comp(cpara(2), 'r', 1, lpara(2), 1)) THEN
                         cpow_form = 'r  ' 
@@ -303,24 +304,24 @@ loop_main: do             ! Main command loop
 !     ------Switch output type to ppm 'ppm'                             
 !                                                                       
                ELSEIF(str_comp(cpara(1),'ppm ',2,lpara(1),4)) THEN                                        
-                  ityp = 4 
+                  ityp = OUTPUT_FORMAT_PPM
 !                                                                       
 !     ------Switch output type to standard  'stan'                      
 !                                                                       
                ELSEIF(str_comp(cpara(1),'stan',2,lpara(1),4)) THEN                                        
-                  ityp = 0 
+                  ityp = OUTPUT_FORMAT_STAN
 !                                                                       
 !     ------Switch output type to Shelx 'shel', or 'hklf4'              
 !                                                                       
                ELSEIF(str_comp(cpara(1),'shelx',2,lpara(1),5)) THEN                                        
-                  ityp = 6 
+                  ityp = OUTPUT_FORMAT_SHELX
                   CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, NOPTIONAL, opara, &
                        lopara, werte)
                   IF(ier_num == 0) THEN
                      valmax = werte(O_MAXVAL)
                   ENDIF
                ELSEIF(str_comp(cpara(1),'hklf4',2,lpara(1),5)) THEN                                        
-                  ityp = 6 
+                  ityp = OUTPUT_FORMAT_SHELX
                   CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, NOPTIONAL, opara, &
                        lopara, werte)
                   IF(ier_num == 0) THEN
@@ -330,7 +331,7 @@ loop_main: do             ! Main command loop
 !     ------Switch output type to Shelx LIST 5   'list5'                
 !                                                                       
                ELSEIF(str_comp(cpara(1),'list5',2,lpara(1),5)) THEN                                        
-                  ityp = 7 
+                  ityp = OUTPUT_FORMAT_LIST5
                   CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, NOPTIONAL, opara, &
                        lopara, werte)
                   IF(ier_num == 0) THEN
@@ -340,27 +341,28 @@ loop_main: do             ! Main command loop
 !     ------Switch output type to Shelx LIST 5   'list9'                
 !                                                                       
                ELSEIF(str_comp(cpara(1),'list9',2,lpara(1),5)) THEN                                        
-                  ityp = 8 
+                  ityp = OUTPUT_FORMAT_LIST9
 !                                                                       
-!     ------Switch output type to NeXus format   'nexus'                
+!     ------Switch output type to NeXus format   'nexus'  DELETED; REPLACED BY COMMON FILE FORMAT
 !                                                                       
-               ELSEIF(str_comp(cpara(1),'nexus',2,lpara(1),5)) THEN                                        
-                  ityp = 10 
+!              ELSEIF(str_comp(cpara(1),'nexus',2,lpara(1),5)) THEN                                        
+!                 ityp = OUTPUT_FORMAT_NEXUS
 !                                                                       
 !     ------Switch output type to VTK format   'vtk'
 !                                                                       
                ELSEIF(str_comp(cpara(1),'vtk',2,lpara(1),3)) THEN
-                  ityp = 11
+                  ityp = OUTPUT_FORMAT_VTK
 !                                                                       
 !     ------Switch output type to MRC   format   'mrc'                
 !                                                                       
                ELSEIF (str_comp(cpara(1), 'mrc', 2, lpara(1), 3) ) THEN                                        
-                  ityp = 12 
+                  ityp = OUTPUT_FORMAT_MRC
 !                                                                       
 !     ------Switch output type to HDF5  format   'hdf5'                
 !                                                                       
-               ELSEIF(str_comp(cpara(1), 'hdf5', 4, lpara(1), 4) .or. &
-                     str_comp(cpara(1), 'commo', 5, lpara(1), 5)) THEN                                        
+               ELSEIF(str_comp(cpara(1), 'hdf5',   4, lpara(1), 4) .or. &
+                      str_comp(cpara(1), 'common', 6, lpara(1), 6) .or. &
+                      str_comp(cpara(1), 'nexus',  5, lpara(1), 5)) THEN                                        
                   if(lpresent(O_SCALE)) then
                      if(lpresent(O_MAXVAL)) then
                         ier_num = -6
@@ -370,7 +372,7 @@ loop_main: do             ! Main command loop
                      else
                         valmax =  -1.0D0
                         out_scale = owerte(O_SCALE)
-                        ityp = 13 
+                        ityp = OUTPUT_FORMAT_HDF5
                      endif
                   else
                   CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, NOPTIONAL, opara, &
@@ -381,9 +383,10 @@ loop_main: do             ! Main command loop
                      else
                         valmax = werte(O_MAXVAL)
                      endif
-                     ityp = 13 
-                     if(str_comp(cpara(1), 'commo', 5, lpara(1), 5)) then
-                        ityp = 16 
+                     ityp = OUTPUT_FORMAT_HDF5 
+                     if(str_comp(cpara(1), 'commo', 5, lpara(1), 5) .or. &
+                        str_comp(cpara(1), 'nexus', 5, lpara(1), 5)) then
+                        ityp = OUTPUT_FORMAT_COMMON
                      endif
                   ENDIF
                   endif
@@ -391,7 +394,7 @@ loop_main: do             ! Main command loop
 !     ------Switch output type to XPLOR format   'xplor'                
 !                                                                       
                ELSEIF (str_comp(cpara(1), 'xplor', 2, lpara(1), 5) ) THEN                                        
-                  ityp = 14 
+                  ityp = OUTPUT_FORMAT_XPLOR
 !                                                                       
 !     ------Switch output type to Vesta format   'vesta'                
 !                                                                       
@@ -421,7 +424,7 @@ loop_main: do             ! Main command loop
                      endif
                      dpatt = opara(O_DPATT)(2:lopara(O_DPATT)-1)        ! Deselected atoms  for Patterson overlay
                   endif
-                  ityp = 15 
+                  ityp = OUTPUT_FORMAT_VESTA
                ELSE
                   ier_num = - 9 
                   ier_typ = ER_APPL 
@@ -550,17 +553,17 @@ loop_main: do             ! Main command loop
                   enddo
                CALL out_prep_3dpdf(l_val_limited, dsmax)
             ENDIF
-            IF (ityp.eq.0) THEN 
+            IF (ityp.eq.OUTPUT_FORMAT_STAN) THEN 
                CALL do_output (value, laver, valmax) 
-            ELSEIF (ityp.eq.1) THEN 
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_POST) THEN 
                CALL do_post! (value, laver) 
-            ELSEIF (ityp.eq.2) THEN 
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_PGM) THEN 
                CALL do_pgm! (value, laver) 
-            ELSEIF (ityp.eq.3) THEN 
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_GNU) THEN 
                CALL do_output (value, laver, valmax) 
-            ELSEIF (ityp.eq.4) THEN 
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_PPM) THEN 
                CALL do_ppm! (value, laver) 
-            ELSEIF (ityp.eq.5) THEN 
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_POWDER) THEN 
                if(pow_l_partial .and. value==VAL_PDF) then
                   call powder_out_partial(value, .false.)
                else
@@ -575,19 +578,19 @@ endif
                   CALL powder_out (value, .false.)
                endif
                endif
-            ELSEIF (ityp.eq.6) THEN 
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_SHELX) THEN 
                CALL do_output (value, laver, valmax) 
-            ELSEIF (ityp.eq.7) THEN 
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_LIST5) THEN 
                CALL do_output (value, laver, valmax) 
-            ELSEIF (ityp.eq.8) THEN 
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_LIST9) THEN 
                CALL do_output (value, laver, valmax) 
-            ELSEIF (ityp.eq.9) THEN 
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_3D) THEN 
                CALL do_output (value, laver, valmax) 
-            ELSEIF (ityp.eq.10) THEN 
-               CALL nexus_write (value, laver) 
-            ELSEIF (ityp.eq.11) THEN
+!           ELSEIF (ityp.eq.OUTPUT_FORMAT_NEXUS) THEN 
+!              CALL nexus_write (value, laver) 
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_VTK) THEN
                CALL vtk_write ()
-            ELSEIF (ityp.eq.12) THEN
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_MRC) THEN
                if(allocated(qvalues)) deallocate(qvalues)
                allocate(qvalues(out_inc(1), out_inc(2), out_inc(3)))
                l = 0                                                       ! Copy proper "value"
@@ -603,7 +606,7 @@ endif
                     out_inc, 2, nxyzstart, cr_ar, cr_wrez, extr_abs, extr_ord,   &
                     extr_top, qvalues                                            &
                     )
-            ELSEIF (ityp.eq.13) THEN                           ! HDF5 output
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_HDF5) THEN                           ! HDF5 output
                if(allocated(qvalues)) deallocate(qvalues)
                allocate(qvalues(out_inc(1), out_inc(2), out_inc(3)))
                l = 0                                                       ! Copy proper "value"
@@ -638,11 +641,11 @@ endif
 !              CALL hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
 !                      cr_a0, cr_win, qval,val_pdf, val_3Dpdf, valmax,           &
 !                      ier_num, ier_typ, ER_IO, ER_APPL)
-            ELSEIF (ityp.eq.14) THEN
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_XPLOR) THEN
                CALL xplor_write (value, laver)
-            ELSEIF (ityp.eq.15) THEN
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_VESTA) THEN
                CALL   grd_write (value, laver, cpatt, spatt, dpatt)
-            ELSEIF (ityp.eq.16) THEN                           ! HDF5 output
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_COMMON) THEN     ! HDF5 output Diffuse Developers common file
                if(value==15 .or. value==16) then 
                   data_style = 4
                else
@@ -666,9 +669,9 @@ endif
 !                                                                       
       ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
          WRITE (output_io, 3000) outfile 
-         IF (ityp.lt.0.or.13.lt.ityp) THEN 
+         IF (ityp.lt.0.or.17.lt.ityp) THEN 
             WRITE (output_io, * ) 'ityp undefiniert ', ityp 
-         ELSEIF (ityp.eq.5) THEN 
+         ELSEIF (ityp.eq.OUTPUT_FORMAT_POWDER) THEN 
             WRITE (output_io, 3130) cgraphik (ityp), cpow_form 
          ELSE 
             WRITE (output_io, 3100) cgraphik (ityp) 
@@ -1524,6 +1527,7 @@ USE discus_fft_mod
 use discus_output_save_mod
 USE fourier_sup
 use metric_mod
+use output_format_mod
 USE output_mod 
 USE qval_mod
 !
@@ -1547,8 +1551,8 @@ PARAMETER (iff = 2)
 real(kind=PREC_DP),  dimension(3), parameter :: NULLV =(/0.0_PREC_DP, 0.0_PREC_DP, 0.0_PREC_DP/)
 !                                                                       
 CHARACTER(LEN=2024) dummy_file
-INTEGER HKLF4, LIST5, LIST9 , ASCII3D
-PARAMETER (HKLF4 = 6, LIST5 = 7, LIST9 = 8, ASCII3D = 9) 
+!INTEGER HKLF4, LIST5, LIST9 , ASCII3D
+!PARAMETER (HKLF4 = 6, LIST5 = 7, LIST9 = 8, ASCII3D = 9) 
 !                                                                       
 INTEGER :: extr_ima, i, j, k, l, m
 LOGICAL :: lread
@@ -1595,7 +1599,7 @@ qqmax = 0.0_PREC_DP
 !     If output type is shelx, calculate qval(000) for scaling          
 !                                                                       
 four_log_user = four_log
-IF(m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
+IF(m==-1 .and. (ityp.eq.OUTPUT_FORMAT_SHELX.or.ityp.eq.OUTPUT_FORMAT_LIST5)) THEN    ! Scale with 000
 !        DO i = 1, 3 
 !        shel_inc (i) = inc (i) 
 !        ENDDO 
@@ -1628,9 +1632,9 @@ IF(m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
    num = 1
    eck = 0.0D0
    vi  = 0.0D0
-   IF (ityp.eq.HKLF4) THEN 
+   IF (ityp.eq.OUTPUT_FORMAT_SHELX) THEN 
       value = 2 
-   ELSEIF (ityp.eq.LIST5) THEN 
+   ELSEIF (ityp.eq.OUTPUT_FORMAT_LIST5) THEN 
       value = 2 
    ENDIF 
    four_log = .false.    ! Turn Fourier log off
@@ -1639,9 +1643,9 @@ IF(m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
    shel_csf = CMPLX(csf (1,1,1), KIND=KIND(0.0D0))
    shel_000 = qval (1,1,1, value, 1, 1, laver) 
    qq = (qval(1,1,1, value, 1, 1, laver) / cr_icc(1)/cr_icc(2)/cr_icc(3))**2
-   IF (ityp.eq.HKLF4) THEN 
+   IF (ityp.eq.OUTPUT_FORMAT_SHELX) THEN 
       factor = max (int (log (qq) / log (10.0D0) ) - 3, 0) 
-   ELSEIF (ityp.eq.LIST5) THEN 
+   ELSEIF (ityp.eq.OUTPUT_FORMAT_LIST5) THEN 
       factor = max (int (log (qq) / log (10.0D0) ) - 2, 0) 
    ENDIF 
    out_fac = 10** ( - factor) 
@@ -1663,12 +1667,12 @@ IF(m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
 !        vi (i, j) = shel_vi (i, j) 
 !        ENDDO 
 !        ENDDO 
-elseif(m==-2 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with largest BRAG /= 000
+elseif(m==-2 .and. (ityp.eq.OUTPUT_FORMAT_SHELX.or.ityp.eq.OUTPUT_FORMAT_LIST5)) THEN    ! Scale with largest BRAG /= 000
    qqmax = 0.0D0
-   if(ityp==HKLF4) then
+   if(ityp==OUTPUT_FORMAT_SHELX) then
 !     shel_value = value 
       shel_value = 2 
-   elseif(ityp==LIST5) then
+   elseif(ityp==OUTPUT_FORMAT_LIST5) then
       shel_value = 2 
    endif
    DO l = 1, out_inc (3) 
@@ -1688,20 +1692,20 @@ elseif(m==-2 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with larges
          ENDDO 
       ENDDO 
    ENDDO 
-   if(ityp==HKLF4) then
+   if(ityp==OUTPUT_FORMAT_SHELX) then
       factor = max (int (log (qqmax) / log (10.0D0) ) - 3, 0) 
-   elseif(ityp==LIST5) then
+   elseif(ityp==OUTPUT_FORMAT_LIST5) then
       factor =      int (log (qqmax) / log (10.0D0) ) - 3
    endif
    out_fac = 10** ( - factor) 
-elseif(valmax>  0.0 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with User value
+elseif(valmax>  0.0 .and. (ityp.eq.OUTPUT_FORMAT_SHELX.or.ityp.eq.OUTPUT_FORMAT_LIST5)) THEN    ! Scale with User value
   out_fac = valmax
 ENDIF 
 !write(*,*) ' OUT_FAC ', out_fac, factor, qqmax, vect
 !                                                                       
 extr_ima = 6 - out_extr_abs - out_extr_ord 
 !                                                                       
-IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
+IF(ityp.eq.OUTPUT_FORMAT_STAN) THEN      ! A standard file, allocate temporary arrays
 !                               Write data to temporary data structure 
 !                               This allows to copy to KUPLOT
    IF(    out_inc(2) == 1 .and. out_inc(3) == 1 ) THEN ! 1D file along axis 1
@@ -1845,15 +1849,15 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
       ENDDO 
       DEALLOCATE(zwrt)
    ENDIF
-ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
+ELSE      ! Data types ityp==OUTPUT_FORMAT_STAN or ELSE ! Block for all but standard file formats
       lread = .false. 
-      IF(.not.((out_inc(3) > 1 .and. ityp.eq.0) .OR.    &     ! NOT ( multiple layers in standard file typ OR
-               ityp==13                             )) THEN   !       HDF5 file format                        )
+      IF(.not.((out_inc(3) > 1 .and. ityp.eq.OUTPUT_FORMAT_STAN) .OR.    &     ! NOT ( multiple layers in standard file typ OR
+               ityp==OUTPUT_FORMAT_HDF5             )) THEN   !       HDF5 file format                        )
          CALL oeffne (iff, outfile, 'unknown') 
       ENDIF
       IF (ier_num.eq.0) THEN 
          IF (out_inc (1) .gt.1.and.out_inc (2) .gt.1) THEN  ! 2D or 3D data
-            IF (ityp.eq.0) THEN                             ! Standard file format
+            IF (ityp.eq.OUTPUT_FORMAT_STAN) THEN                             ! Standard file format
 !               DO l=1, out_inc(3)
 !                  IF(out_inc(3) > 1) THEN
 !                     WRITE(dummy_file, 7777) outfile(1:len_str(outfile)),l
@@ -1873,7 +1877,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !                     CLOSE(iff)
 !                  ENDIF
 !               ENDDO 
-            ELSEIF (ityp.eq.ASCII3D) THEN                   ! 3D "NIPL" file
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_3D) THEN                   ! 3D "NIPL" file
                WRITE (iff, * ) out_inc (1), out_inc(2), out_inc(3)
                WRITE (iff, * ) out_eck (out_extr_abs, 1), out_eck (out_extr_abs, 2), &
                                out_eck (out_extr_ord, 1), out_eck (out_extr_ord, 3), &
@@ -1890,7 +1894,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                      CLOSE(iff)
                   ENDIF
                ENDDO 
-            ELSEIF (ityp.eq.HKLF4) THEN                     ! SHELXS HKL File
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_SHELX) THEN                     ! SHELXS HKL File
                DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
@@ -1922,7 +1926,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                ENDDO 
                ENDDO 
                ENDDO 
-            ELSEIF (ityp.eq.LIST5) THEN                     ! SHELXS HKL Fobs Fcalc File
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_LIST5) THEN                     ! SHELXS HKL Fobs Fcalc File
                DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
@@ -1946,7 +1950,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                ENDDO 
                ENDDO 
                ENDDO 
-            ELSEIF (ityp.eq.LIST9) THEN                     ! SHELXS File
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_LIST9) THEN                     ! SHELXS File
                shel_value = 3 
                DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
@@ -1989,7 +1993,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                ENDDO 
             ENDIF 
          ELSEIF (out_inc (1) .eq.1) THEN                    ! 1D Files
-            IF(ityp /= 0) THEN                              ! All BUT standard files
+            IF(ityp /= OUTPUT_FORMAT_STAN) THEN             ! All BUT standard files
             i = 1 
             DO j = 1, out_inc (2) 
             DO k = 1, 3 
@@ -1998,14 +2002,14 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             ENDDO 
 !           k = (i - 1) * out_inc (2) + j 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
-            IF (ityp.eq.HKLF4) THEN                         ! SHELXS HKL INTENSITY
+            IF (ityp.eq.OUTPUT_FORMAT_SHELX) THEN                         ! SHELXS HKL INTENSITY
 !              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                qq = qval (1,j,1, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, sq                                                   
-            ELSEIF (ityp.eq.LIST5) THEN                     ! SHELXS Fobs Fcalc
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_LIST5) THEN                     ! SHELXS Fobs Fcalc
                shel_value = 2 
 !              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
 !              2) / cr_icc (3) * out_fac                                
@@ -2017,7 +2021,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, qq, sq                                               
-            ELSEIF (ityp.eq.LIST9) THEN                     ! SHELXS
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_LIST9) THEN                     ! SHELXS
                shel_value = 2 
 !              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
 !              2) / cr_icc (3)                                          
@@ -2047,7 +2051,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                ENDDO 
             ENDIF 
          ELSEIF (out_inc (2) .eq.1) THEN 
-            IF(ityp /= 0) THEN                              ! All BUT standard files
+            IF(ityp /= OUTPUT_FORMAT_STAN) THEN     ! All BUT standard files
             j = 1 
             DO i = 1, out_inc (1) 
             DO k = 1, 3 
@@ -2056,13 +2060,13 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             ENDDO 
 !           k = (i - 1) * out_inc (2) + j 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
-            IF (ityp.eq.HKLF4) THEN                         ! SHELXS Intensity
+            IF (ityp.eq.OUTPUT_FORMAT_SHELX) THEN                         ! SHELXS Intensity
 !              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
 !              2) / cr_icc (3) * out_fac                                
                qq = qval (i,1,1, value, i, j, laver) / cr_icc (1) / cr_icc ( 2) / cr_icc (3) * out_fac                                
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), qq, sq                                                   
-            ELSEIF (ityp.eq.LIST5) THEN                     ! SHELS Fobs Fcalc
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_LIST5) THEN                     ! SHELS Fobs Fcalc
                shel_value = 2 
 !              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
 !              2) / cr_icc (3) * out_fac                                
@@ -2072,7 +2076,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, qq, sq                                               
-            ELSEIF (ityp.eq.LIST9) THEN                     ! SHELS File
+            ELSEIF (ityp.eq.OUTPUT_FORMAT_LIST9) THEN                     ! SHELS File
                shel_value = 2 
 !              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
 !              2) / cr_icc (3)                                          
@@ -2103,11 +2107,11 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !     if(ier_num.ne.0) THEN                                             
 !       call errlist                                                    
 !     endif                                                             
-      IF (ityp.eq.HKLF4.or.ityp.eq.LIST5) THEN 
+      IF (ityp.eq.OUTPUT_FORMAT_SHELX.or.ityp.eq.OUTPUT_FORMAT_LIST5) THEN 
          WRITE (output_io, 1000) out_fac 
       ENDIF 
       CLOSE (iff) 
-      ENDIF       ! DATA TYPES ityp == 0 or else 
+      ENDIF       ! DATA TYPES ityp == OUTPUT_FORMAT_STAN or else 
       IF(ALLOCATED(xwrt)) DEALLOCATE(xwrt,STAT=all_status)
       IF(ALLOCATED(ywrt)) DEALLOCATE(ywrt,STAT=all_status)
 !                                                                       
@@ -2434,8 +2438,10 @@ subroutine write_unified_data(datafile, zeile, out_eck, out_vi, out_inc,  &
 !  Write the data in the Diffuse Developers unified data file format
 !+
 !
+use chem_aver_mod
 use crystal_mod
 use diffuse_mod
+use powder_mod
 use wyckoff_mod
 use qval_mod
 !
@@ -2443,6 +2449,7 @@ use envir_mod
 use errlist_mod
 use get_params_mod
 use precision_mod
+use prompt_mod
 use str_comp_mod
 use string_convert_mod
 use take_param_mod
@@ -2493,6 +2500,21 @@ integer                   , dimension(3   )               :: data_dimension     
 real(kind=PREC_DP)        , dimension(3   )               :: data_corner          ! Lower left bottom corner in fractional coordinates
 character(len=32)                                         :: coordinate_unit      ! Axis units 'basecell_fractional' ...
 real(kind=PREC_DP)        , dimension(3, 3)               :: data_vector          ! Increment vectors abs: (:,1); ord: (:,2); top: (:,3)
+! PDF info
+character(len=PREC_STRING)           :: sample_composition     ! string like "Zr1.0, O2.0"
+character(len=PREC_STRING)           :: source_conversion      ! "DISCUS_SINGLE 6.22.3"
+character(len=PREC_STRING), dimension(3) :: source_file        ! "DISCUS_CALCULATION"
+real(kind=PREC_DP), dimension(1)     :: source_back_scale      ! 0.0
+integer, dimension(3)                :: source_dimension       ! Dimensions in reciprocal space
+integer                              :: source_abs_is_hkl      ! Source Abscissa is 1=h 2=k 3 = k
+integer                              :: source_ord_is_hkl      ! Source Ordinate is 1=h 2=k 3=l
+integer                              :: source_top_is_hkl      ! Source top-axis is 1=h 2=k 3=l
+character(len=32)                    :: source_coordinate_unit ! 'basecell_fractional'
+real(kind=PREC_DP), dimension(3)     :: source_corner          ! Reciprocal lower left corner
+real(kind=PREC_DP), dimension(3, 3)  :: source_vector          ! Reciprocal increment vecors abs, ord, top
+real(kind=PREC_DP), dimension(2)     :: source_inst_qmin_qmax  ! Powder qmin, qmax Fit range
+real(kind=PREC_DP), dimension(2)     :: source_fourier_qmin_qmax  ! Powder qmin, qmax Fourier range
+real(kind=PREC_DP), dimension(1)     :: source_correction         ! Powder poly correction parameters
 !
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: data_values     ! The data
 !
@@ -2552,7 +2574,7 @@ crystal_meta(4) = version_discus
 crystal_meta(5) = author
 !
 symmetry_H_M = cr_spcgr
-symmetry_origin = 1
+symmetry_origin = spcgr_para
 symmetry_abc    = cr_set
 symmetry_n_mat  = spc_n
 allocate(symmetry_mat(3,4,symmetry_n_mat))
@@ -2644,6 +2666,7 @@ if(lpresent(O_TRANS) .and.                                       &
 else
    i = 0
    if(four_symm) i = 1
+   if(data_type_style=='powder_diffraction' .or. data_type_style=='single_diffraction') then  ! Intensities
    call unified_write_data(datafile, cr_a0, cr_win,               &
                            symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                            symmetry_mat,                                                &
@@ -2667,6 +2690,113 @@ else
                            NMSG, ier_num, ier_msg,                                      &
                                           crystal_meta                   &
                            )
+   elseif(data_type_style=='single_pdf') then  ! Intensities
+      call chem_get_composition(sample_composition)
+!
+      write(source_conversion,'(2a)') 'discus_single ' // version
+      source_corner(:) = eck(:,1)    ! Use reciprocal space units
+      source_vector    = vi
+      source_dimension = inc
+!
+      source_abs_is_hkl = 1
+      source_ord_is_hkl = 2
+      source_top_is_hkl = 3
+      do i=1,3
+        j = mod(i  ,3) + 1
+        k = mod(i+1,3) + 1
+        if(abs(source_vector(i,1))>EPS .and. &
+           abs(source_vector(j,1))<EPS .and. &
+           abs(source_vector(j,1))<EPS      ) source_abs_is_hkl = i
+        if(abs(source_vector(i,2))>EPS .and. &
+           abs(source_vector(j,2))<EPS .and. &
+           abs(source_vector(j,2))<EPS      ) source_ord_is_hkl = i
+        if(abs(source_vector(i,3))>EPS .and. &
+           abs(source_vector(j,3))<EPS .and. &
+           abs(source_vector(j,3))<EPS      ) source_top_is_hkl = i
+      enddo
+      source_coordinate_unit = 'basecell_fractional'
+      source_file            = ''
+      source_file(1)         = 'discus_calculation'
+      source_back_scale       = 0.0_PREC_DP
+   call unified_write_data(datafile, cr_a0, cr_win,               &
+                           symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                           symmetry_mat,                                                &
+                           data_type_experiment, &
+                           data_type_style     , &
+                           data_type_axes      , &
+                           data_type_content   , &
+                           data_type_reciprocal, &
+                           data_type_with_bragg, &
+                           data_type_symmetrized, &
+                           data_type_number     , &
+                           data_rad_radiation , data_rad_symbol, data_rad_length, &
+                           data_dimension  , &
+                           data_abs_is_hkl     , &
+                           data_ord_is_hkl     , &
+                           data_top_is_hkl     , &
+                           coordinate_unit , &
+                           data_corner     , &
+                           data_vector     , &
+                           data_values     , &
+                           NMSG, ier_num, ier_msg,                                      &
+                           crystal_meta,                  &
+                           sample_composition = sample_composition, &
+                           source_conversion  = source_conversion , &
+                           source_file        = source_file       , &
+                           source_back_scale  = source_back_scale , &
+                           source_dimension   = source_dimension , &
+                           source_abs_is_hkl  = source_abs_is_hkl , &
+                           source_ord_is_hkl  = source_ord_is_hkl , &
+                           source_top_is_hkl  = source_top_is_hkl , &
+                           source_coordinate_unit =source_coordinate_unit , &
+                           source_corner      = source_corner  , &
+                           source_vector      = source_vector    &
+                           )
+   elseif(data_type_style=='powder_pdf') then  ! Intensities
+      call chem_get_composition(sample_composition)
+!
+      write(source_conversion,'(2a)') 'discus_powder ' // version
+      source_file            = ''
+      source_file(1)         = 'discus_calculation'
+      source_back_scale       = 0.0_PREC_DP
+      source_coordinate_unit = 'inverse_angstroem'
+      source_inst_qmin_qmax(1) = 0.0_PREC_DP
+      source_inst_qmin_qmax(2) = pow_qmax_u
+      source_fourier_qmin_qmax(1) = pow_qmin_u
+      source_fourier_qmin_qmax(2) = pow_qmax_u
+      source_correction           = 0.0_PREC_DP
+!
+   call unified_write_data(datafile, cr_a0, cr_win,               &
+                           symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                           symmetry_mat,                                                &
+                           data_type_experiment, &
+                           data_type_style     , &
+                           data_type_axes      , &
+                           data_type_content   , &
+                           data_type_reciprocal, &
+                           data_type_with_bragg, &
+                           data_type_symmetrized, &
+                           data_type_number     , &
+                           data_rad_radiation , data_rad_symbol, data_rad_length, &
+                           data_dimension  , &
+                           data_abs_is_hkl     , &
+                           data_ord_is_hkl     , &
+                           data_top_is_hkl     , &
+                           coordinate_unit , &
+                           data_corner     , &
+                           data_vector     , &
+                           data_values     , &
+                           NMSG, ier_num, ier_msg,                                      &
+                           crystal_meta,                  &
+                           sample_composition = sample_composition, &
+                           source_conversion  = source_conversion , &
+                           source_file        = source_file       , &
+                           source_back_scale  = source_back_scale , &
+                           source_inst_qmin_qmax   = source_inst_qmin_qmax, &
+                           source_fourier_qmin_qmax   = source_fourier_qmin_qmax, &
+                           source_correction   = source_correction &
+                           )
+      endif
 !                 call nx_write_scattering(outfile, program_version, author,    &
 !                         out_inc, out_eck, out_vi,                             &
 !                         out_extr_abs, out_extr_ord, out_extr_top,             &
@@ -2686,11 +2816,12 @@ end subroutine write_unified_data
 SUBROUTINE output_reset
 !
 USE output_mod
+use output_format_mod
 !
 IMPLICIT NONE
 !
 outfile      = 'fcalc.dat'
-ityp         = 0
+ityp         = OUTPUT_FORMAT_STAN
 extr_abs     = 1
 extr_ord     = 2
 extr_top     = 3
