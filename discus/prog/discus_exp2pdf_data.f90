@@ -4,11 +4,14 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=PREC_STRING)                                :: exp_load  = ' '  ! Load string data
-CHARACTER(LEN=PREC_STRING)                                :: exp_cback  = ' ' ! Load string Background
-CHARACTER(LEN=PREC_STRING)                                :: exp_csigma = ' ' ! Load string Sigma's
-CHARACTER(LEN=PREC_STRING)                                :: exp_cfaver = ' ' ! Load string faver 
-CHARACTER(LEN=PREC_STRING)                                :: exp_radiation = 'xray' ! Radiation 'xray', 'neutron', 'electron'
+character(LEN=PREC_STRING)                                :: exp_load  = ' '  ! Load string data
+character(LEN=PREC_STRING)                                :: exp_cback  = ' ' ! Load string Background
+character(LEN=PREC_STRING)                                :: exp_csigma = ' ' ! Load string Sigma's
+character(LEN=PREC_STRING)                                :: exp_file_data  = ' '  ! File        data
+character(LEN=PREC_STRING)                                :: exp_file_back  = ' ' ! File        Background
+character(LEN=PREC_STRING)                                :: exp_file_sigma = ' ' ! File        Sigma's
+character(LEN=PREC_STRING)                                :: exp_cfaver = ' ' ! Load string faver 
+character(LEN= 8         )                                :: exp_radiation = 'xray' ! Radiation 'xray', 'neutron', 'electron'
 character(len=4)          , DIMENSION(:    ), ALLOCATABLE :: exp_atname       ! Atom names
 REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_atocc        ! Occupancies
 integer                                                   :: exp_natom = 0    ! Number of atom types
@@ -24,6 +27,7 @@ integer                                                   :: exp_nstep  ! Data p
 integer                                                   :: exp_nstep_f! Data points on equdistant grid
 integer                                                   :: exp_npoly = 7    ! Order of polynomial through F(Q)
 logical                                                   :: exp_comp_current = .true.  ! Composition is that of current structure
+character(LEN=PREC_STRING)                                :: exp_composition = '  ' ! Composition
 logical                                                   :: exp_inter        = .true.  ! Show intermittent plots 
 REAL(kind=PREC_DP)        , DIMENSION(:,:,:), ALLOCATABLE :: exp_data   ! the actual data set
 REAL(kind=PREC_DP)        , DIMENSION(:,:,:), ALLOCATABLE :: exp_back   ! the actual data set
@@ -59,14 +63,18 @@ integer                                                   :: exp_is_rad  = 1
 real(kind=PREC_DP)                                        :: exp_rlambda = 0.10D0   ! Lambda
 real(kind=PREC_DP)                                        :: exp_renergy = 123.9842004D0   ! Energy
 !
-CHARACTER(LEN=PREC_STRING)                                :: exp_outgr   = 'discus.grobs' ! Write GROBS
-CHARACTER(LEN=PREC_STRING)                                :: exp_outiq   = 'discus.iqobs' ! Radiation 'xray', 'neutron', 'electron'
-CHARACTER(LEN=PREC_STRING)                                :: exp_outfq   = 'discus.fqobs' ! Radiation 'xray', 'neutron', 'electron'
-CHARACTER(LEN=PREC_STRING)                                :: exp_outsq   = 'discus.sqobs' ! Radiation 'xray', 'neutron', 'electron'
+character(LEN=PREC_STRING)                                :: exp_outgr   = 'discus.grobs' ! Write GROBS
+character(LEN=PREC_STRING)                                :: exp_outiq   = 'discus.iqobs' ! Radiation 'xray', 'neutron', 'electron'
+character(LEN=PREC_STRING)                                :: exp_outfq   = 'discus.fqobs' ! Radiation 'xray', 'neutron', 'electron'
+character(LEN=PREC_STRING)                                :: exp_outsq   = 'discus.sqobs' ! Radiation 'xray', 'neutron', 'electron'
 logical                                                   :: exp_outgr_l = .true.         ! Radiation 'xray', 'neutron', 'electron'
 logical                                                   :: exp_outiq_l = .false.        ! Write IQ
 logical                                                   :: exp_outfq_l = .false.        ! Write FQ
 logical                                                   :: exp_outsq_l = .false.        ! Write SQ
+integer                                                   :: exp_outgr_f = 16             ! Common/Nexus file format
+integer                                                   :: exp_outiq_f = 16             ! Common/Nexus file format 
+integer                                                   :: exp_outfq_f = 16             ! Common/Nexus file format 
+integer                                                   :: exp_outsq_f = 16             ! Common/Nexus file format 
 real(kind=PREC_DP)                                        :: exp_rmax  = 100.01D0   ! PDF Rmax
 real(kind=PREC_DP)                                        :: exp_rstep =   0.01D0   ! PDF Rstep
 integer                                                   :: exp_npdf   ! Number data points in PDF
