@@ -8,6 +8,7 @@ integer, parameter :: N_C_FLAGS        = 6        ! Number of Crystal flags
 integer, parameter :: N_META           = 5        ! Number of meta entries
 integer, parameter :: N_FIELDS_DATA    = 24       ! Number of entries in HDF5 file  scattering data
 integer, parameter :: N_FIELDS_CRYSTAL = 37       ! Number of entries in HDF5 file  crystal structure
+integer, parameter :: N_FIELDS_SOURCE  = 14       ! Number of entries in HDF5 file  source for PDF/3DPDF data
 !
 character(len=24), dimension(N_C_FLAGS       ), parameter :: c_flags  &
        =    (/'is_super_structure      ', &
@@ -100,10 +101,29 @@ character(len=32), dimension(2               ), parameter :: c_dictionary_names 
                         'Disorder unified data'  &
                        /)
 !
+character(len=32), dimension(N_FIELDS_source ), parameter :: c_fields_source &
+       =    (/ &
+              'sample_composition             ', &
+              'source_conversion              ', &
+              'source_file_data               ', &
+              'source_file_back               ', &
+              'source_file_sigma              ', &
+              'source_back_scale              ', &
+              'source_dimension               ', &
+              'source_axes                    ', &
+              'source_coordinate_unit         ', &
+              'source_corner                  ', &
+              'source_increment_vector        ', &
+              'source_inst_qmin_qmax          ', &
+              'source_fourier_qmin_qmax       ', &
+              'source_correction              '  &
+             /)
+!
 logical          , dimension(N_C_FLAGS       ) :: l_flags
 logical          , dimension(N_META          ) :: l_meta
 logical          , dimension(N_FIELDS_DATA   ) :: l_fields_data
 logical          , dimension(N_FIELDS_CRYSTAL) :: l_fields_crystal
+logical          , dimension(N_FIELDS_SOURCE ) :: l_fields_source 
 !
 integer,parameter :: o_atom_property   = 1! Atom has this property flag
 integer,parameter :: o_crystal_flags   = 2! Flags , see "c_flags"
@@ -176,5 +196,20 @@ integer, parameter :: INDX_anisotropic_number             = 34
 integer, parameter :: INDX_anisotropic_is_iso             = 35
 integer, parameter :: INDX_anisotropic_adp                = 36
 integer, parameter :: INDX_anisotropic_index              = 37
+!
+integer, parameter :: INDX_sample_composition              =  1
+integer, parameter :: INDX_source_conversion               =  2
+integer, parameter :: INDX_source_file_data                =  3
+integer, parameter :: INDX_source_file_back                =  4
+integer, parameter :: INDX_source_file_sigma               =  5
+integer, parameter :: INDX_source_back_scale               =  6
+integer, parameter :: INDX_source_dimension                =  7
+integer, parameter :: INDX_source_axes                     =  8
+integer, parameter :: INDX_source_coordinate_unit          =  9
+integer, parameter :: INDX_source_corner                   = 10
+integer, parameter :: INDX_source_increment_vector         = 11 
+integer, parameter :: INDX_source_inst_qmin_qmax           = 12
+integer, parameter :: INDX_source_fourier_qmin_qmax        = 13
+integer, parameter :: INDX_source_correction               = 14
 !
 end module lib_unified_chars_mod
