@@ -19,6 +19,7 @@ subroutine nx_write_scattering(outfile, program_version, author,                
            abs_is_hkl, ord_is_hkl, top_is_hkl,                                  &
            cr_a0, cr_win, qvalues, content, is_space, radiation,                &
            space_group_name, symmetry_applied, symmetry_n_mat, symmetry_mat,    &
+           lambda, &
            ier_num)
 !-
 !  Main writing routine for Nexus Format DiffuseDevelopers Scattering format
@@ -59,6 +60,7 @@ real(kind=PREC_DP), dimension(3,4,symmetry_n_mat), intent(in) :: symmetry_mat ! 
 !                                                                                         (11, 12, 13)
 !                                                                (h, k, l)' = (h, k, l) * (21, 22, 23)
 !                                                                                         (31, 32, 33)
+real(kind=PREC_DP)                , intent(in) , optional :: lambda
 integer                           , intent(out) :: ier_num     ! Error number
 !
 type(tuple)     :: p_args              ! Tuple of arguments for write_diffuse_scattering
