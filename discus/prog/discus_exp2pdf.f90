@@ -163,6 +163,11 @@ loop_main: DO while (.not.lend)                 ! Main exp2pdf loop
       call exp2pdf_run(zeile, lp)
       call exp2pdf_init
 !
+!     ----show          'show'     
+!
+   ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then
+      call exp2pdf_show
+!
 !  --- Correct camera length error 'qscale'
 !
    elseif(str_comp (befehl, 'qscale', 2, lbef, 6)) then
