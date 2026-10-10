@@ -565,9 +565,13 @@ subroutine exp2pdf_adjust
 ! Adjust the lower and upper limits, merge to a common data set
 !+
 !
+use crystal_mod
 use exp2pdf_data_mod
+use exp2pdf_write_mod
 use powder_fft_mod
 use discus_output_powder_mod
+use output_format_mod
+use wyckoff_mod
 !
 use kuplot_mod
 use kuplot_math_mod
@@ -617,6 +621,15 @@ real(kind=PREC_DP), dimension(:), allocatable :: wmin
 integer           , dimension(:), allocatable :: ixmax
 integer           , dimension(:), allocatable :: ixmin
 integer :: ima
+!
+real(kind=PREC_DP)        , dimension(3)                  :: unit_cell_lengths  ! Unit cell parameters a, b, c
+real(kind=PREC_DP)        , dimension(3)                  :: unit_cell_angles   ! Unit cell angles alpha, beta, gammy
+character(len=32)                                         :: symmetry_H_M       ! Hermann-Mauguin Symbol
+integer                                                   :: symmetry_origin    ! Space group origin 1 / 2
+character(len=3)                                          :: symmetry_abc       ! Permutation for orthorhombic space groups
+integer                                                   :: symmetry_n_mat     ! Number of symmetry elements
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: symmetry_mat       ! Actual Symmetry matrices
+
 !
 npkt_fft = 2**18
 !
@@ -834,6 +847,28 @@ call fft_fq(npkt_wrt, x_wrt, y_wrt, qmin, qmax, exp_qstep, exp_rmin, exp_rmax, e
 !  write(77, '(2(2x, g12.8e3))') xfour(i), yfour(i)
 !enddo
 !close(77)
+if(exp_comp_current) then  ! We used the current crystal structure, copy symmetry information
+   unit_cell_lengths = cr_a0
+   unit_cell_angles  = cr_win
+   symmetry_H_M      = cr_spcgr
+   symmetry_origin   = spcgr_para
+   symmetry_abc      = cr_set
+   symmetry_n_mat    = spc_n
+   allocate(symmetry_mat(3,4,symmetry_n_mat))
+   symmetry_mat(1:3, 1:4, 1:symmetry_n_mat)   = spc_mat(1:3, 1:4, 1:spc_n)
+else   ! Unknow crystal symmetry set to 'P 1'
+   unit_cell_lengths =  1.0_PREC_DP
+   unit_cell_angles  = 90.0_PREC_DP
+   symmetry_H_M      = 'P 1'
+   symmetry_origin   =  spcgr_para
+   symmetry_abc      = 'abc'
+   symmetry_n_mat    =  1   
+   allocate(symmetry_mat(3,4,symmetry_n_mat))
+   symmetry_mat(1:3, 1:4, 1:symmetry_n_mat)   =  0.0_PREC_DP
+   symmetry_mat(1,1,1) = 1.0_PREC_DP
+   symmetry_mat(2,2,1) = 1.0_PREC_DP
+   symmetry_mat(3,3,1) = 1.0_PREC_DP
+endif
 !
 cvalue = ' '
 if(exp_outgr_l) then
@@ -841,6 +876,18 @@ if(exp_outgr_l) then
    cvalue(2) = 'G(r)[Angstroem^-2]'
    ncols     = 2
    yfour     = yfour * exp_scale
+   if(exp_outgr_f==output_format_common) then
+      call exp2pdf_write_unified(exp_outgr, ncols, cvalue, exp_file_data, exp_file_back, exp_file_sigma, &
+                exp_bscale, &
+                exp_radiation, exp_rlambda, exp_renergy, &
+                exp_natom, exp_atname, exp_atocc,  exp_comp_current, &
+                exp_npoly, exp_qmin_i, exp_qmax_u, &
+                exp_qmin_f, exp_qmax_f, qmin, qmax, &
+                exp_npdf , xfour, yfour, &
+                unit_cell_lengths, unit_cell_angles,               &
+                symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
+                symmetry_mat)
+   else
    call exp2pdf_header(exp_outgr, ncols, cvalue, exp_load, exp_cback, exp_csigma, &
                 exp_bscale, &
                 exp_radiation, exp_rlambda, exp_renergy, &
@@ -850,10 +897,21 @@ if(exp_outgr_l) then
                 exp_npdf , &
                 xfour(0), xfour(exp_npdf-1), (xfour(exp_npdf-1)-xfour(0))/(real(exp_npdf-1) )   )
    call powder_do_write(exp_outgr  , exp_npdf-1, xfour, yfour, file_pos='append')
+   endif
 endif
 !
 if(exp_outfq_l) then
-   call powder_do_write(exp_outfq  , npkt_wrt-1, x_wrt, y_wrt)
+   cvalue(1) = 'Q[Angstroem^-1]'
+   cvalue(2) = 'F(Q)[Angstroem^-1]'
+   call exp2pdf_header(exp_outfq, ncols, cvalue, exp_load, exp_cback, exp_csigma, &
+                exp_bscale, &
+                exp_radiation, exp_rlambda, exp_renergy, &
+                exp_natom, exp_atname, exp_atocc,  &
+                exp_npoly, exp_qmin_i, exp_qmax_u, &
+                exp_qmin_f, exp_qmax_f, qmin, qmax, &
+                exp_npdf , &
+                x_wrt(0), x_wrt(npkt_wrt-1), (x_wrt(npkt_wrt-1)-x_wrt(0))/(real(npkt_wrt-1) )   )
+   call powder_do_write(exp_outfq  , npkt_wrt-1, x_wrt, y_wrt, file_pos='append')
 endif
 !
 if(exp_outsq_l) then
@@ -861,10 +919,22 @@ if(exp_outsq_l) then
       if(x_wrt(i)>0.0D0) y_wrt(i) = y_wrt(i)/ x_wrt(i)
    enddo
    y_wrt = y_wrt + 1.0D0
-   call powder_do_write(exp_outsq  , npkt_wrt-1, x_wrt, y_wrt)
+   cvalue(1) = 'Q[Angstroem^-1]'
+   cvalue(2) = 'S(Q)[Angstroem^-1]'
+   call exp2pdf_header(exp_outsq, ncols, cvalue, exp_load, exp_cback, exp_csigma, &
+                exp_bscale, &
+                exp_radiation, exp_rlambda, exp_renergy, &
+                exp_natom, exp_atname, exp_atocc,  &
+                exp_npoly, exp_qmin_i, exp_qmax_u, &
+                exp_qmin_f, exp_qmax_f, qmin, qmax, &
+                exp_npdf , &
+                x_wrt(0), x_wrt(npkt_wrt-1), (x_wrt(npkt_wrt-1)-x_wrt(0))/(real(npkt_wrt-1) )   )
+   call powder_do_write(exp_outsq  , npkt_wrt-1, x_wrt, y_wrt, file_pos='append')
 endif
 !
 if(exp_outiq_l) then
+   cvalue(1) = 'Q[Angstroem^-1]'
+   cvalue(2) = 'I(Q)[arb.units]'
    deallocate(x_wrt)
    deallocate(y_wrt)
    npkt_wrt = ubound(exp_temp_x,1)
@@ -872,7 +942,15 @@ if(exp_outiq_l) then
    allocate(y_wrt(0:npkt_wrt            ))
    x_wrt(0:npkt_wrt  -1) = exp_x     (1:npkt_wrt  )
    y_wrt(0:npkt_wrt  -1) = exp_data  (1:npkt_wrt,1, 1)
-   call powder_do_write(exp_outiq  , npkt_wrt  -1, x_wrt, y_wrt)
+   call exp2pdf_header(exp_outiq, ncols, cvalue, exp_load, exp_cback, exp_csigma, &
+                exp_bscale, &
+                exp_radiation, exp_rlambda, exp_renergy, &
+                exp_natom, exp_atname, exp_atocc,  &
+                exp_npoly, exp_qmin_i, exp_qmax_u, &
+                exp_qmin_f, exp_qmax_f, qmin, qmax, &
+                exp_npdf , &
+                x_wrt(0), x_wrt(npkt_wrt-1), (x_wrt(npkt_wrt-1)-x_wrt(0))/(real(npkt_wrt-1) )   )
+   call powder_do_write(exp_outiq  , npkt_wrt  -1, x_wrt, y_wrt, file_pos='append')
 endif
 !
 if(allocated(x_wrt)) deallocate(x_wrt)
@@ -1535,8 +1613,6 @@ use support_mod
 !
 implicit none
 !
-integer, parameter :: LCOMP = 11
-!
 character(len=*), intent(in) :: exp_outgr
 integer         , intent(in) :: ncols
 character(len=*),dimension(4), intent(in) :: cvalue
@@ -1563,6 +1639,7 @@ real(kind=PREC_DP), intent(in) :: out_max
 real(kind=PREC_DP), intent(in) :: out_step
 !
 integer, parameter :: IWR = 77
+integer, parameter :: LCOMP = 14
 !
 character(len=PREC_STRING) :: outfile
 character(len=PREC_STRING) :: composition
@@ -1580,10 +1657,11 @@ call oeffne(IWR, outfile, 'unknown')
 composition = ' '
 do i=1, exp_natom
    j = (i-1) * LCOMP + 1
-   write(composition(j:j+LCOMP-1),'(a4,f7.3)') exp_atname(i), exp_atocc(i)
+   write(composition(j:j+LCOMP-1),'(a4,a1,f7.4,a2)') exp_atname(i), ':', exp_atocc(i),' ,'
 enddo
-i = LCOMP*exp_natom
-call rem_bl(composition,i)
+i = len_trim(composition)
+composition(i:i) = ' '
+!call rem_bl(composition,i)
 !
 write(IWR, '(a,i6,a,i6)')    '# HEADER : lines, sec  ;2I::', sum(lsection),',',ubound(lsection)
 write(IWR, '(a)')            '# HEADER : section     ;1C:: DATA'
@@ -1668,7 +1746,7 @@ exp_outgr        = 'discus.grobs' ! Write GROBS
 exp_outiq        = 'discus.iqobs' ! Radiation 'xray', 'neutron', 'electron'
 exp_outfq        = 'discus.fqobs' ! Radiation 'xray', 'neutron', 'electron'
 exp_outsq        = 'discus.sqobs' ! Radiation 'xray', 'neutron', 'electron'
-exp_outgr_l      = .true.         ! Radiation 'xray', 'neutron', 'electron'
+exp_outgr_l      = .true.         ! Write GR
 exp_outiq_l      = .false.        ! Write IQ
 exp_outfq_l      = .false.        ! Write FQ
 exp_outsq_l      = .false.        ! Write SQ
