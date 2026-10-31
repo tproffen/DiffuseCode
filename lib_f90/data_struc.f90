@@ -1502,6 +1502,7 @@ if(allocated(lib_h5_data_ptr)) then                ! Pointer structure exists
       do i=old_size+1, new_size
          nullify(lib_h5_data_ptr(i)%data_ptr)
       enddo
+      deallocate(lib_h5_data_ptr_temp)
    endif
 else                                               ! Pointer structure had not yet been used
    allocate(lib_h5_data_ptr(ndata+10))
