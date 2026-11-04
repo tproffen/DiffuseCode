@@ -1,0 +1,40 @@
+discus
+read
+free
+insert si, 0,0,0, 0.1
+insert si, 1,0,0, 0.1
+insert si, 2,0,0, 0.1
+insert si, 3,0,0, 0.1
+save
+   outfile internal.m
+   run
+   outfile internal.b
+   run
+   outfile internal.a
+   run
+   outfile internal.e
+   run
+   outfile internal.n
+   run
+   outfile internal.o
+   run
+   outfile internal.nn
+   run
+   outfile internal.z
+   run
+   outfile internal.na
+   run
+   outfile internal.nz
+   run
+exit
+stora
+show
+show internal.n
+exit
+wait return
+storage
+  remove internal.o
+  show 
+exit
+wait return
+exit

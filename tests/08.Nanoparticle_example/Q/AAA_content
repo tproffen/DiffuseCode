@@ -1,0 +1,15 @@
+DISCUS Macros in this directory are:
+
+
+nano.mac                       ! Macro to build spherical nanoparticle
+
+powder.mac                     ! Calculates the powder pattern
+pdf.mac                        ! Calculates the PDF
+output.mac                     ! Writes powder pattern output
+
+plot.cif.mac                   ! Writes the structure for plot with jmol
+
+
+KUPLOT Macros in this directory are:
+
+knano.mac                      ! Plots the powder pattern and PDF

@@ -1,0 +1,217 @@
+#
+#
+variable real, an_dim, dim:[3,2]        ! Check the dimensions
+#
+discus
+#
+read
+   stru STRU/perovskite.stru
+#
+show metric
+wait return
+show cdim
+wait return
+an_dim[1,1] = cdim[1,1]
+an_dim[1,2] = cdim[1,2]
+an_dim[2,1] = cdim[2,1]
+an_dim[2,2] = cdim[2,2]
+an_dim[3,1] = cdim[3,1]
+an_dim[3,2] = cdim[3,2]
+chem
+   elem
+   wait return
+exit
+do LOOP=1,res[0]
+  i[99+LOOP] = nint(res[LOOP]*n[1])
+enddo
+chem
+   aver
+exit
+do LOOP=1,9
+  r[110+LOOP] = res[LOOP]
+  r[120+LOOP] = res[54+LOOP]
+enddo
+wait return
+chem
+   aver ind
+   wait return
+exit
+do LOOP=1,9
+  r[130+LOOP] = res[9+LOOP]
+enddo
+eval res[0]
+do i[0]=1, res[0], 9
+  echo " %7.4f %7.4f  %7.4f %7.4f %7.4f  %7.4f %7.4f %7.4f %7.4f" ,res[i[0]] ,res[i[0]+1] ,res[i[0]+2] ,res[i[0]+3] ,res[i[0]+4] ,res[i[0]+5] ,res[i[0]+6] ,res[i[0]+7] ,res[i[0]+8]
+enddo
+#
+eval res[21]
+eval res[22]
+eval res[23]
+symmetry
+   uvw  0,0,1
+   angl 0.00
+   trans -1.*res[21], -1.*res[22],-1.*res[23]
+   orig 0,0,0, crystal
+   type proper
+   mode repl
+   power 1
+   sel all
+   incl all
+show
+   run
+exit
+wait return
+chem
+   set mode, quick, period
+   aver ind
+   wait return
+exit
+do LOOP=1,9
+  r[140+LOOP] = res[9+LOOP]
+enddo
+#
+chem
+   set blen, 1.5, 2.5
+   set bin, 100
+   blen Ti,O, CHEM/ti_o.hist
+   blen Mg,O, CHEM/mg_o.hist
+#
+   set blen, 2.0, 4.0
+   set bin, 200
+   blen Pb,O, CHEM/pb_o.hist
+   blen Bi,O, CHEM/bi_o.hist
+#
+   set blen, 0.5*lat[1]-0.5, 0.5*lat[1]+0.5
+   set bang, 1,180
+   set bin,    179.
+   bang Ti,N,N, CHEM/ti_nn.hist
+   bang Ti,O,O, CHEM/ti_oo.hist
+   bang Ti,N,O, CHEM/ti_no.hist
+exit
+eval 0.5*lat[1]-0.5, 0.5*lat[1]+0.5
+eval blen(atom, 2, 3)
+show atom, 1, 5
+wait return
+branch kuplot
+reset
+load xy, CHEM/ti_o.hist
+load xy, CHEM/mg_o.hist
+skal
+mark
+plot
+wait return
+reset
+load xy, CHEM/pb_o.hist
+load xy, CHEM/bi_o.hist
+skal
+mark
+plot
+wait return
+reset
+load xy, CHEM/ti_nn.hist
+load xy, CHEM/ti_oo.hist
+load xy, CHEM/ti_no.hist
+skal
+mark
+plot
+wait return
+exit
+#
+chem
+   set neig,rese
+   set vec, rese
+   set vec, 1, 1, 1,   1,  0,  0
+   set vec, 2, 1, 1,  -1,  0,  0
+   set vec, 3, 1, 1,   0,  1,  0
+   set vec, 4, 1, 1,   0, -1,  0
+   set vec, 5, 1, 1,   0,  0,  1
+   set vec, 6, 1, 1,   0,  0, -1
+   set nei, vec, 1, 2, 3, 4, 5, 6
+   corr occ, Pb,Bi
+exit
+show res
+r[201] = res[1]
+wait return
+chem
+   set neig,rese
+   set vec, rese
+   set vec, 1, 2, 2,   1,  0,  0
+   set vec, 2, 2, 2,  -1,  0,  0
+   set vec, 3, 2, 2,   0,  1,  0
+   set vec, 4, 2, 2,   0, -1,  0
+   set vec, 5, 2, 2,   0,  0,  1
+   set vec, 6, 2, 2,   0,  0, -1
+   set nei, vec, 1, 2, 3, 4, 5, 6
+   corr occ, Ti,Mg
+   wait return
+exit
+r[202] = res[1]
+#
+#  TEST for success
+#
+branch kuplot
+reset
+load xy, CHEM/*.hist            ! */
+load xy, RESULTS/*.hist         ! */
+do LOOP =1, n[1]/2
+  rval LOOP, LOOP+n[1]/2
+  r[300+LOOP] = res[1]
+enddo
+exit
+
+LTEST_MAC = FALSE
+if( abs(an_dim[1,1] +0.2111)<0.001  .and. abs(an_dim[1,2]- 9.5820)<0.002 .and.  &
+    abs(an_dim[2,1]+ 0.1709)<0.001  .and. abs(an_dim[2,2]- 9.5957)<0.001 .and. &
+    abs(an_dim[3,1]+ 0.1062)<0.001  .and. abs(an_dim[3,2]- 9.6212)<0.001      ) then
+  echo COND 1
+  if(i[100]==0 .and. i[101]==400 .and. i[102]==684 .and. i[103]==2000 .and. &
+     i[104]==600 .and. i[105]==316 .and. i[106]==1000 ) then
+    echo COND 2
+#eval abs(r[111]-1.0   )
+#eval abs(r[112]-1.0   )
+#eval abs(r[113]-0.5024)
+#eval abs(r[114]-0.5006)
+#eval abs(r[115]-0.4967)
+#eval abs(r[116]-0.0349)
+#eval abs(r[117]-0.0305)
+#eval abs(r[118]-0.0264)
+#eval abs(r[119]-0.4000)
+    if(abs(r[111]-1.0   )<0.0001 .and. abs(r[112]-1.0   )<0.0001 .and. abs(r[113]-0.5024)<0.0001 .and. &
+       abs(r[114]-0.5006)<0.0001 .and. abs(r[115]-0.4967)<0.0001 .and. abs(r[116]-0.0349)<0.0001 .and. &
+       abs(r[117]-0.0305)<0.0001 .and. abs(r[118]-0.0264)<0.0001 .and. abs(r[119]-0.4000)<0.0001 ) then
+      echo COND 3
+      if(abs(r[121]-5.0   )<0.0001 .and. abs(r[122]-6.0   )<0.0001 .and. abs(r[123]-0.0026)<0.0001 .and. &
+         abs(r[124]+0.0053)<0.0001 .and. abs(r[125]-0.4992)<0.0001 .and. abs(r[126]-0.0830)<0.0001 .and. &
+         abs(r[127]-0.0834)<0.0001 .and. abs(r[128]-0.0657)<0.0001 .and. abs(r[129]-1.0000)<0.0001 ) then
+        echo COND 4
+#eval abs(r[131]-1.0   )
+#eval abs(r[132]-4.0   )
+#eval abs(r[133]-0.5119)
+#eval abs(r[134]+0.4996)
+#eval abs(r[135]-0.4914)
+#eval abs(r[136]-0.0282)
+#eval abs(r[137]-0.0278)
+#eval abs(r[138]-0.0227)
+#eval abs(r[139]-0.6000)
+        if(abs(r[131]-1.0   )<0.0001 .and. abs(r[132]-4.0   )<0.0001 .and. abs(r[133]-0.5119)<0.0001 .and. &
+           abs(r[134]-0.4996)<0.0001 .and. abs(r[135]-0.4914)<0.0001 .and. abs(r[136]-0.0282)<0.0001 .and. &
+           abs(r[137]-0.0278)<0.0001 .and. abs(r[138]-0.0227)<0.0001 .and. abs(r[139]-0.6000)<0.0001 ) then
+          echo COND 5
+          if(abs(r[143]-0.5091)<0.0001 .and. abs(r[144]-0.4996)<0.0001 .and. abs(r[145]-0.4923)<0.0001) then
+            echo COND 6
+            if(abs(r[201]+0.3263889)<0.0001 .and. abs(r[202]+0.4173)<0.0001) then
+              echo COND 7
+              if(r[301]<0.0001 .and.  r[302]<0.0001 .and. r[303]<0.0001 .and. r[304]<0.0001 .and.  &
+                 r[305]<0.0001 .and.  r[306]<0.0001 .and. r[307]<0.0001 ) then
+                echo COND 8
+                LTEST_MAC = TRUE
+              endif
+            endif
+          endif
+        endif
+      endif
+    endif
+  endif
+endif
+#
+exit   ! BACK to Suite

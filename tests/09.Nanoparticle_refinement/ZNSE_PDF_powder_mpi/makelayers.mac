@@ -1,0 +1,45 @@
+#
+# makelayers.mac
+#
+# Builds the two layers for the Wurtzite structure
+#
+variable integer,width
+variable real, thick
+width = int(2.5 * P_ab_dia/P_lata       )
+#
+#  Expand asymmetric unit into a large sheet of unit cells two unit cells along [001]
+read
+   cell "%c/STRU/%c.%4D.%4D.cell",TMPDIR,SUBSTANCE,REF_KID,indiv,width,width,2
+thick = blen(0.0, 0.0, 0.5-P_z_zn) + 0.1     ! Distance between Metal-Se layers
+#
+surface                                      ! Cut excess atoms away
+   boundary hkl, 0, 0, 1,   0.5,inside       !  All atoms above 0.5Ang over (001) plane
+   boundary hkl, 0, 0,-1, thick,inside       !  All atoms below (00-1) plane at "thick" along [0 0 -1]
+exit
+purge                                        ! Remove voids from memory
+#
+save
+   outf "%c/STRU/%c.%4D.%4D.layer",TMPDIR,SUBSTANCE,REF_KID,indiv
+   write all
+   run
+exit
+#
+#@plot.cif.mac layer                         ! Usualy not needed during refinement
+#
+symm                                         ! The second Wurtzite ZnSe layer is obtained
+   angle 180.0                               ! by a 180 degree rotation of the first layer
+   type  proper                              ! around the [001] axis that goes through atoms
+   mode  repl                                ! at 1/3, 2/3, 0
+   sel   all
+   incl  all
+   orig  0.333333, 0.666667, 0.00
+   uvw   0,0,1
+   trans 0.00, 0.00, 0.00
+   run
+exit
+#
+save
+   outf "%c/STRU/%c.%4D.%4D.rotated",TMPDIR,SUBSTANCE,REF_KID,indiv
+   run
+exit
+#@plot.cif.mac rotated

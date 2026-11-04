@@ -1,0 +1,50 @@
+set prompt,redirect
+set error,exit
+#
+#  diffev_continue.mac
+#
+################################################################################
+#
+#  Main diffev macro for the continuation of an interrupted refinement
+#
+#  This macro executes diffev_setup.mac to load all parameter definitions,
+#  then it reads the "GENERATION" file to know which generation we are in.
+#  It places a "-1" in file "WEITER", just in case we forgot to do this.
+#
+#  Then a loop is started, which will run until the user places a "0" in file
+#  "WEITER".
+#  Within this loop the macro executes DISCUS with macro "dis_diffev.mac",
+#         which creates all the powder pattern.
+#  Next comes KUPLOT to determine the background and the R-Values
+#  Finally KUPLOT is called again to preserve the best solutions into
+#  directory "FINAL"
+#
+#
+variable integer,weiter
+#
+weiter = -1
+fopen 1,WEITER
+fformat 1, i4
+fput 1,weiter
+fclose 1
+#
+@diffev_setup.mac
+#
+fopen 1,GENERATION
+fget  1, pop_gen[1],pop_n[1],pop_c[1],pop_dimx[1]
+fclose 1
+#
+# Force at least the Generation zero
+#
+weiter = -1
+#
+do while(weiter.eq.-1)
+  sys /usr/local/bin/discus < dis_diffev.mac  
+  sys /usr/local/bin/kuplot < kup_diffev.mac  
+  sys /usr/local/bin/kuplot < kup_select.mac  
+  compare
+  fopen 1, WEITER
+  fget 1,weiter
+  fclose 1
+enddo
+exit

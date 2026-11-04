@@ -1,0 +1,12 @@
+#
+decorate
+   reset
+   add citric, chelate
+   set citric, ligand, CELL/citric.stru          , 0.02
+   set citric, bond,   Si, 1, 2.01
+   set citric, bond,   Si, 2, 2.01
+   set citric, axis, 3, 16
+   set citric, form, 1,0,0
+#  show
+   run
+exit

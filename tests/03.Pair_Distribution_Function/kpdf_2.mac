@@ -1,0 +1,38 @@
+#
+#  kpdf_2.mac
+#
+################################################################################
+#
+#  plots the results of the pdf calculations
+#  version for a comparison of two datasets
+#
+################################################################################
+#
+# Basic error handling
+#
+if($0 /= 2) then
+  echo
+  echo "Usage:"
+  echo "@kpdf <number1>, <number2>"
+  echo
+  wait return
+  continue kuplot
+endif
+#
+rese                    # Set KUPLOT to initial values
+load xy, therm.$1.pdf   # load first data set in 2-column format 
+load xy, therm.$2.pdf   # load second data set in 2-column format 
+skal                    # automatically scale the picture
+mark                    # automatically set distances for markers along axes
+ltyp 1,1                # set line type for data set 1 to 1 (solid line)
+ltyp 2,1                # set line type for data set 2 to 1 (solid line)
+mtyp 1,0                # set marker type for data set 1 to 0 (= off)
+mtyp 2,0                # set marker type for data set 2 to 0 (= off)
+achx r[\A]              # set text along x-axis
+achy G(r)               # set text along y-axis
+fnam off                # do not display the file name
+tit1 Model no. $1 in blue
+tit2 Model no. $2 in red
+sann 1,OFF
+sann 2,OFF
+plot                    # do the actual plot

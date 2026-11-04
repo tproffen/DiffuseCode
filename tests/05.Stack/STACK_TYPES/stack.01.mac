@@ -1,0 +1,72 @@
+#
+#@ HEADER
+#@ NAME         stack.01.mac
+#@ 
+#@ KEYWORD      stacking fault
+#@ 
+#@ DESCRIPTION  This macro creates a stack of two different layer types
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @stack.01
+#@
+#@ END
+################################################################################
+#
+discus
+#
+read
+  cell  hexagonal.cell,10,10, 1
+#
+save
+  outfile hexagonal.layer
+  run
+exit
+replace co,fe,all,1.0
+save
+  outfile hexagonal.fe
+  run
+exit
+#
+stack
+  layer  hexagonal.layer
+  layer  hexagonal.fe
+  trans  1,1, 1./3.,-1./3., 1./2
+  trans  1,2, 1./3.,-1./3., 1./2
+  trans  2,1, 1./3.,-1./3., 1./2
+  trans  2,2, 1./3.,-1./3., 1./2
+  distr  matrix
+  crow   1,    $1     , 1.00-$1
+  crow   2,    1.00-$1, $1  
+  number 31
+#
+  aver   0.00, 0.00, 1.00
+  modul  1.00, 0.00, 0.00, 0.00, 1.00, 0.00
+  set    modulus,on
+  set    trans,fixed
+#
+  create
+  run
+exit
+show res
+#wait return
+@plot stack
+#
+branch kuplot
+   @kplot.mac stack
+   exit
+#
+# Test for Success
+#
+LTEST_MAC = FALSE
+if(abs(x[1]+5)< 0.001 .and. abs(y[1]+5)<0.001. and. abs(z[1])<0.001) then
+  echo COND 1
+  if(abs(x[200]-4.33333)< 0.001 .and. abs(y[200]-4.66667)<0.001. and. abs(z[200]-0.5)<0.001) then
+    echo COND 2
+    if(abs(x[n[1]]-4.0)<0.001 .and. abs(y[n[1]]-4.0)<0.001 .and. abs(z[n[1]]-15.0)<0.001) then
+      echo COND 3
+     LTEST_MAC = TRUE
+    endif
+  endif
+endif
+exit   ! back to suite

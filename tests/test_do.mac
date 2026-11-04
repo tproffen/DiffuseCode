@@ -1,0 +1,27 @@
+system rm -f date.check
+@datum.mac
+#
+variable integer, LTEST_ALL
+variable integer, LTEST_MAC
+LTEST_ALL = TRUE                ! Assume all tests to be true
+LTEST_MAC = FALSE               ! Assume all tests to be true
+set wait, off
+#
+kuplot 
+  @kuplot_standard.mac
+exit
+#
+wait return
+#
+cd 06.Domains/CUBE
+@dom.cube.mac
+@../../check.mac  dom.cube.mac
+#
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+echo SUCCESS in 06.Domain
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+wait return
+cd ../..

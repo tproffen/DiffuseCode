@@ -1,0 +1,1459 @@
+ Resetting ..
+ discus> set error,exit
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus> variable integer, indiv
+ discus>  
+ discus> branch kuplot
+ kuplot> reset
+ Resetting ..
+ kuplot> exit
+ discus>  
+ discus> @global.mac
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus> variable character, TMPDIR
+ discus> variable character, INDIDIR
+ discus> variable character, DATADIR
+ discus> variable character, DATAFILE
+ discus> variable character, SUBSTANCE
+ discus>  
+ discus>  
+ discus>  
+ discus> DATADIR   = "%c",'.'
+ discus> DATAFILE  = "%c",'PD32ZS56.DAT'
+ discus> INDIDIR   = "%c",'kuplot'
+ discus> TMPDIR    = "%c",'internal'
+ discus>  
+ discus> SUBSTANCE = "%c",'znse_wurtzite'
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus> if('kuplot'/="%c",INDIDIR) then
+ discus> fexist "%c/INDI", INDIDIR
+ discus> if(res[1]==0) then
+ discus> set error, live
+ discus> system "mkdir -p %c/INDI", INDIDIR
+ discus> set error,exit
+ discus> endif
+ discus> endif
+ discus>  
+ discus> if('.'/="%c",DATADIR) then
+ discus> fexist "%c/DATA", DATADIR
+ discus> if(res[1]==0) then
+ discus> set error, live
+ discus> system "mkdir -p %c/DATA", DATADIR
+ discus> set error, exit
+ discus> endif
+ discus> endif
+ discus> @get_model.mac
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus> @aaa_model.mac
+ discus>  
+ discus>  
+ discus>  
+ discus> variable integer, PERFECT_SPHERE
+ discus> variable integer, PERFECT_ELLIPSOID
+ discus> variable integer, STACKED_SPHERE
+ discus> variable integer, STACKED_ELLIPSOID
+ discus> variable integer, model
+ discus>  
+ discus> PERFECT_SPHERE    = 1
+ discus> PERFECT_ELLIPSOID = 2
+ discus> STACKED_SPHERE    = 3
+ discus> STACKED_ELLIPSOID = 4
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus> model = STACKED_ELLIPSOID
+ discus> if(model == PERFECT_SPHERE .or. model == PERFECT_ELLIPSOID) then
+ discus> REF_NINDIV = 1
+ discus> endif
+ discus>  
+ discus> do indiv = 1, REF_NINDIV
+ discus> @discus.znse.mac REF_KID
+ discus>  
+ discus>  
+ discus>  
+ discus> @variables.mac
+ discus>  
+ discus>  
+ discus>  
+ discus> variable real,  P_qmax
+ discus>  
+ discus> read
+ discus> free P_lata, P_lata, P_latc, 90.00, 90.00, 120.00, P63mc
+ discus> insert Zn, 1./3., 2./3., P_z_zn, P_biso
+ discus> insert Se, 1./3., 2./3., 0.0000, P_biso
+ discus>  
+ discus>  
+ discus>  
+ discus> if(model == PERFECT_SPHERE .or. model == PERFECT_ELLIPSOID) then
+ discus> P_stack  = 1.00
+ discus> endif
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus> if(model == PERFECT_SPHERE .or. model == STACKED_SPHERE) then
+ discus> P_cc_dia     = P_ab_dia
+ discus> endif
+ discus>  
+ discus> P_qmax      = 30.00
+ discus>  
+ discus> echo " save in DISCUS_MAIN"
+ discus> save
+ discus> outfile "%c/STRU/%c.%4D.%4D.cell", TMPDIR,SUBSTANCE,REF_KID,indiv
+ discus> write all
+ discus> run
+ discus> exit
+ discus>  
+ discus>  
+ discus>  
+ discus> echo " INTO MAKELAYERS    "
+ discus> @makelayers.mac
+ discus>  
+ discus>  
+ discus> variable integer,width
+ discus> variable real, thick
+ discus> width = int(2.5 * P_ab_dia/P_lata       )
+ discus>  
+ discus> echo " READ %c/STRU/%c.%4D.%4D.cell",TMPDIR,SUBSTANCE,REF_KID,indiv
+ discus> read
+ discus> cell "%c/STRU/%c.%4D.%4D.cell",TMPDIR,SUBSTANCE,REF_KID,indiv,width,width,2
+ discus> echo " DID READ"
+ discus> thick = blen(0.0, 0.0, 0.5-P_z_zn) + 0.1
+ discus>  
+ discus> surface
+ discus> boundary hkl, 0, 0, 1,   0.5,inside
+ discus> boundary hkl, 0, 0,-1, thick,inside
+ discus> exit
+ discus> purge
+ discus>  
+ discus>  
+ discus> echo " SAVING LAYERS "
+ discus> save
+ discus> outf "%c/STRU/%c.%4D.%4D.layer",TMPDIR,SUBSTANCE,REF_KID,indiv
+ discus> write all
+ discus> run
+ discus> exit
+ discus>  
+ discus>  
+ discus>  
+ discus> symm
+ discus> angle 180.0
+ discus> type  proper
+ discus> mode  repl
+ discus> sel   all
+ discus> incl  all
+ discus> orig  0.333333, 0.666667, 0.00
+ discus> uvw   0,0,1
+ discus> trans 0.00, 0.00, 0.00
+ discus> run
+ discus> exit
+ discus>  
+ discus>  
+ discus> echo " SAVING LAYERS rotated"
+ discus> save
+ discus> outf "%c/STRU/%c.%4D.%4D.rotated",TMPDIR,SUBSTANCE,REF_KID,indiv
+ discus> run
+ discus> exit
+ discus>  
+ discus>  
+ discus> @shape.ellipsoid.mac
+ discus> read
+ discus> cell "%c/STRU/%c.%4D.%4D.cell",TMPDIR,SUBSTANCE,REF_KID,indiv
+ discus>  
+ discus> echo " STRT STACK in SHAPE_ELLIPSOID"
+ discus> @stack.mac P_stack
+ discus>  
+ discus>  
+ discus>  
+ discus> variable integer,height
+ discus> height = int(2.*P_cc_dia/lat[3] + 2)
+ discus>  
+ discus> stack
+ discus> layer "%c/STRU/%c.%4D.%4D.layer"  ,TMPDIR,SUBSTANCE,REF_KID,indiv
+ discus> layer "%c/STRU/%c.%4D.%4D.rotated",TMPDIR,SUBSTANCE,REF_KID,indiv
+ discus> trans  1,1, -0.3333, 0.3333, 0.5000
+ discus> trans  1,2,  0.3333,-0.3333, 0.5000
+ discus> trans  2,1, -0.3333, 0.3333, 0.5000
+ discus> trans  2,2,  0.3333,-0.3333, 0.5000
+ discus> sigma  1,1,  0.0000, 0.0000, 0.0000
+ discus> sigma  1,2,  0.0000, 0.0000, 0.0000
+ discus> sigma  2,1,  0.0000, 0.0000, 0.0000
+ discus> sigma  2,2,  0.0000, 0.0000, 0.0000
+ discus> aver   0.00, 0.00, 1.00
+ discus> modu   1.00, 0.00, 0.00,  0.00, 1.00, 0.00
+ discus> set mod ,on
+ discus> set trans,fixed
+ discus>  
+ discus> random prob,0.00
+ discus> random offset, 0.00, 0.00, 0.00
+ discus> random sigma , 0.00, 0.00, 0.00
+ discus>  
+ discus> rotate status,off
+ discus>  
+ discus> distr  matrix
+ discus>  
+ discus> number height
+ discus>  
+ discus> crow   1,       P_stack    ,1.00-P_stack
+ discus> crow   2,  1.00-P_stack    ,     P_stack
+ discus>  
+ discus>  
+ discus> create
+ discus> run
+ discus> exit
+ discus>  
+ discus> surface
+ discus> boundary ellipsoid, P_ab_dia, P_ab_dia, P_cc_dia, centx:0.0,centy:0.0,centz:P_cc_dia*0.5/P_latc
+ discus> exit
+ discus>  
+ discus> purge
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus>  
+ discus> @pdf.mac REF_KID,indiv
+ discus> @setup_pdf.mac
+ discus> variable real,pdf_range
+ discus> variable real,pdf_step
+ discus>  
+ discus> pdf_range = 32.08
+ discus> pdf_step  =  0.02
+ discus>  
+ discus> pdf
+ discus>  
+ discus> ides all
+ discus> jdes all
+ discus> isel all
+ discus> jsel all
+ discus>  
+ discus> set bound,    crystal, exact
+ discus> set dens,     P_density
+ discus> set corrlin,  P_corrlinear
+ discus> set corrquad, P_corrquad
+ discus> set srat,     P_srat,3.5
+ discus> set therm,    gauss
+ discus> set qbroad,   P_qbroad
+ discus> set qdamp,    P_qdamp
+ discus> set qmax,     P_qmax
+ discus> set rad,      xray
+ discus> set range,    pdf_range+5.0, 0.01
+ discus>  
+ discus> set weig,     P_scale
+ discus> set finite,   periodic
+ discus>  
+ discus>  
+ discus> calc
+ discus> save pdf,"%c/INDI/indi.%4D.%4D"  ,INDIDIR, REF_KID, indiv
+ discus> echo     "%c/INDI/indi.%4D.%4D"  ,INDIDIR, REF_KID, indiv
+ discus> exit
+ discus>  
+ discus> enddo
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  save in DISCUS_MAIN
+  INTO MAKELAYERS    
+  READ internal/STRU/znse_wurtzite.0001.0001.cell
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  DID READ
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+   Chem. neighbor mode set to EXACT ..
+  SAVING LAYERS 
+  SAVING LAYERS rotated
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  STRT STACK in SHAPE_ELLIPSOID
+  Start Loop           7           0           0
+ Origins   2     0.0000     0.0000     0.0000
+ Origins   1     0.6667     0.3333     0.5000
+ Origins   1     0.3334     0.6666     1.0000
+ Origins   1     0.0001     0.9999     1.5000
+ Origins   1     0.6668     0.3332     2.0000
+ Origins   2     0.0001     0.9999     2.5000
+ Origins   1     0.6668     0.3332     3.0000
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+ Setting PDF calculation to no periodic bound., 3D, exact mode ..
+ Setting up PDF segment ...
+ Extending PDF search distance to  38.4133 A ...
+ Calculating PDF (exact mode) ...
+    60.24 % done  ...
+
+ Elapsed time    :  0.833011E-04 sec
+ Required time        :     0.01 s
+
+ Total sum of weights :    479.0356877    
+ Saving PDF to file : kuplot/INDI/indi.0001.0001 ...
+ kuplot/INDI/indi.0001.0001
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  save in DISCUS_MAIN
+  INTO MAKELAYERS    
+  READ internal/STRU/znse_wurtzite.0001.0002.cell
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  DID READ
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+   Chem. neighbor mode set to EXACT ..
+  SAVING LAYERS 
+  SAVING LAYERS rotated
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  STRT STACK in SHAPE_ELLIPSOID
+  Start Loop           7           0           0
+ Origins   2     0.0000     0.0000     0.0000
+ Origins   2     0.3333     0.6667     0.5000
+ Origins   2     0.6666     0.3334     1.0000
+ Origins   1     0.3333     0.6667     1.5000
+ Origins   1     0.0000     0.0000     2.0000
+ Origins   2     0.3333     0.6667     2.5000
+ Origins   1     0.0000     0.0000     3.0000
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+ Setting PDF calculation to no periodic bound., 3D, exact mode ..
+ Setting up PDF segment ...
+ Extending PDF search distance to  38.4133 A ...
+ Calculating PDF (exact mode) ...
+    62.11 % done  ...
+
+ Elapsed time    :  0.741109E-04 sec
+ Required time        :     0.01 s
+
+ Total sum of weights :    427.5692036    
+ Saving PDF to file : kuplot/INDI/indi.0001.0002 ...
+ kuplot/INDI/indi.0001.0002
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  save in DISCUS_MAIN
+  INTO MAKELAYERS    
+  READ internal/STRU/znse_wurtzite.0001.0003.cell
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  DID READ
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+   Chem. neighbor mode set to EXACT ..
+  SAVING LAYERS 
+  SAVING LAYERS rotated
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  STRT STACK in SHAPE_ELLIPSOID
+  Start Loop           7           0           0
+ Origins   1     0.0000     0.0000     0.0000
+ Origins   1     0.6667     0.3333     0.5000
+ Origins   1     0.3334     0.6666     1.0000
+ Origins   1     0.0001     0.9999     1.5000
+ Origins   1     0.6668     0.3332     2.0000
+ Origins   1     0.3335     0.6665     2.5000
+ Origins   2     0.6668     0.3332     3.0000
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+ Setting PDF calculation to no periodic bound., 3D, exact mode ..
+ Setting up PDF segment ...
+ Extending PDF search distance to  38.4133 A ...
+ Calculating PDF (exact mode) ...
+    60.24 % done  ...
+
+ Elapsed time    :  0.824160E-04 sec
+ Required time        :     0.01 s
+
+ Total sum of weights :    431.4839956    
+ Saving PDF to file : kuplot/INDI/indi.0001.0003 ...
+ kuplot/INDI/indi.0001.0003
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  save in DISCUS_MAIN
+  INTO MAKELAYERS    
+  READ internal/STRU/znse_wurtzite.0001.0004.cell
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  DID READ
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+   Chem. neighbor mode set to EXACT ..
+  SAVING LAYERS 
+  SAVING LAYERS rotated
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  STRT STACK in SHAPE_ELLIPSOID
+  Start Loop           7           0           0
+ Origins   2     0.0000     0.0000     0.0000
+ Origins   2     0.3333     0.6667     0.5000
+ Origins   1     0.0000     0.0000     1.0000
+ Origins   1     0.6667     0.3333     1.5000
+ Origins   2     0.0000     0.0000     2.0000
+ Origins   1     0.6667     0.3333     2.5000
+ Origins   1     0.3334     0.6666     3.0000
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+ Setting PDF calculation to no periodic bound., 3D, exact mode ..
+ Setting up PDF segment ...
+ Extending PDF search distance to  38.4133 A ...
+ Calculating PDF (exact mode) ...
+    64.10 % done  ...
+
+ Elapsed time    :  0.776219E-04 sec
+ Required time        :     0.01 s
+
+ Total sum of weights :    449.7380931    
+ Saving PDF to file : kuplot/INDI/indi.0001.0004 ...
+ kuplot/INDI/indi.0001.0004
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  save in DISCUS_MAIN
+  INTO MAKELAYERS    
+  READ internal/STRU/znse_wurtzite.0001.0005.cell
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  DID READ
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+   Chem. neighbor mode set to EXACT ..
+  SAVING LAYERS 
+  SAVING LAYERS rotated
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  STRT STACK in SHAPE_ELLIPSOID
+  Start Loop           7           0           0
+ Origins   1     0.0000     0.0000     0.0000
+ Origins   1     0.6667     0.3333     0.5000
+ Origins   1     0.3334     0.6666     1.0000
+ Origins   1     0.0001     0.9999     1.5000
+ Origins   1     0.6668     0.3332     2.0000
+ Origins   2     0.0001     0.9999     2.5000
+ Origins   1     0.6668     0.3332     3.0000
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+ Setting PDF calculation to no periodic bound., 3D, exact mode ..
+ Setting up PDF segment ...
+ Extending PDF search distance to  38.4133 A ...
+ Calculating PDF (exact mode) ...
+    60.24 % done  ...
+
+ Elapsed time    :  0.805627E-04 sec
+ Required time        :     0.01 s
+
+ Total sum of weights :    479.0356877    
+ Saving PDF to file : kuplot/INDI/indi.0001.0005 ...
+ kuplot/INDI/indi.0001.0005
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  save in DISCUS_MAIN
+  INTO MAKELAYERS    
+  READ internal/STRU/znse_wurtzite.0001.0006.cell
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  DID READ
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+   Chem. neighbor mode set to EXACT ..
+  SAVING LAYERS 
+  SAVING LAYERS rotated
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  STRT STACK in SHAPE_ELLIPSOID
+  Start Loop           7           0           0
+ Origins   1     0.0000     0.0000     0.0000
+ Origins   1     0.6667     0.3333     0.5000
+ Origins   1     0.3334     0.6666     1.0000
+ Origins   2     0.6667     0.3333     1.5000
+ Origins   1     0.3334     0.6666     2.0000
+ Origins   1     0.0001     0.9999     2.5000
+ Origins   2     0.3334     0.6666     3.0000
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+ Setting PDF calculation to no periodic bound., 3D, exact mode ..
+ Setting up PDF segment ...
+ Extending PDF search distance to  38.4133 A ...
+ Calculating PDF (exact mode) ...
+    61.35 % done  ...
+
+ Elapsed time    :  0.910340E-04 sec
+ Required time        :     0.01 s
+
+ Total sum of weights :    421.1283285    
+ Saving PDF to file : kuplot/INDI/indi.0001.0006 ...
+ kuplot/INDI/indi.0001.0006
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  save in DISCUS_MAIN
+  INTO MAKELAYERS    
+  READ internal/STRU/znse_wurtzite.0001.0007.cell
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  DID READ
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+   Chem. neighbor mode set to EXACT ..
+  SAVING LAYERS 
+  SAVING LAYERS rotated
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  STRT STACK in SHAPE_ELLIPSOID
+  Start Loop           7           0           0
+ Origins   2     0.0000     0.0000     0.0000
+ Origins   2     0.3333     0.6667     0.5000
+ Origins   2     0.6666     0.3334     1.0000
+ Origins   1     0.3333     0.6667     1.5000
+ Origins   1     0.0000     0.0000     2.0000
+ Origins   1     0.6667     0.3333     2.5000
+ Origins   1     0.3334     0.6666     3.0000
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+ Setting PDF calculation to no periodic bound., 3D, exact mode ..
+ Setting up PDF segment ...
+ Extending PDF search distance to  38.4133 A ...
+ Calculating PDF (exact mode) ...
+    64.10 % done  ...
+
+ Elapsed time    :  0.109162E-03 sec
+ Required time        :     0.01 s
+
+ Total sum of weights :    502.8602909    
+ Saving PDF to file : kuplot/INDI/indi.0001.0007 ...
+ kuplot/INDI/indi.0001.0007
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  save in DISCUS_MAIN
+  INTO MAKELAYERS    
+  READ internal/STRU/znse_wurtzite.0001.0008.cell
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  DID READ
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+   Chem. neighbor mode set to EXACT ..
+  SAVING LAYERS 
+  SAVING LAYERS rotated
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  STRT STACK in SHAPE_ELLIPSOID
+  Start Loop           7           0           0
+ Origins   1     0.0000     0.0000     0.0000
+ Origins   2     0.3333     0.6667     0.5000
+ Origins   1     0.0000     0.0000     1.0000
+ Origins   2     0.3333     0.6667     1.5000
+ Origins   1     0.0000     0.0000     2.0000
+ Origins   1     0.6667     0.3333     2.5000
+ Origins   1     0.3334     0.6666     3.0000
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+ Setting PDF calculation to no periodic bound., 3D, exact mode ..
+ Setting up PDF segment ...
+ Extending PDF search distance to  38.4133 A ...
+ Calculating PDF (exact mode) ...
+    63.69 % done  ...
+
+ Elapsed time    :  0.762177E-04 sec
+ Required time        :     0.01 s
+
+ Total sum of weights :    406.9352647    
+ Saving PDF to file : kuplot/INDI/indi.0001.0008 ...
+ kuplot/INDI/indi.0001.0008
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  save in DISCUS_MAIN
+  INTO MAKELAYERS    
+  READ internal/STRU/znse_wurtzite.0001.0009.cell
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  DID READ
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+   Chem. neighbor mode set to EXACT ..
+  SAVING LAYERS 
+  SAVING LAYERS rotated
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  STRT STACK in SHAPE_ELLIPSOID
+  Start Loop           7           0           0
+ Origins   2     0.0000     0.0000     0.0000
+ Origins   2     0.3333     0.6667     0.5000
+ Origins   2     0.6666     0.3334     1.0000
+ Origins   2     0.9999     0.0001     1.5000
+ Origins   2     0.3332     0.6668     2.0000
+ Origins   2     0.6665     0.3335     2.5000
+ Origins   1     0.3332     0.6668     3.0000
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+ Setting PDF calculation to no periodic bound., 3D, exact mode ..
+ Setting up PDF segment ...
+ Extending PDF search distance to  38.4133 A ...
+ Calculating PDF (exact mode) ...
+    64.10 % done  ...
+
+ Elapsed time    :  0.720660E-04 sec
+ Required time        :     0.01 s
+
+ Total sum of weights :    397.9263127    
+ Saving PDF to file : kuplot/INDI/indi.0001.0009 ...
+ kuplot/INDI/indi.0001.0009
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  save in DISCUS_MAIN
+  INTO MAKELAYERS    
+  READ internal/STRU/znse_wurtzite.0001.0010.cell
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  DID READ
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+   Chem. neighbor mode set to EXACT ..
+  SAVING LAYERS 
+  SAVING LAYERS rotated
+ P 63 m c          186
+ Lattice constants :
+    a          b          c         alpha      beta       gamma      volume
+    3.93892    3.93892    6.49125   90.00000   90.00000  120.00000    87.2196    
+
+ Metric Tensor     :
+      15.51510     -7.75755      0.00000
+      -7.75755     15.51510      0.00000
+       0.00000      0.00000     42.13638
+
+ Reciprocal Lattice constants :
+    a*         b*         c*        alpha*     beta*      gamma*     volume
+    0.29315    0.29315    0.15405   90.00000   90.00000   60.00000   0.114653E-01
+
+ Reciprocal metric tensor     : 
+       0.08594      0.04297     -0.00000
+       0.04297      0.08594     -0.00000
+      -0.00000     -0.00000      0.02373
+
+  STRT STACK in SHAPE_ELLIPSOID
+  Start Loop           7           0           0
+ Origins   1     0.0000     0.0000     0.0000
+ Origins   2     0.3333     0.6667     0.5000
+ Origins   2     0.6666     0.3334     1.0000
+ Origins   2     0.9999     0.0001     1.5000
+ Origins   2     0.3332     0.6668     2.0000
+ Origins   1     0.9999     0.0001     2.5000
+ Origins   1     0.6666     0.3334     3.0000
+ Atom order disturbed. Checking calulation modes ..
+   Peridic boundaries DISABLED ..
+ Setting PDF calculation to no periodic bound., 3D, exact mode ..
+ Setting up PDF segment ...
+ Extending PDF search distance to  38.4133 A ...
+ Calculating PDF (exact mode) ...
+    62.11 % done  ...
+
+ Elapsed time    :  0.767109E-04 sec
+ Required time        :     0.02 s
+
+ Total sum of weights :    455.3999219    
+ Saving PDF to file : kuplot/INDI/indi.0001.0010 ...
+ kuplot/INDI/indi.0001.0010
+ discus>  
+ discus> branch   kuplot
+ kuplot> @kup.diffev.mac ., REF_KID
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot> variable integer,indiv
+ kuplot>  
+ kuplot> @global.mac
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot> variable character, TMPDIR
+ kuplot> variable character, INDIDIR
+ kuplot> variable character, DATADIR
+ kuplot> variable character, DATAFILE
+ kuplot> variable character, SUBSTANCE
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot> DATADIR   = "%c",'.'
+ kuplot> DATAFILE  = "%c",'PD32ZS56.DAT'
+ kuplot> INDIDIR   = "%c",'kuplot'
+ kuplot> TMPDIR    = "%c",'internal'
+ kuplot>  
+ kuplot> SUBSTANCE = "%c",'znse_wurtzite'
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot> if('kuplot'/="%c",INDIDIR) then
+ kuplot> fexist "%c/INDI", INDIDIR
+ kuplot> if(res[1]==0) then
+ kuplot> set error, live
+ kuplot> system "mkdir -p %c/INDI", INDIDIR
+ kuplot> set error,exit
+ kuplot> endif
+ kuplot> endif
+ kuplot>  
+ kuplot> if('.'/="%c",DATADIR) then
+ kuplot> fexist "%c/DATA", DATADIR
+ kuplot> if(res[1]==0) then
+ kuplot> set error, live
+ kuplot> system "mkdir -p %c/DATA", DATADIR
+ kuplot> set error, exit
+ kuplot> endif
+ kuplot> endif
+ kuplot> @get_model.mac
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot> @aaa_model.mac
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot> variable integer, PERFECT_SPHERE
+ kuplot> variable integer, PERFECT_ELLIPSOID
+ kuplot> variable integer, STACKED_SPHERE
+ kuplot> variable integer, STACKED_ELLIPSOID
+ kuplot> variable integer, model
+ kuplot>  
+ kuplot> PERFECT_SPHERE    = 1
+ kuplot> PERFECT_ELLIPSOID = 2
+ kuplot> STACKED_SPHERE    = 3
+ kuplot> STACKED_ELLIPSOID = 4
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot> model = STACKED_ELLIPSOID
+ kuplot> if(model == PERFECT_SPHERE .or. model == PERFECT_ELLIPSOID) then
+ kuplot> REF_NINDIV = 1
+ kuplot> endif
+ kuplot>  
+ kuplot>  
+ kuplot>  
+ kuplot> fexist "%c/DATA/%c.%4D", DATADIR, DATAFILE, REF_KID
+ ------ > File ./DATA/PD32ZS56.DAT.0001 exists ...
+ kuplot> if(res[1].eq.0) then
+ kuplot> system "cp DATA/%c %c/DATA/%c.%4D", DATAFILE, DATADIR, DATAFILE, REF_KID
+ kuplot> endif
+ kuplot>  
+ kuplot> @kup.average.mac
+ kuplot>  
+ kuplot> if(n[1]==0) then
+ kuplot>  
+ kuplot> reset
+ kuplot> do indiv=1,REF_NINDIV
+ kuplot> load xy,"%c/INDI/indi.%4D.%4D", INDIDIR, REF_KID, indiv
+ kuplot> enddo
+ kuplot> endif
+ kuplot> merge all
+ Data set no.:  11
+
+   Filename : merge.dat
+   Size     :   3708 points
+
+   Range  x :   0.1000E-01 to    37.08    
+   Range  y :   -5.859     to    35.31    
+
+ kuplot>  
+ kuplot> load xy, "%c/DATA/%c.%4D", DATADIR, DATAFILE, REF_KID
+ Reading file ./DATA/PD32ZS56.DAT.0001 ..
+ Column assignement (x y dx dy):     1    2    3    4
+ Data set no.:  12
+
+   Filename : ./DATA/PD32ZS56.DAT.0001
+   Size     :   1604 points
+
+   Range  x :   0.2000E-01 to    32.08    
+   Range  y :   -5.644     to    22.37    
+
+ kuplot> spline REF_NINDIV+1, REF_NINDIV +2
+ Data set no.:  13
+
+   Filename : interpolate.dat
+   Size     :   1604 points
+
+   Range  x :   0.2000E-01 to    32.08    
+   Range  y :   -5.642     to    34.97    
+
+ kuplot>  
+ kuplot> @kup.fit.polynomial.mac
+ kuplot> kcal sub,REF_NINDIV+2,REF_NINDIV+3
+ Result creates new dataset  14 ..
+ Data set no.:  14
+
+   Filename : result.dat
+   Size     :   1604 points
+
+   Range  x :   0.2000E-01 to    32.08    
+   Range  y :   -18.25     to    3.761    
+
+ kuplot> skal
+ kuplot> fit REF_NINDIV + 4
+ kuplot/fit> func  poly,6
+ kuplot/fit> para 1,0, 0.00
+ ---------- > Setting parameter p( 1) =   0.00000      pinc =  0.0
+ kuplot/fit> para 2,1, 1.00
+ ---------- > Setting parameter p( 2) =   1.00000      pinc =  1.0
+ kuplot/fit> para 3,1, 0.00
+ ---------- > Setting parameter p( 3) =   0.00000      pinc =  1.0
+ kuplot/fit> para 4,1, 0.00
+ ---------- > Setting parameter p( 4) =   0.00000      pinc =  1.0
+ kuplot/fit> para 5,1, 0.00
+ ---------- > Setting parameter p( 5) =   0.00000      pinc =  1.0
+ kuplot/fit> para 6,1, 0.00
+ ---------- > Setting parameter p( 6) =   0.00000      pinc =  1.0
+ kuplot/fit> para 7,1, 0.00
+ ---------- > Setting parameter p( 7) =   0.00000      pinc =  1.0
+ kuplot/fit> wic  dat
+ kuplot/fit> cycle 200
+ kuplot/fit> urf 0.5
+ kuplot/fit> run
+Cycle Chi^2/(N-P)   MAX(dP/sig) Par   Conf          Lambda       wRvalue      Rexp
+    0   2.2820      0.35845E-02   1*************  0.50000E-03  0.59269      0.39235    
+    1   1.6361      0.84004E-03   1  0.76619E-51  0.25000E-03  0.50184      0.39235    
+    2   1.3949      0.58278E-03   1  0.19758E-22  0.12500E-03  0.46339      0.39235    
+    3   1.3505      0.30856E-03   1  0.31957E-18  0.62500E-04  0.45595      0.39235    
+    4   1.3406      0.14464E-03   1  0.24631E-17  0.31250E-04  0.45428      0.39235    
+    5   1.3298      0.12727E-03   1  0.21637E-16  0.15625E-04  0.45245      0.39235    
+    6   1.3182      0.16296E-03   1  0.21666E-15  0.78125E-05  0.45046      0.39235    
+    7   1.3098      0.17136E-03   1  0.10866E-14  0.39063E-05  0.44902      0.39235    
+    8   1.3060      0.11589E-03   1  0.22353E-14  0.19531E-05  0.44837      0.39235    
+    9   1.3037      0.25909E-04   1  0.34632E-14  0.97656E-06  0.44797      0.39235    
+   10   1.3001      0.51110E-04   1  0.66800E-14  0.48828E-06  0.44737      0.39235    
+   11   1.2942      0.11933E-03   1  0.19936E-13  0.24414E-06  0.44635      0.39235    
+   12   1.2856      0.20255E-03   1  0.95322E-13  0.12207E-06  0.44486      0.39235    
+   13   1.2760      0.29015E-03   1  0.52504E-12  0.61035E-07  0.44319      0.39235    
+   14   1.2690      0.32340E-03   1  0.17565E-11  0.30518E-07  0.44197      0.39235    
+   15   1.2663      0.24985E-03   1  0.27730E-11  0.15259E-07  0.44151      0.39235    
+   16   1.2659      0.11961E-03   1  0.29895E-11  0.76294E-08  0.44143      0.39235    
+   17   1.2658      0.32525E-04   1  0.30029E-11  0.38147E-08  0.44143      0.39235    
+   18   1.2658      0.47446E-05   1  0.30032E-11  0.19073E-08  0.44143      0.39235    
+
+Convergence reached  F T F
+ Fitted polynom of order  6 : 
+
+   p( 1) : coeff. for x** 0 :   0.00000     +-   0.00000        pinc : 0.
+   p( 2) : coeff. for x** 1 :  -1.45095     +-  0.109881        pinc : 1.
+   p( 3) : coeff. for x** 2 : -0.703454E-01 +-  0.396743E-01    pinc : 1.
+   p( 4) : coeff. for x** 3 :  0.357230E-01 +-  0.520742E-02    pinc : 1.
+   p( 5) : coeff. for x** 4 : -0.263681E-02 +-  0.313968E-03    pinc : 1.
+   p( 6) : coeff. for x** 5 :  0.761049E-04 +-  0.882974E-05    pinc : 1.
+   p( 7) : coeff. for x** 6 : -0.783371E-06 +-  0.938358E-07    pinc : 1.
+  
+ kuplot/fit> exit
+ kuplot> kcal add,REF_NINDIV+3,REF_NINDIV + 5
+ Result creates new dataset  17 ..
+ Data set no.:  17
+
+   Filename : result.dat
+   Size     :   1604 points
+
+   Range  x :   0.2000E-01 to    32.08    
+   Range  y :   -9.349     to    31.46    
+
+ kuplot> ksav REF_NINDIV + 7
+ kuplot /ksav> outf "TEMP/calc.%4D",REF_KID
+ kuplot /ksav> run
+ kuplot>  
+ kuplot> rval REF_NINDIV+2, REF_NINDIV+7, dat
+ R-value          :   0.6340
+ weighted R-value :   0.6275
+ kuplot>  
+ kuplot> reset
+ Resetting ..
+ kuplot>  
+ kuplot> exit
+ discus>  
+ discus> exit

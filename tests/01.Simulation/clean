@@ -1,0 +1,6 @@
+#!/bin/bash
+rm -f *.inte
+rm -f *.plot
+rm -f *.bs
+rm -f *.xyz
+rm -f simulation.pdf

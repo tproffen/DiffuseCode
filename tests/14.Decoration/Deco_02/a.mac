@@ -1,0 +1,5 @@
+discus
+read 
+  lcell CELL/k.cell
+show atom, all
+exit

@@ -1,0 +1,38 @@
+discus
+#
+read
+  cell CELL/mol_primitive.cell, 100,100,1
+#
+wave
+   density
+   vect   1.00, 0.00, 0.00
+   func   sinus
+   len    lat[1]*8
+   phase  0.00
+   plow   0.00
+   phigh  1.00
+   des    all
+   mdes   all
+   msel    all
+   sel     1
+   repl   1,2 
+   show
+   run
+exit
+#
+plot
+   progr cif
+   outf  waves.moldensity.cif
+   sel   all
+   prop  ignore,all
+   run
+exit
+#
+@plot.mac waves.moldensity
+@fourier_2d.mac waves.moldensity
+#
+branch kuplot
+   @k2d.mac waves.moldensity
+   exit
+#
+exit   ! back to suite

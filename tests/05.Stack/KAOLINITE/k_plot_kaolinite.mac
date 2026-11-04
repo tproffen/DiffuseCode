@@ -1,0 +1,53 @@
+#
+# k_plot_kaolinite.mac
+#
+############################################################
+#
+#  usage:
+#  @k_plot_kaolinite
+#
+############################################################
+#
+#  This macro displays the result of exercise 01. 
+#
+############################################################
+#
+rese
+variable real,prob
+variable integer,naver
+variable integer,hh
+variable integer,kk
+#
+#  read the parameters that growth has created. This saves
+#  us from remembering the parameters...
+#
+@growth.setup.mac
+#
+#  Display all hkL rods
+#
+rese
+#
+do i[0]=1,naver
+  load xy, "INDI/kaolinite.%2D%2Dl_%4.2F_%4D",hh,kk,prob,i[0]
+enddo
+merge all
+#
+kfra 1, n[1]
+buff 0.12,0.10,0.12,0.12
+skal xmin[n[1]],xmax[n[1]],0,ymax[n[1]]*1.02
+r[2] = int(ln(ymax[n[1]]/4)/ln(10))
+r[6] = max(0.5,int(ymax[n[1]]/4./10**r[2])*10**r[2])
+mark 1,r[6]
+lcol 1,3
+aver 
+angle 90.0
+fnam off
+font size,3,18
+font size,4,18
+tit1 Exercise: Kaolinite 
+tit2 "Rod: h=%2D k=%2D",hh,kk
+achx [0 0 l]
+achy Intensity
+plot
+
+exit

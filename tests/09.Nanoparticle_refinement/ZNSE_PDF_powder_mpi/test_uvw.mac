@@ -1,0 +1,17 @@
+kuplot
+variable real, P_u
+variable real, P_v
+variable real, P_w
+#
+P_u              =  0.8442019462E-03
+P_v              = -0.1248491579E-02
+P_w              = -0.1799438847E-02
+P_w              =  0.05E-2
+#
+reset
+func P_u*r[0]**2+P_v*r[0]+P_w, 0.8, 30, 0.01
+skal
+mark
+plot
+exit
+

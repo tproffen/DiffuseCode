@@ -1,0 +1,5 @@
+variable integer, LTEST_MAC
+variable integer, LTEST_ALL
+LTEST_MAC = TRUE
+LTEST_ALL = TRUE
+

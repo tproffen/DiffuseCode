@@ -1,0 +1,5 @@
+#/bin/bash
+
+dos2unix *.mac
+dos2unix *.cell
+

@@ -1,0 +1,8 @@
+kuplot
+reset
+load xy, cut.sx.0
+skal -5,5
+mark 1
+grid on
+plot
+exit

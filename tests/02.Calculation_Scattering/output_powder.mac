@@ -1,0 +1,16 @@
+#
+#  output.mac
+#
+################################################################################
+#
+#  macro to write powder output to a file with fixed name
+#
+################################################################################
+#
+output               # switch to the DISCUS output menu
+  outf powder.inte   # set the output file name to <powder.inte>
+  form standard      # use standard output format
+  value inte         # select intensity output
+  form powder,q      # write a powder pattern with Q value steps 
+  run                # perform the actual write process
+exit                 # go back to the main DISCUS menu

@@ -1,0 +1,7 @@
+C100 target/achieved  -0.80 -0.15
+C010 target/achieved  -0.80 -0.58
+C110 target/achieved   0.80  0.51
+CM10 target/achieved   0.80  0.32
+CM10 target/achieved   0.80  0.14
+temperature     1.
+copper : voids  0.50 :  0.50

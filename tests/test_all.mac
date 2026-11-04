@@ -1,0 +1,286 @@
+system rm -f date.check
+@datum.mac
+#
+variable integer, LTEST_ALL
+variable integer, LTEST_MAC
+LTEST_ALL = TRUE                ! Assume all tests to be true
+LTEST_MAC = FALSE               ! Assume all tests to be true
+set wait, off
+#
+kuplot 
+  @kuplot_standard.mac
+exit
+#
+cd 01.Simulation
+#
+system ls *.mac
+#
+@circle.mac 10,13
+@../check.mac   circle.mac
+#
+@checkerboard.mac 13,8
+@../check.mac checkerboard.mac
+wait return
+#
+@symmetry.mac
+@../check.mac symmetry.mac
+wait return
+#
+@shear.mac
+@../check.mac   shear.mac
+wait return
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+echo
+echo SUCCESS in 01.Simulation
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+wait return
+#
+cd ..
+kuplot 
+  @kuplot_standard.mac
+exit
+#
+cd 02.Calculation_Scattering
+#
+sys ls *.mac
+wait return
+#
+@1d.mac 7
+@../check.mac  1d.mac
+#
+@1d_periodic.mac 7
+@../check.mac  1d_periodic.mac
+#
+@2d.mac
+@../check.mac   2d.mac
+#
+@2d_lots.mac example3
+@../check.mac 2d_lots.mac
+#
+@powder.mac 10, 15
+@../check.mac powder.mac
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+echo
+echo SUCCESS in 02.Calculation_Scattering
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+wait return
+#
+cd ..
+kuplot 
+  @kuplot_standard.mac
+exit
+#
+cd 03.Pair_Distribution_Function
+#
+system ls *.mac
+wait return
+#
+@pdf.mac 
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+echo
+echo SUCCESS in 03.Pair_Distribution_Function
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+#
+cd ..
+kuplot 
+  @kuplot_standard.mac
+exit
+wait return
+#
+cd 04.SRO/SRO_0
+#
+@sro.0.mac 0.7,1.5
+@../../check.mac sro.0.mac
+#
+cd ../SRO_1
+@sro.1.mac 0.7,1.5
+@../../check.mac sro.1.mac
+#
+#QQQ'cd ../SRO_2
+#QQQ'@sro.2.mac 0.7,-0.7,1.5
+#QQQ'@../../check.mac sro.2.mac
+#
+cd ../SRO_3
+@sro.3.mac 0.5, 0.5, 0.5, 0.48, 0.48, 1.5
+@../../check.mac sro.3.mac
+#
+cd ../SRO_4
+@sro.4.mac 0.05, 1.5
+@../../check.mac sro.4.mac
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+echo
+echo SUCCESS in 04.SRO
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+#
+cd ../..
+kuplot 
+  @kuplot_standard.mac
+exit
+wait return
+#
+cd 05.Stack/STACK
+@stack.01.mac 0.33333
+@../../check.mac stack.01.mac
+#
+cd ../STACK_GROWTH
+@growth.mac 0.450
+@../../check.mac growth.mac
+#
+cd ../STACK_FILE
+@stack.01.mac 
+@../../check.mac  stack.01.mac
+#
+cd ../STACK_TYPES
+@stack.01.mac 0.7500
+@../../check.mac  stack.01.mac
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+echo SUCCESS in 05.Stack
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+wait return
+cd ../..
+#
+kuplot 
+  @kuplot_standard.mac
+exit
+#
+cd 06.Domains/CUBE
+@dom.cube.mac
+@../../check.mac  dom.cube.mac
+#
+@dom.tilt.mac
+@../../check.mac  dom.tilt.mac
+#
+cd ../TRIANGLE
+@dom.triangle.mac
+@../../check.mac  dom.triangle.mac
+#
+cd ../Perovskite
+wait return
+@dom.perov.mac
+@../../check.mac  dom.perov.mac
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+echo SUCCESS in 06.Domain
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+wait return
+cd ../..
+kuplot 
+  @kuplot_standard.mac
+exit
+#
+cd 07.Refinement/EXAMPLE_REFINE
+@refine.mac
+@../../check.mac  refine.mac
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+echo SUCCESS in 07.Refinement
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+wait return
+cd ../..
+kuplot 
+  @kuplot_standard.mac
+exit
+#
+cd 08.Nanoparticle_example/SIMPLE
+@nano.mac  30, zno
+@../../check.mac  nano.mac
+#
+cd ../ELLIPSOID
+@nano 20,50, znse_wurtzite
+@../../check.mac  nano.mac
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+echo SUCCESS in 08.Nanoparticle_example
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#
+cd ../..
+cd 09.Nanoparticle_refinement/ZNSE_PDF_suite_mpi
+system ./TEST.sh
+cd ..
+cd ZNSE_PDF_suite_release
+#system ./TEST.sh
+echo
+echo SUCCESS in 09.Nanoparticle_refinement
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+cd ../..
+#
+cd 11.Properties
+@main.mac
+@../check.mac  main.mac
+echo
+echo SUCCESS in 11.Properties
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+cd ..
+#
+cd 12.Waves
+@main.mac
+@../check.mac  main.mac
+#
+@density.mac
+@../check.mac  density.mac
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+echo SUCCESS in 12.Waves
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+cd ../
+#
+cd 13.Analyze
+#
+@analyze.mac
+@../check.mac  analyze.mac
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+echo SUCCESS in 13.Analyze
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+cd ../
+#
+cd 14.Decoration
+#
+cd Deco_01
+#
+@all.mac
+#@../../check.mac  all.mac    ! Test is in all.mac
+cd ..
+#
+cd Deco_02
+#
+@main.mac
+@../../check.mac  main.mac
+cd ..
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+echo SUCCESS in 14.Decoration
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+cd ../
+#
+@datum.mac
+fopen 1, date.check
+fget 1, i[10], i[11], i[12]
+fget 1, i[20], i[21], i[22]
+fclose all
+i[0] = (i[20]-i[10])*3600 + (i[21]-i[11])*60 + (i[22]-i[12])
+echo "TIME %d", i[0]
+#exit

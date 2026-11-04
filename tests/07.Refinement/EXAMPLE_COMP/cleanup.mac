@@ -1,0 +1,6 @@
+system rm -f CALC/*
+system rm -f DIFFEV/*
+system rm -f FINAL/*
+system rm -f GENERATION
+system rm -f LOGFILES/*
+system rm -f slave.*

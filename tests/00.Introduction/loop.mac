@@ -1,0 +1,8 @@
+variable integer, start
+variable integer, finish
+variable integer, loop
+start  = 1
+finish = $1
+do loop=start,finish
+  echo " At index %d", loop
+enddo

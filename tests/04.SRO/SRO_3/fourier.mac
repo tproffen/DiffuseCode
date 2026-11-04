@@ -1,0 +1,32 @@
+fourier
+  ll -10.0,-10.0,0.0
+  lr  10.0,-10.0,0.0
+  ul -10.0, 10.0,0.0
+  tl -10.0,-10.0,0.0
+  na 501 
+  no 501 
+  nt   1 
+  abs  h
+  ord  k
+  top  l
+  temp ign
+  disp off
+  set  aver,  $2
+  lots box,20,20,1,50,yes
+# lots off
+  set technique:turbo
+  set technique:nufft
+  show
+  run !sigabs:[0.004, 1,0,0], sigord:[0.004, 0,1,0]!, sigtop:[0.004, 0,0,1]
+  set technique:turbo
+exit
+output
+  outfile $1.inte
+  value   inte
+  form    stan
+  run
+  outfile $1.3DPDF
+  value   3DPDF
+  form    stan
+  run
+exit

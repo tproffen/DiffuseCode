@@ -1,0 +1,8 @@
+discus
+read
+ cell CELL/kaolinite.cell
+chem
+  elem
+exit
+show atom, all
+exit

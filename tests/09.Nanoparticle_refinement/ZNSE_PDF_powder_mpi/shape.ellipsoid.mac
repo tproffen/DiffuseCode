@@ -1,0 +1,15 @@
+#
+# shape.mac
+#
+# Build the crystal by stacking the layers, cut into desired shape
+#
+read
+   cell "%c/STRU/%c.%4D.%4D.cell",TMPDIR,SUBSTANCE,REF_KID,indiv
+#
+@stack.mac P_stack    ! Build crystal with stacking faults
+#
+surface 
+   boundary ellipsoid, P_ab_dia, P_ab_dia, P_cc_dia, centx:0.0,centy:0.0,centz:P_cc_dia*0.5/P_latc  ! Ellipsoid uses diameter
+exit
+#
+purge         ! remove voids outside the nanoparticles

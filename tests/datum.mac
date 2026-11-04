@@ -1,0 +1,5 @@
+fopen 1,date.check, append
+variable char, string
+string = "%c", fdate(0)
+fput 1, "%c %c %c", string(12:13), string(15:16), string(18:19)
+fclose 1

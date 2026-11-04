@@ -1,0 +1,5 @@
+title Primitive host structure 
+spcgr  P4
+cell   2.50, 2.50, 2.50, 90.00, 90.00, 90.00
+atom
+al   0.00000  0.00000  0.00000  0.05

@@ -1,0 +1,16 @@
+DISCUS Macros in this directory are:
+
+
+dom.perov.mac          ! Macro to create a perovskite with domains
+
+dom.perov.make.mac     ! Creates a single unit cell
+dom.perov.sort.mac     ! Sorts the dummy atoms with chemical short range order
+dom.perov.relax.mac    ! Relaxes the distances between dummy atoms
+dom.perov.fourier.mac  ! Calculates the Fourier in the hk0 layer
+dom.perov.replace.mac  ! Replaces the dummy atoms by the appropriate unit cell
+
+plot.mac               ! Write structure for plot with KUPLOT
+
+KUPLOT Macros in this directory are:
+
+k.simple.mac           ! Plots the results

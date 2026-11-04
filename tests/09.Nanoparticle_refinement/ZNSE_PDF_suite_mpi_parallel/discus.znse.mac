@@ -1,0 +1,38 @@
+#
+#  Main simulation macro
+#
+#
+@variables.mac             ! Several useful variable names
+#
+read
+   free P_lata, P_lata, P_latc, 90.00, 90.00, 120.00, P63mc  ! Define an empty space in P63mc
+insert Zn, 1./3., 2./3., P_z_zn, P_biso! Insert the two atoms into the asymmetric unit
+insert Se, 1./3., 2./3., 0.0000, P_biso
+#
+# If a perfect model was chosen, redefine value of the stacking fault probability
+#
+if(model == PERFECT_SPHERE .or. model == PERFECT_ELLIPSOID) then
+   P_stack  = 1.00             ! Ideal Zincblende
+endif
+#
+# If a spherical model was chosen, set diameter along c axis to be 
+# identical to radius in ab-plane
+#
+if(model == PERFECT_SPHERE .or. model == STACKED_SPHERE) then
+   P_cc_dia     = P_ab_dia  !ref _ para[ 06]    ! Spherical model
+endif
+#
+P_qmax      = 30.00         ! Qmax as used in the experiment
+#
+save                        ! save asymmetric unit into a temporary file
+  outfile "%c/STRU/%c.%4D.%4D.cell", TMPDIR,SUBSTANCE,REF_KID,indiv
+  run
+exit
+#
+# Build the two layers for the Wurzite/zincblende structure
+#
+@makelayers.mac             ! Create the two Wurtzite layers
+#
+@shape.ellipsoid.mac        ! Build stack and shape into ellipsoid
+@pdf.mac REF_KID,indiv      ! Calculate the PDF
+#

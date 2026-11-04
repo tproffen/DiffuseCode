@@ -1,0 +1,37 @@
+#
+# $1  Composition
+# $2  Individual run
+# $3  Bi
+read
+   stru example4.stru
+chem
+   set mode, quick, period
+exit
+#
+chem
+   set vec, res
+   set neig, rese
+#
+   set vec, 1, 1,1,   1,  0,  0 
+   set vec, 2, 1,1,  -1,  0,  0 
+   set vec, 3, 1,1,   0,  1,  0 
+   set vec, 4, 1,1,   0, -1,  0 
+   set vec, 5, 1,1,   0,  0,  1 
+   set vec, 6, 1,1,   0,  0, -1 
+#
+   set nei, vec, 1,2
+   set nei, dir, 1,0,0,1,0,0
+   set nei, add
+
+#
+   set nei, vec,3,4
+   set nei, dir, 1,0,0,0,1,0
+   corr disp, cu,au
+
+#
+   field disp, cu, cu, CU_CU.xy0, 0,20, 0, 20
+   field disp, au, au, AU_AU.xy0, 0,20, 0, 20
+   field disp, cu, au, CU_AU.xy0, 0,20, 0, 20
+
+#
+  exit

@@ -1,0 +1,8 @@
+#
+cd arctan
+@cleanup.mac
+cd ../EXAMPLE1
+@cleanup.mac
+cd ../EXAMPLE_COMP
+@cleanup.mac
+cd ..

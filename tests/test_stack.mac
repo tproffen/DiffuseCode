@@ -1,0 +1,48 @@
+system rm -f date.check
+@datum.mac
+#
+variable integer, LTEST_ALL
+variable integer, LTEST_MAC
+LTEST_ALL = TRUE                ! Assume all tests to be true
+LTEST_MAC = FALSE               ! Assume all tests to be true
+set wait, off
+#
+kuplot 
+  @kuplot_standard.mac
+exit
+#
+wait return
+#
+cd 05.Stack/STACK
+@stack.01.mac 0.33333
+@../../check.mac stack.01.mac
+#
+cd ../STACK_GROWTH
+@growth.mac 0.450
+@../../check.mac growth.mac
+#
+cd ../STACK_FILE
+@stack.01.mac 
+@../../check.mac  stack.01.mac
+#
+cd ../STACK_TYPES
+@stack.01.mac 0.7500
+@../../check.mac  stack.01.mac
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+echo SUCCESS in 05.Stack
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+wait return
+cd ../..
+#
+#
+@datum.mac
+fopen 1, date.check
+fget 1, i[10], i[11], i[12]
+fget 1, i[20], i[21], i[22]
+fclose all
+i[0] = (i[20]-i[10])*3600 + (i[21]-i[11])*60 + (i[22]-i[12])
+echo "TIME %d", i[0]
+#exit

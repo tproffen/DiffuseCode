@@ -1,0 +1,63 @@
+#set error,exit
+#@ HEADER
+#@ NAME         refine.mac.mac
+#@
+#@ KEYWORD      refinement, diffev, generic
+#@
+#@ DESCRIPTION  This macro runs a refinement loop
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @refine.mac
+#@
+#@ END
+#
+################################################################################
+#
+diffev                        ! Switch to diffev section
+#
+  @cleanup.mac                ! Remove old files
+#
+  @setup.mac                  ! Define number of individual repetitions
+  @get_model.mac              ! Define the refinement model to use
+  @diffev_setup.mac           ! Define refinement details
+#
+  init silent                 ! initialize all parameters, silently no files are written
+#
+  @start_values.mac
+#
+  release P_scale, range:0.4, min:0.01, max:4.11
+  @do_loop.mac
+#
+  fix P_scale,     best
+  release P_lata,  range:0.2
+  release P_latc,  range:0.2
+  @do_loop.mac
+#
+  fix P_lata,      best
+  fix P_latc,      best
+  release P_z_zn,  range:0.05
+  @do_loop.mac
+#
+  fix P_z_zn,      best
+  release P_biso,  range:0.15
+  @do_loop.mac
+#
+  fix P_biso ,     best
+  release P_stack, range:0.15
+  @do_loop.mac
+#
+  fix P_stack,     best
+  release P_ab_dia,range:0.15
+  @do_loop.mac
+#
+  fix P_ab_dia,    best
+  release P_cc_dia,range:0.15
+  @do_loop.mac
+#
+  fix P_cc_dia,    best
+  release P_corrlinear ,range:0.05, min:0.0001, max:0.10
+  @do_loop.mac
+#
+exit                          ! Back to suite
+exit                          ! Finish the suite as well

@@ -1,0 +1,48 @@
+#
+#  solution.mac
+#
+################################################################################
+#
+#  This macro reads a nickel unit cell, expands the structure to a user given 
+#  size and calculates the pdf for a finit crystal
+#
+################################################################################
+#
+variable real,diameter
+#
+read             
+  cell ni.cell,$1,$1,$1
+#
+diameter = (( (lat[1]*$1)**3) *3./4./3.1415)**(1./3.) * 2.
+
+#                
+pdf                              # switch to DISCUS pdf menu
+  set rang,1.2*diameter,0.02     # calculate the pdf up to 5.5Angstroem in 0.02 steps
+  set qbroad,0.0                 # switch instrumental broadening off
+  set qdamp,0.0                  # switch instrumental damping off
+  set qmax,$1                    # set Qmax to user input
+  set bound,crystal              # set periodic boundary conditions
+  set density, 0.0               # determine the number density from unit cell content
+  set corrquad  , 0.0            # switch of distance dependence of peak widths
+  set corrlin  , 0.0             # switch of distance dependence of peak widths
+  set therm  , gauss             # do not convolute peaks with thermal Gaussian
+  set weight , 1.0               # set an optional weight to 1.0
+  set srat   , 1.0,2.5           # widen peaks below 2.5 Angstroem by factor 1.0
+  set finite,sphere, diameter    # use the periodic boundary to determine 4pi rho line
+  set rad,xray                   # select x-ray radiation
+#
+  show                           # show the current settings
+  calc                           # calculate the pdf
+  save pdf, "pdf_%3D.pdf",$1     #Save the output to file <pdf_010.pdf>
+                                 # 010  will be replaced by actual $1  !
+exit
+#
+branch kuplot
+reset
+load xy, "pdf_%3D.pdf",$1
+skal
+mark
+plot
+#
+exit   ! Return to discus
+exit   ! Return to suite

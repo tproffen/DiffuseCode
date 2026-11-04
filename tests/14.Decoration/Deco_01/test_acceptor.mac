@@ -1,0 +1,36 @@
+discus
+#
+variable integer, iatom
+variable integer, isurf
+iatom = mol_cont[1,2]               ! First atom in first molecule
+#
+find env, all, x[iatom], y[iatom],z[iatom],p_bond-0.1, p_bond+0.1
+do LOOP=1,env[0]
+  if(env[LOOP]<iatom) then
+    isurf = env[LOOP]
+    break 2
+  endif
+enddo
+show atom, isurf
+r[11] = surf[isurf, 1]
+r[12] = surf[isurf, 2]
+r[13] = surf[isurf, 3]
+r[14] = x[iatom]-x[isurf]
+r[15] = y[iatom]-y[isurf]
+r[16] = z[iatom]-z[isurf]
+r[0] = bang(r[11], r[12], r[13], r[14], r[15], r[16])
+r[1] = blen(r[14], r[15], r[16])
+r[2] = bang(atom, isurf, iatom, mol_cont[1,1]) 
+eval r[0]
+eval surf[isurf, 1]
+eval surf[isurf, 2]
+eval surf[isurf, 3]
+LTEST_MAC = FALSE
+if(abs(r[0])<1.0 .and. abs(r[1]-p_bond)<0.001 .and. abs(r[2]-170.0)<5.0) then
+  LTEST_MAC=TRUE
+else
+  LTEST_MAC=FALSE
+endif
+#
+exit  ! back to suite
+

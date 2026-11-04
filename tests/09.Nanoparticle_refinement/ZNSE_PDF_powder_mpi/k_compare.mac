@@ -1,0 +1,17 @@
+kuplot
+reset
+load xy, DATA/PD32ZS56.weight
+load xy, "TEMP/calc.%4D", REF_KID
+skal
+kcal sub, 1, 2
+ccal add, wy, 3, -10.0
+lcol 3, black
+skal
+mark
+achx Distance [\A]
+achy G(r) [\A\u-2\d]
+fnam off
+tit1 Refeinement of ZnSe nanoparticle PDF
+tit2 Current best model
+plot
+exit

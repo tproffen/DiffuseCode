@@ -1,0 +1,71 @@
+variable integer, LTEST_MAC
+discus
+var real , rsize
+rsize = 50
+#
+read
+  cell CELL/primitive.cell, 50,50,1
+#
+wave
+   reset
+   vect   1.00, 0.00, 0.00
+   amp    lat[2]*0.25
+   func   sinus
+   len    lat[1]*10
+   long
+   acco
+   phase  0.00
+   sel    all
+   show
+   run
+   reset
+exit
+#
+@fourier_2d.mac waves.long
+four
+  calc  1,0,0
+  show res
+exit
+wait return
+save
+  outf $1.stru
+  write all
+  run
+exit
+#
+branch kuplot
+   @k2d.mac waves.long
+   r[220] = z[1, 41, 21]
+   r[221] = z[1, 42, 21]
+   r[222] = z[1, 43, 21]
+   r[223] = z[1, 44, 21]
+   r[224] = z[1, 21, 41]
+   r[225] = z[1, 22, 41]
+   r[226] = z[1, 23, 41]
+   r[227] = z[1, 24, 41]
+   r[120] =  8585099776.0  ! 8584999936.0  !  8593500160.0
+   r[121] =   156330000.0  !   156480000.0
+   r[122] = 12613999616.0  ! 12625000448.0
+   r[123] =   292500000.0  !   292740000.0
+   r[124] = 38535999488.0  ! 38573998080.0
+   r[125] =   608080000.0  !   608680000.0
+   r[126] =   236260000.0  !   236500000.0
+   r[127] =    98083000.0  !    98179000.0
+   exit
+#
+variable real, eps
+eps = 1.0E5
+LTEST_MAC = TRUE
+do SLOW=10,20,10
+  do LOOP=0,7
+    if(LTEST_MAC==TRUE .and. abs(r[200+SLOW+LOOP]-r[100+SLOW+LOOP])<eps) then
+      LTEST_MAC=TRUE
+    else
+      LTEST_MAC=FALSE
+    endif
+    echo " %3d   %15.1f  %15.1f  %15.1f", LOOP, r[200+SLOW+LOOP], r[100+SLOW+LOOP], abs(r[200+SLOW+LOOP]-r[100+SLOW+LOOP])
+  enddo
+enddo
+eval LTEST_MAC
+#
+exit ! back to suite

@@ -1,0 +1,59 @@
+#
+#  plot.mac
+#
+################################################################################
+#
+#  Writes the coordinates of all atoms in a format suitable for plotting
+#  The program is set to "kuplot". 
+#  Quick explanation of commands:
+#
+#  plot                        ! Switch to plot menu
+#    program   kuplot          ! define program as "kuplot"
+#    uvw       0,0,1           ! set axis along which atoms ar projected
+#    abs       1,0,0           ! set abscissa
+#    ord       0,1,0           ! set ordinate
+#    ext       all             ! set extension of crystal to be plotted
+#    vect      0,0,0           ! set a point in the slice 
+#    thick     10000.          ! set thickness in slice, atoms at +- thickness are
+#                                plotted
+#    sel       all             ! select all atom types
+#    set       0,2,6, 1.0      ! define plot style for atom type 0=voids
+#    set       1,3,3, 1.0      ! define plot style for atom type 0
+#  exit                        ! Exit plot menu return
+#  do i[3]=2,n[2]              ! Loop over all atomtypes start at no. 2
+#    plot                      ! switch to plot menu
+#      set  i[3],3,i[3], 1.0   ! Define plot style for further atom types i[3] 
+#    exit                      ! !This will be done if atom types 2, 3, exist
+#  enddo                       ! end of the loop
+#
+#  plot                        ! 
+#    outf      $1.plot         ! !Define output file name "$1" will be substituted
+#    run                       ! !by the parameter on the line
+#  exit                        ! !@plot name
+#
+################################################################################
+#
+plot
+  reset
+  program   kuplot
+  uvw       0,0,1
+  abs       1,0,0
+  ord       0,1,0
+  ext       all
+  vect      0,0,0
+  thick     10000.
+  sel       all
+  set       0,2,6, 1.0
+  set       1,3,3, 1.0
+exit
+#
+do i[3]=2,n[2]
+  plot
+    set  i[3],3,i[3], 1.0
+  exit
+enddo 
+#
+plot
+  outf      $1.plot
+  run
+exit

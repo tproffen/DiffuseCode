@@ -1,0 +1,18 @@
+#
+# Transforms the structure into a cartesian coordinate system
+#
+###############################################################################
+#
+r[1] =  1.00/blen(2,1,0)
+r[2] =  1.00/lat[2]
+r[3] =  1.00/lat[3]
+trans
+  anew  2.*r[1], 1.0*r[1],  0.0
+  bnew  0.0    ,     r[2],  0.0
+  cnew  0.0    , 0.0     ,  r[3]
+  onew   0.0, 0.0, 0.0
+  sel all
+  incl all
+  run
+exit
+

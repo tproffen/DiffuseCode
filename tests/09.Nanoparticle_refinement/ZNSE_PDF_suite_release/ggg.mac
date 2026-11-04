@@ -1,0 +1,6 @@
+do i[0]=1,4
+  eval i[0]
+  @fff.mac value("base_%3D",i[0]), i[0]
+enddo
+wait retur
+variable show

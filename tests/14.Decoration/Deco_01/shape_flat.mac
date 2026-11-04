@@ -1,0 +1,29 @@
+#
+#
+#
+variable real,diameterx
+variable real,diametery
+variable real,diameterz
+variable integer, ncellx
+variable integer, ncelly
+variable integer, ncellz
+read
+   cell CELL/$1.cell
+#
+ncellx = 4
+ncelly = 4
+ncellz = 2
+
+read
+   cell CELL/$1.cell, ncellx,ncelly,ncellz
+#
+surface
+   set distance, external, all, 0.55
+   boundary hkl, 0, 0, 1, 0.05
+exit
+show atom, all
+purge
+@plot.mac $1_flat
+show atom ,1
+show atom ,n[1]
+

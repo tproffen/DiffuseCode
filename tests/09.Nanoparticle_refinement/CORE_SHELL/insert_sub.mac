@@ -1,0 +1,39 @@
+#
+read
+ free
+#
+domain
+  rese
+exit
+#
+do i[0] = 1,num_shell
+  domain
+    assign     character,"D%2D",i[0], fuzzy
+    assign     content,  "D%2D",i[0], "STRU/zns_wurtzite.%4D.%4D.%4D.sub",kid,indiv, i[0]  
+    assign     fuzzy  ,  "D%2D",i[0], 2.0
+    assign     orient ,  "D%2D",i[0], 1,  1.0, 0.0, 0.0,  0.0
+    assign     orient ,  "D%2D",i[0], 2,  0.0, 1.0, 0.0,  0.0
+    assign     orient ,  "D%2D",i[0], 3,  0.0, 0.0, 1.0,  0.0
+    assign     shape  ,  "D%2D",i[0], 1,  1.0, 0.0, 0.0,  0.0
+    assign     shape  ,  "D%2D",i[0], 2,  0.0, 1.0, 0.0,  0.0
+    assign     shape  ,  "D%2D",i[0], 3,  0.0, 0.0, 1.0,  0.0
+    mode       pseudoatoms
+  exit
+enddo
+domain
+    inputfile  "DOMAIN/domain.%4D.%4D.list",kid,indiv
+    mode       pseudoatoms
+    show
+    run
+  exit
+#
+  save
+    outf "STRU/zns_wurtzite.%4D.%4D.loaded",kid,indiv
+    omit ncell
+    omit  gene
+    omit  scat
+    omit  adp
+    run
+  exit
+#@plot_xbs_shell loaded.shell.bs,kid
+

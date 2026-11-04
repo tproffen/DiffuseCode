@@ -1,0 +1,6 @@
+#
+variable integer,indiv
+#
+variable real,  p_stack
+variable real,  p_ab
+variable real,  p_cc

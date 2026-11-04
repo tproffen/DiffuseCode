@@ -1,0 +1,52 @@
+#
+#  powder.mac
+#
+################################################################################
+#
+#  Calculates the powder pattern according to the Debye equation.
+#  
+#  powder                   ! Switch to the powder menu
+#    xray                   ! Do the calculation for X-ray diffraction
+#    set axis,q             ! Use as axis Q,
+#    set calc,debye         ! Define the calculation mode 
+#    set disp,off           ! Switch anomalous dispersion off
+#    set delta,0.0          ! Optional simple convolution by Gaussian 0=OFF
+#    set qmin,1.1000        ! Define mimium Q value
+#    set qmax,7.1000        !
+#    set dq,  0.0005        ! Define steps in Q-space
+#    set temp,use           ! Use the ADP's to calculate Debey-Waller term
+#    set wvle,1.54056       ! Define the wavlength
+#    set four,four          ! DO a normal Fouriertransform, there is a
+#                           ! special form for crystals with stacking faults
+#    set lpcor,bragg,26.58  ! Define Lorentz-Polarisation correction
+#    run                    ! Do the actual calculation
+#  exit                     ! Go back to the main menu
+#
+################################################################################
+#
+#therm
+#b[1] = 0.0
+powder
+   set axis, q
+   $1               ! radiation : xray, neutron
+   set qmin,    0.5000
+   set qmax,    P_qmax
+   set dq,      0.0010   ! was 0.0005
+   set calc,    debye
+   set disp,off
+   set delta,0.0
+   set profile, pseudo
+   set profile, eta, P_eta, P_eta_l   !, P_eta_q
+   set profile, uvw, P_u, P_v, P_w
+#  set profile, asym, P_p1, P_p2, 0.0, 0.0
+   set profile, width, 10.0
+   set period,   diameter
+   set temp,     use
+   set corrlin,  P_clin
+   set corrquad, P_cquad
+   set wvle,   0.1000
+   set four,four
+   set lpcor, bragg, 0.50
+   show
+   run
+exit

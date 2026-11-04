@@ -1,0 +1,7 @@
+kuplot
+reset
+load xy, FINAL/final.0001
+load xy, TEMP/calc.9999
+plot
+rval 1, 2, one
+exit

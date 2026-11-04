@@ -1,0 +1,12 @@
+#
+#
+decorate
+   reset
+   add water, donor
+   set water, ligand, CELL/water.stru, 0.045
+   set water, bond,   H  , 1, 1.92
+   set water, surface, 2, 3
+   set water, form,  0, 0, 1
+#  show
+   run
+exit

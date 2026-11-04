@@ -1,0 +1,7 @@
+variable real,pdf_start
+variable real,pdf_range
+variable real,pdf_step
+#
+pdf_start =  1.0
+pdf_range = 60.00
+pdf_step  =  0.01

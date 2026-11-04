@@ -1,0 +1,13 @@
+DISCUS Macros in this directory are:
+
+
+dom.cube.mac           ! Macro to create a simple cube shaped domain
+dom.tilt.mac           ! Macro to create a tilted cube shaped domain
+
+plot.two.mac           ! Write structure for plot with KUPLOT
+plot.three.mac         ! Write structure for plot with KUPLOT
+plot.cif.mac           ! Write structure for plot with JMOL
+
+KUPLOT Macros in this directory are:
+
+k.simple.mac           ! Plots the results

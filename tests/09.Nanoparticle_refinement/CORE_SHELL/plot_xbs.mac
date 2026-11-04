@@ -1,0 +1,18 @@
+plot
+  prog diamond
+  uvw  0,0,1
+  abs  1,0,0
+  ord  0,1,0
+  vect 0,0,0
+  thick 100
+  outf $1.xyz
+  ext all
+  sel all
+  set zn,3, 0.0,0.0,1.0, 0.4
+  set s ,3, 1.0,1.0,0.0, 0.4
+  set cd,3, 1.0,1.0,1.0, 0.4
+  set se,3, 1.0,0.0,0.0, 0.4
+  bond zn,s, 1.0,3.2, 0.05, 0.30,0.30,0.30
+  bond cd,se,1.0,3.2, 0.05, 0.30,0.30,0.30
+  run
+exit

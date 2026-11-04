@@ -1,0 +1,4 @@
+#
+#  Variables for the PDF calculation
+#
+variable real,  P_qmax

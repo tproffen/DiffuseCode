@@ -1,0 +1,16 @@
+#
+#  sro-ran.1.mac
+#
+################################################################################
+#
+#  This macro makes a 2-D crystal and replaces part of the atoms by voids.
+#
+################################################################################
+#
+read
+  cell crystal.cell,$1,$1,1
+@plot_cif.mac average6
+#
+replace cu,void,all,$2        #  replace cooper by voids on all sites in the 
+                              #  unit cell with probability <$2>
+@plot_cif.mac random

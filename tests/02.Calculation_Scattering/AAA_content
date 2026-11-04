@@ -1,0 +1,25 @@
+DISCUS Macros in this directory are:
+
+
+1d.mac                 ! Simulates a 1d crystal and calculates the Fourier
+1d_periodic.mac        ! Demonstrates periodic boundary conditions in 1d
+2d.mac                 ! Simulates a 1d crystal and calculates the Fourier
+2d_lots.mac            ! Demonstrates periodic boundary conditions in 2d
+powder.mac             ! Calculates the powder pattern for a small crystal
+
+fourier_2d.mac         ! The fourier part for the 2d calculation
+fourier_2d_lots.mac    ! Demonstrates the use of lots for Fourier
+
+output_fourier.mac     ! Support macro that writes the output
+output_powder.mac      ! Support macro that writes the output
+
+plot.mac               ! Writes a structure for plot with KUPLOT
+
+KUPLOT Macros in this directory are:
+
+k1d.mac                ! Plots the result of the 1d calculations
+k1d_periodic.mac       ! Plots the effect of periodic boundary conditions
+k2d.mac                ! Plots the result of the 2d calculations
+k2d_lots.mac           ! Plots the use of lots in 2d calculations
+kpowder.mac            ! Plots the powder output
+kinte.mac

@@ -1,0 +1,31 @@
+#set prompt,redirect
+#set error,exit
+#@ HEADER
+#@ NAME         diffev.mac.mac
+#@
+#@ KEYWORD      refinement, diffev, generic
+#@
+#@ DESCRIPTION  This macro continues a refinement loop
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @diffev
+#@
+#@ END
+#
+################################################################################
+#
+diffev
+#
+@setup.mac
+#@diffev_setup.mac
+#
+  do i[0]=1, 2                ! Number of refinement cycles 
+    echo "Loop GENERATION %4d %4d", i[0], REF_GENERATION
+#                             ! Run discus section with macro dis.diffev.mac
+    run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, compute:parallel, logfile:LOGFILES/d
+    run_mpi kuplot, kup.diffev.mac  , repeat:REF_NINDIV, compute:serial  , logfile:LOGFILES/k
+    compare silent            ! Compare R-values to previous generation
+  enddo
+exit
+exit

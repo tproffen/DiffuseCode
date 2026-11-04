@@ -1,0 +1,25 @@
+discus
+read
+cell CELL/znse_wurtzite.cell
+save
+outf internal.z
+run
+outf internal.a
+run
+outf internal.b
+run
+exit
+read
+  stru internal.b
+#
+storage
+  show
+echo %%%%%%%%%%%%%%%%%%%%
+  show internal.a
+  show internal.b
+  show
+  reset  internal.b
+  show
+exit
+
+exit  ! back to suite

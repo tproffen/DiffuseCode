@@ -1,0 +1,139 @@
+#
+#@ HEADER
+#@ NAME         sr0.0.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro performs short range order along 
+#@ DESCRIPTION  the [1,0,0] direction
+#@
+#@ PARAMETER    $0, 2
+#@ PARAMETER    $1, real,  correlation along [100]
+#@ PARAMETER    $2, real,  temperature
+#@
+#@ USAGE        @sro.0  <c100>, <temperature>
+#@
+#@ END
+#
+################################################################################
+#
+#
+discus                         ! Go to discus section
+#
+#
+fclose all                       #  close connection to all files opend by fopen
+#
+variable integer,size_cr            #  integer variable called <size_cr>
+variable real,comp               #  real variable called <comp> for composition
+variable real,c100               #  real variable called <c100> for correlation
+variable real,a100               #  real variable called <a100> for correlation
+variable real,heat               #  real variable called <heat> for temperature
+#
+size_cr = 100                       #  set crystal size_cr
+comp = 0.5                       #  define the composition i.e. fraction of AU
+#
+#  Perform basic error check on user input
+#
+if($0 /= 2) then
+  echo
+  echo Use as: @sro.0  <correlation>, <temperature>
+  echo
+  continue suite
+endif
+#
+if($1 <  -1.0   .or.   1.0  <   $1) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($2 <   0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue suitsuite
+endif
+#
+c100 = $1                        #  put user input into target correlation
+heat = $2                        #  put user input into temperature 
+#
+read                             ! start read menu
+  cell crystal.cell, size_cr, size_cr, 1   ! expand to size_crXsize_crX1 unit cells
+#
+replace cu,AU,all,comp         #  replace copper by AU on all sites in the 
+                                 #  unit cell with probability comp
+#
+chem
+  set mode, quick, period, xy
+exit
+#
+mmc                              #  switch to DISCUS Monte Carlo menu mmc
+  rese
+#wait return
+  set neig,rese                  #  reset all neighbor definitions
+  set vec, rese
+#
+  set vec,1, 1,1,  1, 0, 0       #  define vector 1: connect atom no.1 in a unit
+#                                #  cell to atom no. 1 in unit cell at [1,0,0]
+  set vec,2, 1,1, -1, 0, 0       #  
+#
+  set neig,vec,1,2               #  define neighborhood consisting of vectors 1,2
+#
+  set mode, 1.0, swchem,all      #  switch the chemistry of atoms on all sites
+  set targ,1,corr,cu,AU,c100,0.0,CORR   
+                                 #  define target correlation no. 1
+                                 #  use a chemical correlation between cu and AU
+                                 #  target correlation value is <c100>
+                                 #  energy is set to 0.0
+                                 #  refine to achieve the desired correlation
+                                 #
+  set cyc, 500*n[1]              #  perform 100*n[1] cycles
+  set feed, 50*n[1]              #  feedback every 5*n[1] cycles
+  set temp,heat                  #  set the pseudo temperature
+  run                            #  perform the Monte Carlo simulation
+  set finish, stop:converge, diff:0.055, change:0.052, aver:0.050, feed:3
+exit                             #  go back to main DISCUS menu
+#
+@plot.mac example0               #  run macro <plot.mac>
+@fourier.mac example0            #  run fourier transform via <fourier.mac>
+#
+chem                             #  switch to DISCUS chemistry menu
+  corr occ,cu,AU               #  determine the correlation actually achieved 
+exit                             #  go back to main DISCUS menu
+a100 = res[1]
+#
+fopen  1,example0.data           #  open in/out file through channel 1
+fformat 1,*                      #  use generic output format
+fput 1,"C100 target/achieved/%5.2f %5.2f",c100, a100
+                                 #  write target and achieved correlations 
+fput 1,"temperature  %5.0f",heat #  write pseudo temperature
+chem                             #  
+  element                        #  analyse chemical composition of the crystal
+exit                             #  
+fput 1,"copper : AU %5.2f : %5.2f",res[2],res[1]
+                                 #  write actual composition to file
+fclose 1                         #  
+#
+save example0.stru               #  save the structure for later analysis
+#
+#
+branch kuplot                    ! Branch off to kuplot section
+   @kex0.mac                     ! Create nice plot
+exit
+#
+# Test for Success
+#
+branch kuplot
+#
+load ni, RESULTS/example0.inte
+rval 1, 3, one
+r[0] = res[1]
+if(abs(r[0]) < 0.250 .and. abs(c100-a100)< 0.08 ) then
+  LTEST_MAC = TRUE
+else
+  LTEST_MAC = FALSE
+endif
+exit
+#
+exit                             # back to suite

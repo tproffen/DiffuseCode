@@ -1,0 +1,18 @@
+reset
+@kex1.mac
+ksav 1
+form sy, 0.0
+outf cutx.00
+form sx, 0.0
+run
+reset
+load xy, cutx.00
+skal
+mark
+plot
+four 1, -4.5,4.5,0.01,ri
+show data
+kfra 1,2
+skal
+mark
+plot

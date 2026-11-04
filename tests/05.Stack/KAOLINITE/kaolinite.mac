@@ -1,0 +1,154 @@
+#
+#@ HEADER
+#@ NAME         kaolinite.mac
+#@ 
+#@ KEYWORD      stacking fault, triclinic, kaolinite
+#@ 
+#@ DESCRIPTION  Simulates a kaolinite with stacking faults
+#@
+#@ PARAMETER    $0, 3
+#@ PARAMETER    $1, real, probability
+#@ PARAMETER    $2, real, H index
+#@ PARAMETER    $3, real, K index
+#@
+#@ USAGE        @kaolinite.mac <prob>, <h>, <k>, <l>
+#@
+#@ END
+#
+############################################################
+#
+if($0 /= 3) then
+  echo
+  echo " Usage:"
+  echo " @kaolinite.mac <prob>, <h>, <k>"
+  echo
+#  wait return
+  continue discus
+endif
+#
+############################################################
+#
+#    prob      stacking fault probability
+#    layers    number of layers
+#    naver     number of crystasl to be averaged
+#    hmin      lower lomit for loop over h
+#    hmax      upper lomit for loop over h
+#    kmin      lower lomit for loop over k
+#    kmax      upper lomit for loop over k
+#    hh        dummy variables
+#    kk        dummy variables
+#    indiv     dummy variables
+############################################################
+#
+#  The macro starts by defining a few useful variables
+#  and stores the probability that is given as parameter
+#  The variables are written into file 'growth.setup.mac',
+#  to be used in the plot macro
+#
+variable real,prob
+variable integer,layers
+variable integer,naver
+variable integer,hh
+variable integer,kk
+variable integer,indiv
+############################################################
+# Take the stacking fault probability
+############################################################
+#
+prob   = $1
+hh     = $2
+kk     = $3
+#
+layers =  4000
+#layers =    10
+naver  =    50
+fclose all
+fopen  1, growth.setup.mac
+fput   1,'prob  = ',prob
+fput   1,'naver = ',naver
+fput   1,'hh    = ',hh
+fput   1,'kk    = ',kk
+fclose 1
+#
+############################################################
+#
+read
+  cell  CELL/kaolinite.cell, 1, 1, 1
+#
+############################################################
+#
+#  At first, a general setup for the Fourier transform is
+#  defined
+#
+fourier
+  abs    l
+  ord    h
+  na   301
+  no     1
+  neut
+  temp ignore
+  disp off
+  wvle 0.5
+  set  aver,0.0
+exit
+############################################################
+#
+# Setup for the stacking fault
+# Since the intensity will be calculated for integer h,k 
+# the layer can be restricted to just one unit cell
+#
+stack
+  layer   CELL/kaolinite.cell
+  layer   CELL/kaolinite.cell
+  trans   1,1, 0.000, 0.000, 1.
+  trans   1,2,-0.020, 0.340, 1.
+  trans   2,1,-0.020, 0.340, 1.
+  trans   2,2, 0.000, 0.000, 1.
+#
+  distr   matrix
+  crow    1, 1.-prob,    prob
+  crow    2,    prob, 1.-prob
+  number  layers
+#
+  aver    0.00, 0.00, 1.00
+  modul   1.00, 0.00, 0.00, 0.00, 1.00, 0.00
+  set     modulus,on
+  set     trans,fixed
+exit
+#
+############################################################
+#
+#  A loop at the given hk positions calculates the 
+#  Fouriertransform along an xxL rod
+#  Files are saved into directory INDI with file names:
+#  kaolinite.hkl_x.xx_yyyy
+#  x.xx is the stacking fault probability,
+#  yyyy the number of the crystal
+#
+do indiv = 1, naver
+  stack
+    create
+  exit
+#
+      four
+        ll   hh ,   kk, -0.5
+        lr   hh ,   kk,  2.5
+        ul   hh ,   kk, -0.5
+      exit
+#
+      stack
+        four
+      exit
+#
+      output
+        outfile "INDI/kaolinite.%2D%2Dl_%4.2F_%4D",hh,kk,prob,indiv
+        value   inte
+        run
+      exit
+enddo
+#
+############################################################
+system kuplot -macro k_plot_kaolinite.mac
+############################################################
+#system rm -f INDI/*
+#system rm -f growth.setup.mac

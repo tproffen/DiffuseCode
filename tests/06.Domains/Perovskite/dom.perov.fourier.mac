@@ -1,0 +1,71 @@
+i[0] = nint(8.*dimenx/2.) + 1
+i[0] = 201
+if(dimenz==1) then
+  fourier
+    reset
+    ll -4.0,-4.0, 0.0
+    lr  4.0,-4.0, 0.0
+    ul -4.0, 4.0, 0.0
+    tl -4.0, 0.0, 0.0
+    na i[0]
+    no i[0]
+    nt   1
+    abs  h
+    ord  k
+    top  l
+    set aver,100
+    lots box, 20,20,1, 20, yes
+  exit
+else
+  fourier
+    reset
+    ll -4.0, -4.0, -4.0
+    lr  4.0, -4.0, -4.0
+    ul -4.0,  4.0, -4.0
+    tl -4.0, -4.0,  4.0
+    na 201 
+    no 201
+    nt 201
+    abs  h
+    ord  k
+    top  l
+    set aver,100
+    lots box, 20,20,20, 20, yes
+  exit
+endif
+#
+fourier
+  temp ign
+  disp off
+  scat d100,zr
+  scat d010,zr
+  scat d001,zr
+#  lots OFF
+  show
+  run     sigabs:[0.010, 1,0,0], sigord:[0.010, 0,1,0], sigtop:[0.010, 0,0,1]
+exit
+if(dimenz==1) then
+  output
+    outfile $1.inte
+    value   inte
+    form    stan
+    run
+#
+    outfile $1.3DPDF
+    value   3DPDF
+    form    stan
+    run
+  exit
+else
+  output
+    outfile $1.inte.h5
+    value   inte
+    form    hdf5
+    run
+#
+    outfile $1.3DPDF
+    value   3DPDF
+    form    hdf5
+    run
+  exit
+endif

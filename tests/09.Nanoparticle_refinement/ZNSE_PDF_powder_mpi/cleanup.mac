@@ -1,0 +1,21 @@
+#
+#  cleanup.mac
+#
+################################################################################
+#
+# deletes all files from a previous run USE with caution
+#
+sys rm -f DIFFEV/Eltern*
+sys rm -f DIFFEV/Parameter*
+sys rm -f DIFFEV/Current*
+sys rm -f DIFFEV/Summary*
+sys rm -f DIFFEV/Trials*
+sys rm -f DIFFEV/Results*
+sys rm -f DATA/PD32ZS56.DAT.*
+sys rm -f FINAL/*
+sys rm -f INDI/*
+sys rm -f LOGFILES/*
+sys rm -f TEMP/*
+sys rm -f CALC/*
+sys rm -f STRU/*
+sys rm -f GENERATION

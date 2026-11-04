@@ -1,0 +1,83 @@
+#@ HEADER
+#@ NAME         fit_poly.mac
+#@ 
+#@ KEYWORD      nanoparticle, finite, shape, correction, fit
+#@ 
+#@ DESCRIPTION  This macro fits a polynomial of order N through a calculated PDF.
+#@ DESCRIPTION  The zero order term is fixed at zero, thus the calculated 
+#@ DESCRIPTION  polynomial starts at G(0)=0. The difference curve is a reasonable
+#@ DESCRIPTION  empirical shape corrected PDF.
+#@ DESCRIPTION  For a sphere, the order should be three, for more anisotropic
+#@ DESCRIPTION  shapes an order 4 to (may be) 5 should do.
+#@
+#@ PARAMETER    $0, 3                    ! requires three parameters
+#@ PARAMETER    $1, character,           input file name, augmented by ".gr"
+#@ PARAMETER    $2, real,                maximum r-range
+#@ PARAMETER    $3, integer,             order of polynomial
+#q
+#q INPUT        Requires one input file
+#q
+#q OUTPUT       Writes one output file
+#@
+#@ USAGE        @header file_name, rmax, order
+#@
+#@ END
+#
+################################################################################
+#
+#  Do we have three parameters?
+#
+if($0 /= 3) then
+  echo
+  echo use as:
+  echo @fit_poly file_name, <order>, <rmax>, <order>
+  echo
+  set prompt,on,on
+  continue kuplot
+endif
+#
+################################################################################
+#
+reset
+fclose all
+set prompt,on,on
+load xy, $1.grcalc  ! load calculated G(r)
+ksav 1              ! Truncate to r-max
+   outf dummy.xy
+   form xy, xmin[1], $2
+   run
+reset
+load xy, dummy.xy
+skal
+mark
+plot
+fit 1               ! Fit to truncated G(r)
+   func poly, $3    ! Polynomial of order $3
+   para 1,0,0
+   para 2,1,1.0
+   para 3,1,-0.5    ! polynomial must be at least to r^2
+exit
+do i[0]=4,$3+1      ! Set flags start values for p(i)*r^i
+   fit 1
+      para i[0],1,0
+   exit
+enddo
+fit 1               ! Set general parameters; do fit
+   cycle 500
+   urf 0.1
+   wic one
+   run
+exit
+skal
+mark
+plot               ! Lets view the results
+fopen 1,$1.para    ! saves parameters into a file
+do i[0]=1,$3+1
+   fput 1, -1.*p[i[0]]
+enddo
+fclose 1
+ksav 3
+   outf $1_corrected.grcalc
+   form xy,xmin[3],xmax[3]
+   run
+#

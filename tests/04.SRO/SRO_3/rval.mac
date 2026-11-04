@@ -1,0 +1,6 @@
+kuplot
+reset
+load ni, example1.inte
+load ni, example3.inte
+rval 1, 2
+exit

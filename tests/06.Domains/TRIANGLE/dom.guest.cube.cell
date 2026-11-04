@@ -1,0 +1,5 @@
+title Primitive guest structure 
+spcgr  P4
+cell   2.50, 2.50, 2.50, 90.00, 90.00, 90.00
+atom
+ni   0.00000  0.00000  0.00000   0.05

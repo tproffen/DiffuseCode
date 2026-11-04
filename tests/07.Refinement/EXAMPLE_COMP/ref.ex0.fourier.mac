@@ -1,0 +1,22 @@
+fourier
+  neut
+  ll  0.0, 0.0,0.0
+  lr  4.0, 0.0,0.0
+  ul  0.0, 4.0,0.0
+  na 201
+  no 201
+  abs  h
+  ord  k
+  temp ign
+  disp off
+  lots box, 20,20,1,1000,yes
+  set aver, 100.0
+  show
+  run
+exit
+output
+  outfile "CALC/calc.%4D",$1
+  value   inte
+  form    stan
+  run
+exit

@@ -1,0 +1,3 @@
+#
+system rm -f *.pdf
+system rm -f *.grcalc

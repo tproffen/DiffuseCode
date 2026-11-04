@@ -1,0 +1,6 @@
+discus
+#
+@discus.znse.mac $1
+exit
+@k_plot.mac
+#

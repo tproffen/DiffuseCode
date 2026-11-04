@@ -1,0 +1,39 @@
+#
+#  output.mac
+#
+################################################################################
+#
+#  Write the results of a Fourier transform in a format suitable for 
+#  plotting or further treatment.
+#
+################################################################################
+#
+#  output            ! Switch to the output menu
+#    form powder,tth ! Define the output format as a powder pattern in 2Theta
+#    value inte      ! Write the intensities ( or amplitude, real, imaginary)
+#    outf nano.tth   ! Define the output file name
+#    run             ! Do the actual writing
+#  exit              ! Go back to the main menu
+#
+################################################################################
+#
+output 
+  form powder,$2
+  value inte
+  outf "POWDER/$1_%5.1F_%5.1F.$2",diameter_ab,diameter_c
+  run
+  form powder, q
+  value S(Q)
+  outf "POWDER/$1_%5.1F_%5.1F.SQ",diameter_ab,diameter_c
+  run
+#
+  form powder, q
+  value F(Q)
+  outf "POWDER/$1_%5.1F_%5.1F.FQ",diameter_ab,diameter_c
+  run
+#
+  form pdf, r, 0.01, 100,0.01             ! PDF format on r-scale, with limits
+  value PDF                               ! Value is PDF=G(r)
+  outf "PDF/nano_%5.1F_%5.1F.grcalc",diameter_ab,diameter_c   ! output file name
+  run
+exit

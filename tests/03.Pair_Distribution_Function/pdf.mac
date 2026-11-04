@@ -1,0 +1,246 @@
+#
+#@ HEADER
+#@ NAME         pdf.mac
+#@ 
+#@ KEYWORD      pdf, settings
+#@ 
+#@ DESCRIPTION  This macro reads a nickel unit cell, expands the
+#@ DESCRIPTION  structure to a 3x3x3 crystal and calculates the pdf
+#@ DESCRIPTION  for a variaty of settings
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @pdf 
+#@
+#@ END
+#
+################################################################################
+#
+discus
+#
+read             
+  cell water_hex.cell !,3,3,3
+#                
+pdf                       # switch to DISCUS pdf menu
+  reset all
+  set rang,10.5,0.001     # calculate the pdf up to 5.5Angstroem in 0.02 steps
+  set qdamp,0.00          # switch instrumental damping off
+  set qbroad,0.000        # switch instrumental broadening off
+  set qmax, 0.0           # switch effect of finite Qmax off
+  set bound,periodic,3D   # set periodic boundary conditions
+  set density, auto       # determine the number density from unit cell content
+  set corrquad,0.000      # switch of distance dependence of peak widths
+  set corrlin, 0.000      # switch of distance dependence of peak widths
+  set therm  , off        # do not convolute peaks with thermal Gaussian
+  set weight , 1.0        # set an optional weight to 1.0
+  set srat   , 1.0,2.5    # widen peaks below 2.5 Angstroem by factor 1.0
+  set finite,periodic     # use the periodic boundary to determine 4pi rho line
+  set rad,xray            # select x-ray radiation
+#
+  show                    # show the current settings
+  wait return             # wait for a user return
+  calc                    # calculate the pdf
+  save pdf,no_corr.grcalc # save the output to file no_corr.pdf
+#
+exit
+branch kuplot
+   reset
+   load xy, no_corr.grcalc
+   skal
+   mark 2
+   tit1 Nickel PDF
+   tit2 No corrections == Histogram
+   achx Distance r[\A]
+   achy G(r) [\A\u-2\d]
+   plot
+   save png, PIC/histogram.png
+   wait return
+exit
+#################################################################################
+pdf
+   set therm, gauss      ! Apply thermal motion effect
+   calc
+   save pdf,thermal.grcalc
+exit
+branch kuplot
+   reset
+   load xy, thermal.grcalc
+   skal 0,10.5, -14,50
+   mark 2, 10
+   tit1 Nickel PDF
+   tit2 Describe independent thermal motion by Gaussian
+   plot
+   save png, PIC/gauss.png
+   wait return
+exit
+#################################################################################
+pdf
+   set corrlin, 0.008     ! switch on distance dependence of peak widths
+   calc
+   save pdf,thermal_linear.grcalc
+exit
+branch kuplot
+   load xy, thermal_linear.grcalc
+   skal 0,10.5, -14,50
+   mark 2, 10
+   tit1 Nickel PDF
+   tit2 Describe coupled thermal motion by Gaussian
+   plot
+   save png, PIC/corrlin.png
+   wait return
+exit
+#################################################################################
+pdf
+   set corrlin, 0.000     ! switch off distance dependence of peak widths
+   set qmax   , 30.00
+   calc
+   save pdf,thermal_qmax30.grcalc
+exit
+branch kuplot
+   reset
+   load xy, thermal.grcalc
+   load xy, thermal_qmax30.grcalc
+   skal 0,10.5, -14,50
+   mark 2, 10
+   tit1 Nickel PDF
+   tit2 Describe effect of limited Qmax 
+   plot
+   save png, PIC/qmax.png
+   wait return
+exit
+#################################################################################
+pdf
+   set corrlin, 0.000     ! switch off distance dependence of peak widths
+   set qmax   , 15.00
+   calc
+   save pdf,thermal_qmax15.grcalc
+exit
+branch kuplot
+   load xy, thermal_qmax15.grcalc
+   lcol 3, 6
+   mtyp 3, 0
+   ltyp 3, 1
+   skal 0,10.5, -14,50
+   mark 2, 10
+   tit1 Nickel PDF
+   tit2 Describe effect of limited Qmax 
+   plot
+   wait return
+exit
+#
+#################################################################################
+pdf
+   set rang,110.0,0.010    ! calculate the pdf up to 100.Angstroem in 0.02 steps
+   set qdamp,0.00         ! switch instrumental damping off
+   set qbroad,0.000       ! switch instrumental broadening off
+   set corrlin, 0.000     ! switch off distance dependence of peak widths
+   set qmax   , 30.00
+   calc
+   save pdf,thermal_nodamp.grcalc
+exit
+branch kuplot
+   reset
+   load xy, thermal_nodamp.grcalc
+   skal 0,100., -35,40
+   mark 10, 10
+   tit1 Nickel PDF
+   tit2 Describe effect of qdamp = 0
+   plot
+   save png, PIC/qdamp.png
+   wait return
+exit
+#################################################################################
+pdf
+   set qdamp,0.020        ! switch instrumental damping off
+   set qmax   , 30.00
+   calc
+   save pdf,thermal_damp_020.grcalc
+exit
+branch kuplot
+   load xy, thermal_damp_020.grcalc
+   skal 0,100., -35,40
+   mark 10, 10
+   tit1 Nickel PDF
+   tit2 Describe effect of qdamp = 0.020
+   plot
+   wait return
+   nfra 2
+   sfra 1, 0.00, 0.00, 0.60,1.00
+   sfra 2, 0.40, 0.00, 1.00,1.00
+   afra 1
+      skal 0,9.9, -25,40
+   afra 2
+      skal 90.1,100, -25,40
+      fset -3
+   plot
+   wait return
+   nfra 1
+exit
+#################################################################################
+pdf
+   set qdamp,0.000        ! switch instrumental damping off
+   set qbroad,0.0008       ! switch instrumental damping off
+   set qmax   , 30.00
+   calc
+   save pdf,thermal_broad_002.grcalc
+exit
+branch kuplot
+   reset
+   load xy, thermal_nodamp.grcalc
+   load xy, thermal_broad_002.grcalc
+   skal 0,100., -35,40
+   mark 10, 10
+   tit1 Nickel PDF
+   tit2 Describe effect of qbroad = 0.002
+   plot
+   wait return
+   nfra 2
+   sfra 1, 0.00, 0.00, 0.60,1.00
+   sfra 2, 0.40, 0.00, 1.00,1.00
+   afra 1
+      skal 0,9.9, -25,40
+   afra 2
+      skal 90.1,100, -25,40
+      fset -3
+   plot
+   save png, PIC/qbroad.png
+   wait return
+   nfra 1
+exit
+#################################################################################
+pdf
+   set qdamp,0.010        ! switch instrumental damping on
+   set qbroad,0.0020       ! switch instrumental broadening on
+   set qmax   , 30.00
+   calc
+   save pdf,thermal_broad_damp.grcalc
+   reset all
+exit
+branch kuplot
+   reset
+   load xy, thermal_nodamp.grcalc
+   load xy, thermal_broad_damp.grcalc
+   skal 0,100., -35,40
+   mark 10, 10
+   tit1 Nickel PDF
+   tit2 Describe effect of qbroad = 0.002 qdamp = 0.010
+   plot
+   wait return
+   nfra 2
+   sfra 1, 0.00, 0.00, 0.60,1.00
+   sfra 2, 0.40, 0.00, 1.00,1.00
+   afra 1
+      skal 0,9.9, -25,40
+   afra 2
+      skal 90.1,100, -25,40
+      fset -3
+      tit1
+      tit2
+   plot
+   save png, PIC/qbroad_qdamp.png
+   wait return
+   nfra 1
+exit
+
+#
+exit                     ! Back to suite

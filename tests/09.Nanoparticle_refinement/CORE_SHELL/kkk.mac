@@ -1,0 +1,4 @@
+rese
+load xy, DATA/pd361_r.dat
+load xy, "TEMP/calc.%4D.pdf",$1
+plot

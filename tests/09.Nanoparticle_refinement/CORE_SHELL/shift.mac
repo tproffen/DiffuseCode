@@ -1,0 +1,14 @@
+symm
+   uvw   0,0,1
+   orig  0.0, 0.0, 0.0,crystal
+   trans 0,0,-1.*$1/lat[3]
+   angle 0.0
+   type  proper
+   mode  repl
+   power 1
+   sel   all
+   incl  all
+   show
+   run
+exit
+

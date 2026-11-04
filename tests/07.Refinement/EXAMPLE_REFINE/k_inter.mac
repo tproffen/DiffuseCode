@@ -1,0 +1,10 @@
+load xy, noise_osci.dat
+kcal sub, 2, 1
+r[0] = min(ymin[1], ymin[2]) - ymax[3]
+ccal add, wy, 3, r[0]
+skal
+mark
+rval 2, 1, dat
+plot
+exit
+

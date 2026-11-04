@@ -1,0 +1,56 @@
+#
+#
+#  used as @k_get_name ipar, parname, lata,
+variable integer, generation
+variable integer, member
+variable integer, children
+variable integer, parameter
+variable integer, success
+variable integer, loop
+variable character, partest
+fclose all
+fopen 1, GENERATION
+fget  1, generation,member, children, parameter
+fclose all
+fopen 1, DIFFEV/Parameter.name
+success = -1
+$2   = ' '
+!
+if(isvar('$3')) then    !Test if user provided variable name
+  do loop = -1,parameter
+     fget 1, partest
+     if('"%c",partest' .eq. '$3') then
+echo " FOUND PAR variable %d" , loop
+        $1 = loop
+        $2 = partest
+        success  = 0
+        break 2
+     endif
+  enddo
+  fclose all
+elseif(.not.isexp('$3')) then  ! Test if $3 is a string and not an expression
+  do loop = -1,parameter
+     fget 1, partest
+     if('"%c",partest' .eq. '$3') then
+echo " FOUND PAR string %d" , loop
+        $1 = loop
+        $2 = partest
+        success  = 0
+        break 2
+     endif
+  enddo
+  fclose all
+elseif($3 >= -1 .and. $3 <= parameters) then
+echo "PAR3 number %c",$3
+   $1 = $3     ! will be ipar = $3 or ipar1 = $3
+   loop = $3
+   do i[0] = -1,loop
+      fget 1, $2
+   enddo
+   success = 0
+   fclose all
+endif
+if(success==-1) then
+   echo  Could not find Parameter $3
+   contiue kuplot
+endif

@@ -1,0 +1,5 @@
+title primitive tetragonal in P4mm
+spcgr P4mm
+cell 5.00   5.00   8.00   90.00   90.00   90.00
+atoms
+si     0.223   0.0580   0.2870   1.0

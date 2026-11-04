@@ -1,0 +1,21 @@
+#
+output
+  form powder, q, 0.50, P_qmax, 0.001
+  value inte
+  outf  POWDER/$1.inte
+  run
+#
+  value S(Q)
+  outf  POWDER/$1.SQ
+  run
+#
+  value F(Q)
+  outf  POWDER/$1.FQ
+  run
+#
+  form pdf, r, 0.01, 100.0, 0.01
+  value PDF
+  outf POWDER/$1.gr_period
+  run
+#
+exit

@@ -1,0 +1,27 @@
+#
+pdf
+#
+    ides all
+    jdes all
+    isel all
+    jsel all
+#
+    set bound, crystal,exact
+    set dens,  p_density
+    set delta, p_delta
+    set gamma, p_gamma
+    set qalp,  p_qalp
+    set qsig,  p_qsig
+    set qmax,  p_qmax
+    set rad,   neut
+    set range, pdf_range+10.0,0.01
+    set srat,  p_srat,2.5
+    set therm, gauss    
+#
+    set weig,  p_scale
+    set finite,sphere, p_diameter
+#
+    show
+    calc
+    save pdf, PDF/$1.pdf
+exit

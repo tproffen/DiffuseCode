@@ -1,0 +1,45 @@
+#@ HEADER
+#@ NAME         kup.diffev.mac
+#@
+#@ KEYWORD      refinement, average, rvalue
+#@
+#@ DESCRIPTION  This macro calculates the r-Values for all children
+#@ DESCRIPTION  It averages the individual powder pattern, fits the
+#@ DESCRIPTION  scale factor and the -4pi rho line correction.
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @kup.diffev
+#@
+#@ END
+#
+#  kup.diffev.mac
+#
+################################################################################
+#
+variable integer,indiv       ! Local variable for repetions
+#
+@global.mac                  ! Directory names 
+#
+@setup.mac                   ! Ensure we have correct value of NINDIV
+@get_model.mac               ! Get the refinement model to use
+@setup_pdf.mac               ! Make PDF range identical to DISCUS
+#
+#                            ! For parallel version on HPC
+fexist "%c/DATA/%c.%4D", DATADIR, DATAFILE, REF_KID
+if(res[1].eq.0) then  ! File does not exist load up to DATADIR
+   system "cp DATA/%c %c/DATA/%c.%4D", DATAFILE, DATADIR, DATAFILE, REF_KID
+endif
+#
+@kup.average.mac             ! Merge all individual calculations nindiv + 1
+#                            ! load data set
+load xy, "%c/DATA/%c.%4D", DATADIR, DATAFILE, REF_KID !              nindiv + 2
+spline nindiv+1, nindiv +2   ! Ensure identical x-axis-scale     nindiv + 3
+#
+@kup.fit.background.mac      ! Correct 4PI RHO line and scale    nindiv + 7
+#
+rval nindiv+2, nindiv+4, one ! calc R-value, is transfered internally
+#
+reset                        ! No DATA
+#
+exit                         ! Back to DISCUS / DIFFEV (depends on use)

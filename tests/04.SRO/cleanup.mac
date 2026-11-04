@@ -1,0 +1,16 @@
+#
+system rm -f SRO_0/example0.*
+system rm -f SRO_1/example1.*
+system rm -f SRO_2/example2.*
+system rm -f SRO_2/*.cif
+system rm -f SRO_2/*.inte
+system rm -f SRO_3/example3*.*
+system rm -f SRO_3/*.inte
+system rm -f SRO_4/example4.*
+system rm -f SRO_4/*.hist
+system rm -f SRO_5/example4.*
+system rm -f SRO_5/*.hist
+system rm -f SRO_6/example4.*
+system rm -f SRO_6/*.hist
+system rm -f SRO_7/example4.*
+system rm -f SRO_7/*.hist

@@ -1,0 +1,34 @@
+#set error,exit
+#@ HEADER
+#@ NAME         refine.mac.mac
+#@
+#@ KEYWORD      refinement, diffev, generic
+#@
+#@ DESCRIPTION  This macro runs a refinement loop
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @refine.mac
+#@
+#@ END
+#
+################################################################################
+#
+diffev                        ! Switch to diffev section
+#
+  @cleanup.mac                ! Remove old files
+#
+  REF_NINDIV = 1
+  @get_model.mac              ! Define the refinement model to use
+  @diffev_setup.mac           ! Define refinement details
+#
+  init silent                 ! initialize all parameters, silently no files are written
+#                             ! If 'init' is omitted, init will be done by run_mpi
+#
+    !                         ! Run discus section with macro dis.diffev.mac, no repetitions
+    run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, logfile:LOGFILES/d, compute:serial
+    compare silent            ! Compare R-values to previous generation
+    run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, logfile:LOGFILES/d, compute:serial
+    compare silent            ! Compare R-values to previous generation
+exit                          ! Back to suite
+#exit                          ! Finish the suite as well

@@ -1,0 +1,72 @@
+#set error,exit
+#@ HEADER
+#@ NAME         refine.mac.mac
+#@
+#@ KEYWORD      refinement, diffev, generic
+#@
+#@ DESCRIPTION  This macro runs a refinement loop
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @refine.mac
+#@
+#@ END
+#
+################################################################################
+#
+diffev                        ! Switch to diffev section
+#
+  @cleanup.mac                ! Remove old files
+#
+  @setup.mac                  ! Define number of individual repetitions
+  @get_model.mac              ! Define the refinement model to use
+  @diffev_setup.mac           ! Define refinement details
+#
+  init silent                 ! initialize all parameters, silently no files are written
+#
+  @start_values.mac
+#
+fclose all
+fopen 1, VALUES/trial.values
+fput 1 , '#C Logfile by DISCUS'
+fclose all
+variable integer, lll
+do lll = 1, 5
+  release P_scale, range:1.0
+! pop_xmin[par_number('P_scale')] = 0.01
+! pop_xmax[par_number('P_scale')] = 4.11
+  @do_loop.mac
+#
+  fix P_scale,     best
+  release P_lata,  range:0.3
+  release P_latc,  range:0.3
+  @do_loop.mac
+#
+  fix P_lata,      best
+  fix P_latc,      best
+  release P_z_zn,  range:0.08
+  @do_loop.mac
+#
+  fix P_z_zn,      best
+  release P_biso,  range:0.15
+  @do_loop.mac
+#
+  fix P_biso ,     best
+  release P_stack, range:0.15
+  @do_loop.mac
+#
+  fix P_stack,     best
+  release P_ab_dia,range:10.0, min:10.0
+  release P_cc_dia,range:10.0, min:10.0
+  @do_loop.mac
+#
+  fix P_ab_dia,    best
+  fix P_cc_dia,    best
+  release P_corrlinear ,range:0.01, min:0.0, max:0.11
+  @do_loop.mac
+  fix P_corrlinear,    best
+#
+  enddo
+#
+exit                          ! Back to suite
+exit                          ! Finish the suite as well

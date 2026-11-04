@@ -1,0 +1,39 @@
+#
+#  k1d.mac
+#
+################################################################################
+#
+#  This macro plots the result of DISCUS macro <1d.mac>
+#
+#
+################################################################################
+#
+rese                               #  Reset KUPLOT
+load xy, $1.inte                   #  load a 2-column file
+load cr, $1.plot                   #  load the atom coordinates
+#
+nfra 2                             #  draw 2 frames
+sfra 1, 0.00, 0.00, 1.00, 0.90     #  define area for first frame
+sfra 2, 0.00, 0.90, 1.00, 1.00     #  
+kfra 1,1                           #  frame 1 will contain dataset 1
+kfra 2,2                           #  
+#
+afra 1                             #  set parameters for frame 1
+  skal -2.5,2.5, 0.0000,ymax[1]*1.025    #  define the range along x and y
+  mark 0.5                         #  set markers at 0.5 intervals along x
+  fnam off                         #  do not show file name
+  achx [1 0 0]                     #  text along x-axis
+  achy Intensity                   #  text along y-axis 
+  tit1                             #  turn title line 1 off
+  tit2                             #  turn title line 1 off
+  fnam off
+afra 2                             #  set parameters for frame 
+  skal xmin[2]-0.5,xmax[2]+0.5,-0.5,0.5  
+  mark 1,1                         #  
+  msiz 2,0.5                       #  set marker size for data set 2
+  achx [1 0 0]
+  achy
+  fnam off
+# 
+plot                               #  display the plot
+#save png, "linear_%2D.png", i[99]

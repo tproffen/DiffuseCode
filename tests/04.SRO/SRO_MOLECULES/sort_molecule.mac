@@ -1,0 +1,47 @@
+
+chem
+  set mode, quick, period, xy
+exit
+#
+set parallel, useomp:parallel   ! Increase speed by parallel calculation
+mmc
+  rese
+  set neig,rese
+  set vec ,rese
+#
+  set vec,1, 1,1,  1, 0, 0     #  The first two vector pairs are for the 
+  set vec,2, 1,1, -1, 0, 0     #  targets
+  set vec,3, 1,1,  0, 1, 0     #
+  set vec,4, 1,1,  0,-1, 0     #
+  set vec,5, 1,1,  1, 1, 0     #  These next vectors are to check achieved
+  set vec,6, 1,1, -1,-1, 0     #  correlations
+  set vec,7, 1,1,  1,-1, 0     #
+  set vec,8, 1,1, -1, 1, 0     #
+#
+  set neig,number:next, vec,1,2
+  set neig,number:next, vec,3,4
+#
+  set mode, 1.0, swchem,all
+  set targ,1,corr,Pt,S ,c100,0.0,CORR  #  target 1 is for [100]
+  set targ,2,corr,Pt,S ,c010,0.0,CORR  #  target 2 is for [010]
+! set targ,1,corr,cu,Au,1.00,-30.0,ENER  #  target 1 is for [100]
+! set targ,2,corr,cu,Au,1.00,-30.0,ENER  #  target 2 is for [010]
+! set targ,1,group,(cu),(cu  ),c100,   4.4,ENER  #  target 1 is for [100]
+! set targ,2,group,(cu),(cu  ),c010,  -4.4,ENER  #  target 2 is for [010]
+! set targ,1,group,(cu),(cu  ),c100,  000.0,CORR  #  target 1 is for [100]
+! set targ,2,group,(cu),(cu  ),c010,  000.0,CORR  #  target 2 is for [010]
+  set allowed, Pt, S 
+  set style, mole
+  set cyc, 500*n[1]
+  set feed, 50*n[1]
+  set temp,heat
+  set finish, stop:converge, diff:0.055, change:0.052, aver:0.050, feed:3
+# set finish, stop:cycles
+#  set rbn, classic, 0.02, 0.005, 0.005
+show
+wait return
+  run
+#  set neig,number:next, vec,5,6             #  These neigbourhoods are defined to allow
+#  set neig,number:next, vec,7,8             #  correlations
+exit
+#

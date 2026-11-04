@@ -1,0 +1,33 @@
+discus
+#
+read
+  cell CELL/znse_wurtzite.cell, 20,20,15
+#
+#
+surface
+   set distance,external,all, 3.0
+   boundary sphere, lat[1]*20*0.45
+exit
+#
+plot
+   program jmol
+   property ignore, all 
+   sel   zn,se,void
+   outf  PLOT/block.cif
+   run plot:inter, kill:yes
+#
+wait return
+#
+#  Only plot atom for which "outside" is absent
+   property absent, outside
+   outf  PLOT/all.cif
+   run plot:inter, kill:no
+#
+wait return
+#
+#  Only plot atoms with "external" set, will be a shell
+   outf    PLOT/surface.cif
+   prop    present,external
+   run plot:inter, kill:no
+exit
+exit   ! Back to suite

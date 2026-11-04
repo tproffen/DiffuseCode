@@ -1,0 +1,31 @@
+
+These macros serve to demonstrate the decoration of surfaces by 
+ligand molecules.
+
+macros "shape_*.mac" build a crystal of the shape "*"
+macros "deco_*.mac" place onto the surface that was created by 
+                     "shape_*.mac" ligands according to the scheme
+                     "deco_*.mac".
+
+combined.mac runs these macros in proper order use as:
+
+@combined.mac substance, shape, deco_model
+For example:
+
+@combined zno, flat, normal      ! Place ligands in normal mode on top
+                                 ! of flat zno surface
+
+@combined zno, flat, bridge      ! Place ligands in bridge  mode
+@combined zno, flat, double      ! Place ligands in double  mode
+@combined zno, flat, chelate     ! Place ligands in chelate mode
+@combined zno, flat, multi       ! Place ligands in multi   mode
+
+@combined gold, flat, acceptor   ! Place water onto gold
+@combined donor, flat, donor     ! Place water onto special "donor" structure
+
+
+CELL/*.cell   Base compounds for the central object
+CELL/*.stru   Ligand compounds
+
+STRU/*.stru   The resulting structures
+PLOT/*.cif    CIFS for a nice plot

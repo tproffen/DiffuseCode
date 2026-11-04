@@ -1,0 +1,20 @@
+fourier
+  $2                                 ! Set radiation
+  ll -1.*hkl, -1.*hkl, -1.*hkl       ! Set lower left  bottom corner
+  lr  1.*hkl, -1.*hkl, -1.*hkl       ! Set lower right bottom corner
+  ul -1.*hkl,  1.*hkl, -1.*hkl       ! Set upper left  bottom corner
+  tl -1.*hkl, -1.*hkl,  1.*hkl       ! Set lower left  top    corner
+  na nhkl                            ! Number of pixel along abscissa
+  no nhkl                            ! Number of pixel along ordinate
+  nt nhkl                            ! Number of pixel along top axis
+  abs  h                             ! For simple plots use this index along axis
+  ord  k
+  top  l
+  temp use                           ! Apply Debye-Waller term
+  disp off                           ! Do not use anomalous diffraction
+  set  aver,  25                     ! Calculate Bragg intensities from 25% of the crystal
+  lots box, ibx, ibx, ibx,nlots,yes  ! Calc Fourier using lost with periodic boundary conditions
+  wvle 0.50                          ! Wave length
+  show
+  run
+exit

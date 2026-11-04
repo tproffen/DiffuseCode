@@ -1,0 +1,6 @@
+set prompt,redirect
+set error,exit
+#@kup_backup.mac compare
+@kup_backup.mac best
+sys rm -f RESUME_DISCUS
+exit

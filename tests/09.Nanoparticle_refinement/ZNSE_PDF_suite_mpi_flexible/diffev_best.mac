@@ -1,0 +1,60 @@
+discus
+#@ HEADER
+#@ NAME         diffev_best.mac
+#@ 
+#@ KEYWORD      diffev, best member, initialize
+#@ 
+#@ DESCRIPTION  This macro contains the parameters for the current best
+#@ DESCRIPTION  member. If run the best member will be recreated.
+#@ DESCRIPTION  As the random state is explicitely contained as well, the
+#@ DESCRIPTION  best member will be recreated exactly.
+#@ DESCRIPTION
+#@ DESCRIPTION  This macro uses the original macro on the run_mpi command
+#@ DESCRIPTION  line. Make sure to turn on writing of desired output files.
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @diffev_best.mac
+#@
+#@ END
+#
+REF_GENERATION =            2
+REF_MEMBER     =           20
+REF_CHILDREN   =           20
+REF_DIMENSION  =           14
+REF_KID        =         9999
+REF_INDIV      =         9999
+variable real, P_lata          
+variable real, P_latc          
+variable real, P_z_zn          
+variable real, P_biso          
+variable real, P_stack         
+variable real, P_ab_dia        
+variable real, P_cc_dia        
+variable real, P_corrquad      
+variable real, P_corrlinear    
+variable real, P_qbroad        
+variable real, P_qdamp         
+variable real, P_srat          
+variable real, P_density       
+variable real, P_scale1        
+P_lata           =  0.3987669945E+01
+P_latc           =  0.6502771378E+01
+P_z_zn           =  0.3793508112E+00
+P_biso           =  0.7660351992E+00
+P_stack          =  0.7270669937E+00
+P_ab_dia         =  0.2873035431E+02
+P_cc_dia         =  0.2235710907E+02
+P_corrquad       =  0.0000000000E+00
+P_corrlinear     =  0.4619821534E-01
+P_qbroad         =  0.3569999943E-02
+P_qdamp          =  0.2078000084E-01
+P_srat           =  0.1000000000E+01
+P_density        =  0.0000000000E+00
+P_scale1         =  0.2253273487E+01
+seed    0,3177,8983,    0,2823,5213,    0,3433, 697,    0,2546,9291,    0,3122,3093,    0,1973,9897,    0, 998,4812,    0,3526,8565,    0,3385,8529,    0,2324,9447,    0, 729,8119,    0,2444,2475,  group:3
+#
+#
+@dis.diffev.mac  ., REF_KID, REF_INDIV
+#
+exit

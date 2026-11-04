@@ -1,0 +1,106 @@
+#
+#@ HEADER
+#@ NAME         nano.mac
+#@ 
+#@ KEYWORD      nanoparticle, simple, sphere, powder, pdf
+#@ 
+#@ DESCRIPTION  This macro create a spherical nanoparticle 
+#@ DESCRIPTION  with user defined diameter. The powder diffraction pattern
+#@ DESCRIPTION  and the pdf are calculated.
+#@
+#@ PARAMETER    $0, 1
+#@ PARAMETER    $1, real,  nanoparticle diameter
+#
+#@ USAGE        @nano <diameter> 
+#@
+#@ END
+#
+################################################################################
+#
+discus
+#  Basic error handling
+#
+if($0.ne.2) then
+  echo
+  echo "Usage:"
+  echo "@nano <diameter>"
+  echo
+  wait return
+  exit     ! back to suite
+  continue suite
+endif
+if($1.lt.5 .or. 205.lt.$1) then
+  echo
+  echo Radius is outside sensible limits
+  exit
+  continue suite
+endif
+#
+#  Define variables for diameter,  the number of unit cells, and the
+#  average number density
+#
+variable integer, ncatom
+variable real,    diameter
+variable integer, ncell
+variable real,    rhozero
+#
+# Read the unit cell, here just to make sure we have the lattice constants
+#
+read
+  cell CELL/$2.cell
+ncatom = n[3]
+#
+#  Calculate the number density for later use in pdf calculation
+#
+rhozero = n[1]/vol[1]
+#
+#  Copy the user  parameter into a more legible variable, and calculate
+#  into how many unit cells the crystal must be expanded. As a < c, we
+#  just calculate the mimimum number of unit cells along a.
+#
+diameter = $1
+ncell  = 2*(int(diameter/lat[1])+1)
+#
+#  Now we really read and expand all the cells
+#
+read
+   cell CELL/$2.cell,ncell,ncell,ncell
+#
+#  The "boundary" command changes all atoms outside the diameter into
+#  empty atoms, called "void"
+#
+surface
+   boundary  form,  1,0,0,diameter/2.      ! Sphere takes radius
+exit
+#
+#  Lets check the composition and wait for user input. Then all voids are
+#  removed from internal memory to speed up the computation.
+#
+@plot.cif.mac  block
+chem
+   element
+exit
+wait return
+purge
+chem
+   element
+exit
+@plot.cif.mac  nano
+wait return
+#
+#        "powder.mac"     calculates the powder pattern according to Debye
+#        "output.mac"     writes the intensites to a file in x-y format
+#        "plot.cif.mac"   writes the atom coordinates for plotting
+@powder.mac q
+@output.mac tth,tth
+#
+#        "pdf.mac"  calculates the pdf and saves results
+@pdf.mac
+#
+branch kuplot
+   @knano.mac tth, tth, diameter
+   exit
+#
+eval (n[1]/ncatom*vol[1]*3./4./PI)**(1./3.) * 2.
+eval n[1]
+exit   ! Back to suite

@@ -1,0 +1,12 @@
+#
+#  Variables for the PDF calculation
+#
+variable real,    p_delta       ! 1/r^**2 correction 
+variable real,    p_gamma       ! 1/r     correction
+variable real,    p_qalp        ! Instr. resol. induced broadening
+variable real,    p_qsig        ! Instr. resol. induced dampening
+variable real,    p_qmax        ! Qmax value
+variable real,    p_srat        ! width correc of 1st peaks
+variable real,    p_density     ! Number density
+variable real,    p_scale       ! Scale factor
+variable real,    p_diameter    ! Finite size correction

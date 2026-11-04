@@ -1,0 +1,82 @@
+rese
+#
+load ni,example1.inte
+load cr,example1.plot
+#fopen 1,example1.data
+load ni,example1.3DPDF
+#
+nfra 4
+sfra 1, 0.00, 0.45, 0.54, 1.00
+sfra 2, 0.48, 0.45, 1.00, 1.00
+sfra 3, 0.00, 0.00, 0.60, 0.30
+sfra 4, 0.48, 0.00, 1.00, 0.55
+#
+kfra 1,1
+kfra 2,2
+kfra 3,example1.data
+kfra 4,3
+#
+afra 1
+  buff 0.06,0.06,0.10,0.00
+  skal -4, 4, -4, 4
+  mark 1, 1
+  aver 1
+  angle 90
+  achx [ H 0 0 ]
+  achy [ 0 K 0 ]
+  hart 1,2
+  cmap fire
+# hlin 1,1e7,1e7,20
+  hlin 1, 2.5, 1.25, 40, %
+  tit1 
+  tit2 
+  fnam off
+  achz OFF
+#
+afra 2
+  buff 0.06,0.06,0.10,0.00
+  aver 1.0000
+  skal -25,25,-25,25
+  mark 10,10
+  fnam off
+  tit1 
+  tit2 
+  achx [x 0 0]
+  achy [0 y 0]
+  msize 1,0.3
+  fset -3
+#
+afra 3
+  font size,5,16
+#
+afra 4
+  buff 0.06,0.06,0.10,0.00
+  skal -5, 5, -5, 5
+  aver 1
+  angle 90
+  achx [ x 0 0 ]
+  achy [ 0 y 0 ]
+  cmap pdf
+  hart 3,2
+  r[0] = abs(zmin[3])
+  r[1] = abs(zmax[3])
+  if(zmin[3]<0.0) then
+    hlin 1, -0.05*r[0], 0.005*r[0], 21
+    if(abs(zmax[3]/zmin[3])> 50.0) then
+      hlin 1, -0.5*r[0], 0.05*r[0], 100
+    else
+      hlin 1, -0.05*r[0], 0.005*r[0], 21
+    endif
+  else
+    r[10] = zmin[3] + 0.05*(zmax[3]-zmin[3])
+    r[11] =           0.01*(zmax[3]-zmin[3])
+    hlin 1, r[10], r[11], 101
+  endif
+#
+  tit1 
+  tit2 
+  fnam off
+  achz OFF
+  fset 2
+#
+plot

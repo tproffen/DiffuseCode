@@ -1,0 +1,10 @@
+kuplot
+reset
+load ni, profile.orig
+aver 1
+cmap fire
+hlin 1, 1,1,100, %
+skal
+mark 2, 2
+plot
+exit

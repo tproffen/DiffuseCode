@@ -1,0 +1,243 @@
+#
+#@ HEADER
+#@ NAME         sr0.3.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro allows the user to specify four 
+#@ DESCRIPTION  independent correlations,
+#@ DESCRIPTION  [1,0,0];  [0,1,0,]; [1,1,0]; [1,-1,0]
+#@ DESCRIPTION  you will see that not all correlations can actually be achieved.
+#@
+#@ PARAMETER    $0, 5
+#@ PARAMETER    $1, real,  fractional composition 
+#@ PARAMETER    $2, real,  correlation along [100]
+#@ PARAMETER    $3, real,  correlation along [010]
+#@ PARAMETER    $4, real,  correlation along [110]
+#@ PARAMETER    $5, real,  correlation along [-110]
+#@ PARAMETER    $6, real,  temperature
+#@
+#@ USAGE        @sro.3 <comp>,<c100>, <c010>, <c110>, <c-110>, <temperature>
+#@
+#@ END
+#
+################################################################################
+#
+discus
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size_cr
+variable real,comp
+variable real,c100
+variable real,c010
+variable real,c110         # New variable for the diagonal target correlations
+variable real,cM10         # 
+variable real,a100
+variable real,a010
+variable real,a110
+variable real,aM10
+variable real,heat
+#
+size_cr =  50
+comp = 0.5
+#
+#  Perform basic error check on user input
+#
+if($0 /= 6) then
+  echo
+  echo Use as: @sro.3  <comp>, <c100>, <c010>, <c110>, <c-110>, <temperature>
+  echo
+  continue suite
+endif
+#
+if($1 <   0.0   .or.   1.0  <    $1) then
+  echo
+  echo Composition coefficient must be in interval [ 0 : +1]
+  echo
+  continue suite
+endif
+#
+if($2 <   -1.0   .or.   1.0  <    $2) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($3 <   -1.0   .or.   1.0  <    $3) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($4 <   -1.0   .or.   1.0  <    $4) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($5 <   -1.0   .or.   1.0  <    $5) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($6 <    0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue suite
+endif
+comp = $1
+c100 = $2
+c010 = $3
+c110 = $4                  # Assign the two further parameter to readable names
+cM10 = $5                  #
+heat = $6
+#
+set parallel, useomp:use, nthreads:all
+!set parallel, useomp:serial, nthreads:1
+read
+  cell crystal.cell,size_cr,size_cr, 1 ! , size_cr
+#
+replace cu,au,all,comp      #  replace cooper by au on all sites in the 
+                              #  unit cell with probability <$2>
+#
+chem
+  set mode, quick, period, xyz
+exit
+#
+mmc
+  rese
+  set neig,rese
+  set vec, rese
+#
+  set vec,1, 1,1,  1, 0, 0    ! Relationship 1: site 1 to site 1 in unit cell at [1,0,0]
+  set vec,2, 1,1, -1, 0, 0    ! Relationship 2; same sites in the unit cell at [-1,0,0]
+  set vec,3, 1,1,  0, 1, 0
+  set vec,4, 1,1,  0,-1, 0
+  set vec,5, 1,1,  1, 1, 0
+  set vec,6, 1,1, -1,-1, 0
+  set vec,7, 1,1,  1,-1, 0
+  set vec,8, 1,1, -1, 1, 0
+  set neig,number:next, vec,1,2  ! Two relationships are grouped into a single neighborhood
+  set neig,number:next, vec,3,4  ! Here these are always the vectors to a first_neighbor atom
+  set neig,number:next, vec,5,6  ! at +- the vector
+  set neig,number:next, vec,7,8  ! Thus, neighbor number 3 is vector in +[1,1,0] and -[1,1,0]
+#
+  set mode, 1.0, swchem,all
+  set targ,1,corr,cu,au,c100,00.0,CORR   #  Now we defined four targets
+  set targ,2,corr,cu,au,c010,00.0,CORR   #  each with an independent
+  set targ,3,corr,cu,au,c110,00.0,CORR   #  target correlation
+  set targ,4,corr,cu,au,cM10,00.0,CORR   #
+  set cyc,  500*n[1]
+  set feed,  auto !10*n[1]
+  set temp,heat
+  set finish, stop:converge, diff:0.030, rdiff:0.1500, change:0.152, aver:0.150, feed:3
+#  set finish, cycles
+show 
+!wait return
+  run
+exit
+show res
+wait return
+#
+@plot.mac example3
+@fourier.mac example3, 100.0
+#@fourier.mac example3_0,  0.0
+#
+chem
+  corr occ,cu,au
+  a100 = res[1]
+  a010 = res[2]
+  a110 = res[3]
+  aM10 = res[4]
+exit
+fopen  1,example3.data
+fformat 1,*
+fput 1,"C100 target/achieved %6.2f %5.2f",c100, a100  
+fput 1,"C010 target/achieved %6.2f %5.2f",c010, a010  
+fput 1,"C110 target/achieved %6.2f %5.2f",c110, a110  
+fput 1,"CM10 target/achieved %6.2f %5.2f",cM10, aM10  
+fput 1,"temperature  %5.0f",heat
+chem
+  element
+exit
+fput 1,"copper : au %5.2f : %5.2f",res[2],res[1]
+fclose 1
+#
+save example3.stru
+#sys cp example3.stru example3_0.stru
+#sys cp example3.plot example3_0.plot
+#sys cp example3.data example3_0.data
+#
+#
+branch kuplot
+   @kex3.mac example3
+#wait return
+#   @kex3.mac example3_0
+   exit
+#
+#
+# Test for Success
+#
+branch kuplot
+#
+load ni, RESULTS/example3.inte
+load ni, RESULTS/example3.3DPDF
+r[2] = z[1,251,251]/z[1,246,246]
+r[3] = z[3,251,251]/z[3,253,253]
+echo PRIOR SMOOTH
+eval z[1,251,251]
+eval z[1,246,246]
+eval r[2]
+eval r[3]
+eval z[3,251,251]
+eval z[3,253,253]
+echo SMOOTH
+smooth 1, 21
+smooth 4, 21 
+smooth 3, 21
+smooth 4, 21 
+match sca, 4, 1
+rval 1, 4, one
+r[0] = res[1]
+match sca, 5, 3
+rval 3, 5, one
+r[1] = res[1]
+LTEST_MAC = FALSE
+!if(abs(r[0]) < 0.380 .and. abs(r[1]) < 0.600 ) then
+set prompt, off
+echo " RVAL %8.3f", r[0]
+echo " RVAL %8.3f", r[1]
+eval z[1,251,251]
+eval z[1,246,246]
+eval r[2]
+eval r[3]
+eval z[3,251,251]
+eval z[3,253,253]
+eval z[1,251,251]/z[1,246,246]
+eval z[3,251,251]/z[3,253,253]
+if(abs(r[0]) < 0.380 ) then !.and. abs(r[1]) < 00.600 ) then
+  echo COND 1
+  if(abs(c100-a100)< 0.08 .and. abs(c010-a010)< 0.08 .and.     &
+     abs(c110-a110)< 0.08 .and. abs(cM10-aM10)< 0.08 ) then
+    echo COND 2
+    if(z[1,251,251]/z[1,246,246]>2.0                   ) then
+      echo COND 3
+      if(z[3,251,251]/z[3,255,255]>  1.1                             ) then
+        echo COND 4
+        LTEST_MAC = TRUE
+      endif
+    endif
+  endif
+endif
+exit
+exit
+set prompt, on

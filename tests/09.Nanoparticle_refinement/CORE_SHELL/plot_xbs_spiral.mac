@@ -1,0 +1,14 @@
+#
+plot
+  prog diamond
+  uvw  0,0,1
+  abs  1,0,0
+  ord  0,1,0
+  vect 0,0,0
+  thick 100
+  outf spiral.xyz
+  ext all
+  sel all
+  set si,3, 0.0,0.0,1.0, 0.4
+  run
+exit

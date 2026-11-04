@@ -1,0 +1,85 @@
+# kpara.mac
+#
+############################################################
+#
+# Shows the evolution of R-value or parameters as function
+# of the generations
+#
+############################################################
+#
+variable integer, loop
+variable integer, ipar
+variable integer, generation
+variable integer, member
+variable integer, children
+variable integer, parameters
+variable character, parname
+if($0.ne.1) then
+  echo
+  echo "Usage:"
+  echo "@kpara <parameter>"
+  echo
+  echo For the R-value parameter should be zero
+  echo
+  wait return
+  continue kuplot
+endif
+#
+# Get generation numbers, number of members, children and parameters
+#
+fclose all
+fopen 1,GENERATION
+#
+fget  1,generation,member,children,parameters
+fclose 1
+if($1.lt.0 .or. $1.gt.parameters) then
+   echo
+   echo "Parameter no. %d is outside range [0:%d]",$1,parameters
+else
+rese
+#
+@k_get_name.mac ipar, parname, $1
+i[0]= 0
+load sc, "DIFFEV/Summary.%4D",ipar, 1, 1,(i[0]-1)*4 + 6
+load sc, "DIFFEV/Summary.%4D",ipar, 1, 1,(i[0]-1)*4 + 7
+load sc, "DIFFEV/Summary.%4D",ipar, 1, 1,(i[0]-1)*4 + 8
+load sc, "DIFFEV/Summary.%4D",ipar, 1, 1,(i[0]-1)*4 + 9
+do i[0]=1,np[1]
+  dy[1,i[0]] = y[4,i[0]]
+enddo
+mtyp 1,3
+mtyp 2,3
+mtyp 3,3
+mcol 1,3
+mcol 2,1
+mcol 3,1
+msiz 1, 0.2
+msiz 2, 0.2
+msiz 3, 0.2
+lcol 1,3
+lcol 2,1
+lcol 3,1
+ltyp 1,1
+ltyp 2,1
+ltyp 3,1
+etyp 1,2
+#
+if(ymin[1].eq.ymax[1] .and. ymin[2].eq.ymax[2] .and. ymin[3].eq.ymax[3].and. abs(ymin[1]-ymin[2]).le.ymin[1]*1e-5) then
+   echo "Fixed parameter No. %d %c",ipar, parname
+else
+kfra 1, 1,2,3
+skal
+mark
+tit1 Refinement of ZnSe PDF data
+if(ipar.eq.0)then
+  tit2 R-value
+  achy R-value
+else
+  tit2 "Parameter No. %d %c",ipar, parname
+  achy "Parameter No. %d %c",ipar, parname
+endif
+achx Generation
+fnam off
+plot
+endif
+endif

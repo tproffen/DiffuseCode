@@ -1,0 +1,52 @@
+#set prompt,redirect
+#set error,exit
+#@ HEADER
+#@ NAME         diffev.mac.mac
+#@
+#@ KEYWORD      refinement, diffev, generic
+#@
+#@ DESCRIPTION  This macro continues a refinement loop
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @diffev
+#@
+#@ END
+#
+################################################################################
+#
+diffev
+#
+  @cleanup.mac                ! Remove old files
+#
+  @setup.mac                  ! Define number of individual repetitions
+  @get_model.mac              ! Define the refinement model to use
+  @diffev_setup.mac           ! Define refinement details
+#
+  init silent                 ! initialize all parameters, silently no files are written
+#
+#
+do i[0]=1, 2
+echo "Loop, GENERATION %4d %4d",i[0]-1, pop_gen[0]
+  run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, compute:serial, logfile:LOGFILES/d 
+  compare silent
+enddo
+#
+fix P_lata, best
+#
+do i[0]=1, 2
+echo "Loop, GENERATION %4d %4d",i[0]-1, pop_gen[0]
+  run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, compute:serial, logfile:LOGFILES/d 
+  compare silent
+enddo
+#
+init P_lata, silent
+#release P_lata, range:0.05
+#
+do i[0]=1, 8
+echo "Loop, GENERATION %4d %4d",i[0]-1, pop_gen[0]
+  run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, compute:serial, logfile:LOGFILES/d 
+  compare silent
+enddo
+exit
+exit

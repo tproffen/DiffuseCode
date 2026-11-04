@@ -1,0 +1,8 @@
+#
+#  removes all output creates by the solution
+#  Use with caution!
+#
+system rm -f INDI/*
+system rm -f SUM/*
+system rm -f sorted.*
+system rm -f origin.list

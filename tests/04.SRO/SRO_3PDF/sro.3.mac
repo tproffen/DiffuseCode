@@ -1,0 +1,173 @@
+#
+#@ HEADER
+#@ NAME         sr0.3.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro allows the user to specify four 
+#@ DESCRIPTION  independent correlations,
+#@ DESCRIPTION  [1,0,0];  [0,1,0,]; [1,1,0]; [1,-1,0]
+#@ DESCRIPTION  you will see that not all correlations can actually be achieved.
+#@
+#@ PARAMETER    $0, 5
+#@ PARAMETER    $1, real,  fractional composition 
+#@ PARAMETER    $2, real,  correlation along [100]
+#@ PARAMETER    $3, real,  correlation along [010]
+#@ PARAMETER    $4, real,  correlation along [110]
+#@ PARAMETER    $5, real,  correlation along [-110]
+#@ PARAMETER    $6, real,  temperature
+#@
+#@ USAGE        @sro.3 <comp>,<c100>, <c010>, <c110>, <c-110>, <temperature>
+#@
+#@ END
+#
+################################################################################
+#
+discus
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size
+variable real,comp
+variable real,c100
+variable real,c010
+variable real,c110         # New variable for the diagonal target correlations
+variable real,cM10         # 
+variable real,a100
+variable real,a010
+variable real,a110
+variable real,aM10
+variable real,heat
+#
+size =  50
+comp = 0.5
+#
+#  Perform basic error check on user input
+#
+if($0 /= 6) then
+  echo
+  echo Use as: @sro.3  <comp>, <c100>, <c010>, <c110>, <c-110>, <temperature>
+  echo
+  continue suite
+endif
+#
+if($1 <   0.0   .or.   1.0  <    $1) then
+  echo
+  echo Composition coefficient must be in interval [ 0 : +1]
+  echo
+  continue suite
+endif
+#
+if($2 <   -1.0   .or.   1.0  <    $2) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($3 <   -1.0   .or.   1.0  <    $3) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($4 <   -1.0   .or.   1.0  <    $4) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($5 <   -1.0   .or.   1.0  <    $5) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($6 <    0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue suite
+endif
+comp = $1
+c100 = $2
+c010 = $3
+c110 = $4                  # Assign the two further parameter to readable names
+cM10 = $5                  #
+heat = $6
+#
+read
+  cell crystal.cell,size,size,1
+#
+replace cu,void,all,comp      #  replace cooper by voids on all sites in the 
+                              #  unit cell with probability <$2>
+#
+chem
+  set mode, quick, period, xy
+exit
+#
+mmc
+  rese
+  set neig,rese
+  set vec, rese
+#
+  set vec,1, 1,1,  1, 0, 0
+  set vec,2, 1,1, -1, 0, 0
+  set vec,3, 1,1,  0, 1, 0
+  set vec,4, 1,1,  0,-1, 0
+  set vec,5, 1,1,  1, 1, 0
+  set vec,6, 1,1, -1,-1, 0
+  set vec,7, 1,1,  1,-1, 0
+  set vec,8, 1,1, -1, 1, 0
+  set neig,vec,1,2
+  set neig,add
+  set neig,vec,3,4
+  set neig,add
+  set neig,vec,5,6
+  set neig,add
+  set neig,vec,7,8
+#
+  set mode, 1.0, swchem,local
+  set targ,1,corr,cu,void,c100,0.0,CORR   #  Now we defined fourt targets
+  set targ,2,corr,cu,void,c010,0.0,CORR   #  each with an independent
+  set targ,3,corr,cu,void,c110,0.0,CORR   # target correlation
+  set targ,4,corr,cu,void,cM10,0.0,CORR   #
+  set cyc,  50*n[1]
+  set feed, 10*n[1]
+  set temp,heat
+  run
+exit
+#
+@plot.mac example3
+@fourier.mac example3
+#
+chem
+  corr occ,cu,void
+exit
+fopen  1,example3.data
+fformat 1,*
+fput 1,"C100 target/achieved %6.2f %5.2f",c100, res[1]
+fput 1,"C010 target/achieved %6.2f %5.2f",c010, res[2]
+fput 1,"C110 target/achieved %6.2f %5.2f",c110, res[3]
+fput 1,"CM10 target/achieved %6.2f %5.2f",cM10, res[4]
+fput 1,"temperature  %5.0f",heat
+chem
+  element
+exit
+fput 1,"copper : voids %5.2f : %5.2f",res[2],res[1]
+fclose 1
+#
+save example3.stru
+#
+#
+branch kuplot
+   @kex3.mac inte
+   wait return
+   @kex3.mac 3dpdf
+   exit
+exit

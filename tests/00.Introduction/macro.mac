@@ -1,0 +1,20 @@
+set prompt, off
+#@ HEADER
+#@ NAME         macro.mac
+#@ KEYWORD      demonstration, macro
+#
+#@ DESCRIPTION  Just a quick demo macro
+#@ DESCRIPTION  The macro demonstrates very basic macro usage
+#
+#@ PARAMETER    $0,0
+#
+#@ USAGE        @macro
+#
+#@ END
+#
+################################################################################
+#
+echo Hi you are running the macro called macro.mac
+echo commands listed in the macro file are executed as if you had typed them
+#
+set prompt,on 

@@ -1,0 +1,21 @@
+kuplot
+reset
+load h5, example_three.inte, trans:yes
+  set zone:[0.0, 1.0, 0.0], abs:[0.00, 0.00, 1.00], ord:[1.00, 0.00, 0.00]
+  set npoints:[41, 41,41]
+  run
+exit
+hart 1, 2
+cmap fire
+hlin 1, 1,1,100, %
+aver data:1
+angle data:1
+mark 1, 1
+achx [ 0 0 L ]
+achy [ H 0 0 ]
+fnam off
+fset 2
+tit1 Simple SRO  Zone axis [ 0 1 0 ]
+tit2 "c100:%5.2f c010:%5.2f c001:  0.00", $1, $2
+plot
+exit

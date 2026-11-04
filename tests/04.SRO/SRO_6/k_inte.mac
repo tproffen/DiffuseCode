@@ -1,0 +1,33 @@
+rese
+#
+load ni,example6a.inte
+#fopen 1,example3.data
+#
+nfra 1
+sfra 1, 0.00, 0.30, 0.54, 1.00
+buff 0.10,0.06,0.10,0.05
+#
+kfra 1,1
+#
+afra 1
+  aver 1
+  angle 90
+  skal 
+  mark 2,2
+  achx [ H 0 0 ]
+  achy [ 0 K 0 ]
+  hart 1,2
+  cmap fire
+#  cmap gray
+  hlin 1,1e7,1e7,20
+  hlin 1, 0.50, 0.50, 20, %
+  tit1 
+  tit2 
+  fnam off
+  achz OFF
+  grid on
+  font size,3,18
+  font size,4,18
+#
+plot
+save png, sro6_inte.png

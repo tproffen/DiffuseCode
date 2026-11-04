@@ -1,0 +1,41 @@
+@pdf_1.mac 1,test
+discus
+  read
+    cell ni.cell
+  pdf
+    set bound, period, quick, 3D
+    set weight, 1.0
+    calc
+    save pdf, ni_period_quick.grcalc
+#
+    set bound, period, exact, 3D
+    set weight, 1.0
+    calc
+    save pdf, ni_period_exact.grcalc
+#
+#   set bound, crystal, exact, 3D
+#   set weight, 1.0
+#   calc
+#   save pdf, ni_crystal_exact.grcalc
+ exit
+ read
+   cell ni.cell, 10,10,10
+ pdf
+   set bound, period, exact, 3D
+   set weight, 1.0
+   calc
+   save pdf, ni_period_exact.crystal
+  exit
+exit
+kuplot
+reset
+  load xy, ni_period_quick.grcalc
+  load xy, ni_period_exact.grcalc
+  load xy, ni_period_exact.crystal
+! load xy, ni_crystal_exact.grcalc
+! load xy, ni_crystal_exact.crystal
+  skal
+  mark
+  lcol 3, black
+  plot
+exit

@@ -1,0 +1,25 @@
+#
+sys cp TEMP/calc.0001.pdf TEMP/calc.0001.old
+#
+  sys /usr/local/bin/discus < dis_diffev.mac  
+  sys /usr/local/bin/kuplot < kup_diffev.mac  
+rese
+@setup
+if(mode.eq.linear) then
+  load xy, DATA/pd361.dat
+else
+  load xy, DATA/pd361_r.dat
+endif
+load xy, TEMP/calc.0001.pdf
+fopen 1,INDI/content.0001
+fget 1,i[1],i[2],r[3]
+fclose all
+tit2 "Zn %4d Cd %4d ratio %8.4f",i[1],i[2],r[3]
+skal
+plot
+wait return
+skal 0,8
+plot
+rval 1,2,one
+sys "cp TEMP/calc.0001.pdf TEMP/calc.0001.R%6.4f",res[2]
+sys "cp DIFFEV/Versuche.0001 DIFFEV/Versuche.0001.R%6.4f",res[2]

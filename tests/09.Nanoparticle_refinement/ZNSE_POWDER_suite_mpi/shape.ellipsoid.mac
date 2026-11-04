@@ -1,0 +1,22 @@
+read
+   cell "%c/STRU/%c.%4D.%4D.cell",TMPDIR,SUBSTANCE,REF_KID,indiv
+#
+@stack.mac p_stack    ! Build crystal with stacking faults
+@shift.mac p_cc*0.5   ! Shift down half height as stacks start at 0,0,0
+#
+surface 
+   boundary ellipsoid, p_ab, p_ab, p_cc  ! Ellipsoid uses diameter
+exit
+#
+purge
+#  Omit the save section for a faster refinement
+save
+   outf "%c/STRU/%c.%4D.%4D.particle",TMPDIR,SUBSTANCE,REF_KID,indiv
+   omit  ncell
+   omit  gene
+   omit  scat
+   omit  adp
+   run
+exit
+#
+#@plot.cif.mac final

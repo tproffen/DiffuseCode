@@ -1,0 +1,63 @@
+discus
+#
+variable integer, iatom
+iatom = mol_cont[1,1]               ! First atom in first molecule
+#
+do LOOP=0,10
+  i[LOOP] = 0
+enddo
+find env, all, x[iatom], y[iatom],z[iatom],0.1, p_bond1+0.1
+do LOOP=1,env[0]
+  if(env[LOOP]<iatom) then
+    r[11] = surf[env[LOOP], 1]
+    r[12] = surf[env[LOOP], 2]
+    r[13] = surf[env[LOOP], 3]
+    if(blen(r[11], r[12], r[13])> 0.1) then
+      i[0] = i[0] + 1
+      i[i[0]] = env[LOOP]
+      show atom, i[i[0]]
+    endif
+  endif
+enddo
+r[11] = surf[i[1], 1]
+r[12] = surf[i[1], 2]
+r[13] = surf[i[1], 3]
+r[14] = x[iatom]-x[i[1]]
+r[15] = y[iatom]-y[i[1]]
+r[16] = z[iatom]-z[i[1]]
+#
+iatom = mol_cont[1,2]               ! Second atom in first molecule
+do LOOP=0,10
+  i[LOOP] = 0
+enddo
+find env, all, x[iatom], y[iatom],z[iatom],0.1, p_bond2+0.1
+do LOOP=1,env[0]
+  if(env[LOOP]<iatom) then
+    r[11] = surf[env[LOOP], 1]
+    r[12] = surf[env[LOOP], 2]
+    r[13] = surf[env[LOOP], 3]
+    if(blen(r[11], r[12], r[13])> 0.1) then
+      i[0] = i[0] + 1
+      i[i[0]] = env[LOOP]
+      show atom, i[i[0]]
+    endif
+  endif
+enddo
+r[17] = x[iatom]-x[i[1]]
+r[18] = y[iatom]-y[i[1]]
+r[19] = z[iatom]-z[i[1]]
+vprod r[17], r[18], r[19], r[14], r[15], r[16], ddd
+r[21] = res[1]
+r[22] = res[2]
+r[23] = res[3]
+r[0] = bang(r[11], r[12], r[13], r[21], r[22], r[23])
+r[1] = blen(r[14], r[15], r[16])
+r[2] = blen(r[17], r[18], r[19])
+eval r[0]
+LTEST_MAC=FALSE
+if(abs(r[0]-90.0)<1.0 .and. abs(r[1]-p_bond1)<0.001.and. abs(r[2]-p_bond2)<0.001 ) then
+  LTEST_MAC=TRUE
+endif 
+#
+exit  ! back to suite
+

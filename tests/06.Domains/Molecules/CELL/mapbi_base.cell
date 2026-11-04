@@ -1,0 +1,7 @@
+title Cubic MAPbI3 perovskite structure
+spcgr Pm-3m
+cell 6.270, 6.270, 6.270, 90.00, 90.00, 90.00
+atoms
+C     0.50,  0.50,  0.50,  0.2
+Pb    0.00,  0.00,  0.00,  0.1
+I     0.50,  0.00,  0.00,  0.3

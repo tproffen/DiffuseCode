@@ -1,0 +1,11 @@
+#
+#
+#
+read
+  cell primitive.cell, $1, $1, 1
+#
+@fourier_2d
+#
+@output_fourier primitive
+#
+@plot primitive

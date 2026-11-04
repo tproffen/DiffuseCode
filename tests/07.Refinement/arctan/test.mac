@@ -1,0 +1,20 @@
+variable char, string
+fopen 1, test.hkl
+fformat 1, i4
+fformat 2, i4
+fformat 3, i4
+fformat 4, f11.1
+fformat 5, f11.1
+fformat 6, i2
+fget 1, i[11], i[12], i[13], r[11], r[12], i[14]
+fget 1, i[11], i[12], i[13], r[11], r[12], i[14], string, i[15],form:'i4,i4,i4,f11  ,f11.1, i2, a6,i4'
+
+fclose all
+eval i[11]
+eval i[12]
+eval i[13]
+eval r[11]
+eval r[12]
+eval i[14]
+echo "%c", string
+eval i[15]

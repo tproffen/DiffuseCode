@@ -1,0 +1,28 @@
+variable character, TMPDIR    ! temporary DISCUS files   'internal'     or '.'
+variable character, INDIDIR   ! temporary PDF directory  'kuplot'       or 'TEMP'
+variable character, DATADIR   ! input data directory     '/tmp/mpkr04/' or. '.'
+variable character, DATAFILE  ! Input Data File  
+variable character, SUBSTANCE ! Substance name  
+#
+# LOCAL Version, serial and parallel
+#
+DATADIR  = "%c",'.'
+DATAFILE = "%c",'PD32ZS56.DAT'
+INDIDIR  = "%c",'kuplot'
+TMPDIR   = "%c",'.' !internal'
+SUBSTANCE = "%c",'znse_wurtzite'
+#
+# High performace compute center individuals in parallel
+#
+#DATADIR  = "%c",'/tmp/mpkr04'      ! Make sure these are unique
+#DATAFILE = "%c",'PD32ZS56.DAT'
+#INDIDIR  = "%c",'/tmp/mpkr04'      ! Make sure these are unique
+#TMPDIR   = "%c",'internal'
+#
+# High performace compute center individuals serially
+#
+#DATADIR  = "%c",'/tmp/mpkr04'      ! Make sure these are unique
+#DATAFILE = "%c",'PD32ZS56.DAT'
+#INDIDIR  = "%c",'kuplot'
+#TMPDIR   = "%c",'internal'
+#

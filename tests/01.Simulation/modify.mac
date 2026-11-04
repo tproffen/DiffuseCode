@@ -1,0 +1,40 @@
+#@ HEADER
+#@ NAME         modify.mac
+#@ 
+#@ KEYWORD      loop, if, modify
+#@ 
+#@ DESCRIPTION  This macro modifies a simple structure
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @modify 
+#@
+#@ END
+################################################################################
+#
+read                           ! Switch to read menu
+  cell primitive.cell,5,5,1    ! Read asymmetric unit and expand to 5x5x5 unit cells
+#
+x[13] = 0.5                    ! Change atom position for atom no. 13
+y[13] = 0.5
+replace 13,Zr,1.0
+#
+@plot.mac modified             ! Use instructions in macro to write a file for plot
+#
+wait return                    ! Simply wait while user looks at structure
+#
+read
+  cell primitive.cell,5,5,1
+#
+do i[0]=1,n[1],1               ! Loop over all atoms from 1 to n[1] in steps of 1
+  if(mod(i[0],3)  ==  0) then  ! For atoms 3,6,9,... 
+    replace i[0],Zr,1.0        !   Replace these atoms by Zirconium
+  elseif(mod(i[0],3)  ==  1) then  ! For atoms 1, 4, 7, ...
+    remove i[0]                ! Remove atom from structure 
+  endif
+enddo
+@plot.mac changed
+#
+chemistry                      ! Switch to chemistry level
+  element                      ! List composition
+exit                           ! back to main menu

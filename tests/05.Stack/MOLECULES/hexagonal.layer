@@ -1,0 +1,28 @@
+title Primitive hexagonal cell
+spcgr P6              
+cell    2.500000,  2.500000,  4.082483, 90.000000, 90.000000,120.000000
+atoms      x,              y,              z,             Biso,    Property,  MoleNo,  MoleAt,   Occ
+molecule
+molecule type,       1
+molecule character,atoms          
+molecule biso     ,      0.0000
+molecule end
+molecule
+molecule type,       1
+molecule character,atoms          
+molecule biso     ,      0.0000
+molecule end
+molecule
+molecule type,       1
+molecule character,atoms          
+molecule biso     ,      0.0000
+molecule end
+molecule
+molecule type,       1
+molecule character,atoms          
+molecule biso     ,      0.0000
+molecule end
+CO        -1.000000,      -1.000000,       0.000000,      0.200000,       3,       1,       1,   1.000000
+CO         0.000000,      -1.000000,       0.000000,      0.200000,       3,       2,       1,   1.000000
+CO        -1.000000,       0.000000,       0.000000,      0.200000,       3,       3,       1,   1.000000
+CO         0.000000,       0.000000,       0.000000,      0.200000,       3,       4,       1,   1.000000

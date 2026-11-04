@@ -1,0 +1,47 @@
+#set prompt,redirect
+#set error,exit
+#@ HEADER
+#@ NAME         diffev.mac.mac
+#@
+#@ KEYWORD      refinement, diffev, generic
+#@
+#@ DESCRIPTION  This macro runs a refinement loop
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @diffev
+#@
+#@ END
+#
+################################################################################
+#
+variable integer,weiter
+#
+weiter = -1
+fopen 1,WEITER
+fformat 1, i4
+fput 1,weiter
+fclose 1
+#
+@cleanup.mac
+#
+@diffev_setup.mac
+#
+init
+#sys cp DIFFEV/BACKUP_Versuche.0002 DIFFEV/Versuche.0002
+#sys cp DIFFEV/BACKUP_Versuche.0004 DIFFEV/Versuche.0004
+#
+# Force at least the Generation zero
+#
+weiter = -1
+#
+do while(weiter.eq.-1)
+  sys /usr/local/bin/discus < dis_diffev.mac  
+  sys /usr/local/bin/kuplot < kup_diffev.mac  
+  sys /usr/local/bin/kuplot < kup_select.mac  
+  compare
+  fopen 1, WEITER
+  fget 1,weiter
+  fclose 1
+enddo
+exit

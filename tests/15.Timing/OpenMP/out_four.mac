@@ -1,0 +1,10 @@
+output                               ! Write output
+  outfile INTE/$1_$2.inte.h5         ! Output file name
+  value   inte                       ! Regular intensity
+  form    hdf5, maxval:data          ! HDF5 file format
+  run
+  outfile INTE/$1_$2.3DPDF.h5
+  value   3DPDF
+  form    hdf5
+  run
+exit

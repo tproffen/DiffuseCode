@@ -1,0 +1,21 @@
+fourier
+  ll -4.0,-4.0,0.0
+  lr  4.0,-4.0,0.0
+  ul -4.0, 4.0,0.0
+  na 201 
+  no 201 
+  abs  h
+  ord  k
+  temp ign
+  disp off
+  set  aver, 10
+  lots box,20,20,1,50,yes
+  show
+  run
+exit
+output
+  outfile $1.inte
+  value   inte
+  form    stan
+  run
+exit

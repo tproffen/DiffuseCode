@@ -1,0 +1,2 @@
+system rm -f *.plot
+system rm -f *.cift

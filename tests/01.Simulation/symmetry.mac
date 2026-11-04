@@ -1,0 +1,101 @@
+#@ HEADER
+#@ NAME         symmetry.mac
+#@ 
+#@ KEYWORD      symmetry, molecule
+#@ 
+#@ DESCRIPTION  This macro applies a symmetry operation to a molecule
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @symmetry 
+#@
+#@ END
+################################################################################
+#
+#  symmetry.mac
+#
+################################################################################
+#
+# reads an asymmetric unit and expands this to a 3*2*1 block of unit cells.
+# After the initial plot, moelcules are selected and turned by 30 degrees around
+# the [001] axis.
+#
+# read                  ! Switch to the structure reading menu
+# cell cmm2.cell,3,2,1  ! read an asymmetric unit of file "cmm2.cell"
+#                       ! expand to 3*2*1 unit cells
+# @plot molecule        ! write structure to a file for plotting
+# wait return           ! wait for user to type a return
+# #
+# symm                  ! switch to the symmetry menu
+# #
+#   uvw 0,0,1           ! set symmetry axis to [0,0,1]
+#   angl 30.0           ! set rotation angle to 30 degrees
+#   orig 0,0,0,mol      ! set origin to center of each molecule
+#   trans 0,0,0         ! set translation part of symmetry operation to zero
+#   type proper         ! define S.O. as pure rotation( no inversion involved)
+#   power 1,single      ! do the operation once, if it had been higher, a 
+#                       !  single result would be created
+#   mode repl,new       ! replace atoms by their copies, create a new molecule
+#                       !  number and type
+# #
+#   msel 1              ! select molecule of type 1
+#   minc 17,20          ! include molecules no. 17 to 20 ignore others
+# #
+#   run                 ! do the actual operation
+# exit                  ! exit symmetry menu
+# @plot molecule        ! plot the result
+#
+################################################################################
+#
+discus
+#
+read
+cell cmm2.cell,3,2,1
+@plot.mac molecule
+branch kuplot
+   @kplot.mac molecule
+   exit
+#wait return
+#
+symm
+#
+  reset
+  uvw 0,0,1
+  angl 30.0
+  orig 0.0, 0.0 ,0.00 , mol
+  trans 0,0,0
+  type proper
+  power 1,single
+  mode repl,new
+#
+ msel 1
+ minc 17,20
+#   sel 1
+#   inc 17,20
+  show
+#
+  run
+exit
+@plot.mac molecule
+#
+branch kuplot
+   @kplot.mac molecule
+   exit
+#
+# Test for success
+#
+if(n[1]==72 .and. n[4]==24 .and. n[5]==2 .and. n[6]==4) then
+  r[11] = x[mol_cont[1,2]] - x[mol_cont[1,3]]
+  r[12] = y[mol_cont[1,2]] - y[mol_cont[1,3]]
+  r[13] = z[mol_cont[1,2]] - z[mol_cont[1,3]]
+  r[0] = bang(1.0,0.0,0.0,  r[11], r[12], r[13])
+  r[21] = x[mol_cont[17,2]] - x[mol_cont[17,3]]
+  r[22] = y[mol_cont[17,2]] - y[mol_cont[17,3]]
+  r[23] = z[mol_cont[17,2]] - z[mol_cont[17,3]]
+  r[1] = bang(1.0,0.0,0.0,  r[21], r[22], r[23])
+  if(abs(r[0])< 0.001 .and. abs(r[1]-30.0)<0.001) then
+    LTEST_MAC = TRUE
+  endif
+endif
+#
+exit               ! Back to suite

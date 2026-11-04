@@ -1,0 +1,135 @@
+#
+#
+#
+variable integer, ncell
+variable real, p_corr
+variable real, d_pb_o
+variable real, d_bi_o
+variable real, d_ti_o
+variable real, d_mg_o
+variable real, a_ti_o
+variable real, a_mg_o
+#
+discus
+#
+ncell = 20
+p_corr = -0.35
+#
+read
+   cell CELL/perovskite.cell, ncell, ncell, ncell
+#
+d_pb_o = sqrt(0.50)*lat[1]*1.05
+d_bi_o = sqrt(0.50)*lat[1]/1.05
+d_ti_o =      0.50 *lat[1]/1.05
+d_mg_o =      0.50 *lat[1]*1.05
+a_ti_o = 80.00
+a_mg_o = 90.00
+#
+replace Pb, Bi, 1, 0.6000
+replace Ti, Mg, 2, 0.3000
+#
+chem
+   elem
+exit
+#
+connectivity
+   reset
+   add  Pb, Pb, Bi,          lat[1]-0.5,          lat[1]+0.5, pb_first
+   add  Bi, Pb, Bi,          lat[1]-0.5,          lat[1]+0.5, bi_first
+   add  Ti, Ti, Mg,          lat[1]-0.5,          lat[1]+0.5, ti_first
+   add  Mg, Ti, Mg,          lat[1]-0.5,          lat[1]+0.5, mg_first
+#
+   create
+exit
+mmc
+   reset
+   set con,rese
+   set nei,rese
+   set con,  1,  Pb, pb_first
+   set con,  2,  Bi, bi_first
+   set con,  3,  Ti, ti_first
+   set con,  4,  Mg, mg_first
+   set neig, con, 1, 2
+   set neig, add
+   set neig, con, 3, 4
+#
+   set mode, 1.0, swchem, site
+#
+   set target, 1, corr, Pb, Bi, p_corr, 0.0, CORR
+   set target, 2, corr, Ti, Mg, p_corr, 0.0, CORR
+#
+   set cycle, n[1]*100
+   set feed , n[1]*  5
+   set temp, 1.0
+   show
+   run
+exit
+#
+connectivity
+   reset
+   add  Pb, O ,     sqrt(.5)*lat[1]-0.5, sqrt(.5)*lat[1]+0.5, pb_ox
+   add  Bi, O ,     sqrt(.5)*lat[1]-0.5, sqrt(.5)*lat[1]+0.5, bi_ox
+   add  Ti, O ,          .5 *lat[1]-0.5,      .5 *lat[1]+0.5, ti_ox
+   add  Mg, O ,          .5 *lat[1]-0.5,      .5 *lat[1]+0.5, mg_ox
+#
+   create
+exit
+#
+therm
+#
+mmc
+   reset
+   set con,rese
+   set vec,rese
+   set nei,rese
+   set con,  1,  Ti, ti_ox
+   set con,  2,  Mg, mg_ox
+#   set con,  3,  Pb, pb_ox
+#   set con,  4,  Bi, bi_ox
+   set neig, con, 1, 2
+#   set neig, add
+#   set neig, con, 2
+#   set neig, add
+#   set neig, con, 3
+#   set neig, add
+#   set neig, con, 4
+#set vec,  1, 2, 3, 0, 0, 0
+#set vec,  2, 2, 3,-1, 0, 0
+#set vec,  3, 2, 4, 0, 0, 0
+#set vec,  4, 2, 4, 0,-1, 0
+#set vec,  5, 2, 5, 0, 0, 0
+#set vec,  6, 2, 5, 0, 0,-1
+#set neig, vec,  1, 2, 3, 4, 5, 6
+#
+   set mode, 1.00, shift, all
+   set move, all,  0.002,  0.002, 0.002
+   set allowed, O, Ti, Mg, Pb, Bi
+#
+   set target, 1, lennard, Ti, O,   d_ti_o, 10.0, 12,6
+#  set target, 1, angle  , Ti, O,O, a_ti_o, 0.01
+   set target, 1, lennard, Mg, O,   d_mg_o, 10.0, 12,6
+#  set target, 2, angle  , Mg, O,O, a_mg_o, 0.01
+#  set target, 3, lennard, Pb, O,   d_pb_o, 10.0, 12,6
+#  set target, 4, lennard, Bi, O,   d_bi_o, 10.0, 12,6
+#  set target, 1, lennard, Ti, O,   d_ti_o, 10.0, 12,6
+#  set target, 1, lennard, Mg, O,   d_mg_o, 10.0, 12,6
+#
+   set cycle, n[1]* 500
+   set feed , n[1]*  50
+   set temp, 1.0
+   show
+wait return
+   run
+exit
+chem
+   aver,ind
+exit
+save
+   outf STRU/perovskite.stru
+   omit all
+   write scat
+   write adp
+   run
+exit
+#
+exit   ! return to SUITE

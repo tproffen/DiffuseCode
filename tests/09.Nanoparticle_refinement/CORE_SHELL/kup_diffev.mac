@@ -1,0 +1,120 @@
+set prompt,redirect
+set error,exit
+#@ HEADER
+#@ NAME         kup.diffev.mac
+#@
+#@ KEYWORD      refinement, average, rvalue
+#@
+#@ DESCRIPTION  This macro calculates the r-Values for all children
+#@ DESCRIPTION  It averages the individual powder pattern, fits the
+#@ DESCRIPTION  scale factor and the -4pi rho line correction.
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @kup.diffev
+#@
+#@ END
+#
+#  kup.diffev.mac
+#
+################################################################################
+#
+rese
+#
+#
+variable integer,generation
+variable integer,member
+variable integer,children
+variable integer,parameters
+variable integer,kid
+variable integer,power,4
+#
+@setup.mac
+#
+fclose all
+#
+fopen 1,GENERATION
+fget  1,generation,member,children,parameters
+fclose 1
+#
+#
+do kid=1,children
+#
+#
+# Read the actual correlations from DIFFEV/Versuche
+#
+# fopen 2,"DIFFEV/Versuche.%4D",kid
+# fget  2,generation,member,children,parameters
+# fget  2,i[1]
+# fget 2
+# do i[3] = 1,parameters
+#   fget 2,r[200+i[3]]
+# enddo
+#
+  sys "cp INDI/indi.%4D.0001.pdf CALC/calc.%4D.pdf",kid,kid
+  if(nindiv.gt.1) then
+    do i[11]=2,nindiv
+      rese
+      load xy,"CALC/calc.%4D.pdf",kid
+      load xy,"INDI/indi.%4D.%4D.pdf",kid,i[11]
+      kcal add,1,2
+      ksav 3
+        outf "CALC/calc.%4D.pdf",kid
+      run
+    enddo 
+  else
+    rese
+    load xy, "CALC/calc.%4D.pdf",kid,kid
+    load xy, "CALC/calc.%4D.pdf",kid,kid
+    load xy, "CALC/calc.%4D.pdf",kid,kid
+  endif
+  ccal mul,wy,3,1./nindiv
+  ksav 3
+    outf "CALC/calc.%4D.pdf",kid
+  run
+  if(mode.eq.square) then
+    do i[1]=1,np[3]
+      y[3,i[1]]= y[3,i[1]]*x[3,i[1]] 
+    enddo
+  endif
+  skal 0.02,30.00
+  ksav 3
+    outf "TEMP/calc.%4D.pdf",kid
+  run
+  rese
+  if(mode.eq.square) then
+    load xy, DATA/pd361_r.dat
+  else
+    load xy, DATA/pd361.dat
+  endif
+  load xy,"TEMP/calc.%4D.pdf",kid
+  kcal sub,1,2
+  skal 
+#  ksav 3
+#    outfile "TEMP/back.%4D",kid
+#    run
+#  rese
+#  load xy, "TEMP/back.%4D",kid
+#  ccal add,wx,1,-3.20
+  fit 3
+    func poly,power
+    para 1,0,0.0
+    wic one
+    run
+  exit
+  kcal add,2,4
+  ksav 6
+    outf "TEMP/calc.%4D.pdf",kid
+    run
+  rval 1,6
+#
+  fopen 1, "DIFFEV/Resultate.%4D",kid
+  fformat 1,i5
+  fformat 2,f15.9
+  fput 1,kid,res[2]
+  fclose all
+#
+enddo
+#
+#set prompt,on
+exit

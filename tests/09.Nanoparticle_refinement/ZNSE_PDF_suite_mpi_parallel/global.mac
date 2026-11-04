@@ -1,0 +1,63 @@
+#
+#  global.mac
+#
+#  define file names
+
+variable character, TMPDIR    ! temporary DISCUS files   'internal'     or '.'
+variable character, INDIDIR   ! temporary PDF directory  'kuplot'       or 'TEMP'
+variable character, DATADIR   ! input data directory     '/tmp/mpkr04/' or. '.'
+variable character, DATAFILE  ! Input Data File  
+variable character, SUBSTANCE ! Substance name  
+#
+# LOCAL Version, serial
+#
+#DATADIR   = "%c",'.'
+#DATAFILE  = "%c",'PD32ZS56.DAT'
+#INDIDIR   = "%c",'kuplot'
+#TMPDIR    = "%c",'internal'
+#SUBSTANCE = "%c",'znse_wurtzite'
+#
+# LOCAL Version, parallel
+#
+DATADIR   = "%c",'.'
+DATAFILE  = "%c",'PD32ZS56.DAT'
+INDIDIR   = "%c",'.'
+TMPDIR    = "%c",'internal'
+SUBSTANCE = "%c",'znse_wurtzite'
+#
+# High performace compute center individuals in parallel
+#
+#DATADIR   = "%c",'/tmp/mpkr04'      ! Make sure these are unique
+#DATAFILE  = "%c",'PD32ZS56.DAT'
+#INDIDIR   = "%c",'/tmp/mpkr04'      ! Make sure these are unique
+#TMPDIR    = "%c",'internal'
+#SUBSTANCE = "%c",'znse_wurtzite'
+#
+# High performace compute center individuals serially
+#
+#DATADIR   = "%c",'/tmp/mpkr04'      ! Make sure these are unique
+#DATAFILE  = "%c",'PD32ZS56.DAT'
+#INDIDIR   = "%c",'kuplot'
+#TMPDIR    = "%c",'internal'
+#SUBSTANCE = "%c",'znse_wurtzite'
+#
+#
+# Create necessary directories
+#
+if('kuplot'/="%c",INDIDIR) then         ! Test for INDIDIR
+  fexist "%c/INDI", INDIDIR
+  if(res[1]==0) then
+    set error, live
+    system "mkdir -p %c/INDI", INDIDIR
+    set error,exit
+  endif
+endif
+#
+if('.'/="%c",DATADIR) then              ! Test for DATADIR
+  fexist "%c/DATA", DATADIR
+  if(res[1]==0) then
+    set error, live
+    system "mkdir -p %c/DATA", DATADIR
+    set error, exit
+  endif
+endif

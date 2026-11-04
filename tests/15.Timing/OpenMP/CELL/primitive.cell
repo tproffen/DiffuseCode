@@ -1,0 +1,5 @@
+title  Primitive structure
+spcgr Pm-3m
+cell  3.35000  3.35000  3.35000  90.00  90.00 90.00
+atoms
+Cu  0.00000   0.00000  0.00000  0.05

@@ -1,0 +1,60 @@
+# The macros in this directory are used to refine the structure
+# of CdSe/ZnS Nanoparticles based on PDF data
+#
+################################################################################
+#
+# The core shell nanoparticle is simulated in a multiple stage form.
+# 
+# The core is simulated like the ZnSe nanoparticles in the previous sections
+# Several smaller ZnS nanoparticles are created likewise, except that they are
+# of spherical shape with individual radius defined by a lognormal distribution
+#
+# The shell particles are placed onto the core in a locally epitaxial fashion.
+# DISCUS finds a number of Cd atoms on the surface of the core, which are 
+# randomly placed. At each of these positions, a ZnS sphere is placed. Each
+# new ZnS sphere removes older atoms located within the same volume. Finally
+# the core ellipsoid is placed back into the shell structure. Here the core in
+# turn removes old atoms within its own volume.
+#
+# This algorithm results in an elliptical core with semispherical ZnS nano
+# particles on its surface. The center of each ZnS sphere is at a position 
+# where a Cd atom of the core is located. As a consequence, the ZnS semi sphere
+# is locally in epitaxial position.
+#
+################################################################################
+#
+DATA FLOW 
+
+
+diffev      ! Main refinement program
+
+diffev.mac  ! is the main macro for the refinement. it starts in turn:
+     cleanup.mac   ! Removes temporary files for a clean start
+     diffev_setup  ! Definition of refinement parameters
+
+     DISCUS program with macro dis_diffev.mac ! Simulation of particles
+     KUPLOT program with macro kup_diffev.mac ! Scale, Background, R-value
+     KUPLOT program with macro kup.select.mac ! Archiving
+
+diffev_continue.mac  ! is the main macro for the continuation of the refinement.
+#-------------------------------------------------------------------------------
+discus      ! Simulation of all individual particles for all children
+
+    setup.mac       ! Definition of the number of individual particles
+    discus_main.mac ! The specific simulation of the particles
+
+discus_main.mac ! The specific simulation of the particles
+
+     variables.mac       ! Define useful variable names
+     makelayers.mac      ! create the layers with current lattice constants
+
+     LOOP over all individual calculations
+        shape_core.mac   ! for the core, stack the layers and shape into an ellipsoid
+        LOOP over all shell particles
+           para_sub.mac  ! Determine radius
+           shape_sub.mac ! Create all shell particles
+        shape_shell.mac  ! Determine locations for the shell particles
+        insert_sub.mac   ! Place all shell partricles onto their positions
+        insert_core.mac  ! Place teh core into the center
+        trans_for_pdf.mac! Transform into a large unit cell
+        pdf.mac          ! Calculate the PDF and save to file

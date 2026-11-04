@@ -1,0 +1,10 @@
+title Primitive hexagonal cell
+spcgr P6
+cell  2.5, 2.5, 2.5*sqrt(8./3.), 90., 90., 120.
+#cell  2.0, 2.0, 1.2659864, 90., 90., 120.
+scat  Co
+adp   0.2
+occ   1.00
+anis type:1, value:[0.005, 0.005, 0.007, 0.000, 0.0000, 0.0025]
+atom
+Co    0.0000, 0.0000, 0.0000, 0.2000

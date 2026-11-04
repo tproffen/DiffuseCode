@@ -1,0 +1,35 @@
+discus
+#@ HEADER
+#@ NAME         diffev_best.mac
+#@ 
+#@ KEYWORD      diffev, best member, initialize
+#@ 
+#@ DESCRIPTION  This macro contains the parameters for the current best
+#@ DESCRIPTION  member. If run the best member will be recreated.
+#@ DESCRIPTION  As the random state is explicitely contained as well, the
+#@ DESCRIPTION  best member will be recreated exactly.
+#@ DESCRIPTION
+#@ DESCRIPTION  This macro uses the original macro on the run_mpi command
+#@ DESCRIPTION  line. Make sure to turn on writing of desired output files.
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @diffev_best.mac
+#@
+#@ END
+#
+REF_GENERATION =           30
+REF_MEMBER     =           10
+REF_CHILDREN   =           10
+REF_DIMENSION  =            2
+REF_KID        =         9999
+REF_INDIV      =         9999
+variable real, P_a100          
+variable real, P_biso          
+P_a100           = -0.3326202333E+00
+P_biso           =  0.1051733121E+00
+seed     0, 470,5646,     0,4693,4525,     0,2869,9109,     0,1372,4101,     0, 208,6358,     0,2743,3417,     0, 431,2039,     0, 549,8529,     0,1182,9122,     0,2302,1806,     0,4696,  96,     0,1789,3279,  group:3
+#
+#
+@ref.ex0.dis.diffev.mac  ., REF_KID, REF_INDIV
+#

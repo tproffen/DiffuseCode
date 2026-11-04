@@ -1,0 +1,353 @@
+discus
+set prompt,off
+#
+variable integer, dimx         ! size in no of unit cells
+variable real,    d_to_surf    ! thicknes of surface layer
+variable real,    dismin       ! separation between surface
+variable real,    dismax       !  atoms, min, max
+variable real,    fraction     ! of surfece Se ==> O
+variable real,    first        ! 1. neigh distance
+variable real,    second       ! 2. neigh distance
+variable real,    radius       ! of nanoparticle
+#
+@variables_pdf.mac             ! Variables for the PDF calculation
+#
+radius    = 18.50              ! nanoparticle radius
+d_to_surf =  0.70              ! thickness of surface shell
+fraction  =  0.35              ! Fract. of surface Se ==> O
+#
+read
+   cell CELL/znse_zincblende.cell  ! No we know lattice, bond length
+#
+dimx   = int(2*radius/lat[1]) + 2  ! Calculate no of unit cells
+first  = blen(atom,1,5)            ! 1st neigh dist = [1/4, 1/4, 1/4]
+second = blen(0.5,0.5,0)           ! 2nd neigh dist = [1/2, 1/2, 1/2]
+dismin = 0.75*second               ! For repulsive potential calc
+dismax = 6.00*second               !  min and max distances
+#
+echo
+echo Finished the initial parameter definitions
+wait return
+#
+p_delta    =  0.000
+p_gamma    =  0.001
+p_qalp     =  0.001
+p_qsig     =  0.001
+p_qmax     = 30.000
+p_srat     =  1.000
+p_density  =  0.06000
+p_scale    =  1.000
+p_diameter = radius*2.0
+#
+########################################################
+#
+read                           ! now read and expand to full crystal
+  cell CELL/znse_zincblende.cell, dimx,dimx,dimx
+#
+#
+surface                        ! go to surface menu
+  set distance,external,all, d_to_surf  ! set thickness of shell
+  boundary sphere, radius      ! Cut crystal to sphere with radius
+exit
+#
+chem
+  elem                         ! Lets see how many atoms remain
+exit
+echo
+echo Crystal is shaped into sphere; but voids remain
+#
+plot                           ! go to plot menu
+  reset
+  program jmol                 ! set output type to CIF file
+  sel     zn,se                ! Select atom types
+  sel     void
+  outf    PLOT/block.cif       ! write full block of atoms/voids
+  run     plot:inter, kill:yes
+  wait return
+  des     void                 ! Deselect the voids
+  prop    ignore, all          ! ignore all property flags
+  outf    PLOT/all.cif         ! Name of output file
+  run     plot:inter, kill:yes
+  wait return
+#
+  outf    PLOT/surface.cif
+  prop    present,external     ! Require surface flag to be set
+  prop    absent ,outside      ! Require atom to be inside
+  prop    present,normal       ! Require atom not to be a void
+  run     plot:inter, kill:yes
+  wait return
+exit
+#
+#echo
+#echo "Use jmol to plot PLOT/block.cif, PLOT/all.cif, PLOT/surface.cif"
+#wait return
+purge                          ! Clean voids from memory
+#
+property                       ! Go to property menu
+   property ignore,  all       ! Enforce the global property
+   property absent,  outside   ! settings to be applied
+   prop    present,normal      ! 
+exit
+#
+save                           ! Go to save menu
+   omit  ncell                 ! Do not write "ncell" keyword
+   write scat                  ! write atom names
+   write adp                   ! write atomic displacment parameters
+   outf  STRU/core.stru        ! output file name
+   sel   all                   ! Select all atom types
+   des   void                  ! Deselect voids
+   run                         ! Write the structure to file
+exit
+#
+property
+   property ignore,  all
+   property absent,external    ! Require atom to be far from surface
+exit
+#
+replace Zn,void,all,1.0        ! Remove Zn with probab=1 but use
+replace Se,void,all,1.0        !   the global property settings
+#
+plot 
+  program jmol
+  des     all                  ! No atom types selected
+  sel     zn,se,void           ! Select jsut these atom types
+  prop    ignore,all           ! Ignore all property flags
+  out     PLOT/sphere.cif      ! Shell, with both Se and Zn
+  run     plot:inter, kill:yes
+  wait return
+exit
+#
+chem
+  elem                         ! which elements have remained?
+exit
+echo
+echo "All atoms below surface shell have been turned into voids"
+echo
+wait return
+#
+property
+   property ignore,all
+exit
+replace zn,void,all,1.0        ! Now remove every Zn on all sites
+replace se,cl,all, fraction    ! Replace a fraction of Se by dummy CL
+#
+purge                          ! Clean all voids from memory!!!!!!!!!
+#
+plot
+   program  jmol
+   prop     ignore, all
+   sel      all
+   outf     PLOT/selenium_shell.cif ! just the Se, Cl shell
+   run      plot:inter, kill:yes
+exit
+#
+chem
+  elem
+exit
+echo
+echo "Part of the Se shell has been turned into CL"
+echo
+wait return 
+#
+property
+   property ignore,all
+exit
+#
+chem                           ! Go to chemistry menu
+   set blen, 2.0,15.           ! Set bond length range
+   set bin,  131               ! Set no of data points
+   blen cl,cl, PDF/clcl.prior  ! calc and write CL-CL distances
+exit
+#
+#                              ! Version 4.x only !!!!!!!!!!!!!
+connectivity                   ! Go to connectivity Menu
+   reset                       ! reset all connectivities
+   add   cl,cl,se, dismin, dismax, cl_all  ! Connect Cl to Cl and Se
+   add   se,cl,se, dismin, dismax, se_all  ! Connect Se to Cl and Se
+   create                      ! Create the actual conn. list
+   show
+exit
+echo
+echo "Created a connectivity list "
+echo
+wait return
+#
+#
+mmc                            ! Go to Monte Carlo Menu
+   reset                       ! do global reset
+   set neig,rese               ! reset neigh borhood definitions
+#
+                               ! Use as 1st pair correlation.
+   set con,1, 2, se_all        !     At. type 2 with its conn. no 1. 
+   set con,2, 3, cl_all
+   set neig,con,1,2            ! Group pair defs 1 and 2 to one neigh
+#
+   set mode, 1.0, swchem,all   ! Switch chemistry of all atom types
+   set allowed,se,cl           ! Allow Cl and Se to be switched
+#  set targ,1,repulsive, ...   ! Define target no. 1 as repulsive 
+                               ! force between Cl and Cl
+                               ! E is -2000 at r > 20.00
+                               ! E is 1e9   at r < 3.5
+                               ! E is 1/(r-3.5)**1
+   set targ,1,repulsive,cl ,cl, 20, 2000.,3.5,1 
+   set cyc, 300*n[1]           ! No. of cycles
+   set feed, 20*n[1]           ! Feedback intervall
+   set temp,2.5                ! "Temperature k*T"
+   show
+echo
+echo "MMC setup to spread CL atoms apart"
+   wait return
+   run
+exit
+#
+plot
+   program  jmol
+   sel      all
+   outf     PLOT/dispersed.cif ! PLot dispersed Cl atoms
+   property ignore,all
+   run      plot:inter, kill:yes
+exit
+#
+chem
+   set blen, 2.0,15.
+   set bin,  131
+   blen Cl,Cl, PDF/clcl.after  ! calc and write new histogram
+exit
+#
+branch kuplot
+@khist.mac
+exit
+#
+echo
+echo "CL atoms have been redistributed on the surface"
+echo "In KUPLOT run macro khist.mac"
+echo
+wait return
+#
+property
+   property ignore,all
+exit
+#
+save
+   omit     ncell
+   des      all
+   sel      Cl
+   outfile  STRU/shell.list    ! Save Cl positions as place holders
+   run
+exit
+#
+#####################################################################
+#
+echo
+echo "Now we will read the old core structure and replace all" 
+echo "dummy CL atoms by a ligand, here just an oxygen atom"
+echo
+wait return
+read                           ! Lets read the old core structure
+   stru  STRU/core.stru
+#
+domain                         ! Go to domain menu
+                               ! Each CL pseudo atom from "shell.list"
+                               ! Will be replaced by content of file
+                               ! "CELL/ligand.stru"
+                               ! (here just a single Oxygen)
+   reset
+   mode    pseudo
+   input   STRU/shell.list
+   assign  char  , Cl,fuzzy
+   assign  fuzzy , Cl,1.5
+   assign  cont  , Cl, CELL/ligand.stru
+   assign  shape , Cl,1,  1. , 0. , 0. ,  0.
+   assign  shape , Cl,2,  0. , 1. , 0. ,  0.
+   assign  shape , Cl,3,  0. , 0. , 1. ,  0.
+   assign  orient, Cl,1,  1. , 0. , 0. ,  0.
+   assign  orient, Cl,2,  0. , 1. , 0. ,  0.
+   assign  orient, Cl,3,  0. , 0. , 1. ,  0.
+   set     distance, all, first*1.1  ! Define distance to internal
+   set     distance, new, first*1.1  ! boundary for old and new atoms
+   show
+  run
+exit
+#
+plot
+   program   jmol
+   sel       all
+   des       void
+   property  ignore, all
+   outf      PLOT/replaced.cif
+   run       plot:inter, kill:yes
+exit
+#
+echo
+echo "The Domain concept has been used to replace CL by the ligand"
+echo
+wait return
+#                              ! Define new connectivities
+connectivity
+   reset
+   add Zn, Se, 1.8, first+0.5, zn_first  ! Central Zn with Se in shell 
+   add Zn, O , 1.8, first+0.5, zn_ox
+   add Se, ZN, 1.8, first+0.5, se_first
+   add O , ZN, 1.8, first+0.5, ox_zn
+   show
+   create
+exit
+echo
+echo " A new connectivity list has been created"
+wait return
+#
+@setup_pdf.mac                 ! Setup for PDF calculation
+@pdf.mac initial               ! Calc PDF for initial structure
+#
+mmc
+  reset
+  set neig,rese
+#
+  set con,1, 1,zn_first
+  set con,2, 1,zn_ox
+  set con,3, 2,se_first
+  set con,4, 3,ox_zn
+  set neig,con,1,3             ! Make neigh out of pair defs 1 3
+  set neig, add                ! Another neighborhood will follow
+  set neig,con,2,4             !
+  set neig, add
+  set neig,con,1,3
+#
+  set mode, 1.0, shift,all     ! Allow atoms to shift
+  set move, Zn, 0.001,0.001,0.001 ! define magnitude of shift
+  set move, O , 0.001,0.001,0.001
+  set move, Se, 0.001,0.001,0.001
+                               ! Define Lennard Jones potentials
+                               ! with Emin = -100, ideal r=first
+  set targ,1,lennard, Zn,Se,first, 100,12,6
+  set targ,2,lennard, Zn,O ,2.000, 100,12,6
+                               ! Define Angle potential at Zn
+                               ! Se neighbors, ideal = 109.0°
+  set targ,3,angle, Zn, Se, Se, 109.0, 0.05
+  set cyc, 200*n[1]
+  set feed, 20*n[1]
+  set temp, 2.5
+  show
+echo
+echo "MMC setup for the relaxation of distances"
+  wait return
+  run
+exit
+plot
+  outf PLOT/final.cif
+  run  plot:inter, kill:yes
+exit
+save
+  outf STRU/final.stru
+  omit all
+  run
+exit
+@pdf.mac final                 ! Calc PDF for final structure
+#
+branch kuplot
+@kpdf.mac
+exit
+echo
+echo "In KUPLOT run macro kpdf.mac"
+set prompt,on
+exit

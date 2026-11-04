@@ -1,0 +1,22 @@
+  read
+  cell "STRU/$1.%4D.cell",kid
+  @stapel.mac $1,cc_core,stack_core
+  @shift.mac cc_core
+#
+  @trans2cart.mac
+  @shear.mac ab_core,cc_core
+  boundary sphere,ab_core
+  @shear.mac cc_core,ab_core
+#
+  purge
+#
+  save
+    outf "STRU/$1.%4D.%4D.core",kid,indiv
+    omit  ncell
+    omit  gene
+    omit  scat
+    omit  adp
+    run
+  exit
+#
+@plot_xbs_core.mac single_core

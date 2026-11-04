@@ -1,0 +1,13 @@
+rese
+load ni, $1.inte
+hart 1,2
+cmap fire
+fset 0
+aver 1
+hlin 1,20,20,10
+fnam off
+buff 0,0,0,0
+skal
+mark
+plot
+save png, $1_inte.png

@@ -1,0 +1,148 @@
+#
+#@ HEADER
+#@ NAME         dom.cube.mac
+#@ 
+#@ KEYWORD      domain, cube, pseudoatom
+#@ 
+#@ DESCRIPTION  This macro creates a simple structure. the central part
+#@ DESCRIPTION  is then filled with another structure.
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @dom.cube 
+#@
+#@ END
+################################################################################
+#
+discus
+#
+read
+cell dom.guest.cube.cell, 5, 5, 1
+save
+  outf dom.guest.cube.stru
+  run
+exit
+#
+read
+cell dom.host.cube.cell, 7, 7, 1
+chem
+elem
+exit
+show adp:all
+wait return
+#
+domain
+  rese
+  mode   pseudo
+  input  dom.cube.pseudo
+  assign char,Si,cube
+  assign fuzzy,Si,1.5
+  assign cont, Si,dom.guest.cube.stru
+  assign shape ,Si,1,  1.1, 0. , 0. ,  0. 
+  assign shape ,Si,2,  0. , 1.1, 0. ,  0. 
+  assign shape ,Si,3,  0. , 0. , 1. ,  0. 
+  assign orient,Si,1,  1. , 0. , 0. ,  0. 
+  assign orient,Si,2,  0. , 1. , 0. ,  0. 
+  assign orient,Si,3,  0. , 0. , 1. ,  0. 
+#  set    distance, all, 2.90 !55              # Define distance to internal
+#  set    distance, new, 2.55              # boundary for old and new atoms
+#  set    remove, strict
+  show
+wait return
+  run
+  reset
+exit
+do LOOP=1, n[2]
+  eval b[LOOP]
+enddo
+show adp:all
+#wait return
+chem
+   elem
+exit
+wait return
+#
+plot
+  reset
+  program kuplot
+  outfile  cube.plot
+  uvw  0,0,1
+  abs  1,0,0
+  ord  0,1,0
+  vect  0.0, 0.0, 0.0
+  thick     1.0
+  select   all
+  des      void
+  set 1, 2, 3, 1.0
+  set 2, 3, 6, 1.0
+  extend all
+  run
+  program cif
+  outfile  cube.cif
+  thick  1000.0
+  run
+  reset
+exit
+#
+chem
+  set mode,exact,normal
+  elem
+exit
+#wait return
+#
+property
+  property present,internal
+exit
+replace al,si,all,1.0
+replace ni,pt,all,1.0
+#
+plot
+   reset
+   prog  kuplot
+   outf  cube_replaced.plot
+   select all
+   des    void
+   set 1, 2, 3, 1.0
+   set 2, 3, 6, 1.0
+   set 3, 3, 2, 1.0
+   extend all
+   thick     1.0
+   run
+   program  cif
+   outf  cube_replaced.cif
+   thick  1000.0
+   run
+   des Al, Si
+   outf cube_core.cif
+   run
+   sel Si
+   outf cube_coat.cif
+   run
+   reset
+exit
+show atom,all
+#
+branch kuplot
+   @k.simple.mac cube
+#   wait return
+   @k.simple.mac cube_replaced
+   exit
+#
+chem
+   elem
+exit
+#
+#  Test for success
+#
+i[0]=nint(res[0]     )
+i[1]=nint(res[1]*n[1])
+i[2]=nint(res[2]*n[1])
+i[3]=nint(res[3]*n[1])
+i[4]=nint(res[4]*n[1])
+i[5]=nint(res[5]*n[1])
+!
+LTEST_MAC = FALSE
+if(i[0]==5 .and. i[1]==9 .and. i[2]==28 .and. i[3]==1 .and. i[4]==12 .and. i[5]==8) then
+  LTEST_MAC = TRUE
+endif
+exit    ! back to suite

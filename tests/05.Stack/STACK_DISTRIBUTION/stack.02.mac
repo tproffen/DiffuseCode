@@ -1,0 +1,67 @@
+#@ HEADER
+#@ NAME         stack.02.mac
+#@ 
+#@ KEYWORD      stacking fault, hexagonal, hcp, fcc, distribution
+#@ 
+#@ DESCRIPTION  This macro creates a simple structure with stacing faults
+#@ DESCRIPTION  The basic types are hexagonal closed packed and cubic closed 
+#@ DESCRIPTION  packed. No fourier is calculated
+#@
+#@ PARAMETER    $0, 1
+#@ PARAMETER    $1, real,  probability
+#@
+#@ USAGE        @stack.01 <probability>
+#@
+#@ END
+################################################################################
+#
+discus
+#
+read
+  cell  hexagonal.cell,10,10, 1
+#
+save
+  outfile hexagonal.layer
+  run
+exit
+replace 1, Ba, all, 1.0
+save
+  outfile hexagonal.wrong
+  run
+exit
+#
+read
+  cell  hexagonal.cell,1,1, 12
+replace Co,Fe, all, 0.5
+#
+save
+  outfile random.stru
+  write scat
+  write adp
+  run
+exit
+#
+stack
+  layer  hexagonal.layer
+  layer  hexagonal.wrong
+  trans  1,1, 1./3.,-1./3., 1./2
+  trans  1,2,-1./3., 1./3., 1./2
+  trans  2,1, 1./3.,-1./3., 1./2
+  trans  2,2,-1./3., 1./3., 1./2
+  distr  file, random.stru
+  number 12
+#
+  aver   0.00, 0.00, 1.00
+  modul  1.00, 0.00, 0.00, 0.00, 1.00, 0.00
+  set    modulus,on
+  set    trans,fixed
+#
+  create
+  run
+exit
+@plot.mac stack
+save
+  outf crystal.stru
+  run
+exit
+exit

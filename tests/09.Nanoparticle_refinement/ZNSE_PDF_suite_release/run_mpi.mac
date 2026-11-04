@@ -1,0 +1,4 @@
+do i[0]=1,1
+run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, logfile:LOGFILES/d, compute:serial
+compare silent            ! Compare R-values to previous generation
+enddo

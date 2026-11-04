@@ -1,0 +1,23 @@
+#
+#  plotcif.mac
+#
+################################################################################
+#
+# writes the atom coordinates to be plotted with "jmol" program
+#
+################################################################################
+#
+plot
+  reset
+  program   jmol
+  uvw       0,0,1
+  abs       1,0,0
+  ord       0,1,0
+  ext       all
+  vect      0,0,0
+  thick     10000.
+  sel       all
+  poly      off
+  outf      $1_plot.cif
+  run       plot:inter, kill:yes
+exit

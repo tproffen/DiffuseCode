@@ -1,0 +1,26 @@
+#
+#  fourier_2d.mac
+#
+################################################################################
+#
+#  This macro calculateds a 2-D fourier
+#
+################################################################################
+#
+fourier                  # switch to the DISCUS fourier menu
+  reset
+  xray                   # select x-rays
+  ll -3, -3, 0           # set the lower left corner 
+  lr  3, -3, 0           # set the lower right corner  
+  ul -3,  3, 0           # set the upper left corner  
+  na 121                 # calculate with 301 points along abscissa
+  no 121                 # calculate with 301 points along ordinate
+  temp use               # use atomic displacement parameters
+  disp off               # switch anomalous dispersion off
+  wvle 1.00              # set the wave length to 1.0 Angstroem
+  abs h                  # use h for x-axis in KUPLOT
+  ord k                  # use h for x-axis in KUPLOT 
+  set aver,0             # do not subtract average intensity
+  show                   # show current settings
+  run                    # do the calculation
+exit                     # go back to the main DISCUS menu

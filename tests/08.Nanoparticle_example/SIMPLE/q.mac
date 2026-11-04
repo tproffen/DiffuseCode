@@ -1,0 +1,3 @@
+@../../prep_var.mac
+#set wait, off
+@nano 30.00, zno

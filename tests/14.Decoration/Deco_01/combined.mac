@@ -1,0 +1,56 @@
+#@ HEADER
+#@ NAME         combined.mac
+#@ 
+#@ KEYWORD      main
+#@ 
+#@ DESCRIPTION  This macro combines the shape macro and the decoration macro
+#@
+#@ PARAMETER    $0, 3
+#@ PARAMETER    $1, character,    structure   = gold |  zno 
+#@ PARAMETER    $2, character,    shape to build
+#@ PARAMETER    $3, character,    Decoration model to use
+#@
+#@ USAGE        @header file_name
+#@
+#@ END
+#set prompt,off,off
+#
+################################################################################
+#
+#  Do we have two parameters?
+#
+if($0.ne.3) then
+  echo
+  echo use as:
+  echo @combine.mac substance,shape, deco_model
+  echo
+  set prompt,on,on
+  continue discus
+endif
+#
+################################################################################
+#
+#
+discus
+#
+@shape_$2.mac   $1
+@deco_$3.mac    $1
+@plot.mac $1_$2_$3
+show atom, all, style:long
+chem
+elem
+exit
+wait return
+save
+   outf STRU/$1_$2_$3.stru
+   write all
+   run
+exit
+#
+chem
+   elem
+exit
+show mol, last
+exit ! back to suite
+set prompt,on,on
+#exit

@@ -1,0 +1,44 @@
+#
+#  k1d_periodic.mac
+#
+################################################################################
+#
+#  This macro plots the result of DISCUS macro <1d_periodic.mac>
+#
+#
+################################################################################
+#
+rese
+load xy, 1d.inte
+load cr,1d.plot
+load xy, 1d_period.inte
+#
+nfra 2
+sfra 1, 0.00, 0.00, 1.00, 0.90
+sfra 2, 0.00, 0.90, 1.00, 1.00
+kfra 1,1
+kfra 2,2
+#
+afra 1
+  skal -2.5,2.5,0,ymax[1]*1.025
+  mark 0.5
+  fnam off
+  achx [1 0 0]
+  achy Intensity
+  tit1
+  tit2
+  ltyp 3,0                        # set line type for data set 3 to 0 (= solid)
+  mtyp 3,3                        # marker type for data set 3 to 3 (= circle)
+  mcol 3,3                        # marker color for data set 3 to 3 (= blue)
+  msiz 3,0.25                     # set marker size forr data set 3 to 0.25 cm
+afra 2
+  skal xmin[2]-0.5,xmax[2]+0.5,-0.5,0.5
+  mark 1,1
+  msiz 2,0.5
+# 
+plot
+wait return
+#
+kfra 1,1,3
+kfra 2,2
+plot

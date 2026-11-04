@@ -1,0 +1,39 @@
+rese
+load ni, DATA/experimental.inte
+load ni, "FINAL/final.%4D",$1
+match all,1,2
+rval 1,2,one
+nfra 2
+sfra 1, 0.00,0.00, 0.56,1.00
+sfra 2, 0.44,0.00, 1.00,1.00
+kfra 1,1
+kfra 2,2
+afra 1
+  aver 1
+  angle 90
+  hart 1,2
+  cmap gray
+  hlin 1,5000 ,5000 ,20
+  achx [H 0 0]
+  achy [0 0 L]
+  achz Intensity
+  tit1 Refinement of a disordered structure
+  tit2 Experimental data
+  fnam off
+#
+afra 2
+  aver 1
+  angle 90
+  hart 2,2
+  cmap gray
+  hlin 1,5000 ,5000 ,20
+  achx [H 0 0]
+  achy [0 0 L]
+  achz Intensity
+  tit1
+  tit2 "Calculated data no. %d",$1
+  fset -3
+  fnam off
+#
+plot
+rval 1,2,one

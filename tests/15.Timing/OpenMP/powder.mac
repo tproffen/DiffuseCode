@@ -1,0 +1,191 @@
+set wait, on
+#
+#  main.mac
+#
+################################################################################
+#
+#  Run a 3D SRO, calculate 3D Intensity and 3D PDF, powder PDF
+#
+################################################################################
+#
+variable integer, sos   !Sort Omp Start
+variable integer, sof   !Sort Omp Finish
+variable integer, ros   !Rela Omp Start
+variable integer, rof   !Rela Omp Finish
+variable integer, fos   !Four Omp Start
+variable integer, fof   !Four Omp Finish
+variable integer, pos   !Powd Omp Start
+variable integer, pof   !Powd Omp Finish
+variable integer, gos   !Gran Omp Start
+variable integer, gof   !Gran Omp Finish
+!
+variable integer, sss   !Sort Ser Start
+variable integer, ssf   !Sort Ser Finish
+variable integer, rss   !Rela Ser Start
+variable integer, rsf   !Rela Ser Finish
+variable integer, fss   !Four Ser Start
+variable integer, fsf   !Four Ser Finish
+variable integer, pss   !Powd Ser Start
+variable integer, psf   !Powd Ser Finish
+variable integer, gss   !Gran Ser Start
+variable integer, gsf   !Gran Ser Finish
+variable integer, counter !counters
+variable char, string
+#
+fclose all
+fopen 1, timing.dat
+counter = 0
+!
+@timer.mac gos            ! Grand Openmp Start
+variable integer, nthreads! Maximum number of threads for OpenMP
+variable integer, dimen   ! Crystal size in unit cells
+variable integer, ibx     ! Fourier lots in unit cells
+variable real,    comp    ! Composition [0:1]
+variable real,    c100    ! Target correlation in <100>
+variable real,    c110    ! Target correlation in <110>
+variable real,    c111    ! Target correlation in <111>
+variable real,    heat    ! Pseudo temperature for Monte Carlo 
+variable real, diameter   ! Diameter for DSE calculation
+variable real, P_eta      ! Powder diffraction profile parameter mixing Lorentzian / Gaussian
+variable real, P_eta_l    ! Powder diffraction profile parameter mixing Lorentzian / Gaussian Q dependent
+variable real, P_u        ! Powder diffraction profile parameter FWHM = sqrt(u*Q^2 +
+variable real, P_v        ! Powder diffraction profile parameter             v*Q
+variable real, P_w        ! Powder diffraction profile parameter             w       )
+variable real, P_qmax     ! Powder diffraction maxumum Q value
+variable real, P_clin     ! Powder PDF parameter for correlated motion linear part
+variable real, P_cquad    ! Powder PDF parameter for correlated motion quadratic part
+variable real,eCC         ! Intended interatomic distance Copper-Copper
+variable real,eCA         ! Intended interatomic distance Copper-Gold
+variable real,eAA         ! Intended interatomic distance Gold-Gold
+variable real, hkl        ! Maximum hkl for single crystal Fourier
+variable integer, nhkl    ! Number of data points for single crystal Fourier
+variable integer, nlots   ! Number of Fourier lots
+variable integer, ncycle  ! number of Monte-Carlo cycles
+variable integer, nfeed   ! number of Monte-Carlo cycles for feedback
+variable integer, nlayer  ! initial plot layer
+
+#
+hkl   = 4.5                    !     Calculate Fourier in range of +-hkl 
+nhkl  = 181                    ! 181 Use nhkl pixels along each axis
+nlayer= (nhkl+1)/2             !     Initial layer to plot
+nlots =  1                     !  10 Sample nlots regions of the crystal
+dimen =  50                    !  40 Overall crystal size in unit cells
+comp  =   0.50                 !     Composition
+ncycle= 200                    ! 200 Maximim mmc cycles
+nfeed = ncycle/80              !  80 Feedbacks every ncycle/80 
+heat  = 1.5
+#
+c100  =  -0.50 ! -0.51 ! -0.80                  ! Correlations between first neighbor pairs
+c110  =   0.50 !  0.50 !  0.75                  ! Correlations between second neighbor pairs
+c111  =  -0.50 ! -0.50 ! -0.70                  ! Correlations between third neighbor pairs
+#
+ibx   = min(dimen/2, 20)       ! calculate a maximum lot size
+#
+P_qmax  = 30.0                 ! Powder diffraction parameters
+P_eta   = 0.6
+P_eta_l = 0.0
+P_u     = 0.0000
+P_v     = 0.0000
+P_w     = 0.0010
+P_clin  = 0.0000
+P_cquad  = 0.0000
+#
+discus                         ! Step into DISCUS section for crystal simulation
+#
+@timer.mac gos            ! Grand Openmp Start
+read
+  cell CELL/primitive.cell, dimen, dimen, dimen
+#
+eCC=(1.0-0.015)*lat[1]         ! Define strain relative to lattice parameters
+eCA=(1.0      )*lat[1]
+eAA=(1.0+0.015)*lat[1]
+
+#
+replace Cu, Ag, all, comp      ! Replace copper by Gold at composition 
+#
+chem
+  set mode, quick, period      ! The crystal is strictly periodic with periodic boundary conditions
+exit
+#
+diameter = lat[1]*dimen-0.5    ! A dummy sphere for the fast calculation of a powder PDF
+#
+#@plot.mac    random            ! Create files for display wiht KUPLOT and a CIF file for JMOL
+set parallel, useomp:use, nthread:$1
+show parallel
+nthreads = res[2]
+eval nthreads
+wait return
+#
+@timer.mac pos            ! Powd  Openmp Start
+@debye.mac           xray      ! Powder diffraction pattern
+@timer.mac pof            ! Powd  Openmp Finish
+wait return
+#
+@output.mac  relaxed_xray  ! Save powder diffraction pattern
+@timer.mac gof            ! Grand Openmp Finish
+wait return
+#
+set parallel, useomp:serial, nthread:1
+#
+@timer.mac gss            ! Grand Openmp Start
+read
+  cell CELL/primitive.cell, dimen, dimen, dimen
+#
+replace Cu, Ag, all, comp      ! Replace copper by Gold at composition 
+#
+@timer.mac pss            ! Powd  Serial Start
+@debye.mac            xray      ! Powder diffraction pattern
+@timer.mac psf            ! Powd  Serial Finish
+wait return
+#
+#
+@output.mac  no_omp_xray       ! Save powder diffraction pattern
+@timer.mac gsf            ! Grand Serial Finish
+fclose all
+system cat timing.dat
+#set wait, on
+wait return
+exit   ! Back to suite
+#
+#@k_grand.mac no_omp, xray
+wait return
+#
+#@k_grand.mac relaxed, xray
+#
+variable real, sort_omp
+variable real, sort_ser
+variable real, rela_omp
+variable real, rela_ser
+variable real, four_omp
+variable real, four_ser
+variable real, powd_omp
+variable real, powd_ser
+variable real, core_omp
+variable real, core_ser
+variable real, gran_omp
+variable real, gran_ser
+kuplot
+!
+reset
+!
+load xy, timing.dat, 1, 2
+load xy, timing.dat, 1, 3
+load xy, timing.dat, 1, 4
+powd_omp = (y[1, pof] - y[1, pos])*3600 + (y[2, pof] - y[2, pos])*60 + (y[3, pof] - y[3, pos])
+powd_ser = (y[1, psf] - y[1, pss])*3600 + (y[2, psf] - y[2, pss])*60 + (y[3, psf] - y[3, pss])
+gran_omp = (y[1, gof] - y[1, gos])*3600 + (y[2, gof] - y[2, gos])*60 + (y[3, gof] - y[3, gos])
+gran_ser = (y[1, gsf] - y[1, gss])*3600 + (y[2, gsf] - y[2, gss])*60 + (y[3, gsf] - y[3, gss])
+core_omp = powd_omp
+core_ser = powd_ser
+set prompt, off
+echo "                 OMP        SERIAL          GAIN  THREADS"
+echo " Powder  :  %12.3f  %12.3f  %12.3f %4d", powd_omp, powd_ser, powd_ser/powd_omp, nthreads
+echo
+echo " Core    :  %12.3f  %12.3f  %12.3f %4d", core_omp, core_ser, core_ser/core_omp, nthreads
+echo " Grand   :  %12.3f  %12.3f  %12.3f %4d", gran_omp, gran_ser, gran_ser/gran_omp, nthreads
+fclose all
+fopen 1, gain.dat, append
+fput 1, nthreads, gran_ser/gran_omp
+fclose all
+set prompt, on
+exit

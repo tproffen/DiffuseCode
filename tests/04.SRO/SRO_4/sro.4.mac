@@ -1,0 +1,201 @@
+#
+#@ HEADER
+#@ NAME         sr0.4.mac
+#@ 
+#@ KEYWORD      SRO, Lennard-jones, relaxation
+#@ 
+#@ DESCRIPTION  This macro relaxes neigboring atom positions.
+#@ DESCRIPTION  A Lennard Jones potential is used
+#@
+#@ PARAMETER    $0, 2
+#@ PARAMETER    $1, real,  strain 
+#@ PARAMETER    $2, real,  temperature
+#@
+#@ USAGE        @sro.4  <strain>, <temperature>
+#@
+#@ END
+#
+################################################################################
+#
+discus
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size_cr
+variable real,comp
+variable real,eCC
+variable real,eCA
+variable real,eAA
+variable real,a100
+variable real,a010
+variable real,a110
+variable real,aM10
+variable real,heat
+#
+size_cr =  50
+comp = 0.3
+#
+#
+#  Perform basic error check on user input
+#
+if($0 /= 2) then
+  echo
+  echo Use as: @sro.4  <strain>, <temperature>
+  echo
+  continue suite
+endif
+#
+if($1 <   -0.10   .or.  0.10  <    $1) then
+  echo
+  echo Strain coefficient must be in interval [-0.10: +0.10]
+  echo
+  continue suite
+endif
+#
+if($2 <    0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue suite
+endif
+#
+read
+  cell crystal.cell,size_cr,size_cr,size_cr
+#
+replace Cu,Au,all,comp
+#
+eCC=(1.0-$1)*lat[1]
+eCA=(1.0   )*lat[1]
+eAA=(1.0+$1)*lat[1]
+#eCC=(1.0   )*lat[1]
+#eCA=(1.0+$1)*lat[1]
+#eAA=(1.0+2.*$1)*lat[1]
+#
+heat = $2
+#
+chem
+  set mode, quick, period, xy
+exit
+#
+therm 2d
+#
+set parallel,useomp:serial
+mmc
+  rese
+  set neig,rese
+  set vec, rese
+#
+  set vec,1, 1,1,  1, 0, 0
+  set vec,2, 1,1, -1, 0, 0
+  set vec,3, 1,1,  0, 1, 0
+  set vec,4, 1,1,  0,-1, 0
+#  set vec,5, 1,1,  1, 1, 0
+#  set vec,6, 1,1, -1,-1, 0
+#  set vec,7, 1,1,  1,-1, 0
+#  set vec,8, 1,1, -1, 1, 0
+   set neig,vec,1,2,3,4
+#  set neig,add
+#  set neig,vec,3,4
+#  set neig,add
+#  set neig,vec,5,6
+#  set neig,add
+#  set neig,vec,7,8
+#
+# set targ,1,spring,cu,ag,eCA,100.
+# set targ,1,spring,cu,cu,eCC,100.
+# set targ,1,spring,ag,ag,eAA,100.
+  set targ,1,lennard,cu,au,eCA,500.,12,6
+  set targ,1,lennard,cu,cu,eCC,500.,12,6
+  set targ,1,lennard,au,au,eAA,500.,12,6
+  set mode,1.0,shift,all
+  set move,cu, 0.02,0.02,0.00
+  set move,au, 0.02,0.02,0.00
+# set move,cu, 1.00,1.00,0.00,  0.02
+# set move,ag, 1.00,1.00,0.00,  0.02
+#
+  set cyc, 200*n[1]
+  set feed, 10*n[1]
+  set temp,heat
+  set finish, stop:converge, diff:0.095, change:0.052, aver:0.050, feed:3
+  set output, feed:on!, final:off
+  show
+wait return
+system date
+  run
+system date
+exit
+show res
+wait return
+#
+@plot.mac example4
+@fourier.mac example4
+#
+chem
+  set blen,4.0,6.0
+  set bin,201
+  set mode,quick,period
+show
+wait return
+  blen cu,cu,cucu.hist
+  r[10] = res[1]
+  r[11] = res[2]
+  blen cu,au,cuau.hist
+  r[13] = res[1]
+  r[14] = res[2]
+  blen au,au,auau.hist
+  r[16] = res[1]
+  r[17] = res[2]
+exit
+fopen 1,example4.hist
+fformat 1,f8.3
+fformat 2,f8.3
+fput  1,r[10],r[11]
+fput  1,r[13],r[14]
+fput  1,r[16],r[17]
+fclose 1
+fopen  1,example4.data
+fformat 1,*
+fput 1,"Cu-Cu %8.3f +- %8.3f (red)",r[10],r[11]
+fput 1,"Cu-Au %8.3f +- %8.3f (green)",r[13],r[14]
+fput 1,"Au-Au %8.3f +- %8.3f (blue)",r[16],r[17]
+fput 1,"temperature  %6.1f",heat
+chem
+  element
+exit
+fput 1,"copper : gold %5.2f : %5.2f",res[2],res[3]
+fclose 1
+#
+save example4.stru
+#
+#
+branch kuplot
+   @kex4.mac
+   exit
+#
+#
+# Test for Success
+#
+branch kuplot
+#
+load ni, RESULTS/example4.inte
+load ni, RESULTS/example4.3DPDF
+rval 1, 6, one
+r[0] = res[1]
+rval 5, 7, one
+r[1] = res[1]
+#
+LTEST_MAC = FALSE
+if(abs(r[0]) < 0.350 ) then !.and. abs(r[1]) < 0.380 ) then
+echo COND 1
+  if(abs(r[10]-4.934) < 0.10 .and. abs(r[13]-5.000) < 0.10 .and. abs(r[16]-5.21) < 0.09) then
+echo COND 2
+    if(abs(r[11]) < 0.18 .and. abs(r[14]) < 0.18 .and. abs(r[17]) < 0.18) then
+echo COND 3
+      LTEST_MAC = TRUE
+    endif
+  endif
+endif
+exit
+exit

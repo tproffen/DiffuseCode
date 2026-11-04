@@ -1,0 +1,34 @@
+discus
+#
+read
+  cell CELL/perovskite.cell , 2, 2, 2
+eval blen(atom, 2,3)
+therm
+symm
+  uvw  0,0, 1
+  trans $1, $2, $3
+  angl 0.00
+  orig 0,0,0, crystal
+  type proper
+  mode repl
+  power 1
+  sel all
+  incl all
+  run
+exit
+#
+chem
+  set blen, 1, 2.5
+  set bang, 1, 180
+  set bin, 179
+  bang ti, o,o, test.hist
+exit
+#
+branch kuplot
+#
+reset
+load xy, test.hist
+plot
+exit  ! back to DISCUS
+#
+exit  ! back to SUITE

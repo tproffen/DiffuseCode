@@ -1,0 +1,18 @@
+#
+variable real, p_bond
+#
+if('$1'.eq.'donor') then
+  p_bond = 1.92
+decorate
+   reset
+   add water, donor
+   set water, ligand, CELL/water.stru, 0.045
+   set water, bond,   H  , 1, p_bond
+   set water, surface, 2, 3
+#  set water, form,  1, 0, 0
+   show
+   run
+exit
+else
+   echo WRONG CONDITION
+endif

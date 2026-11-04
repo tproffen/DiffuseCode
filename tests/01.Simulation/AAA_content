@@ -1,0 +1,19 @@
+DISCUS Macros in this directory are:
+
+
+modify.mac             ! modifies a simple structure
+symmetry.mac           ! Applies a symmetry operation to a molecule
+shear.mac              ! Shears part of the structure
+pit.mac                ! Points out insufficient precision for hexagonal crystals
+
+circle.mac             ! Solution to homework  Create a circle
+checkerboard.mac       ! Solution to homework  Create a checkerboard crystal
+
+plot.mac               ! Writes a structure for plot with KUPLOT
+plotx.mac              ! Writes a structure for plot with XBS
+plotcif.mac            ! Writes a structure for plot with JMOL
+
+KUPLOT Macros in this directory are:
+
+kplot.mac              ! Creates a simple structure plot
+kplot6.mac             ! creates a simple structure plot, hexagonal case

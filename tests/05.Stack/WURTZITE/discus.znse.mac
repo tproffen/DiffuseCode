@@ -1,0 +1,36 @@
+@variables.znse.mac      ! Define variables
+@global.mac              ! Define Directories
+kid   = 1
+indiv = 1
+#
+read
+   free 3.99, 3.99, 6.050, 90.00, 90.00, 120.00, P63mc
+insert Zn, 1./3., 2./3., 0.3675, 0.5
+insert Se, 1./3., 2./3., 0.0000, 0.5
+#
+p_stack  = $1
+p_ab     = 50.00
+p_cc     = 50.00
+p_qmax      = 30.00
+p_corrlin   = 0.0000
+p_corrquad  = 0.0000
+p_qbroad    = 0.0010
+p_qdamp     = 0.0002
+p_srat      = 1.0000
+p_density   = 0.0000
+p_scale     = 1.0000
+
+save
+  outfile "%c/STRU/znse_wurtzite.%4D.%4D.cell", TMPDIR,1, 1
+  run
+exit
+@makelayers.znse.mac znse_wurtzite
+#
+@shape.ellipsoid.mac znse_wurtzite
+@powder.mac kid, indiv
+#@pdf.mac kid,indiv
+#
+@plot.cif.mac test
+#chem
+#   elem
+#exit

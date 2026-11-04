@@ -1,0 +1,10 @@
+kuplot
+reset
+load ni, example2.3DPDF
+aver 1
+hart 1, 2
+cmap therm
+hlin 1, -1E6,1E5, 21
+!hlin 1,  1E5,1E5,100
+plot
+exit

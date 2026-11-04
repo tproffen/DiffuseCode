@@ -1,0 +1,3 @@
+#
+  sys /usr/local/bin/discus < dis_diffev.mac  
+  sys /usr/local/bin/kuplot < kup_diffev.mac  

@@ -1,0 +1,19 @@
+# plot.three.mac
+# for structures with three atoms
+plot
+   reset
+   prog  kuplot
+   outf  $1.plot
+   ext   all
+   uvw   0,0,1
+   abs   1,0,0
+   ord   0,1,0
+   thick 1.00
+   vect  0,0,0
+   sel   all
+   des   void
+   set    1, 2, 6, 1
+   set    2, 3, 6, 1
+   set    3, 3, 12, 0.5
+   run
+exit

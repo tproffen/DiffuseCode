@@ -1,0 +1,25 @@
+#@ HEADER
+#@ NAME         import.mac
+#@ 
+#@ KEYWORD      import, cif
+#@ 
+#@ DESCRIPTION  This macro imports a CIF file
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @import 
+#@
+#@ END
+################################################################################
+#
+import cif, anatase_1010942.cif
+system cat  anatase_1010942.stru
+#
+read                           ! Switch to read menu
+  stru anatase_1010942.stru    ! Read asymmetric unit as is
+show atom,all
+wait return
+#
+read
+  cell anatase_1010942.stru    ! Read asymmetric unit and expand to full  unit cell
+show atom,all

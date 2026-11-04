@@ -1,0 +1,40 @@
+# k.simple.mac
+#
+############################################################
+#
+#  Plots the domainstructures that are produced by 
+#  dom.cube.mac
+#  dom.shear.mac
+#  dom.lattice.mac
+#  dom.domain.mac
+#
+#  Use the qualiying part of the name as parameter
+#
+############################################################
+#
+if($0 /= 1) then
+  echo
+  echo Usage:
+  echo @k.simple { cube | shear | lattice | domain }
+  echo
+  wait return
+  continue kuplot
+endif
+#
+############################################################
+#
+rese
+load cr, $1.plot
+#
+buf 0.05,0.05,0.13,0.05
+aver 1
+msize 1,0.7
+fnam off
+fset 0
+plot
+fset 3      ! set back to standard for next plot
+#
+############################################################
+# To obtain a postscript file remove the leading '#' from 
+# the next line
+# save ps, $1.ps

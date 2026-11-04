@@ -1,0 +1,49 @@
+#
+#@ HEADER
+#@ NAME         kano.mac
+#@ 
+#@ KEYWORD      nanoparticle powder, pdf
+#@ 
+#@ DESCRIPTION  Plots the nano powder pattern and PDF 
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @knano 
+#@
+#@ END
+#
+#################################################################################
+#  rese               ! Reset the plot to starting values
+#  load xy, nano.tth  ! Load the pattern, xy signals simple 2-column format
+#  skal xmin[1],xmax[1],0,ymax[1]*1.025
+#                     ! Define the left/right, lower/upper limits
+#  mark               ! Draw tic-marks at default intervals
+#  plot               ! Do the actual plot
+#
+#################################################################################
+#  rese
+rese
+variable real, diameter
+diameter = $3
+#
+load xy, "POWDER/nano_%5.1F_axis_$1.$2", diameter
+skal xmin[1],xmax[1],0,ymax[1]*1.025
+mark 20, 4*ymax[1]
+achx 2Theta
+achy Intensity
+tit1 Simple cube shaped nanoparticle
+tit2 "Diameter %5.1f \A", diameter
+fnam off
+lwidt 1, 0.6
+plot
+#save png, "powder_%5.1F.png", diameter
+#
+wait return
+#
+rese
+load xy, "PDF/nano_%5.1F.grcalc", $3
+skal 0, xmax[1], ymin[1]*1.025, ymax[1]*1.025
+mark
+achx Distance [\A]
+achy G(r)
+plot

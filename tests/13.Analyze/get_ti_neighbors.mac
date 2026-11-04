@@ -1,0 +1,94 @@
+set prompt, off, off
+#
+#   get_ti_neighbors.mac
+#
+#
+#   Find the 6 oxygen neighbors around a central Ti
+#
+#   and do something with that info :-)
+#
+#  Variables
+variable integer, loop
+variable integer, local
+variable integer, isite
+variable integer, ncellx
+variable integer, ncelly
+variable integer, ncellz
+variable integer, nti_dist
+variable integer, nsc_dist
+#
+variable real, rho
+variable real, phi
+variable real, polx
+variable real, poly
+variable real, distance
+
+#
+index2cell n[1]    ! get unit cell info on last atom
+#
+ncellx = nint(res[2])         ! unit cell numbers x, y, z
+ncelly = nint(res[3])
+ncellz = nint(res[4])
+#
+fclose all
+#
+fopen 1, "TEMP/ti_shift.all.stereo_neg",append
+fopen 2, "TEMP/mg_shift.all.stereo_neg",append
+fopen 3, "TEMP/ti_shift.all.stereo_pos",append
+fopen 4, "TEMP/mg_shift.all.stereo_pos",append
+
+#
+nti_dist=0
+nsc_dist=0
+#  Main loop over all unit cells
+#
+#do loop = 1, n[1], n[3]
+do loop = 2, n[1], n[3]
+#do loop = 21052, 21052, 1 !, n[1], n[3]
+#
+#  Ti/Sc at 0,0,0  site 2
+#
+   index2cell loop            ! find unit cell no, site no
+   isite = nint(res[5])       ! store the site no
+   local = loop + 0           ! In case we have more than one Pb site ....
+   i[101] = nint(res[2])      ! get unit cell  no
+   i[102] = nint(res[3])
+   i[103] = nint(res[4])
+#
+   r[101] =      x[local] - (i[101]            - 1)   ! shift atom close to 0,0,0
+   r[102] =      y[local] - (i[102]            - 1)   ! by subtracting vector to
+   r[103] =      z[local] - (i[103]            - 1)   ! unit cell origin
+#
+   r[201] = 0.0               ! Cumulative / average Oxygen positions
+   r[202] = 0.0
+   r[203] = 0.0
+#
+   @get_oxygen.mac   3,  0,  0,  0, isite, local   ! find oxygen on site 3 in relative unit cell [0,0,0]
+   @get_oxygen.mac   3, -1,  0,  0, isite, local
+   
+#
+   @get_oxygen.mac   4,  0,  0,  0, isite, local
+   @get_oxygen.mac   4,  0, -1,  0, isite, local
+   
+#
+   @get_oxygen.mac   5,  0,  0,  0, isite, local
+   @get_oxygen.mac   5,  0,  0, -1, isite, local
+   
+#
+   r[201] = r[201]/6. - r[101]   ! displacement vector
+   r[202] = r[202]/6. - r[102]   ! Ti/Sc ==>   <O>
+   r[203] = r[203]/6. - r[103]
+  
+  distance = blen(r[201],r[202],r[203])
+
+   if (distance .le. 0.9999) then
+      @stereo_shift.mac local, 2,5, co, ca
+   endif
+
+enddo
+
+#
+fclose all
+#
+
+set prompt, on, on

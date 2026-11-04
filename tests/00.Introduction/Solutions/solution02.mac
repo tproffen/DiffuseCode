@@ -1,0 +1,14 @@
+variable  integer,  product     #  an integer valued cvariable to hold the result
+variable  integer,  loop        #  the loop index
+variable  integer,  start       #  the starting value for the loop
+
+product  =  1                   #  You will have to initialize the product
+start    =  1                   #  Your could actually start the loop at 2!
+
+do loop = start, $1             #  Perform a loop from start to $1
+
+  product  = product  * loop    #  accumulate the product
+
+enddo                           #  required statement to indicate end of loop
+
+evaluate product                #  display the result

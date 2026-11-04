@@ -1,0 +1,109 @@
+#@ HEADER
+#@ NAME         checkerboard.mac
+#@ 
+#@ KEYWORD      loop, if, modulus, checkerboard, modify
+#@ 
+#@ DESCRIPTION  This macro creates a checkerboard crystal
+#@
+#@ PARAMETER    $0, 2
+#@ PARAMETER    $1, integer,  number of atoms along x
+#@ PARAMETER    $2, integer,  number of atoms along y
+#@
+#@ USAGE        @modify 
+#@
+#@ END
+################################################################################
+#
+# checker.mac
+#
+#  one possible solution to homework 2 to create a checkerboard type crystal
+#
+#  every other atom is replaced by another type
+#  In DISCUS atoms are stored consecutively, with the x index increasing
+#  as the fastest, the z-index the slowest. Thus they are numbered:
+#
+#  (nyy-1)*nxx+1  (nyy-1)*nxx+2  (nyy-1)*nxx+3   ...  nyy*nxx
+#  ...
+#         nxx+1         nxx+2         nxx+3   ...   2*nxx
+#            1            2            3   ...     nxx  
+#
+#   or with respect to the indices linex, rowx
+#
+#      1,   nyy      2,   nyy              ...                    nxx, nyy
+#         ...
+#      1, rowy      2, rowy              ...   linex, rowy ...   nxx, rowy
+#         ...
+#         1, 2         2, 2         3, 2                         nxx, 2
+#         1, 1         2, 1         3, 1  ...                    nxx, 1
+#
+#   From the first sketch, it follows that the indices can be 
+#   calculated as 
+#         linex = mod( atom_number-1, nxx) + 1
+#         rowy  = int((atom_number-1)/nxx) + 1
+#
+#   To replace atoms in a checkerboard fashion, all atom for which the 
+#   sum of linex and rowy is odd must be replaced.
+###############################################################################
+#
+# variable integer,nxx                  ! define a variable name integer type
+# variable integer,nyy                  ! number of unit cells along x and y
+# variable integer,linex               ! used as index along x
+# variable integer,rowy                ! used as index along y
+#
+# nxx = $1                              ! set values for number of unit cells
+# nyy = $2                              !
+#
+# read                                 ! switch to the reading menu
+#   cell primitive.cell,nxx,nyy,1        ! extend to NX * NY unit cells
+#
+# do i[0]=1,n[1]                       ! loop over all atoms in the crystal
+#                                      ! DISCUS stores the atoms in a sequence:
+#                                      ! atoms in unit cell
+#                                      !   unit cells are arranged in order 
+#                                      !   x, y, z, i.e. the index over x is the
+#                                      !   the fastest innermost loop
+#   linex = mod( i[0]-1, nxx) + 1       ! calculate the index of the line along x
+#   rowy  = int((i[0]-1)/nxx) + 1       ! calculate the index of the row along y
+#   if(mod(linex+rowy,2)  ==  1) then  ! if the sum of indices is odd then
+#     replace i[0], Zr,1.0             !    replace current atom by Zr
+#   endif                              !
+# enddo                                !
+# @plot checker                        ! write structure for plot with kuplot
+#
+################################################################################
+discus
+#
+variable integer,nxx
+variable integer,nyy
+variable integer,linex
+variable integer,rowy
+#
+nxx = $1
+nyy = $2
+#
+read
+  cell primitive.cell,nxx,nyy,1
+#
+do i[0]=1,n[1]
+  linex = mod( i[0]-1, nxx) + 1
+  rowy  = int((i[0]-1)/nxx) + 1
+  if(mod(linex+rowy,2)  ==  1) then
+    replace i[0], Zr,1.0
+  endif
+enddo
+
+@plot.mac checker
+#
+branch kuplot
+   @kplot.mac checker
+   exit
+#
+#  Test for success
+#
+if(n[1] == $1*$2 .and. m[1]==1 .and. m[2]==2) then
+  LTEST_MAC = TRUE
+else
+  LTEST_MAC = FALSE
+endif
+eval LTEST_MAC
+exit

@@ -1,0 +1,124 @@
+#
+#set wait, off
+#
+discus
+#
+read
+   lcell CELL/kaolinite.cell, 8,8,8
+chem
+   elem
+exit
+wait return
+#
+@plot.mac kaolinite, yes
+wait return
+#
+surface
+   set distance, external, O, 1.1
+   bound hkl,  0, 0, 1,  3./dstar(0,0,1) - 0.2
+   bound hkl,  0, 0,-1,  1./dstar(0,0,1) + 0.1
+   bound hkl,  1, 0, 0,  2./dstar(1,0,0) + 0.01
+   bound hkl, -1, 0, 0,  2./dstar(1,0,0) - 0.5
+   bound hkl,  0, 1, 0,  2./dstar(0,1,0) - 0.4
+   bound hkl,  0,-1, 0,  2./dstar(0,1,0) + 0.01
+exit
+purge
+#
+@plot.mac shaped, no
+chem
+  elem
+exit
+i[100] = nint(res[1]*n[1])
+i[101] = nint(res[2]*n[1])
+i[102] = nint(res[3]*n[1])
+i[103] = nint(res[4]*n[1])
+i[104] = nint(res[5]*n[1])
+i[105] = nint(res[6]*n[1])
+i[106] = nint(res[7]*n[1])
+#
+wait return
+#
+@clean_surface.mac
+#
+chem
+  elem
+exit
+i[110] = nint(res[1]*n[1])
+i[111] = nint(res[2]*n[1])
+i[112] = nint(res[3]*n[1])
+i[113] = nint(res[4]*n[1])
+i[114] = nint(res[5]*n[1])
+i[115] = nint(res[6]*n[1])
+i[116] = nint(res[7]*n[1])
+#
+#
+wait return
+#
+property
+  property ignore, all
+exit
+purge
+@deco_donor.mac
+@plot.mac hydrated, no
+chem
+  elem
+exit
+eval n[4]
+eval n[5]
+i[121] = n[4]
+i[122] = n[5]
+wait return
+#
+property
+   clear external, types, all
+   property ignore, all
+exit
+surface
+   set distance, external, O, 1.5
+   bound hkl,  1, 0, 0,  2/dstar(1,0,0)
+exit
+property
+   property present, external
+exit
+replace O,void, all, 1.0
+#
+purge
+#
+@plot.mac si, no
+chem
+  elem
+exit
+eval n[4]
+eval n[5]
+wait return
+#
+property
+   property ignore, all
+exit
+@deco_chelate.mac
+@plot.mac final, no
+chem
+  elem
+exit
+eval n[4]
+eval n[5]
+i[123] = n[4]
+i[124] = n[5]
+#
+exit
+#
+# Test for success
+#
+LTEST_MAC = FALSE
+if(i[100]==000 .and. i[101]==384 .and. i[102]==340 .and. i[103]==336 .and. i[104]==240 .and. &
+   i[105]==240 .and. i[106]==464 ) then
+  echo COND 1
+  if(i[110]==276 .and. i[111]==360 .and. i[112]==308 .and. i[113]==292 .and. i[114]==168 .and. &
+     i[115]==208 .and. i[116]==392 ) then
+    echo COND 2
+    if(i[121]>0 .and. i[122]==1 .and. i[123]>i[121] .and. i[124]==2) then
+      echo COND 3
+      LTEST_MAC = TRUE
+    endif
+  endif
+endif

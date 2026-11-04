@@ -1,0 +1,7 @@
+title perovskite structure
+spcgr Pm-3m
+cell 3.80 3.80 3.80  90.0  90.0  90.0
+atoms
+sr  0.50  0.50  0.50  0.2
+ti  0.00  0.00  0.00  0.1
+o   0.50  0.00  0.00  0.3

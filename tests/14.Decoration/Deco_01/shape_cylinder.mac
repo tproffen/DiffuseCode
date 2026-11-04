@@ -1,0 +1,24 @@
+#
+variable real, diameter
+variable real, height
+read
+   cell CELL/$1.cell, 80,80,80
+diameter = 35.0
+height = 40.0
+#
+surface
+   set distance, external, all, 1.90
+   boundary cylinder, diameter/2., height/2.0
+exit
+purge
+property
+   property present, external
+   property present, normal
+   property absent,  outside
+exit
+#
+property
+   property ignore, all
+exit
+#
+@plot.mac $1_cylinder

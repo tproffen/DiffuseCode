@@ -1,0 +1,17 @@
+title Domain listing with encoding
+spcgr  P4
+cell   2.50, 2.50, 2.50, 90.0, 90.0, 90.0
+atom
+domain
+domain character,domain_cube
+domain file,dom.guest.cube.stru
+domain fuzzy,0.5
+POSI   0.00000  0.00000  0.00000   0.50
+XAXI   1.00000  0.00000  0.00000   0.50
+YAXI   0.00000  1.00000  0.00000   0.50
+ZAXI   0.00000  0.00000  1.00000   0.50
+CENT   0.00000  0.00000  0.00000   0.50
+XDIM   1.00000  0.00000  0.00000   0.50
+YDIM   0.00000  1.00000  0.00000   0.50
+ZDIM   0.00000  0.00000  1.00000   0.50
+domain end

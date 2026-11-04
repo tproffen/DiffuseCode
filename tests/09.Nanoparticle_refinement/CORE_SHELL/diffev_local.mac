@@ -1,0 +1,28 @@
+set prompt,redirect
+set error,live
+#
+@cleanup.mac
+#
+@diffev_setup.mac
+#
+init
+#
+#
+# Force at least the Generation zero
+#
+i[0] = 0
+i[2] = 0
+#
+#do while(i[0].eq.0)
+do i[33]=0,10
+  do i[5]=1,pop_n[1]
+    sys "/home/rneder/A37/JOB %4d",i[5]
+  enddo
+  sys /home/rneder/bin/kuplot < concat.mac > concat.log
+  compare
+#
+  fopen 1, WEITER
+  fget 1,i[0]
+  fclose 1
+enddo
+exit

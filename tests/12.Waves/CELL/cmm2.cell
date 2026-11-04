@@ -1,0 +1,15 @@
+title Water in Cmm2
+spcgr Cmm2
+cell  10.0,10.0,10.0, 90.0,90.0,90.0
+scat   o,h
+adp  0.1, 0.2
+ncell  1,1,1, 2
+atoms
+molecule
+O   0.00  0.20   0.00   0.1
+H   0.13  0.17   0.00   0.2
+molecule end
+molecule
+O   0.00  0.20   0.50   0.1
+H   0.13  0.23   0.50   0.2
+molecule end

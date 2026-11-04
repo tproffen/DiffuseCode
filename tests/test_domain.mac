@@ -1,0 +1,45 @@
+system rm -f date.check
+@datum.mac
+#
+variable integer, LTEST_ALL
+variable integer, LTEST_MAC
+LTEST_ALL = TRUE                ! Assume all tests to be true
+LTEST_MAC = FALSE               ! Assume all tests to be true
+set wait, off
+#
+kuplot 
+  @kuplot_standard.mac
+exit
+#
+#
+cd 06.Domains/CUBE
+@dom.cube.mac
+@../../check.mac  dom.cube.mac
+#
+@dom.tilt.mac
+@../../check.mac  dom.tilt.mac
+#
+cd ../TRIANGLE
+@dom.triangle.mac
+@../../check.mac  dom.triangle.mac
+#
+cd ../Perovskite
+wait return
+@dom.perov.mac
+@../../check.mac  dom.perov.mac
+#
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+echo SUCCESS in 06.Domain
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+cd ../..
+#
+@datum.mac
+fopen 1, date.check
+fget 1, i[10], i[11], i[12]
+fget 1, i[20], i[21], i[22]
+fclose all
+i[0] = (i[20]-i[10])*3600 + (i[21]-i[11])*60 + (i[22]-i[12])
+echo "TIME %d", i[0]
+#exit

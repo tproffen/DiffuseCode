@@ -1,0 +1,33 @@
+The main macro in this section is 
+
+
+suite.mac                      ! Switches to diffev and starts re refinement
+
+
+
+DIFFEV Macros in this directory are:
+
+
+ref.ex0.diffev.mac             ! Macro to refine a disordered structure
+
+DISCUS Macros in this directory are:
+
+ref.ex0.diffev_setup.mac       ! Main discus macro started by diffev
+ref.ex0.diffev_continue.mac    ! Coninue an interrupted refinement
+
+ref.ex0.dis.diffev.mac         ! Principal discus macro started by diffev
+ref.ex0.discus.main.mac        ! Main discus tasks are done here
+ref.ex0.sort.mac               ! Sort the structure
+ref.ex0.fourier.mac            ! Calculates the Fourier
+
+
+KUPLOT Macros in this directory are:
+
+kpara.mac                      ! Plots the parameters versus generation number
+kpar_par.mac                   ! Plots the parameter correlations
+ksingle.mac                    ! Plots obs, calc for a member
+
+
+ref.ex0.kup.diffev.mac         ! Principal kuplot macro started by diffev
+ref.ex0.kup.select.mac         ! Just for book keeping of best results
+ref.ex0.kup.backup.mac         ! Just for book keeping of best results

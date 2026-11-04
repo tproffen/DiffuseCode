@@ -1,0 +1,49 @@
+#
+#  knano.mac
+#
+################################################################################
+#
+#  Shows a graph of the calculated powder pattern, and the PDF
+#
+#################################################################################
+#  rese               ! Reset the plot to starting values
+#  load xy, nano.tth  ! Load the pattern, xy signals simple 2-column format
+#  skal xmin[1],xmax[1],0,ymax[1]*1.025
+#                     ! Define the left/right, lower/upper limits
+#  mark               ! Draw tic-marks at default intervals
+#  plot               ! Do the actual plot
+#
+#################################################################################
+#  rese
+#
+#  Basic error handling
+#
+if($0.ne.2) then
+  echo
+  echo "Usage:"
+  echo "@knano <diameter_ab>, <diameter_c>"
+  echo
+  wait return
+  continue discus
+endif
+#
+rese
+load xy, "POWDER/nano_%5.1F_%5.1F.tth", $1,$2
+skal xmin[1],xmax[1],0,ymax[1]*1.025
+mark
+achx 2Theta
+achy Intensity
+tit1 Ellipsoidal nanparticle
+tit2 "Diameter ab; c : %4.1f %4.1f \A", $1, $2
+plot
+save png, "PICTURES/nano_%5.1F_%5.1F.png", $1,$2
+#
+wait return
+#
+rese
+load xy, "PDF/nano_%5.1F_%5.1F.grcalc",$1,$2
+skal 0, xmax[1], ymin[1]*1.025, ymax[1]*1.025
+mark
+achx Distance [\A]
+achy G(r)
+plot

@@ -1,0 +1,23 @@
+# k.triangle.mac
+#
+############################################################
+#
+#  Plots the domain structures that are produced by 
+#  dom.triangle.mac
+#
+############################################################
+#
+rese
+load cr, dom.triangle.plot
+#
+buf 0.05,0.05,0.05,0.05
+aver 1
+msize 1,0.2
+fnam off
+fset 0
+plot
+#
+############################################################
+# To obtain a postscript file remove the leading '#' from 
+# the next line
+# save ps, dom_triangle.ps

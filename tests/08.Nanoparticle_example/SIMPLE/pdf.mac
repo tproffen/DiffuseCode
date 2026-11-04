@@ -1,0 +1,66 @@
+#
+#  pdf.mac
+#
+################################################################################
+#
+#  calculates the PDF of our spherical nanoparticle
+#
+################################################################################
+#
+#
+# pdf                              ! Switch to PDF menu
+#
+#     ides all                     ! Deselct all atom pairs for a clean start
+#     jdes all                     ! 
+#     isel all                     ! 
+#     jsel all                     ! 
+#
+#     set bound, crystal,exact     ! Ignore periodic boundary conditions
+#     set dens,  rhozero           ! Set the number density to stored value
+#     set delta, 0.00100           ! Set the thermal broadening term
+#     set gamma, 0.0               ! Higher order switch off
+#     set qalp,  0.0020            ! Set instrumental damping term
+#     set qsig,  0.0040            ! Set instrumental broadening term
+#     set qmax, 30.0000            ! Set maximum Q-value of the experiment
+#     set rad,   xray              ! Set radiation
+#     set range, 1.25*diameter, 0.01 ! Set calculation range and step size
+#     set srat,  1.0,3.5           ! Set optional sharpening of 1.st peaks
+#     set therm, gauss             ! Switch convolution with Gaussion on
+#
+#     set weig,  1.0               ! Optional weight control if chemistry is off
+#     set finite,sphere, diameter  ! Correct 4pi rho0 for a sphere
+#
+#     show                         ! Lets see the values
+#     calc                         ! Do the calculation
+#     save pdf,$1.grcalc           ! Save teh output to file
+# exit                             ! Go back to the main menu
+#
+pdf
+exit
+#
+pdf
+#
+    ides all
+    jdes all
+    isel all
+    jsel all
+#
+    set bound, crystal,exact
+    set dens,  rhozero
+    set corrlin,  0.00100
+    set corrquad, 0.0
+    set qbroad,   0.0020
+    set qdamp,    0.0010
+    set qmax,    12.0000
+    set rad,   xray
+    set range, 1.25*diameter, 0.01
+    set srat,  1.0,3.5
+    set therm, gauss    
+#
+    set weig,  1.0
+    set finite,sphere, diameter  
+#
+    show
+    calc
+    save pdf,"PDF/nano_%5.1F.grcalc", diameter  
+exit

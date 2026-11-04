@@ -1,0 +1,20 @@
+#
+variable integer, loop
+#
+do loop = 1, 2
+  @clean_atoms.mac 1 , 0
+  @clean_atoms.mac 3 , 0
+  @clean_atoms.mac 2 , 0
+#
+  @clean_atoms.mac Si, 3
+  @clean_atoms.mac Al, 5
+  @clean_atoms.mac H , 0
+enddo
+prop
+   property ignore, all
+exit
+plot
+   sel all
+   des void
+   run plot:inter
+exit

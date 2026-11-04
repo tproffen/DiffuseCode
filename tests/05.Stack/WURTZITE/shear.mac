@@ -1,0 +1,8 @@
+shear
+   matrix 1,0,0, 0,1,0, 0,0,($1)/($2)
+   origin 0,0,0, crystal
+   sel    all
+   incl   all
+#  show
+   run
+exit

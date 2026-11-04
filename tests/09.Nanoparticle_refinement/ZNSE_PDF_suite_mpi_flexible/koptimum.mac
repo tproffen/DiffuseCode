@@ -1,0 +1,72 @@
+#
+################################################################################
+#
+# koptimum.mac
+#
+################################################################################
+#
+#  Reads the Parameter file and determines the current best paraemters.
+#  These are written into a "Trial" file with number given as first parameter.
+#  @koptimum <number>
+#
+################################################################################
+#
+variable integer,generation
+variable integer,member
+variable integer,children
+variable integer,parameters
+variable integer,kid
+variable integer,trial
+fclose all
+#
+rese
+#
+trial = $1
+#
+# Get generation numbers, number of members, children and parameters
+#
+fopen 1,GENERATION
+#
+fget  1,generation,member,children,parameters
+fclose 1
+#
+fopen 2, "DIFFEV/Trials.%4D",trial
+fformat 1,i8
+fformat 2,i10
+fformat 3,i10
+fformat 4,i10
+fput 2,"# generation members children parameters"
+fput 2, generation,member,children,parameters
+fput 2,"# current member "
+fformat 1,i5
+fput 2,trial
+fput 2,"# parameter list"
+#
+##########################
+#
+i[0] = generation - 1
+#
+# Find member with lowest R-value
+#
+rese
+load st, DIFFEV/Parameter.0000, i[0],1  ,   2
+r[0] =y[1,1]
+i[10]=1
+do i[1]=2,np[1]
+  if(y[1,i[1]].lt.r[0]) then
+    r[0] = y[1,i[1]]
+    i[10] = i[1]
+  endif
+enddo
+#
+#  load actual parameter sets
+#
+fformat 1,e20.10
+fformat 2,i6
+do i[1]=1,parameters
+  rese
+  load st, "DIFFEV/Parameter.%4D",i[1], i[0],3, 2
+  fput 2,x[1,i[10]], i[1]
+enddo
+#
+fclose 2

@@ -1,0 +1,17 @@
+variable real,chance
+variable real,sc_ratio
+#
+sc_ratio = $1
+chance = sc_ratio - int(sc_ratio)
+i[3] = ran(0) + chance
+i[0]=0
+i[1]=0
+i[4]=0
+do i[2]=1,1000
+  i[3] = int(ran(0)+chance)
+  i[4] = i[4] + i[3]+int(sc_ratio)
+  i[i[3]] = i[i[3]]+1
+enddo
+eval i[0]
+eval i[1]
+eval 1.*i[4]/1000.

@@ -1,0 +1,22 @@
+#
+#
+reset
+load xy, $1.stereo_$2
+skal -1,1,-1,1
+r[0]=max(xmax[1],abs(xmin[1]))
+r[1]=max(ymax[1],abs(ymin[1]))
+r[2]=max(r[0],r[1])
+skal -1.*r[2],r[1], -1.*r[2],r[2]
+aver 1
+mark !0.5
+ltyp 1,0
+mtyp 1,3
+if('$2'.eq.'pos') then
+mcol 1,3
+elseif('$2'.eq.'neg') then
+mcol 1,1
+endif
+#ltyp 2,0
+#mtyp 2,3
+#mcol 2,1
+plot

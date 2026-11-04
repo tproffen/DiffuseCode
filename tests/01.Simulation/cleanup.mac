@@ -1,0 +1,8 @@
+#
+system rm -f *.inte
+system rm -f *.plot
+system rm -f *.bs
+system rm -f *.xyz
+system rm -f *_plot.cif
+system rm -f *.stru
+system rm -f cmm2_export.*

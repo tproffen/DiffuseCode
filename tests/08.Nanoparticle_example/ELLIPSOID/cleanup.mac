@@ -1,0 +1,5 @@
+#
+system rm -f PDF/*
+system rm -f POWDER/*
+system rm -f PLOT/*
+system rm -f STRU/*

@@ -1,0 +1,19 @@
+read
+free 50,50,50,90,90,120
+#
+domain
+  inputfile STRU/origin.list
+  mode      domain
+  run
+exit
+#
+purge
+therm
+#
+save
+  outf "STRU/indi.%4D.%4D.stru", $1, $2
+  omit ncell
+  run
+exit
+read
+  stru "STRU/indi.%4D.%4D.stru", $1, $2

@@ -1,0 +1,5 @@
+title primitive cubic
+spcgr Pm-3m
+cell 5.00   5.00   5.00   90.00   90.00   90.00
+atoms
+PO     0.000   0.0000   0.0000   1.0

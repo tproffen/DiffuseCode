@@ -1,0 +1,4 @@
+read
+  cell crystal.cell,$1,$1,1
+#
+replace cu,au,all,$2

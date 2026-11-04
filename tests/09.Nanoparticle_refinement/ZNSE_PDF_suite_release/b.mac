@@ -1,0 +1,4 @@
+variable character, line
+line='Hallo'
+echo "%c",line
+eval line

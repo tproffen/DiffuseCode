@@ -1,0 +1,15 @@
+branch kuplot
+#
+#  k_calc.mac
+#
+#  Calculate the theory function
+#
+reset
+#load xy,  noise_osci.dat
+func P_0 + P_1*r[0] + P_2*r[0]**2 + P_ampl*sin(r[0]/P_wvle + P_phase), 0, 20, 0.1
+skal
+mark
+#plot
+#rval 1, 2, dat
+exit
+finished

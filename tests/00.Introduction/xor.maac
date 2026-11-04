@@ -1,0 +1,7 @@
+i[0]=1
+i[1]=1
+if(i[0]==1 .and. i[1]==2) then
+  echo COND 1
+else
+  echo FALSE
+endif

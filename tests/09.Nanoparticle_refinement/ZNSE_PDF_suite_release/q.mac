@@ -1,0 +1,14 @@
+diffev
+read
+!@diffev_setup.mac
+eval pop_dimx[1]
+newpara P_nix, 0.0, 10.0,  1.0, 9.0
+#release P_nix, range:1
+eval pop_dimx[1]
+eval par_number('P_nix')
+eval par_name(15)
+   run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, logfile:LOGFILES/d, compute:serial
+   compare silent            ! Compare R-values to previous generation
+ 
+exit
+

@@ -1,0 +1,12 @@
+if(LTEST_ALL==TRUE .and. LTEST_MAC==TRUE) then
+  LTEST_ALL = TRUE
+else
+  LTEST_ALL = FALSE
+  echo
+  echo "Failure, macro %c did not succeed", '$1'
+  sys pwd
+  echo
+  stop
+endif
+#
+LTEST_MAC = FALSE    ! Assume failure in next macro

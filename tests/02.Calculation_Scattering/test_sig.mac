@@ -1,0 +1,27 @@
+variable real, lata
+variable real, P_sigma
+variable real, P_aver
+P_aver = 0.66667
+#
+discus
+read
+cell primitive.cell, 20,20,1
+lat[1] = P_aver*lat[1]
+lat[2] = 1.    *lat[2]
+lata    = lat[1]
+P_sigma = 0.01
+@fourier_2d.mac#
+fourier
+#  run sigabs:[0.01, 1,0,0], sigord:[0.01, 0,1,0]
+  run sigabs:[0.01], sigord:[0.01]
+exit
+@output_fourier.mac normal
+exit
+@k_test.mac
+#
+discus
+eval lat[1]
+eval lat[2]
+eval P_sigma
+eval P_aver
+exit

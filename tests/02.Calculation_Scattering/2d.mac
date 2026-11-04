@@ -1,0 +1,66 @@
+#
+#@ HEADER
+#@ NAME         2d.mac
+#@ 
+#@ KEYWORD      fourier, 2d, finite size
+#@ 
+#@ DESCRIPTION  This macro reads a prepared structure and calculates 
+#@ DESCRIPTION  a 2-D section in reciprocal space
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @2d 
+#@
+#@ END
+#
+################################################################################
+#
+discus
+#
+read
+  stru example3.stru     #  keyword stru means we read the structure as is
+#
+@plot.mac example3       #  run macro plot.mac with parameter <example3>
+#
+fourier                  # switch to the DISCUS fourier menu
+  reset
+  xray                   # select x-rays
+  ll 0.0, 0.0, 0.0       # set the lower left corner 
+  lr 4.0, 0.0, 0.0       # set the lower right corner  
+  ul 0.0, 4.0, 0.0       # set the upper left corner  
+  na 601                 # calculate with 301 points along abscissa
+  no 601                 # calculate with 301 points along ordinate
+  temp use               # use atomic displacement parameters
+  disp off               # switch anomalous dispersion off
+  wvle 1.00              # set the wave length to 1.0 Angstroem
+  abs h                  # use h for x-axis in KUPLOT
+  ord k                  # use k for y-axis in KUPLOT 
+  set aver,0             # do not subtract average intensity
+  show                   # show current settings
+  run                    # do the calculation
+exit                     # go back to the main DISCUS menu
+#
+output                   # switch to the DISCUS output menu
+  outf example3.inte     # write data into file <example3.inte>
+  value inte             # write intensities
+  form stan              # use standard format
+  run                    # perform the actual write process
+exit                     # go back to the main DISCUS menu
+branch kuplot
+  @k2d.mac example3
+  exit
+#
+# Test for Success
+#
+branch kuplot
+#
+load ni, RESULTS/example3.inte
+rval 1, 3, one
+r[0] = res[1]
+if(abs(r[0]) < 0.001) then
+  LTEST_MAC = TRUE
+else
+  LTEST_MAC = FALSE
+endif
+exit
+exit  ! Back to suite

@@ -1,0 +1,166 @@
+discus
+#
+#@ HEADER
+#@ NAME         sr0.1.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro performs Monte Carlo Simulation.  
+#@ DESCRIPTION  Again, just a correlation is given for [100] 
+#@ DESCRIPTION  After the mmc task, the macro calculates the achieved 
+#@ DESCRIPTION  correlation for the [010] direction as well, just to 
+#@ DESCRIPTION  illustrate the possible fluctuation
+#@
+#@ PARAMETER    $0, 2
+#@ PARAMETER    $1, real,  correlation along [100]
+#@ PARAMETER    $2, real,  temperature
+#@
+#@ USAGE        @sro.1   <c100>, <temperature>
+#@
+#@ END
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size_cr
+variable real,comp
+variable real,c100
+variable real,c010
+variable real,a100
+variable real,a010
+variable real,heat
+#
+size_cr = 100
+comp = 0.5
+#
+#  Perform basic error check on user input
+#
+if($0 /= 2) then
+  echo
+  echo Use as: @sro.1  <correlation>, <temperature>
+  echo
+  continue suite
+endif
+#
+if($1 <  -1.0   .or.   1.0  <   $1) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif 
+#
+if($2 <   0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue suite
+endif 
+#
+c100 = $1
+c010 = 0.0
+heat = $2
+#
+################################################################################
+#
+read
+  cell crystal.cell, size_cr, size_cr, 1
+#
+replace Cu,Au,all,comp      #  replace cooper by Aus on all sites in the 
+                              ! unit cell
+#
+chem
+  set mode, quick, period, xy
+exit
+#
+set parallel,useomp:parallel
+mmc
+  rese
+  set neig,rese
+  set vec, rese
+#
+  set vec,1, 1,1,  1, 0, 0     # 
+  set vec,2, 1,1, -1, 0, 0     # 
+  set vec,3, 1,1,  0, 1, 0     #  Define additional vectors along +-[0,1,0]
+  set vec,4, 1,1,  0,-1, 0     # 
+  set neig,vec,1,2             # 
+#
+  set mode, 1.0, swchem,all
+  set targ,1,corr,  Cu,Au,c100,00.0, CORR # As before only one target is refined
+!  set targ,1,unid,  Cu,Au,c100,00.0, CORR # As before only one target is refined
+!  set targ,1,group, (Cu),(Au),c100, 0.0, CORR # As before only one target is refined
+!  set targ,1,group, (Cu),(Cu),c100,-11.0, ENER # As before only one target is refined
+  set allowed, Cu, Au
+!  set cyc,2500*n[1]
+!  set feed, auto! 50*n[1]
+  set cycl,1500*n[1]
+! set feed,  10*n[1]
+  set feed, auto
+  set temp,heat
+  set finish, stop:converge, diff:0.025, rdiff:0.10,change:0.052, aver:0.050, feed:3
+#  set finish, cycle
+show
+wait return
+  run
+!
+  set neig,add                 # 
+  set neig,vec,3,4             #  group the second vector set to a new neighbouhood
+exit
+wait return
+#
+@plot.mac example1
+
+@fourier.mac example1
+#
+chem
+  corr occ,Cu,Au             # This time the <corr> command will determine
+  a100 = res[1]
+  a010 = res[2]
+#wait return
+#                              # both correlations
+exit
+fopen  1,example1.data
+fformat 1,*
+fput 1,"C100 target/achieved/%5.2f %5.2f",c100, res[1]
+fput 1,"C010 target/achieved/....  %5.2f",      res[2]
+fput 1,"temperature  %5.0f",heat
+chem
+  element
+exit
+fput 1,"copper : gold %5.2f : %5.2f",res[2],res[1]
+fclose 1
+#
+save example1.stru
+branch kuplot
+   @kex1.mac
+exit
+exit
+#
+#
+# Test for Success
+#
+kuplot
+#
+load ni, RESULTS/example1.inte
+rval 1, 4, one
+r[0] = res[1]
+if(abs(r[0]) < 0.280 ) then
+echo COND 1
+  if(abs(c100-a100)< 0.04 ) then
+echo COND 2
+    if(abs(c010-a010)< 0.05) then
+echo COND 3
+      if(z[1, 126,101]/z[1, 113,101] >  8.0  ) then
+echo COND 4
+        if(z[3, 109,101]/z[3, 117,101] > 1.0) then
+echo COND 5
+          LTEST_MAC = TRUE
+        endif
+      endif
+    endif
+  endif
+else
+  LTEST_MAC = FALSE
+endif
+#
+exit    ! Back to suite

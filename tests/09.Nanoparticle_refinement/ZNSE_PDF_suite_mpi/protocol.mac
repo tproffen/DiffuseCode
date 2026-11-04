@@ -1,0 +1,18 @@
+#
+fclose all
+#
+fopen 1, "LOGFILES/Gen.%4D.Mem.%4D.KID.%4D", REF_GENERATION , REF_KID ,REF_CHILDREN
+fput  1, "# Parameter "
+#
+echo "%14.10f" , r[42]
+fput 1,"%14.10f" , r[42]
+#
+#
+variable real, check
+do check= 1 , REF_DIMENSION
+#
+  echo "%14.10f" , ref_para[check] 
+  fput 1,"%14.10f" , ref_para[check] 
+enddo
+#
+fclose 1

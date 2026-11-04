@@ -1,0 +1,7 @@
+#
+# old, alternative version if individual calculations were written to disk
+#  reset
+#  do indiv=1,nindiv
+#     load xy,"%c/INDI/indi.%4D.%4D", INDIDIR, kid,indiv
+#  enddo 
+merge all    ! creates new data set number: nindiv + 1

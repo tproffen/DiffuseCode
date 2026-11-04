@@ -1,0 +1,23 @@
+#
+#  plotx.mac
+#
+################################################################################
+#
+# writes the atom coordinates to be plotted with "diamond" or "jmol" program
+#
+################################################################################
+#
+plot
+  program   diamond
+  uvw       0,0,1
+  abs       1,0,0
+  ord       0,1,0
+  ext       all
+  vect      0,0,0
+  thick     10000.
+  sel       all
+  set       1,3,  0.0,0.0,1.0, 0.4
+  bond      1,1, lat[1]*0.9,lat[1]*1.1, 0.0,0.0,0.0, 0.1
+  outf      $1.xyz
+  run
+exit

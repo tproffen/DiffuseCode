@@ -1,0 +1,34 @@
+kuplot
+reset
+#
+#  Load HDF5 File with transformation:
+#  You must specify at least two of: 
+#  zone:   for the zone axis
+#  abs:    Vector in reciprocal space for abscissa
+#  ord:    Vector for ordinate
+#  npoints:  Number of point, is optional KUPLOT will calculate  these 
+#            udsing the input file
+# 
+load h5, example_three.inte, trans:yes
+  set zone:[1.0, 0.0, 0.0], abs:[0.00, 1.00, 0.00], ord:[0.00, 0.00, 1.00]
+  set npoints:[41, 41,41]
+  run
+exit
+hart 1, 2
+cmap fire
+hlin 1, 1,1,100, %
+aver  data:1    ! Axis ratio is encoded in HDF5 data set
+angle data:1    ! Axis angle is encoded in HDF5 data set
+mark 1, 1
+achx [ 0 K 0 ]
+achy [ 0 0 L ]
+fnam off
+fset 2
+tit1 Simple SRO  Zone axis [ 1 0 0 ]
+tit2 "c100:%5.2f c010:%5.2f c001:  0.00", $1, $2
+plot
+#
+# Try out the interactive menu , that lest you step through the data
+# just uncomment the "mouse" command
+#mouse
+exit

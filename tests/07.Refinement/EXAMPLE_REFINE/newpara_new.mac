@@ -1,0 +1,8 @@
+newpara P_ampl , value: 0.98023395     , points:5, shift:0.30000000E-001, status:free
+newpara P_wvle , value: 0.49937222     , points:5, shift:0.30000000E-002, status:free
+newpara P_phase, value: 0.21418203     , points:5, shift:0.30000000E-002, status:free
+newpara P_0    , value:-0.95891841     , points:5, shift:0.30000000E-002, status:free
+newpara P_1    , value: 0.95011451E-001, points:5, shift:0.30000000E-002, status:free
+newpara P_2    , value:-0.99538943E-002, points:5, shift:0.30000000E-002, status:free
+#
+#

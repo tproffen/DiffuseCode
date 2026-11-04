@@ -1,0 +1,7 @@
+system rm -f *.inte
+system rm -f therm.*.pdf
+system rm -f *.plot
+system rm -f powder.tth
+system rm -f powder.Q
+system rm -f *.tth
+system rm -f *.pdf

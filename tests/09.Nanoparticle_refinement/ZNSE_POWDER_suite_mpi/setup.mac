@@ -1,0 +1,6 @@
+#
+#  allgemeiner setup
+#
+variable  integer,nindiv
+#
+nindiv =   2 !20

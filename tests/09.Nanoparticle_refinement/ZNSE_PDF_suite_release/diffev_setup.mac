@@ -1,0 +1,96 @@
+#
+#  diffev_setup.mac
+#
+################################################################################
+#
+#  Define population size, parameters and log files
+#
+#
+pop_gen[1]  =   0     ! We want to start the refinement in generation zero
+#
+pop_n[1]    =   6     ! Define the population size should be 10 times the number of parameters
+pop_c[1]    =   6     ! Number of children in each generation usually identical to parent
+#
+#  For each parameter to be refined we define:
+#     name, minimum/maximum allowed values , minimum/maximum for start range
+#
+#  1 lattice constant a
+#
+newpara               P_lata  , range:[3.9000,  4.020],  value:[3.900, 4.020], status:free
+#
+#  2 lattice constant c
+#
+newpara               P_latc  , range:[6.4900,  6.570], value:[ 6.490, 6.510], status:free
+#
+#  3 z value Zn
+#
+newpara               P_z_zn  , range:[0.3600,  0.450],  value:[0.373, 0.380], status:free
+#
+#  4 B value   
+#
+newpara               P_biso  , range:[0.0100,  2.500],  value:[0.700, 0.900], status:free
+#
+#  5 stacking fault property
+#
+newpara               P_stack , range:[0.0000,  1.000],  value:[0.000, 1.000], status:free
+#
+#  6 diameter in ab plane
+#
+newpara               P_ab_dia, range:[5.0000, 45.000], value:[15.000, 40.00], status:free
+#
+#  7 diameter along c-axis
+#
+newpara               P_cc_dia, range:[5.0000, 40.000], value:[15.000, 40.00], status:free
+#
+################################################################################
+#
+#
+#  8 Quadratic correlation term
+#
+newpara               P_corrquad  , range:[0.0000,  0.000],  value:[0.000,  0.00], status:fixed
+#
+#  9 Linear correlation term
+#
+newpara               P_corrlinear, range:[0.0000,  0.100],  value:[0.044,  0.051], status:free
+#
+# 10 Qbroadening = Qalpha
+#
+newpara               P_qbroad,range:[ 0.00357,  0.00357],  value:[0.00357,  0.00357], status:fixed
+#
+# 11 Qdamping = QSIG
+#
+newpara               P_qdamp , range:[0.02078,  0.02078],  value:[0.02078,  0.02078], status:fixed
+#
+# 12 srat 
+#
+newpara               P_srat  , range:[1.0000,  1.000],  value:[1.000, 1.000], status:fixed
+#
+# 13 density 
+#
+newpara               P_density  , range:[0.0000,  0.000],  value:[0.000, 0.000], status:fixed
+#
+# 14 pdf scale factor 
+#
+newpara                P_scale  ,range:[ 0.0001,  4.000],  value:[2.200, 2.450], status:free
+#
+diff_cr[1]  = 0.9            ! Cross over probability 
+diff_f[1]   = 0.81           ! Scale vfactor for the difference vector 
+diff_lo[1]  = 0.0            ! Probability for local search keep at 0.0
+diff_k[1]   = 1.0            ! Aligmen point of difference vector keep at 1.0
+#
+!refine  none
+!refine  P_lata,    P_latc,  P_z_zn,  P_biso,  P_stack
+!refine  P_ab_dia,  P_cc_dia
+!refine  P_corrlinear, P_scale
+#
+donor      random            ! Choose donor randomly among parents
+#selection  compare          ! Choose donor as the best parent
+selection  best,all          ! New parents are the better of all parents and all children
+#
+!trialfile  silent            ! Do not write an explicit trial file
+!restrial   silent            ! Do not expect to read a result file
+lastfile   DIFFEV/Current    ! Parameter log fo the last generation
+logfile    DIFFEV/Parameter  ! Parameter log for all generations
+summary    DIFFEV/Summary    ! Short summary of the fir at each generation
+#
+backup TEMP/calc, FINAL/final ! Back up files from TEMP/calc to FINAL/final

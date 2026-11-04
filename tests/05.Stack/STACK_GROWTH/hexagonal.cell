@@ -1,0 +1,5 @@
+title Primitive hexagonal cell
+spcgr P6
+cell  3.0, 3.0, 3.*sqrt(8./3.), 90.0, 90.0, 120.0
+atom
+co    0.000000  0.000000  0.000000  0.2000

@@ -1,0 +1,31 @@
+discus
+!
+read
+  free  1.0, 2.0, 3.0, 89.5, 90.1, 119.0, P1
+#
+r[0] = blen(1.0, 0.0, 0.0)
+eval r[0]
+r[10] = bang(1.0,0.0, 0.0,  0.0, 1.0, 0.0)
+eval r[10]
+r[20] = scalpro(1,1,0, 0,1,1)
+r[21] = blen(1,1,0)
+r[22] = blen(0,1,1)
+r[23] = bang(1,1,0, 0,1,1)
+r[24] = r[21]*r[22]*cosd(r[23])
+eval r[20], r[24]
+vprod 1,0,0, 0,1,0, ddd
+show res
+r[31] = res[1]
+r[32] = res[2]
+r[33] = res[3]
+r[34] = blen(r[31], r[32], r[33])
+r[35] = blen(1,0,0)*blen(0,1,0)*sind(bang(1,0,0, 0,1,0))
+eval r[34], r[35]
+#
+proj  0,0,1,  0,0,1, drdd
+r[31] = res[1]
+r[32] = res[2]
+r[33] = res[3]
+show res
+exit
+

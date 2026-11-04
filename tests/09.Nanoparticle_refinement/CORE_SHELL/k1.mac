@@ -1,0 +1,7 @@
+rese
+load xy, DATA/291.dat
+load xy, INDI/indi.0001.0001.q
+ccal mul,wy,2,ymax[1]/ymax[2]
+skal
+mark
+plot

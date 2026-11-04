@@ -1,0 +1,19 @@
+discus
+   @discus.znse.mac
+exit
+#
+kuplot
+@fit_poly INDI/indi.0001.0001, p_ab+2, 6 
+reset
+load xy, INDI/indi.0001.0001_corrected.grcalc
+skal
+mark
+plot
+wait return
+reset
+load xy, INDI/indi.0001.0001.IQ
+skal
+mark
+plot
+#
+exit   ! back to suite

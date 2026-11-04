@@ -1,0 +1,25 @@
+set error,exit
+#@ HEADER
+#@ NAME         ref.ex0.kup.diffev.mac
+#@ 
+#@ KEYWORD      refinement, average, rvalue
+#@ 
+#@ DESCRIPTION  This macro calculates the r-Values for all children
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @ref.ex0.kup.diffev 
+#@
+#@ END
+################################################################################
+#
+#
+rese
+#
+  rese
+  load ni, DATA/experimental.inte
+  load ni, "CALC/calc.%4D",REF_KID
+  match all,1,2
+  rval 1,2,ONE
+#
+exit    ! Back to calling section

@@ -1,0 +1,30 @@
+set error,exit
+#@ HEADER
+#@ NAME         ref.ex0.dis.diffev.mac
+#@ 
+#@ KEYWORD      refinement, generic
+#@ 
+#@ DESCRIPTION  This is the main generic part of a structure refinement.
+#@ DESCRIPTION  The macro read the GENERATIKON file and performs a loop
+#@ DESCRIPTION  over all children in the population.
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @ref.ex0.dis.diffev 
+#@
+#@ END
+################################################################################
+#
+#
+variable integer,indiv
+
+#
+#fopen 1,GENERATION
+#fget 1,generation,member,children,parameters
+#fclose 1
+#
+@ref.ex0.discus.main.mac 
+#
+branch kuplot
+   @ref.ex0.kup.diffev.mac ., REF_KID
+exit              ! Back to suite

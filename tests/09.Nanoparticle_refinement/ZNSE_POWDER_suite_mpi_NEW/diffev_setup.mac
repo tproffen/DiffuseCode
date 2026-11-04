@@ -1,0 +1,67 @@
+#
+#  diffev_setup.mac
+#
+################################################################################
+#
+#  Define population size, parameters and log files
+#
+#
+pop_gen[1]  =   0     ! We want to start the refinement in generation zero
+#
+pop_n[1]    =  20     ! Define the population size should be 10 times the number of parameters
+pop_c[1]    =  20     ! Number of children in each generation usually identical to parent
+#
+#  For each parameter to be refined we define:
+#     name, minimum/maximum allowed values , minimum/maximum for start range
+#
+#  1 lattice constant a
+#
+newpara               P_lata  , 3.9000,  4.020,  3.900, 4.020
+#
+#  2 lattice constant c
+#
+newpara               P_latc  , 6.4900,  6.570,  6.490, 6.510
+#
+#  3 z value Zn
+#
+newpara               P_z_zn  , 0.3600,  0.450,  0.373, 0.380
+#
+#  4 B value   
+#
+newpara               P_biso  , 0.0100,  2.500,  0.700, 0.900
+#
+#  5 stacking fault property
+#
+newpara               P_stack , 0.0000,  1.000,  0.000, 1.000
+#
+#  6 diameter in ab plane
+#
+newpara               P_ab_dia, 5.0000, 45.000, 15.000, 40.00
+#
+#  7 diameter along c-axis
+#
+newpara               P_cc_dia, 5.0000, 40.000, 15.000, 40.00
+#
+################################################################################
+#
+#
+diff_cr[1]  = 0.9            ! Cross over probability 
+diff_f[1]   = 0.81           ! Scale vfactor for the difference vector 
+diff_lo[1]  = 0.0            ! Probability for local search keep at 0.0
+diff_k[1]   = 1.0            ! Aligmen point of difference vector keep at 1.0
+#
+refine  none
+refine  P_lata,    P_latc,  P_z_zn,  P_biso,  P_stack
+refine  P_ab_dia,  P_cc_dia
+#
+donor      random            ! Choose donor randomly among parents
+#selection  compare          ! Choose donor as the best parent
+selection  best,all          ! New parents are the better of all parents and all children
+#
+trialfile  silent            ! Do not write an explicit trial file
+restrial   silent            ! Do not expect to read a result file
+lastfile   DIFFEV/Current    ! Parameter log fo the last generation
+logfile    DIFFEV/Parameter  ! Parameter log for all generations
+summary    DIFFEV/Summary    ! Short summary of the fir at each generation
+#
+backup TEMP/calc, FINAL/final ! Back up files from TEMP/calc to FINAL/final

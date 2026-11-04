@@ -1,0 +1,10 @@
+DISCUS Macros in this directory are:
+
+
+stack.01.mac           ! Main stacking fault macro
+
+plot.mac               ! Writes structure fro plot with KUPLOT
+
+KUPLOT Macros in this directory are:
+
+kplot.mac              ! Plots the results

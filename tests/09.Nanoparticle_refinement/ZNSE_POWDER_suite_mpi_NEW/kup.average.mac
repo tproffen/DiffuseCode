@@ -1,0 +1,9 @@
+#
+if(n[1]==0) then
+# alternative version if individual calculations were written to disk
+  reset
+  do indiv=1,REF_NINDIV
+     load xy,"%c/INDI/indi.%4D.%4D", INDIDIR, REF_KID, indiv
+  enddo 
+endif
+merge all    ! creates new data set number: REF_NINDIV + 1

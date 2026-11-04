@@ -1,0 +1,12 @@
+DISCUS Macros in this directory are:
+
+
+sro.3.mac              ! Main Short range order macro
+
+sro-ran.1.mac          ! Creates a crystal with random defect distribution
+fourier.mac            ! Calculates the Fourier transformation
+plot.mac               ! Writes structure fro plot with KUPLOT
+
+KUPLOT Macros in this directory are:
+
+kex3.mac               ! Plots the results of example 3

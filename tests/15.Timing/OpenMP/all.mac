@@ -1,0 +1,12 @@
+discus
+variable integer, nthreadsmax
+#
+set parallel, useomp:use, nthread:logical
+show parallel
+nthreadsmax = res[2]
+exit ! back to SUITE
+#
+do LOOP=1,nthreadsmax
+  @main.mac LOOP
+enddo
+exit  ! finish suite

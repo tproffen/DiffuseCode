@@ -1,0 +1,40 @@
+#
+#  pdf.mac
+#
+###############################################################################
+#
+#  calculates the total PDF for all atoms
+#
+###############################################################################
+#
+set debug,off
+p_qmax = 25.0
+pdf
+#
+    ides 1,all
+    jdes 1,all
+    isel 1,all
+    jsel 1,all
+#
+    set bound,crystal,3D
+#   set bound,periodic,3D
+    set delta, p_delta
+    set dens,  p_density
+    set gamma, p_gamma
+    set qalp,  p_qalp
+    set qsig,  p_qsig
+    set qmax,  p_qmax
+    set rad,   xray
+    set range, 35.00,0.02
+    set srat,  p_srat,3.2
+    set weig,  p_scale
+    set therm, gauss    
+#
+    set diameter,p_diameter
+    set shape,   p_shape
+#
+    show
+    calc
+    save pdf,"INDI/indi.%4D.%4D.pdf"  ,$1, $2
+exit
+set debug,off

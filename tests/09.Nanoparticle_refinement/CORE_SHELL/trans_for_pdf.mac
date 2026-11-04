@@ -1,0 +1,11 @@
+@trans2large.mac
+save
+  outf "STRU/temp.%4D.%4D",kid,indiv
+    omit ncell
+    omit  gene
+    omit  scat
+    omit  adp
+    run
+  exit
+read
+  stru "STRU/temp.%4D.%4D",kid,indiv

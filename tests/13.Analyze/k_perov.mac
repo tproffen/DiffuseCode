@@ -1,0 +1,34 @@
+kuplot
+   reset
+   load ni, INTE/perov_hk0.inte
+   aver 1
+   skal
+   mark 1, 1
+   cmap gray
+   hart 1, 2
+   hlin 1, 5,5,20,%
+   achx [ H 0 0 ]
+   achy [ 0 K 0 ]
+   tit1 Perovskite
+   tit2 (Pb;Bi)(Ti;Mg) O\d3\u HK0 layer
+   fnam off
+   plot
+   save png, PICTURES/perov_hk0.png
+   wait return
+#
+   reset
+   load ni, INTE/perov_h0l.inte
+   aver 1
+   skal
+   mark 1, 1
+   cmap gray
+   hart 1, 2
+   hlin 1, 5,5,20,%
+   achx [ H 0 0 ]
+   achy [ 0 0 L ]
+   tit1 Perovskite
+   tit2 (Pb;Bi)(Ti;Mg) O\d3\u H0L layer
+   fnam off
+   plot
+   save png, PICTURES/perov_h0l.png
+exit

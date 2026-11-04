@@ -1,0 +1,19 @@
+DISCUS Macros in this directory are:
+
+
+diffev.mac             ! Macro to refine arctan function
+
+diffev_setup.mac       ! Define parameters needed for refinement
+diffev_continue.mac    ! Coninue an interrupted refinement
+
+arctan.mac             ! Calculates the "arctan" function
+
+fit.mac                ! AN attempt at a least squares
+
+KUPLOT Macros in this directory are:
+
+kpara.mac              ! Plots the parameters versus generation number
+kpar_par.mac           ! Plots the parameter correlations
+krval_par.mac          ! Plots the parameter versus R-value
+
+kdraw.mac              ! Plots obs, calc for a member

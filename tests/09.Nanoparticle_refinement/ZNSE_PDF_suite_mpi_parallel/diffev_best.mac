@@ -1,0 +1,91 @@
+#@ HEADER
+#@ NAME         diffev_best.mac
+#@ 
+#@ KEYWORD      diffev, best member, initialize
+#@ 
+#@ DESCRIPTION  This macro contains the parameters for the current best
+#@ DESCRIPTION  member. If run, the best member will be recreated.
+#@ DESCRIPTION  As the random state is explicitely contained as well, the
+#@ DESCRIPTION  best member will be recreated exactly.
+#@ DESCRIPTION
+#@ DESCRIPTION  This macro uses the original macro on the run_mpi command
+#@ DESCRIPTION  line. Make sure to turn on writing of desired output files.
+#@ DESCRIPTION
+#@ DESCRIPTION  Each of the macros on a run_mpi line must have an 'exit' 
+#@ DESCRIPTION  command, which returns to the suite level.
+#@ DESCRIPTION  As the run_mpi command internally switches to the correct
+#@ DESCRIPTION  section, the switch is done here with preceding the macro call 
+#@ DESCRIPTION  with the proper 'discus' or 'kuplot' command.
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @diffev_best.mac
+#@
+#@ END
+#
+discus
+reset
+exit
+kuplot
+reset
+exit
+#
+REF_GENERATION =           20
+REF_MEMBER     =           20
+REF_CHILDREN   =           20
+REF_DIMENSION  =           14
+REF_NINDIV     =            5
+REF_KID        =         9999
+REF_INDIV      =            1
+variable real, Rvalue          
+variable real, P_lata          
+variable real, P_latc          
+variable real, P_z_zn          
+variable real, P_biso          
+variable real, P_stack         
+variable real, P_ab_dia        
+variable real, P_cc_dia        
+variable real, P_corrquad      
+variable real, P_corrlinear    
+variable real, P_qbroad        
+variable real, P_qdamp         
+variable real, P_srat          
+variable real, P_density       
+variable real, P_scale1        
+Rvalue           =  0.1875639036E+00
+P_lata           =  0.3985661867E+01
+P_latc           =  0.6505618964E+01
+P_z_zn           =  0.3829447008E+00
+P_biso           =  0.7417695610E+00
+P_stack          =  0.7623020748E+00
+P_ab_dia         =  0.3273849995E+02
+P_cc_dia         =  0.2694658569E+02
+P_corrquad       =  0.0000000000E+00
+P_corrlinear     =  0.4559393644E-01
+P_qbroad         =  0.3570000000E-02
+P_qdamp          =  0.2078000000E-01
+P_srat           =  0.1000000000E+01
+P_density        =  0.0000000000E+00
+P_scale1         =  0.1936770041E+01
+diffev ! Temporarily step into DIFFEV to load data
+seed     49639329,      48839545,      24999665,     -50550755,      41202561,     -29320251,       4359977,             0
+#
+@global.mac   ! Load data file names 
+  if(index("%c",DATAFILE,'h5')>0) then
+    data h5, "%c/DATA/%c", DATADIR, DATAFILE   ! Populates F_XMIN, F_XMAX, F_XSTP
+  elseif(index("%c",DATAFILE,'hkl')>0) then
+    data hklf4, "%c/DATA/%c", DATADIR, DATAFILE   ! Populates F_XMIN, F_XMAX, F_XSTP
+  else
+    data xy, "%c/DATA/%c", DATADIR, DATAFILE   ! Populates F_XMIN, F_XMAX, F_XSTP
+  endif
+exit   ! Return to SUITE
+#      ! Each macro on run_mpi command must have an exit to suite as well
+#      ! Each macro is preceeded with a command that steps into the section
+#
+do REF_INDIV=1,REF_NINDIV
+  discus
+  @dis.diffev.mac  ., REF_KID, REF_INDIV
+enddo
+#
+#
+set error, continue

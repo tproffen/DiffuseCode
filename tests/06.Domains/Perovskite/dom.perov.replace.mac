@@ -1,0 +1,54 @@
+#  dom.perov.replace.mac
+#
+domain
+rese
+mode   pseudo
+input  $1.list
+assign char,  d100, fuzzy
+assign fuzzy, d100, 0.5
+assign cont,  d100, perovskite.stru
+assign shape ,d100,1,1. , 0., 0., 0.
+assign shape ,d100,2,0. , 1., 0., 0.
+assign shape ,d100,3,0. , 0., 1., 0.
+assign orient,d100,1,ratio,    0.,    0., 0.
+assign orient,d100,2,0. , 1./sqrt(ratio),0.,0.
+assign orient,d100,3,0. , 0.,1./sqrt(ratio),0.
+show 
+#wait return
+#
+assign char,  d010, fuzzy
+assign fuzzy, d010, 0.5
+assign cont,  d010, perovskite.stru
+assign shape ,d010,1,1., 0., 0., 0.
+assign shape ,d010,2,0., 1., 0., 0.
+assign shape ,d010,3,0., 0., 1., 0.
+assign orient,d010,1,1./sqrt(ratio),0.,0.,0.
+assign orient,d010,2,0., ratio, 0., 0.
+assign orient,d010,3,0.,0.,1./sqrt(ratio),0.
+show 
+#wait return
+#
+assign char,  d001, fuzzy
+assign fuzzy, d001, 0.5
+assign cont,  d001, perovskite.stru
+assign shape ,d001,1,1., 0., 0., 0.
+assign shape ,d001,2,0., 1., 0., 0.
+assign shape ,d001,3,0., 0., 1., 0.
+assign orient,d001,1,1./sqrt(ratio),0.,0.,0.
+assign orient,d001,2,0.,1./sqrt(ratio),0.,0.
+assign orient,d001,3,0.,    0.,   ratio,  0.
+#
+show
+#wait return
+set remove, none
+run
+exit
+show adp:all
+wait return
+replace d100,void, all, 1.0
+replace d010,void, all, 1.0
+replace d001,void, all, 1.0
+chem
+elem
+exit
+purge

@@ -1,0 +1,58 @@
+#
+#  sort.mac
+#
+mmc
+ reset
+ set vec, rese
+ set nei, rese
+#
+  set vec,  1,  1, 1,   1,  0,  0    ! Build all <100> vectors
+  set vec,  2,  1, 1,  -1,  0,  0
+  set vec,  3,  1, 1,   0,  1,  0
+  set vec,  4,  1, 1,   0, -1,  0
+  set vec,  5,  1, 1,   0,  0,  1
+  set vec,  6,  1, 1,   0,  0, -1
+#
+  set vec,  7,  1, 1,   1,  1,  0    ! Build all <110> vectors
+  set vec,  8,  1, 1,  -1, -1,  0
+  set vec,  9,  1, 1,   1, -1,  0
+  set vec, 10,  1, 1,  -1,  1,  0
+  set vec, 11,  1, 1,   1,  0,  1
+  set vec, 12,  1, 1,  -1,  0, -1
+  set vec, 13,  1, 1,   1,  0, -1
+  set vec, 14,  1, 1,  -1,  0,  1
+  set vec, 15,  1, 1,   0,  1,  1
+  set vec, 16,  1, 1,   0, -1, -1
+  set vec, 17,  1, 1,   0,  1, -1
+  set vec, 18,  1, 1,   0, -1,  1
+#
+  set vec, 19,  1, 1,   1,  1,  1    ! Build all <111> vectors
+  set vec, 20,  1, 1,  -1,  1,  1
+  set vec, 21,  1, 1,   1, -1,  1
+  set vec, 22,  1, 1,  -1, -1,  1
+  set vec, 23,  1, 1,   1,  1, -1
+  set vec, 24,  1, 1,  -1,  1, -1
+  set vec, 25,  1, 1,   1, -1, -1
+  set vec, 26,  1, 1,  -1, -1, -1
+#
+#set nei, vec, 1
+  set nei, vec,  1,  2,  3,  4,  5,  6   ! Groups <100> vectors to a common neighborhood
+  set nei, add
+  set nei, vec,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ! same for <110>
+  set nei, add
+  set nei, vec, 19, 20, 21, 22, 23, 24, 25, 26                 ! same for <111>
+#
+  set mode, 1.0, swchem,all                #  Modification is exchange of atoms
+  set targ,1,corr, Cu, Ag, c100, 0.0      ,CORR   #  Now we defined three targets
+  set targ,2,corr, Cu, Ag, c110, 0.0      ,CORR   #  each with an independent
+  set targ,3,corr, Cu, Ag, c111, 0.0      ,CORR   #  target correlation
+#
+  set cyc, ncycle   *n[1]                  #  Modify crystal this often
+  set feed,nfeed    *n[1]                  #  Feedbacks after this many cycles
+#
+  set temp,heat                            # Pseudo temperature
+  set finish, stop:converge, diff:0.095, change:0.052, aver:0.050, feed:3
+  set finish, stop:cycles
+  show
+  run
+exit

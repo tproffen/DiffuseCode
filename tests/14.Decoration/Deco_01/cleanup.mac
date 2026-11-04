@@ -1,0 +1,2 @@
+system rm -f PLOT/*.cif
+system rm -f STRU/*.stru

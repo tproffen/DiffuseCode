@@ -1,0 +1,37 @@
+variable real   , pid_pp
+variable real   , pid_ii
+variable real   , pid_dd
+pid_pp = $1
+pid_ii = $2
+pid_dd = $3
+kuplot
+reset
+load xy, "pid_%8.2F_%8.2F_%8.2F", pid_pp, pid_ii, pid_dd
+load xy, "pid_%8.2F_%8.2F_%8.2F", pid_pp, pid_ii, pid_dd
+load xy, "pid_%8.2F_%8.2F_%8.2F", pid_pp, pid_ii, pid_dd, 1, 3
+ccal add, wy, 3, -1.*ymin[3]
+ccal mul, wy, 3,  1./ymax[3]
+smooth 2, 17
+func $4  , xmin[1], xmax[1], 0.01
+spline 4, 1
+kfra 1, 1, 2, 3, 4
+skal  0.0, 1.0,min(ymin[1], ymin[3], ymin[4]), max(ymax[1], ymax[3], ymax[4])
+mark 0.1, 0.20
+lcol 1, blue
+lcol 2, blue
+mtyp 1, 3
+mcol 3, blue
+lcol 3, black
+lcol 4, red
+#lcol 5, black
+lwid 2, 0.8
+font size, 6, 18
+rval 5, 1, one
+r[100] = res[1]
+sann 1,"P %5.2f", pid_pp, 0.70, 0.30
+sann 2,"I %5.2f", pid_ii, 0.70, 0.25
+sann 3,"D %5.2f", pid_dd, 0.70, 0.20
+sann 4,"r %8.5f", r[100], 0.70, 0.15
+fnam off
+plot
+exit

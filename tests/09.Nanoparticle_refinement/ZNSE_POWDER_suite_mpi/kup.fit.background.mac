@@ -1,0 +1,18 @@
+  match sca,nindiv+2,nindiv+3
+  fit nindiv + 2
+    func ba,nindiv + 3,5
+    para 1,1,1.0
+    para 2,1,0.0
+    para 3,1,0.0
+    para 4,1,0.0
+    para 5,1,0.0
+    urf  10
+    cycle 100
+    run
+    show
+  exit
+#
+  ksav nindiv + 4
+    outf "TEMP/calc.%4D",REF_KID
+    run
+#

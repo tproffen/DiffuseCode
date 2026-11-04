@@ -1,0 +1,16 @@
+#
+system rm -f CUBE/dom.guest.*.stru
+system rm -f CUBE/*.plot
+system rm -f CUBE/*.cif
+system rm -f TRIANGLE/*.cif
+system rm -f TRIANGLE/dom.guest.*.stru
+system rm -f TRIANGLE/*.plot
+system rm -f Perovskite/*.3DPDF
+system rm -f Perovskite/*.inte
+system rm -f Perovskite/*.plot
+system rm -f Perovskite/*.cif
+system rm -f Perovskite/*.list
+system rm -f Perovskite/*.stru
+system rm -f Perovskite/dom.perov.final
+system rm -f Molecules/STRUCTURE/*
+system rm -f Molecules/PLOT/*

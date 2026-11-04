@@ -1,0 +1,59 @@
+set prompt,redirect
+################################################################################
+#
+# arctan.mac
+#
+################################################################################
+#
+# This macro reads the parameter values for a user supplied generation and 
+# member. It calculates the function and displays the experimental data, the
+# calculated function and the difference.
+#
+# @kdraw generation,member
+#        generation may be any generation number or -1 for the current one
+#
+################################################################################
+#
+variable integer,generation
+variable integer,member
+variable integer,children
+variable integer,parameters
+variable integer,kid
+fclose all
+#
+rese
+#
+# Get generation numbers, number of members, children and parameters
+#
+fopen 1,GENERATION
+#
+fget  1,generation,member,children,parameters
+fclose 1
+#
+# load the requested generation, and read all parameters for the 
+# requested member
+#
+do kid=1,children
+  fopen 1,"DIFFEV/Trials.%4D",kid
+  fget  1
+  fget  1
+  fget  1
+  fget  1
+  fget  1
+  fget  1,r[11]
+  fget  1,r[12]
+  fget  1,r[13]
+  fclose 1
+#
+# Now load data and calculate functiion
+#
+  rese
+  load xy,DATA/data.noisy
+  func  r[11]*(atan((abs(r[0 ]-r[12] ))/r[13])),xmin[1],xmax[1],0.1
+  rval 1,2,one
+  fopen 1,"DIFFEV/Result.%4D",kid
+  fput  1, kid,res[2]
+  fclose 1
+enddo
+#
+exit

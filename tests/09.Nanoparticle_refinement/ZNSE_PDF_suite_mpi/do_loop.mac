@@ -1,0 +1,12 @@
+#
+  do i[0]=1,3! 200               ! Number of refinement cycles 
+fclose all
+fopen 1, VALUES/trial.values, append
+fput 1 , "#S %4d = Generation Number", REF_GENERATION
+fput 1 , "#L Member Rvalue P_lata P_lac P_z_zn P_biso P_stack P_ab_dia P_cc_dia P_clin P_scale"
+fclose all
+    echo "Loop GENERATION %4d %4d", i[0], REF_GENERATION
+    !                         ! Run discus section with macro dis.diffev.mac, no repetitions
+    run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, logfile:LOGFILES/d, compute:serial
+    compare silent            ! Compare R-values to previous generation
+  enddo

@@ -1,0 +1,9 @@
+  release P_scale, range:1.0, value:2.0
+  release P_lata,  range:0.3
+  release P_latc,  range:0.3
+  release P_z_zn,  range:0.08
+  release P_biso,  range:0.15, value:0.5
+  release P_stack, range:0.15, value:0.5
+  release P_ab_dia,range:10.0, min:10.0
+  release P_cc_dia,range:10.0, min:10.0
+  release P_corrlinear ,range:0.01, value:0.03, min:0.0, max:0.11

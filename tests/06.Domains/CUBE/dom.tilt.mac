@@ -1,0 +1,81 @@
+#
+#@ HEADER
+#@ NAME         dom.tilt.mac
+#@ 
+#@ KEYWORD      domain, cube, pseudoatom
+#@ 
+#@ DESCRIPTION  This macro creates a simple structure. the central part
+#@ DESCRIPTION  is then filled with another structure. This time, the
+#@ DESCRIPTION  structure within the domain is turned around.
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @dom.tilt 
+#@
+#@ END
+################################################################################
+#
+discus
+#
+variable real,rho
+variable real,scale
+#
+rho   = atand(0.5)
+scale =1./sqrt(5.)
+#
+read
+cell dom.guest.tilt.cell,15,15,1
+save
+  outf dom.guest.tilt.stru
+  run
+exit
+#
+read
+cell dom.host.cube.cell, 7, 7,1
+#
+domain
+  rese
+  mode   pseudo
+  input  dom.cube.pseudo
+  assign char,si,cube
+  assign fuzzy,si,1.20
+  assign cont, si,dom.guest.tilt.stru
+  assign shape ,si,1,  1.50, 0.00, 0.00,  0.00
+  assign shape ,si,2,  0.00, 1.50, 0.00,  0.00
+  assign shape ,si,3,  0.00, 0.00, 1.00,  0.00
+  assign orient,si,1, scale* cosd(rho), scale*sind(rho), 0.00,  0.50
+  assign orient,si,2, scale*-sind(rho), scale*cosd(rho), 0.00,  0.50
+  assign orient,si,3,  0.00       , 0.00       , 1.00,  0.00
+  show
+exit
+chem
+  elem
+exit
+domain
+  run
+exit
+wait return
+#
+@plot.three.mac tilt
+@plot.cif.mac   tilt
+#
+branch kuplot
+   @k.simple.mac tilt
+   exit
+#
+#
+#  Test for success
+#
+chem
+  elem
+exit
+LTEST_MAC = FALSE
+i[0]=nint(res[0]     )
+i[1]=nint(res[1]*n[1])
+i[2]=nint(res[2]*n[1])
+i[3]=nint(res[3]*n[1])
+i[4]=nint(res[4]*n[1])
+if(i[0]==4 .and. i[1]==9 .and. i[2]==40 .and. i[3]==46 .and. i[4]==45) then
+  LTEST_MAC = TRUE
+endif
+exit   ! back to suite

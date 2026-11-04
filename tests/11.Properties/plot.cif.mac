@@ -1,0 +1,8 @@
+#
+#
+plot
+  program   jmol
+  outfile   $1.cif
+  select    all
+  run       plot:inter, kill:yes
+exit

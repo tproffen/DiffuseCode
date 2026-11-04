@@ -1,0 +1,101 @@
+The macros in this directory are used to refine the structure
+of ZnSe Nanoparticles based on powder diffraction data.
+#
+################################################################################
+#
+QUICKGUIDE:
+
+Choose a refinement model in "aaa_model.mac".
+to run the refinement, start the DISCUS_SUITE program and at the prompt type:
+
+@refine.mac
+
+DIFFEV will run a loop over several generations. To change the number of
+refinement cycles edit refine.mac
+
+To observe the progress start the DISCUS_SUITE in the same directory, 
+go to the KUPLOT section and use the commands:
+
+kpara 0         ! plots the development of the R-value
+kpara Rvalue    ! plots the development of the R-value
+kpara 1         ! plots the development of parameter 1, or what ever number given
+kpara P_lata    ! plots the development of parameter P_lata or what ever name given
+kpar_par -1,1,0 ! Plots the correlation between parameter 1 (the 2. argument)
+                  and the R-value (third argument = 0) for the current
+                  generation (1st parameter = -1
+kpar_par 4,2,3  ! Plots the correlation between parameter 2 and 3 in 
+                  generation 4
+
+@ksingle 1    ! plots the current best result or 2nd best etc.
+
+################################################################################
+#
+DIRECTORIES:
+
+CELL   ! initial crystal structure files
+DATA   ! original data
+DIFFEV ! Files for the refinement process
+FINAL  ! Current best calculated pattern
+INDI   ! Temporary Directory, individual calculated pattern
+STRU   ! Temporary Directory, intermediate crystal strucures
+TEMP   ! Temporary Directory, scaled and background corrected pattern
+
+################################################################################
+#
+FILES:
+
+Most filenames can be choosen by the user. DIFFEV has one file with fixed name:
+
+GENERATION  ! Contains the current generation number of the refinement,
+            ! The number of parents and children, the number of parameters
+            ! and the files used by DIFFEV
+
+################################################################################
+#
+DATA FLOW
+#-------------------------------------------------------------------------------
+
+diffev      ! Main refinement program section, started via refine.mac
+
+refine.mac  ! is the main macro for the refinement. it starts in turn:
+     cleanup.mac   ! Removes temporary files for a clean start
+     diffev_setup  ! Definition of refinement parameters
+
+     DISCUS section with macro nano.znse.mac  ! Simulation of particles
+     KUPLOT program with macro kup.diffev.mac ! Scale, Background, R-value
+
+#-------------------------------------------------------------------------------
+discus      ! Simulation of all individual particles for all children
+
+dis.diffev.mac ! discus is started with this macro
+               ! It is a fairly generic interface to the DIFFEV section
+               ! and can be recycled for other refinements. It does:
+     setup.mac       ! Definition of the number of individual particles
+     global.mac      ! Definition of file names
+     discus.znse.mac ! The specific simulation of the particles
+     kup.diffev.mac  ! The appraisal section via KUPLOT
+
+discus.znse.mac  ! The specific simulation of the particles
+                 ! This macro reads all parameters for a given child,
+                 ! builds each individual nanoparticle according to 
+                 ! user defined rules and calculates the powder pattern
+                 ! respectively the PDF. This macro and the macros called
+                 ! in turn need to be written for each new refinement.
+     variables.znse.mac  ! Define useful variable names
+     makelayers.mac      ! create the layers with current lattice constants
+     shape.ellipsoid.mac ! stack the layers and shape into an ellipsoid
+          stack.mac      ! stack the layers according to a growth model
+     powder.mac          ! calculate the powder diffraction pattern
+     output.mac          ! Write output as PDF G(r)
+
+#-------------------------------------------------------------------------------
+kuplot       ! Average individual nanoparticle pattern, scale,
+             ! add background, calculate R-values, archive best pattern
+
+kup.diffev.mac  ! Runs a loop over all children. For each child, all 
+                ! individual pattern are averaged. As the data were calulcated
+                ! on an equally spaced Q-drif, data are rebinned to equal
+                ! 2-Theta steps. Then a scale factor and the background are
+                ! determined and the R-value calculated.
+     setup.mac       ! Definition of the number of individual particles
+     kup.average     ! Averages the individual pattern

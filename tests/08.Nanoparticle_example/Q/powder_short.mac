@@ -1,0 +1,60 @@
+#
+#  powder.mac
+#
+################################################################################
+#
+#  Calculates the powder pattern according to the Debye equation.
+#  
+#  powder                   ! Switch to the powder menu
+#    xray                   ! Do the calculation for X-ray diffraction
+#    set axis,q             ! Use as axis Q,
+#    set calc,debye         ! Define the calculation mode 
+#    set disp,off           ! Switch anomalous dispersion off
+#    set delta,0.0          ! Optional simple convolution by Gaussian 0=OFF
+#    set qmin,1.1000        ! Define mimium Q value
+#    set qmax,7.1000        !
+#    set dq,  0.0005        ! Define steps in Q-space
+#    set temp,use           ! Use the ADP's to calculate Debey-Waller term
+#    set wvle,1.54056       ! Define the wavlength
+#    set four,four          ! DO a normal Fouriertransform, there is a
+#                           ! special form for crystals with stacking faults
+#    set lpcor,bragg,26.58  ! Define Lorentz-Polarisation correction
+#    run                    ! Do the actual calculation
+#  exit                     ! Go back to the main menu
+#
+################################################################################
+#
+powder
+   xray
+   set axis, q
+   set qmin,    0.8000
+   set qmax,   30.0000
+   set dq,      0.005
+   set calc,debye 
+   set disp,off
+   set delta,0.0
+   set profile, pseudo
+   set profile, uvw, 0.000001,  -0.000024,   0.000145
+   set profile, eta, 0.56
+   set profile, width, 17
+   set profile,off
+   set temp,use
+   set wvle,0.20000
+   set four,four
+   set lpcor,bragg, 2.58
+   run
+exit
+output 
+  value PDF
+  form pdf, r, 0.5, 40.0, 0.01
+  outf "PDF/nano_%5.1F.grcalc", diameter
+  run
+  value F(Q)
+  form powder, q
+  outf "POWDER/nano_%5.1F.FQ", diameter
+  run
+  value S(Q)
+  form powder, q
+  outf "POWDER/nano_%5.1F.SQ", diameter
+  run
+exit 

@@ -1,0 +1,13 @@
+kuplot
+reset
+load ni, example3.3DPDF
+aver 1
+hart 1, 2
+#hlin 1, -0.3e7, 0.3e5, 200
+hlin 1, -2.5,0.05, 100  , %m
+cmap pdf
+achz PDF
+skal -6, 6, -6, 6
+mark 1, 1
+plot
+exit

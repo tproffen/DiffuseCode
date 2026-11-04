@@ -1,0 +1,22 @@
+#
+cd KAOLINITE
+@cleanup.mac
+cd ..
+cd MOLECULES
+@cleanup.mac
+cd ..
+cd STACK
+@cleanup.mac
+cd ..
+cd STACK_DISTRIBUTION
+@cleanup.mac
+cd ..
+cd STACK_GROWTH
+@cleanup.mac
+cd ..
+cd STACK_TYPES
+@cleanup.mac
+cd ..
+cd WURTZITE
+@cleanup.mac
+cd ..

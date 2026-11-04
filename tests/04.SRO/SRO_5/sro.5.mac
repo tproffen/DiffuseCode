@@ -1,0 +1,201 @@
+#
+#@ HEADER
+#@ NAME         sr0.5.mac
+#@ 
+#@ KEYWORD      SRO, Lennard-jones, relaxation
+#@ 
+#@ DESCRIPTION  This macro relaxes neigboring atom positions.
+#@ DESCRIPTION  A Lennard Jones potential is used
+#@
+#@ PARAMETER    $0, 2
+#@ PARAMETER    $1, real,  sro in <100>
+#@ PARAMETER    $2, real,  sro in <010>
+#@ PARAMETER    $3, real,  strain 
+#@ PARAMETER    $4, real,  temperature
+#@
+#@ USAGE        @sro.5  <c100>, <c010>, <strain>, <temperature>
+#@
+#@ END
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size_cr
+variable real,comp
+variable real,c100
+variable real,c010
+variable real,c110         # New variable for the diagonal target correlations
+variable real,cM10         # 
+variable real,a100
+variable real,a010
+variable real,a110
+variable real,aM10
+variable real,eCC
+variable real,eCA
+variable real,eAA
+variable real,a100
+variable real,a010
+variable real,a110
+variable real,aM10
+variable real,heat
+#
+size_cr =  50
+comp = 0.5
+#
+@sro-ran.5.mac size_cr,comp
+#
+#  Perform basic error check on user input
+#
+if($0 /= 4) then
+  echo
+  echo Use as: @sro.5  <c100>, <c010>, <strain>, <temperature>
+  echo
+  continue suite
+endif
+#
+if($1 <  -1.0   .or.   1.0  <   $1) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($2 <  -1.0   .or.   1.0  <   $2) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($3 <  -0.10   .or.  0.10  <   $3) then
+  echo
+  echo Strain coefficient must be in interval [-0.10: +0.10]
+  echo
+  continue suite
+endif
+#
+if($4 <   0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue suite
+endif
+#
+c100 = $1
+c010 = $2
+eCC  = (1.0-$3)*lat[1]
+eCA  = (1.0   )*lat[1]
+eAA  = (1.0+$3)*lat[1]
+#
+heat = $4
+#
+chem
+  set mode, quick, period, xy
+exit
+#
+therm 2d
+#
+#  Sort atoms 
+#
+mmc
+  reset
+  set vec,reset
+  set neig,rese
+#
+  set vec,1, 1,1,  1, 0, 0
+  set vec,2, 1,1, -1, 0, 0
+  set vec,3, 1,1,  0, 1, 0
+  set vec,4, 1,1,  0,-1, 0
+  set vec,5, 1,1,  1, 1, 0
+  set vec,6, 1,1, -1,-1, 0
+  set vec,7, 1,1,  1,-1, 0
+  set vec,8, 1,1, -1, 1, 0
+  set neig,vec,1,2
+  set neig,add
+  set neig,vec,3,4
+#
+  set mode, 1.0, swchem,all
+  set targ,1,corr,cu,au,c100,0.0,CORR   #  Now we define two targets
+  set targ,2,corr,cu,au,c010,0.0,CORR   #  each with an independent correlation
+  set cyc, 400*n[1]
+  set feed, 50*n[1]
+  set temp,heat
+  run
+exit
+#
+#  Relax distances
+#
+mmc
+  reset
+  set vec,reset
+  set neig,rese
+#
+  set vec,1, 1,1,  1, 0, 0
+  set vec,2, 1,1, -1, 0, 0
+  set vec,3, 1,1,  0, 1, 0
+  set vec,4, 1,1,  0,-1, 0
+#  set vec,5, 1,1,  1, 1, 0
+#  set vec,6, 1,1, -1,-1, 0
+#  set vec,7, 1,1,  1,-1, 0
+#  set vec,8, 1,1, -1, 1, 0
+   set neig,vec,1,2,3,4
+#  set neig,add
+#  set neig,vec,3,4
+#  set neig,add
+#  set neig,vec,5,6
+#  set neig,add
+#  set neig,vec,7,8
+#
+  set targ,1,lennard,cu,au,eCA,100.,12,6
+  set targ,1,lennard,cu,cu,eCC,100.,12,6
+  set targ,1,lennard,au,au,eAA,100.,12,6
+  set mode,1.0,shift,all
+  set move,cu,0.02,0.02,0.00
+  set move,au,0.02,0.02,0.00
+#
+  set cyc, 200*n[1]
+  set feed, 20*n[1]
+  set temp,heat
+  run
+exit
+#wait return
+#
+@plot.mac example5
+@fourier.mac example5
+#
+chem
+  set blen,4.0,6.0
+  set bin,201
+  set mode,quick,normal
+  blen cu,cu,cucu.hist
+  r[10] = res[10]
+  r[11] = res[11]
+  blen cu,au,cuau.hist
+  r[13] = res[13]
+  r[14] = res[14]
+  blen au,au,auau.hist
+  r[16] = res[16]
+  r[17] = res[17]
+exit
+fopen 1,example5.hist
+fformat 1,f8.3
+fformat 2,f8.3
+fput  1,r[10],r[11]
+fput  1,r[13],r[14]
+fput  1,r[16],r[17]
+fclose 1
+fopen  1,example4.data
+fformat 1,*
+fput 1,"Cu-Cu %8.3f +- %8.3f",r[10],r[11]
+fput 1,"Cu-Au %8.3f +- %8.3f",r[13],r[14]
+fput 1,"Au-Au %8.3f +- %8.3f",r[16],r[17]
+fput 1,"temperature  %6.1f",heat
+chem
+  element
+exit
+fput 1,"copper : gold %5.2f : %5.2f",res[2],res[3]
+fclose 1
+#
+save example5.stru
+#

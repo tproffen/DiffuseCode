@@ -1,0 +1,27 @@
+read
+   cell "%c/STRU/$1.%4D.%4D.cell",TMPDIR,kid,indiv
+#
+@stack.mac $1,p_stack
+@shift.mac p_cc*0.5
+#
+@shear.mac p_ab,p_cc
+surface 
+   boundary sphere,(p_ab/2.0)
+exit
+@shear.mac p_cc,p_ab
+#
+purge
+#
+#@plot.cif.mac final
+save
+   outf "%c/STRU/$1.%4D.%4D.particle",TMPDIR,kid,indiv
+   omit  ncell
+   omit  gene
+   omit  scat
+   omit  adp
+   omit  scat
+   omit  occ
+   run
+exit
+#
+#@plot.cif.mac final

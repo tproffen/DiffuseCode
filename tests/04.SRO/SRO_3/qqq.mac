@@ -1,0 +1,9 @@
+kuplot
+reset
+load ni, RESULTS/example3.3DPDF
+aver 1
+hart 1, 2
+cmap pdf
+hlin 1, -0.8e7, 0.08e7, 21
+plot
+exit

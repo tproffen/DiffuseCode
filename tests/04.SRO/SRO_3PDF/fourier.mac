@@ -1,0 +1,24 @@
+fourier
+  ll -4.0,-4.0,0.0
+  lr  4.0,-4.0,0.0
+  ul -4.0, 4.0,0.0
+  na 401 
+  no 401 
+  abs  h
+  ord  k
+  temp ign
+  disp off
+  set  aver, 10
+  lots box,20,20,1,50,yes
+  show
+  run
+exit
+output
+  form    stan
+  outfile $1.inte
+  value   inte
+  run
+  outfile $1.3dpdf
+  value   3DPDF  !inte
+  run
+exit

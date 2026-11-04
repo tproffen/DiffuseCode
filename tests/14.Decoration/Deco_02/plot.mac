@@ -1,0 +1,14 @@
+plot
+   reset
+   program jmol
+   sel all
+   des void
+   ext all
+   uvw 1,0,0
+   abs 0,1,0
+   ord 0,0,1
+   prop ignore,all
+   outf PLOT/$1_plot.cif
+   poly 'Si,Al',O,nmin:4,nmax:6, dmin:1.3,dmax:2.1, face:flat, hue:solid
+   run plot:inter, kill:$2
+exit

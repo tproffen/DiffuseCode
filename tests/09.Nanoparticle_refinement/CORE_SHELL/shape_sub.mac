@@ -1,0 +1,24 @@
+  read
+  cell "STRU/$1.%4D.cell",kid
+  @stapel.mac $1,radius_sub, stack_shell
+  @shift.mac radius_sub
+  find env,Zn, 0.0,0.0,0.0, 0.0, 0.9*lat[1]
+  if(env[1].gt.0) then
+    @center.mac x[env[1]],y[env[1]],z[env[1]]
+  endif
+#
+  @trans2cart.mac
+#
+  boundary sphere,radius_sub
+#
+  purge
+  save
+    outf "STRU/$1.%4D.%4D.%4D.sub",kid,indiv,i[12]
+    omit ncell
+    omit  gene
+    omit  scat
+    omit  adp
+    run
+  exit
+#
+#@plot_xbs_shell.mac single_sub,i[12]

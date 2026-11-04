@@ -1,0 +1,5 @@
+title perovskite structure Dummy for domain parallel [100]
+spcgr Pm-3m
+cell 3.80 3.80 3.80  90.0  90.0  90.0
+atoms
+d100  0.00  0.00  0.00  0.1

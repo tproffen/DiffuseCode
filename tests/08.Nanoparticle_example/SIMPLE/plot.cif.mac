@@ -1,0 +1,11 @@
+#
+#
+plot
+  reset
+  program   jmol
+  outfile   PLOT/$1.cif
+  select    all
+  extend    all
+  run       plot:inter, kill:yes
+  show
+exit

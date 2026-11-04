@@ -1,0 +1,23 @@
+#
+#  output.mac
+#
+################################################################################
+#
+#  Writes the calculated powder pattern to a file
+#
+#  output             ! Switch to the output level
+#    form powder,tth  ! Write the powder pattern as 2Theta-Intensity file
+#    value inte       ! Write the intensity 
+#    outf "INDI/indi.%4D.%4D"  ,$1,$2  ! Define the output file name the files 
+#                     ! will be called INDI/indi.0001.0001
+#                     ! The first number is the current child, the second the
+#                     ! current individual pattern for this child
+#    run              ! Execute the writing
+#  exit               ! Go back to the main menu
+#
+output 
+  form powder,tth
+  value inte
+  outf "%c/indi.%4D.%4D", INDIDIR  ,$1,$2
+  run
+exit

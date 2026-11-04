@@ -1,0 +1,21 @@
+#
+#  kpowder.mac
+#
+################################################################################
+#
+#  plots the results of the powder pattern calculations
+#
+################################################################################
+#
+rese                     # reset KUPLOT
+load xy, powder.$1       # load one data set in 2-column format
+skal xmin[1],xmax[1],0,ymax[1]*1.025   # scale from minimum to maximum x
+#                        # and from zero to maximum y plus 2.5%
+mark                     # set marker distances automatically
+if('$1'=='q') then
+  achx q [\A\u-1\d]      # nice text along x-axis
+else
+  achx 2Theta
+endif
+achy Intensity           # nice text for y-axis
+plot                     # do the actual plot

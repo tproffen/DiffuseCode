@@ -1,0 +1,5 @@
+rese
+load xy, TEMP/calc.0001.pdf
+load xy, DATA/pd361.dat
+skal 0,10,min(ymin[1],ymin[2]),max(ymax[1],ymax[2])
+plot

@@ -1,0 +1,28 @@
+fourier
+  ll -10.0,-10.0,0.0
+  lr  10.0,-10.0,0.0
+  ul -10.0, 10.0,0.0
+  tl -10.0,-10.0,0.0
+  na 201 
+  no 201 
+  nt   1 
+  abs  h
+  ord  k
+  top  k
+  temp use
+  disp off
+  set  aver, 100
+  lots box,20,20,1,50,yes
+  show
+  run sigabs:[0.02,1.0,0.0,0.0], sigord:[0.02, 0.0,1.0,0.0]
+exit
+output
+  outfile $1.inte
+  value   inte
+  form    stan
+  run
+  outfile $1.3DPDF
+  value   3DPDF
+  form    stan
+  run
+exit

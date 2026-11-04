@@ -1,0 +1,142 @@
+#
+#@ HEADER
+#@ NAME         sr0.3.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro allows the user to specify four 
+#@ DESCRIPTION  independent correlations,
+#@ DESCRIPTION  [1,0,0];  [0,1,0,]; [1,1,0]; [1,-1,0]
+#@ DESCRIPTION  you will see that not all correlations can actually be achieved.
+#@
+#@ PARAMETER    $0, 5
+#@ PARAMETER    $1, real,  correlation along [100]
+#@ PARAMETER    $2, real,  correlation along [010]
+#@ PARAMETER    $3, real,  correlation along [110]
+#@ PARAMETER    $4, real,  correlation along [-110]
+#@ PARAMETER    $5, real,  temperature
+#@
+#@ USAGE        @sro.3 <c100>, <c010>, <c110>, <c-110>, <temperature>
+#@
+#@ END
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size
+variable real,comp
+variable real,c100
+variable real,c010
+variable real,c110         # New variable for the diagonal target correlations
+variable real,cM10         # 
+variable real,a100
+variable real,a010
+variable real,a110
+variable real,aM10
+variable real,heat
+#
+size =  50
+comp = 0.5
+#
+#  Perform basic error check on user input
+#
+if($0.ne.5) then
+  echo
+  echo Use as: @sro.3  <c100>, <c010>, <c110>, <c-110>, <temperature>
+  echo
+  continue discus
+endif
+#
+if($1.lt.-1.0   .or.   1.0 .lt. $1) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue discus
+endif
+#
+if($2.lt.-1.0   .or.   1.0 .lt. $2) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue discus
+endif
+#
+if($3.lt.-1.0   .or.   1.0 .lt. $3) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue discus
+endif
+#
+if($4.lt.-1.0   .or.   1.0 .lt. $4) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue discus
+endif
+#
+if($5.lt. 0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue discus
+endif
+c100 = $1
+c010 = $2
+c110 = $3                  # Assign the two further parameter to readable names
+cM10 = $4                  #
+heat = $5
+#
+@sro-ran.1 size,comp
+#
+mmc
+  set neig,rese
+#
+  set vec,1, 1,1,  1, 0, 0
+  set vec,2, 1,1, -1, 0, 0
+  set vec,3, 1,1,  0, 1, 0
+  set vec,4, 1,1,  0,-1, 0
+  set vec,5, 1,1,  1, 1, 0
+  set vec,6, 1,1, -1,-1, 0
+  set vec,7, 1,1,  1,-1, 0
+  set vec,8, 1,1, -1, 1, 0
+  set neig,vec,1,2
+  set neig,add
+  set neig,vec,3,4
+  set neig,add
+  set neig,vec,5,6
+  set neig,add
+  set neig,vec,7,8
+#
+  set mode, 1.0, swchem,all
+  set targ,1,corr,cu,void,c100,0.0,CORR   #  Now we defined fourt targets
+  set targ,2,corr,cu,void,c010,0.0,CORR   #  each with an independent
+  set targ,3,corr,cu,void,c110,0.0,CORR   # target correlation
+  set targ,4,corr,cu,void,cM10,0.0,CORR   #
+  set cyc, 200*n[1]
+  set feed, 50*n[1]
+  set temp,heat
+  run
+exit
+#
+@plot example3
+@fourier example3
+#
+chem
+  corr occ,cu,void
+exit
+fopen  1,example3.data
+fformat 1,*
+fput 1,"C100 target/achieved %6.2f %5.2f",c100, res[1]
+fput 1,"C010 target/achieved %6.2f %5.2f",c010, res[2]
+fput 1,"C110 target/achieved %6.2f %5.2f",c110, res[3]
+fput 1,"CM10 target/achieved %6.2f %5.2f",cM10, res[4]
+fput 1,"temperature  %5.0f",heat
+chem
+  element
+exit
+fput 1,"copper : voids %5.2f : %5.2f",res[2],res[1]
+fclose 1
+#
+save example3.stru

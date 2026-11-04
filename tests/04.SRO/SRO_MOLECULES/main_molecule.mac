@@ -1,0 +1,83 @@
+#
+#@ HEADER
+#@ NAME         main_molecule.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro refines independent correlations along 
+#@ DESCRIPTION  [100] and [010].  The correlations along [1-10] 
+#@ DESCRIPTION  and [110] are calculated for the display as well.
+#@
+#@ PARAMETER    $0, 3
+#@ PARAMETER    $1, real,  correlation along [100]
+#@ PARAMETER    $1, real,  correlation along [010]
+#@ PARAMETER    $3, real,  temperature
+#@
+#@ USAGE        @sr0.2  <c100>, <c010>, <temperature>
+#@
+#@ END
+#
+#  sro.2.mac.mac
+#
+################################################################################
+#
+@prepare_molecule.mac
+#
+discus
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size_cr
+variable real,comp
+variable real,c100             # Variables for target correlations
+variable real,c010             #
+variable real,a100             # variables for achieved correlations
+variable real,a010             #
+variable real,a110             #
+variable real,aM10             #
+variable real,heat
+#
+#
+#  Perform basic error check on user input
+#
+if($0 /= 3) then
+  echo
+  echo Use as: @sro.2  <correlation 100>, <correlation 010>, <temperature>
+  echo
+  continue suite
+endif
+#
+if($1 <  -1.0   .or.   1.0  <   $1) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($2 <  -1.0   .or.   1.0  <   $2) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($3 <   0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue suite
+endif
+#
+c100 = $1                      #  The user provides two indipendent correlations
+c010 = $2                      #
+heat = $3
+#
+read
+   stru STRU/random_molecule.stru
+#
+@sort_molecule  c100, c010, heat
+@plot_jmol.mac sorted
+#
+exit   ! Back to SUITE

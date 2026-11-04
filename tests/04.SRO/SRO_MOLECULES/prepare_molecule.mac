@@ -1,0 +1,24 @@
+discus
+#
+variable integer, ncell
+#
+ncell = 5
+#
+read
+   cell   CELL/crystal.cell,  ncell, ncell, 1
+#
+replace PD, SE, all, 0.5   ! Create random distribution
+save
+  outf STRU/domain.list
+  run
+exit
+#
+@domain_substitute.mac
+@plot_jmol.mac random
+save 
+  outf STRU/random_molecule.stru
+  write all
+  run
+exit
+#
+exit

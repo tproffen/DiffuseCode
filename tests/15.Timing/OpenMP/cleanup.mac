@@ -1,0 +1,6 @@
+system rm -f PLOT/*
+system rm -f POWDER/*
+system rm -f INTE/*
+system rm -f primitive_grand*.p*
+system rm -f timing.dat
+system rm -f gain.dat

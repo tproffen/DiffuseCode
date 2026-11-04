@@ -1,0 +1,34 @@
+variable integer, ipar
+pop_gen[1]  =   0
+#
+pop_n[1]    =  10
+pop_c[1]    =  10
+pop_dimx[1] =   2
+#
+# order parameter [100]
+#
+newpara               P_a100,  -0.3333333, 1.00000, -0.333333, 1.00000
+#
+# ADP 
+#
+newpara               P_biso,   0.0000000, 1.00000,  0.000000, 1.00000
+#
+diff_cr[1]  = 0.9
+diff_f[1]   = 0.81
+diff_lo[1]  = 0.0
+diff_k[1]   = 1.0
+#
+refine      none
+refine      P_a100, P_biso
+#
+donor      random
+#selection  compare
+selection  best,all
+#
+trialfile  silent
+restrial   silent
+logfile    DIFFEV/Parameter
+lastfile   DIFFEV/Current
+summary    DIFFEV/Summary
+#
+backup CALC/calc, FINAL/final

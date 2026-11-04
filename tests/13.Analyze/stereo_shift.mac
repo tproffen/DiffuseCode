@@ -1,0 +1,38 @@
+#
+#  stereo_shift.mac
+#
+#  $1 is the absolute atom number of the central atom
+#  $2 Atom type of central atom,  possibility one  (Pb) or (Ti)
+#  $3 Atom type of central atom,  possibility two  (Bi) or (Sc)
+#
+#  projects the Pb/Bi ==> Oxygen_center vector to a stereographic projection
+#
+   rho  =bang(0,0,1, r[201], r[202], r[203])
+   distance = blen(r[201],r[202],r[203])
+   phi  =atand(r[202], r[201])
+   if(    m[$1    ].eq. $2) then
+      if(rho  .le.90.00) then
+         polx   = tand(0.5*rho  )*cosd(phi  )
+         poly   = tand(0.5*rho  )*sind(phi  )
+         fput 1, polx  ,poly, distance, rho, phi
+      else
+         rho = 180.-rho
+         polx   = tand(0.5*rho  )*cosd(phi  )
+         poly   = tand(0.5*rho  )*sind(phi  )
+         fput 3, polx  ,poly, distance, rho, phi
+replace local, $4, b[1]
+      endif
+   elseif(m[$1    ].eq. $3) then
+      if(rho  .le.90.00) then
+         polx   = tand(0.5*rho  )*cosd(phi  )
+         poly   = tand(0.5*rho  )*sind(phi  )
+         fput 2, polx  ,poly, distance, rho, phi
+      else
+         rho = 180.-rho
+         polx   = tand(0.5*rho  )*cosd(phi  )
+         poly   = tand(0.5*rho  )*sind(phi  )
+         fput 4, polx  ,poly, distance, rho, phi
+replace local, $5, b[1]
+      endif
+   endif
+

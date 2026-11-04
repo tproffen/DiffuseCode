@@ -1,0 +1,49 @@
+#
+#  insert core.mac
+#
+################################################################################
+#
+#  Inserts the core into the shell
+#
+################################################################################
+#
+read
+  stru "STRU/zns_wurtzite.%4D.%4D.loaded",kid,indiv
+#
+#
+  domain
+    rese
+    assign     character,si, fuzzy
+    assign     content,  si, "STRU/cdse_wurtzite.%4D.%4D.core",kid,indiv
+    assign     fuzzy  ,  si, 2.55
+    assign     orient ,  si, 1,  1.0, 0.0, 0.0,  0.0
+    assign     orient ,  si, 2,  0.0, 1.0, 0.0,  0.0
+    assign     orient ,  si, 3,  0.0, 0.0, 1.0,  0.0
+    assign     shape  ,  si, 1,  1.0, 0.0, 0.0,  0.0
+    assign     shape  ,  si, 2,  0.0, 1.0, 0.0,  0.0
+    assign     shape  ,  si, 3,  0.0, 0.0, 1.0,  0.0
+    inputfile  CELL/position.core
+    mode       pseudoatoms
+    show
+    run
+  exit
+#
+purge
+#
+save
+  outf "STRU/particle.%4D.%4D",kid,indiv
+  omit ncell
+  omit  gene
+  omit  scat
+  omit  adp
+  run
+exit
+#
+read
+  stru "STRU/particle.%4D.%4D",kid,indiv
+#
+#@plot_k_particle particle.plot
+#@plot_xbs_particle particle
+echo " About to plot the particle"
+echo
+@plot_cif_particle particle,kid,indiv

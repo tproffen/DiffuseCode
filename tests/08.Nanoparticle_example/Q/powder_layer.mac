@@ -1,0 +1,21 @@
+fourier
+  ll  0, 0, 0
+  lr  2, 0, 0
+  ul  0, 0, 3
+  na 201
+  no 151
+  abs h
+  ord l
+  temp use
+  xray
+  wvle 1.5405
+  show
+wait return
+  run
+exit
+output
+  outf POWDER/nano_layer.inte
+  form stan
+  value inte
+  run
+exit

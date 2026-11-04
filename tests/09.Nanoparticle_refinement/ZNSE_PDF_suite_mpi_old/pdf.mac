@@ -1,0 +1,28 @@
+@setup_pdf.mac
+#
+pdf
+#
+    ides all
+    jdes all
+    isel all
+    jsel all
+#
+    set bound,    crystal, exact
+    set dens,     p_density
+    set corrlin,  p_corrlin
+    set corrquad, p_corrquad
+    set qbroad,   p_qbroad
+    set qdamp,    p_qdamp
+    set qmax,     p_qmax
+    set rad,      xray
+    set range,    pdf_range+5.0, 0.01
+    set srat,     p_srat,3.5
+    set therm,    gauss    
+#
+    set weig,     p_scale
+    set finite,   periodic
+#
+!    show
+    calc
+    save pdf,"%c/INDI/indi.%4D.%4D"  ,INDIDIR, $1, $2
+exit

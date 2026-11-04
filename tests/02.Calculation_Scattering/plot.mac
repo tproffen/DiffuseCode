@@ -1,0 +1,42 @@
+#
+#  plot.mac
+#
+################################################################################
+#
+#  This macro writes the atom coordinates in a format suitable for plotting
+#  by external programs
+#
+################################################################################
+#
+r[1] = -0.5*max(10.0,cdim[1,2]-cdim[1,1])
+r[2] = -0.5*max( 1.0,cdim[2,2]-cdim[2,1])
+r[3] = -0.5*max( 1.0,cdim[3,2]-cdim[3,1])
+r[4] =  0.5*max(10.0,cdim[1,2]-cdim[1,1])
+r[5] =  0.5*max( 1.0,cdim[2,2]-cdim[2,1])
+r[6] =  0.5*max( 1.0,cdim[3,2]-cdim[3,1])
+plot                       # switch to the DISCUS plot menu
+  reset
+  program   kuplot         # write data suitable for kuplot
+  uvw       0, 0, 1        # project coordinates along [0,0,1]
+  abs       1, 0, 0        # x-axis of the plot shall be the [1,0,0] vector
+  ord       0, 1, 0        # y-axis of the plot shall be the [0,1,0] vector 
+  ext       x,r[1] , r[4]  # extend the plot throughout all of the crystal
+  ext       y,r[2] , r[5]  # extend the plot throughout all of the crystal
+  ext       z,r[3] , r[6]  # extend the plot throughout all of the crystal
+  vect      0,0,0          # center of the projectionis point 0,0,0
+  thick     1.             # project only atoms from a slice +- 1 angstroem
+  sel       all            # select all atom types
+  set       0,2,6, 1.0     # define plot style for atom type 0 = voids
+  set       1,3,1, 1.0     # define plot style for atom type 1
+exit                       # go back to main DISCUS menu
+#
+do i[0]=2,n[2]             # loop over all atom types from no 2 up 
+  plot                     # 
+    set i[0],3,i[0], 1.0   # try automatic color scheme
+  exit                     # 
+enddo                      # 
+#
+plot                       # 
+  outf      $1.plot        # define the output file name
+  run                      # perfrom the write process into the file
+exit                       # 

@@ -1,0 +1,18 @@
+powder
+  set calc, compl
+  set axis, tth
+  set tthmin, 20.0
+  set tthmax, 60.0
+  set dtth,    0.01
+  set dh,0.010
+  set dk,0.010
+  set dl,0.010
+  show
+wait return
+  run
+exit
+output
+  outfile POWDER/nano_compl.tth
+  form powder, tth
+  run
+exit

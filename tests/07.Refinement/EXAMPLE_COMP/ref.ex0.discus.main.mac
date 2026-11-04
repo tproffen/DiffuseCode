@@ -1,0 +1,16 @@
+variable integer,dimen
+#
+dimen =  100
+dimen =  250
+#
+read
+   cell  CELL/fec.cell, dimen,dimen,1
+#
+#
+replace fe,c,all, P_comp
+b[1] = P_biso
+b[2] = P_biso
+therm 2d
+#
+@ref.ex0.sort.mac    P_a100
+@ref.ex0.fourier.mac REF_KID

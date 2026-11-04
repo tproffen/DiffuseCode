@@ -1,0 +1,14 @@
+variable integer, P_pop
+variable integer, P_chd
+#
+variable integer, L_pop
+variable integer, L_chd
+#
+do L_pop=10,100,10
+  P_pop = L_pop
+  do L_chd=L_pop,100,10
+     P_chd = L_chd
+     @refine.mac
+  enddo
+enddo
+#

@@ -1,0 +1,8 @@
+plot
+  reset
+  program jmol
+  outf PLOT/$1_plot.cif
+  sel all
+  ext all
+  run    plot:inter, kill:yes
+exit

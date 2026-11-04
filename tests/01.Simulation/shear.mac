@@ -1,0 +1,63 @@
+#@ HEADER
+#@ NAME         shear.mac
+#@ 
+#@ KEYWORD      shear
+#@ 
+#@ DESCRIPTION  This macro demonstraties the shear operation
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @shear 
+#@
+#@ END
+################################################################################
+#
+# Demonstrates a shear operation. 
+# Atom type 1 is selected and only atoms number 15 to 35 are included. All 
+# other atoms are ignored.
+#
+################################################################################
+#
+# Atoms are sheared according to the matrix operation:
+# (x')   (1.0  0.3  0.0) (x)
+# (y') = (0.0  1.0  0.0)*(y)
+# (z')   (0.0  0.0  1.0) (z)
+#
+# Origin of the shear operation is the regular origin of the crystal, this can
+# be chosen to be the origin of a molecule.
+#
+################################################################################
+#
+discus
+#
+read
+cell primitive.cell,7,7,1
+shear
+#
+  reset
+  matrix  1.0,0.3,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0
+  origin  0.0,0.0,0.0, crystal
+#
+  sel 1
+  inc 15,35
+#
+  run
+  reset
+exit
+@plot.mac sheared
+branch kuplot
+   @kplot.mac sheared
+   exit
+#
+#  Test for success
+#
+r[0] = bang(atom, 2, 1,  8)
+r[1] = bang(atom, 9, 8, 15)
+r[2] = bang(atom,16,15, 22)
+eval r[0]
+eval r[1]
+eval r[2]
+if(abs(r[0]-90.0)<0.001 .and. abs(r[1]-106.70)<0.001 .and. abs(r[2]-73.30)<0.001) then
+  LTEST_MAC = TRUE
+endif
+exit     ! back to suite

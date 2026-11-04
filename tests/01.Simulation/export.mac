@@ -1,0 +1,79 @@
+#
+#  export.mac
+#
+################################################################################
+#
+discus
+read
+  stru cmm2.cell
+export shelx,  cmm2_export.ins
+@compare_files.mac cmm2_export.ins, Original/cmm2_export.ins
+@../check.mac export.mac
+chem
+  elem
+exit
+eval n[4]
+#
+read
+  cell cmm2.cell, 3, 3, 3
+chem
+  elem
+exit
+#
+export cif,    cmm2_export.cif
+@compare_files.mac cmm2_export.cif, Original/cmm2_export.cif
+@../check.mac export.mac
+#
+chem
+  elem
+exit
+eval n[4]
+#
+export rmcprofile, cmm2_export.rmc6f, version:7
+@compare_files.mac cmm2_export.rmcf6, Original/cmm2_export.rmcf6
+@../check.mac export.mac
+#
+export vasp,   cmm2_export.vasp
+@compare_files.mac cmm2_export.vasp, Original/cmm2_export.vasp
+@../check.mac export.mac
+#
+export poscar, cmm2_export.poscar
+@compare_files.mac cmm2_export.poscar, Original/cmm2_export.poscar
+@../check.mac export.mac
+#
+export scatty, cmm2_export.scatty
+@compare_files.mac cmm2_export.scatty_atoms_01.txt, Original/cmm2_export.scatty_atoms_01.txt
+@../check.mac export.mac
+#
+import  shelx, cmm2_export.ins
+read
+  cell cmm2_export.cell
+if(n[1]==12 .and. n[2]==2 .and. n[3]==12) then
+  if(n[4]==4  .and. n[5]==1 .and. n[6]==4 ) then
+    LTEST_MAC = TRUE
+  endif
+endif
+@../check.mac export.mac
+#
+import  cif, cmm2_export.cif
+read
+  stru cmm2_export.stru
+chem
+  elem
+exit
+if(nint(res[0])==3 .and. nint(res[1]*n[1])==0 .and. nint(res[2]*n[1])==108 .and. nint(res[3]*n[1])==216) then
+  LTEST_MAC = TRUE
+endif
+@../check.mac export.mac
+#
+import  rmc, cmm2_export.rmc6f, sort:discus
+read
+  stru cmm2_export.stru
+if(n[1]==324 .and. n[2]==2 .and. n[3]==12) then
+  if(n[4]==0  .and. n[5]==0 .and. n[6]==0 ) then
+    LTEST_MAC = TRUE
+  endif
+endif
+@../check.mac export.mac
+#
+exit

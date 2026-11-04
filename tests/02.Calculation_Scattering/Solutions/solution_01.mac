@@ -1,0 +1,77 @@
+#
+#  1d_periodic.mac
+#
+################################################################################
+#
+#  This macro reads the silicon unit cell and expands it to a 1D line.
+#  one silicon atom is replaced by a copper atom to show the effect of
+#  disorder in combination with periodic boundary conditions
+#
+#  use as:
+#
+#  @1d_periodic <number>, <position>
+#
+################################################################################
+#
+#                            #  Define a few variable names
+variable integer, point      #  This will be no of points in half of reciprocal 
+variable integer, total      #  Total number of points in reciprocal space
+variable real,    left       #  left most point in reciprocal space
+variable real,    right      #  right most point in reciprocal space
+#
+read                         #  switch to the DISCUS read menu
+  cell silicon.cell ,$1,1,1  #  read unit cell file silicon.cell, make 1D-row
+#
+replace 3, cu,1.00           #  replace atom no 3 by a copper atom
+x[3] = $2                    #  set x-coordinate of atom no 3 to $1
+#
+@plot 1d                     #  run macro plot.mac with parameter 1d
+#
+show atom,all                #  show the position of all atoms
+eval n[1]                    #  calculate value of n[1], i.e. no of atoms
+#
+fourier                      #  switch to DISCUS fourier menu
+  neutron                    #  select neutrons
+  ll -2.5, 0.00, 0.00        #  define lower left corner in reciprocal space
+  lr  2.5, 0.00, 0.00        #  define lower right corner in reciprocal space
+  ul -2.5, 0.00, 0.00        #  define upper left corner in reciprocal space
+  na  1001                   #  calculate on 1001 points along abscissa
+  no 1                       #  with no = 1 we calculate just a 1D line
+  abs   h                    #  use h as value for the x-axis in KUPLOT
+  ord   k                    #  use k as value for the y-axis in KUPLOT
+  temp  ign                  #  ignore atomic displacement parameters
+  disp  off                  #  switch anomalous dispersion off
+  show                       #  show the current settings
+  run                        #  perform the actual calculation
+exit                         #  go back to the main DISCUS menu
+#
+output                       #  switch to DISCUS output menu
+  outf 1d.inte               #  output will be written to file 1d.inte
+  value inte                 #  write intensity values to the file
+  form stan                  #  select standard output format
+  run                        #  perform the actual write process
+exit                         #  go back to the main DISCUS menu
+#
+##############################  Now do the calculation again with periodic
+#                            #  boundary conditions
+#
+left  = -1.*3.00             #  calculate the range from -3.0 rec. lattice units
+right =  1.*3.00             #  calculate the range to   +3.0 rec. lattice units
+#
+#                            #  for boundary conditions we will need
+point = int(right*$1)        #  the following total number of points:
+total = 2*point+1            #  2*( 3.0*no_of_atoms) + 1
+#                            #  
+fourier                      #
+  ll left  ,0.0,0.0          #
+  lr right ,0.0,0.0          #
+  ul left  ,0.0,0.0          #
+  na total                   #
+  no   1                     #
+  show                       #
+  run                        #
+exit                         #
+output                       #
+  outf 1d_period.inte        #
+  run                        #
+exit                         #

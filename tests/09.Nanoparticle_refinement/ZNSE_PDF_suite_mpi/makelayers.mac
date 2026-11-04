@@ -1,0 +1,47 @@
+# makelayers.mac
+#
+variable integer,width
+variable real, thick
+width = int(2.5 * P_ab_dia/P_lata       )
+#
+echo " READ %c/STRU/%c.%4D.%4D.cell",TMPDIR,SUBSTANCE,REF_KID,indiv
+read
+   cell "%c/STRU/%c.%4D.%4D.cell",TMPDIR,SUBSTANCE,REF_KID,indiv,width,width,2
+echo " DID READ" 
+thick = blen(0.0, 0.0, 0.5-P_z_zn) + 0.1
+#
+surface
+   boundary hkl, 0, 0, 1,   0.5,inside
+   boundary hkl, 0, 0,-1, thick,inside
+exit
+purge
+#
+!echo "%c/STRU/%c.%4D.%4D.layer",TMPDIR,SUBSTANCE,REF_KID,indiv
+echo " SAVING LAYERS "
+save
+   outf "%c/STRU/%c.%4D.%4D.layer",TMPDIR,SUBSTANCE,REF_KID,indiv
+   write all
+   run
+exit
+#
+#@plot.cif.mac layer
+#
+symm
+   angle 180.0
+   type  proper
+   mode  repl
+   sel   all
+   incl  all
+   orig  0.333333, 0.666667, 0.00
+   uvw   0,0,1
+   trans 0.00, 0.00, 0.00
+   run
+exit
+#
+!echo "%c/STRU/%c.%4D.%4D.rotated",TMPDIR,SUBSTANCE,REF_KID,indiv
+echo " SAVING LAYERS rotated"
+save
+   outf "%c/STRU/%c.%4D.%4D.rotated",TMPDIR,SUBSTANCE,REF_KID,indiv
+   run
+exit
+#@plot.cif.mac rotated

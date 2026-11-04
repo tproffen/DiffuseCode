@@ -1,0 +1,25 @@
+fourier
+  ll -4.0,-4.0,-4.0
+  lr  4.0,-4.0,-4.0
+  ul -4.0, 4.0,-4.0
+  tl -4.0,-4.0, 4.0
+  na  81 
+  no  81 
+  nt  81 
+  abs  h
+  ord  k
+  top  l
+  temp use
+  disp off
+  set  aver, 100
+  set technique:nufft
+# lots box,20,20,1,50,yes
+  show
+  run sigabs:[0.02,1.0,0.0,0.0], sigord:[0.02, 0.0,1.0,0.0], sigtop:[0.02, 0.0,0.0,1.0]
+exit
+output
+  outfile $1.inte
+  value   inte
+  form    hdf5
+  run
+exit

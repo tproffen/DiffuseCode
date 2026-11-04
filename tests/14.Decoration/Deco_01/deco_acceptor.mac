@@ -1,0 +1,15 @@
+#
+variable real, p_bond
+#
+p_bond = 1.92
+#
+decorate
+   reset
+   add water, acceptor
+   set water, ligand, CELL/water.stru, 0.045
+   set water, bond,   Au, 2, p_bond
+   set water, surface, 3
+#  set water, form,  1, 0, 0
+   show
+   run
+exit

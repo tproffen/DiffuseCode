@@ -1,0 +1,37 @@
+#
+# kgrowth.mac
+#
+############################################################
+#
+#  usage:
+#  @kgrowth
+#
+############################################################
+#
+#  This macro displays the result of exercise 01. 
+#
+############################################################
+#
+rese
+variable real,prob
+variable integer,naver
+variable integer,hmin
+variable integer,hmax
+variable integer,kmin
+variable integer,kmax
+variable integer,hh
+variable integer,kk
+#
+#  read the parameters that growth has created. This saves
+#  us from remembering the parameters...
+#
+@growth.setup.mac
+#
+#  Display all hkL rods
+#
+do hh = hmin, hmax
+  do kk = kmin, kmax
+    @k_stack_growth_xxL.mac hh,kk,prob
+    wait return
+  enddo
+enddo

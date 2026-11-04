@@ -1,0 +1,14 @@
+disc
+read
+free
+insert si, 0,0,0,0.1
+four
+  xray
+  show
+wait return
+  xray table:inter
+  set technique:nufft
+  set filter:lanczos, width:11, damp:0.5, scale:10
+  show
+exit
+exit

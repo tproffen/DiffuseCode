@@ -1,0 +1,11 @@
+DISCUS Macros in this directory are:
+
+
+pdf.mac                ! Calculates the PDF for several settings
+
+KUPLOT Macros in this directory are:
+
+kpdf.mac               ! Plots the results of the pdf calculations
+kpdf_2.mac             ! Compares 2 pdf calculations
+kpdf_generic.mac       ! Plots the results of a pdf calculation
+kinte.mac

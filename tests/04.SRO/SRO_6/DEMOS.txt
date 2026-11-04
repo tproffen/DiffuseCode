@@ -1,0 +1,5 @@
+@sro.3.mac  0.2, 0.2,    0.2,  0.2,  2      ! Maxima bei [H K] ganzzahlig
+@sro.3.mac -0.2,-0.2,    0.2,  0.2,  2      ! Maxima bei [H K] halbzahlig
+@sro.3.mac  0.8, 0.0,    0.0,  0.0,  2      ! Streifen parallel [0 K]
+@sro.3.mac  0.6, 0.6,   -0.1, -0.1,  2      ! Streifen parallel [H 0] und [0 K]
+@sro.3.mac  0.0, 0.0,    0.4,  0.0,  2      ! Streifen parallel [1 -1]

@@ -1,0 +1,12 @@
+#
+#  para_sub.mac
+#
+###############################################################################
+#
+#  Create the radius for an individual ZnS sphere
+#
+radius_sub = logn(ab_shell,si_shell)
+radius_sub = max(2.5,radius_sub)
+#
+radius_sub = min(radius_sub,ab_core)
+#

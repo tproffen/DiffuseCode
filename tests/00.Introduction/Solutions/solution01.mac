@@ -1,0 +1,6 @@
+variable  integer,  product     #  Define the integer valued variable
+
+product  = 1 * 2 * 3 * 4 * 5    #  Accumulate the product
+
+evaluate product                #  Display the result
+

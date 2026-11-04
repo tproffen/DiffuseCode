@@ -1,0 +1,40 @@
+rese
+#
+sys "cp INDI/growth.%1D%1Dl_%4.2F_0001 SUM/growth.%1D%1Dl_%4.2F",$1,$2,$3,$1,$2,$3
+#
+do i[0]=2,naver
+  rese
+  load xy,  "SUM/growth.%1D%1Dl_%4.2F",    $1,$2,$3
+  load xy, "INDI/growth.%1D%1Dl_%4.2F_%4D",$1,$2,$3,i[0]
+  kcal add, 1, 2
+  ksav 3
+    outf "SUM/growth.%1D%1Dl_%4.2F",$1,$2,$3
+    run
+enddo
+#
+rese
+load xy, "SUM/growth.%1D%1Dl_%4.2F",  $1,$2,$3
+ccal mul, wy,1,1./naver
+ksav 1
+  outf "SUM/growth.%1D%1Dl_%4.2F",$1,$2,$3
+  run
+#
+rese
+load xy, "SUM/growth.%1D%1Dl_%4.2F",  $1,$2,$3
+#
+buff 0.12,0.10,0.12,0.12
+skal xmin[1],xmax[1],0,ymax[1]*1.02
+r[2] = int(ln(ymax[1]/4)/ln(10))
+r[6] = max(0.5,int(ymax[1]/4./10**r[2])*10**r[2])
+mark 1,r[6]
+lcol 1,3
+aver 
+angle 90.0
+fnam off
+font size,3,18
+font size,4,18
+tit1 Exercise GROWTH FAULTS 01
+tit2 "Rod: h=%1D k=%1D",$1,$2
+achx [0 0 l]
+achy Intensity
+plot

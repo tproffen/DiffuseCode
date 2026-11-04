@@ -1,0 +1,72 @@
+#
+#  lese eine Schicht von Wurzit Elementarzellen
+#  X und Y Dimension muessen groesser  werden, Z NICHT
+#
+variable integer,width
+width = int(4.5 * $2/$3)
+#
+read
+cell "STRU/$1.%4D.cell",kid,width,width,2
+#
+#show atom,all
+#
+# Schneide Atome oberhalb der (001) Ebene durch den Punkt
+# 0.5 Angstroem oberhalb vom Punkt 0,0,0 weg
+#
+boundary hkl, 0, 0, 1,  0.5,inside
+boundary hkl, 0, 0,-1,  1.3,inside
+#show atom,all
+purge
+#stop
+#
+# Speichere Schicht ab
+save
+  outf "STRU/$1.%4D.layer",kid
+  write all
+  run
+exit
+#
+# Lese die Schicht wieder ein
+#
+read
+stru "STRU/$1.%4D.layer",kid
+#@plot_xbs.mac w1
+#@plot_k.mac   w1.plot
+#
+# Dreh die Schicht um 180 Grad um die [001] Achse
+#
+save
+  outf "STRU/$1.%4D.layer",kid
+  write all
+  run
+exit
+#
+# Lese die Schicht wieder ein
+#
+read
+stru "STRU/$1.%4D.layer",kid
+#@plot_xbs.mac w1
+#@plot_k.mac   w1.plot
+#
+# Dreh die Schicht um 180 Grad um die [001] Achse
+#
+symm
+  angle 180.0
+  type  proper
+  mode  repl
+  sel   all
+  incl  all
+  orig  0.333333, 0.666667, 0.00
+  uvw   0,0,1
+  trans 0.00, 0.00, 0.00
+  run
+exit
+#
+# Speichere die gedrehte Schicht
+#
+save
+  outf "STRU/$1.%4D.rotated",kid
+  run
+exit
+#@plot_xbs.mac w2
+#@plot_k.mac   $1.plot

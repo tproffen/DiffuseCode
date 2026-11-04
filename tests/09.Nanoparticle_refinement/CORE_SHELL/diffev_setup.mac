@@ -1,0 +1,399 @@
+#set prompt,redirect
+#
+variable  integer,generation
+variable  integer,member
+variable  integer,children
+variable  integer,parameter
+variable  integer,ipar
+#
+pop_gen[1]  =   0
+#
+pop_n[1]    =  50
+pop_c[1]    =  50
+pop_dimx[1] =  26
+#
+# lattice constant a
+#
+ipar =  1
+pop_name    ipar,a_co
+pop_xmin[ipar] =     4.000
+pop_xmax[ipar] =     4.500
+pop_smin[ipar] =     4.27500
+pop_smax[ipar] =     4.29000
+pop_sig[ipar]  =     0.001
+pop_lsig[ipar] =     0.0001
+type real,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# lattice constant c
+#
+ipar =  2
+pop_name    ipar,c_co
+pop_xmin[ipar] =     6.700
+pop_xmax[ipar] =     7.200
+pop_smin[ipar] =     6.91000
+pop_smax[ipar] =     7.01000
+pop_sig[ipar]  =     0.001
+pop_lsig[ipar] =     0.0001
+type real,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# z value Core
+#
+ipar =  3
+pop_name    ipar,z_co
+pop_xmin[ipar] =     0.3600
+pop_xmax[ipar] =     0.4100
+pop_smin[ipar] =     0.3750
+pop_smax[ipar] =     0.3900
+pop_sig[ipar]  =     0.0020
+pop_lsig[ipar] =     0.0002
+type real,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# B value Zn
+#
+ipar =  4
+pop_name    ipar,b_co
+pop_xmin[ipar] =     0.010
+pop_xmax[ipar] =     2.500
+pop_smin[ipar] =     0.5000
+pop_smax[ipar] =     0.9000
+pop_sig[ipar]  =     0.0020
+pop_lsig[ipar] =     0.0002
+type real,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# stacking fault property core
+#
+ipar =  5
+pop_name    ipar,st_co
+pop_xmin[ipar] =    0.000
+pop_xmax[ipar] =    1.000
+pop_smin[ipar] =    0.29000
+pop_smax[ipar] =    0.51000
+pop_sig[ipar]  =    0.002
+pop_lsig[ipar] =    0.0002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+#radius a_b core 
+#
+ipar =  6
+pop_name    ipar,ra_co
+pop_xmin[ipar] =    8.000
+pop_xmax[ipar] =   30.000
+pop_smin[ipar] =   17.40000
+pop_smax[ipar] =   19.30000
+pop_sig[ipar]  =    0.02
+pop_lsig[ipar] =    0.002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+#radius c   core 
+#
+ipar =  7
+pop_name    ipar,rc_co
+pop_xmin[ipar] =    8.000
+pop_xmax[ipar] =   30.000
+pop_smin[ipar] =   17.40000
+pop_smax[ipar] =   19.30000
+pop_sig[ipar]  =    0.002
+pop_lsig[ipar] =    0.0002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+#Number of shell sub-particles
+#
+ipar =  8
+pop_name    ipar,nums 
+pop_xmin[ipar] =    8.000
+pop_xmax[ipar] =   50.000
+pop_smin[ipar] =   12.00000
+pop_smax[ipar] =   20.00000
+pop_sig[ipar]  =    0.002
+pop_lsig[ipar] =    0.0002
+type integer,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# lattice constant a shell
+#
+ipar =  9
+pop_name    ipar,a_sh
+pop_xmin[ipar] =    3.500
+pop_xmax[ipar] =    4.100
+pop_smin[ipar] =    3.80000
+pop_smax[ipar] =    3.86000
+pop_sig[ipar]  =    0.02
+pop_lsig[ipar] =    0.002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  6,0.02
+#
+# lattice constant c shell
+#
+ipar = 10
+pop_name    ipar,c_sh
+pop_xmin[ipar] =    5.900
+pop_xmax[ipar] =    6.500
+pop_smin[ipar] =    6.20000
+pop_smax[ipar] =    6.29000
+pop_sig[ipar]  =    0.02
+pop_lsig[ipar] =    0.002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# z value shell
+#
+ipar = 11
+pop_name    ipar,z_sh
+pop_xmin[ipar] =     0.3600
+pop_xmax[ipar] =     0.4100
+pop_smin[ipar] =     0.3600
+pop_smax[ipar] =     0.3990
+pop_sig[ipar]  =     0.0020
+pop_lsig[ipar] =     0.0002
+type real,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# B value shell
+#
+ipar = 12
+pop_name    ipar,b_sh
+pop_xmin[ipar] =     0.010
+pop_xmax[ipar] =     2.500
+pop_smin[ipar] =     0.6000
+pop_smax[ipar] =     0.9700
+pop_sig[ipar]  =     0.0020
+pop_lsig[ipar] =     0.0002
+type real,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# stacking fault property shell
+#
+ipar = 13
+pop_name    ipar,st_sh
+pop_xmin[ipar] =    0.000
+pop_xmax[ipar] =    1.000
+pop_smin[ipar] =    0.47000
+pop_smax[ipar] =    0.82000
+pop_sig[ipar]  =    0.002
+pop_lsig[ipar] =    0.0002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+#radius subunits in shell
+#
+ipar = 14
+pop_name    ipar,ra_sh
+pop_xmin[ipar] =    8.000
+pop_xmax[ipar] =   40.000
+pop_smin[ipar] =   10.50000
+pop_smax[ipar] =   13.60000
+pop_sig[ipar]  =    0.02
+pop_lsig[ipar] =    0.002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+#sigma for radius  of subunits
+#
+ipar = 15
+pop_name    ipar,si_sh
+pop_xmin[ipar] =    0.000
+pop_xmax[ipar] =    5.000
+pop_smin[ipar] =    0.10000
+pop_smax[ipar] =    1.00000
+pop_sig[ipar]  =    0.002
+pop_lsig[ipar] =    0.0002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# Empty for later use...
+#
+ipar = 16
+pop_name    ipar,rad_sub
+pop_xmin[ipar] =    1.000
+pop_xmax[ipar] =    1.000
+pop_smin[ipar] =    1.00000
+pop_smax[ipar] =    1.00000
+pop_sig[ipar]  =    0.02
+pop_lsig[ipar] =    0.002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# Empty for later use...
+#
+ipar = 17
+pop_name    ipar,rad_sub
+pop_xmin[ipar] =    1.000
+pop_xmax[ipar] =    1.000
+pop_smin[ipar] =    1.00000
+pop_smax[ipar] =    1.00000
+pop_sig[ipar]  =    0.02
+pop_lsig[ipar] =    0.002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# Empty for later use...
+#
+ipar = 18
+pop_name    ipar,rad_sub
+pop_xmin[ipar] =    1.000
+pop_xmax[ipar] =    1.000
+pop_smin[ipar] =    1.00000
+pop_smax[ipar] =    1.00000
+pop_sig[ipar]  =    0.02
+pop_lsig[ipar] =    0.002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# Empty for later use...
+#
+ipar = 19
+pop_name    ipar,rad_sub
+pop_xmin[ipar] =    1.000
+pop_xmax[ipar] =    1.000
+pop_smin[ipar] =    1.00000
+pop_smax[ipar] =    1.00000
+pop_sig[ipar]  =    0.02
+pop_lsig[ipar] =    0.002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# srat 
+#
+ipar = 20
+pop_name    ipar,srat 
+pop_xmin[ipar] =    0.200
+pop_xmax[ipar] =    0.600
+pop_smin[ipar] =    0.200
+pop_smax[ipar] =    0.600
+pop_sig[ipar]  =    0.02
+pop_lsig[ipar] =    0.002
+type real   ,ipar
+adapt   sigma,  ipar,no  
+adapt   lsig ,  ipar,no  
+#
+# density 
+#
+ipar = 21
+pop_name    ipar,density 
+pop_xmin[ipar] =    0.0450
+pop_xmax[ipar] =    0.085
+pop_smin[ipar] =    0.065
+pop_smax[ipar] =    0.065
+pop_sig[ipar]  =    0.002
+pop_lsig[ipar] =    0.0002
+type real   ,ipar
+adapt   sigma,  ipar,no  
+adapt   lsig ,  ipar,no  
+#
+# pdf scale factor 
+#
+ipar = 22
+pop_name    ipar,scale 
+pop_xmin[ipar] =    1.0000
+pop_xmax[ipar] =    2.000
+pop_smin[ipar] =    1.300
+pop_smax[ipar] =    1.300
+pop_sig[ipar]  =    0.02
+pop_lsig[ipar] =    0.002
+type real   ,ipar
+adapt   sigma,  ipar,0.2
+adapt   lsig ,  ipar,0.02
+#
+# DELTA
+
+ipar = 23
+pop_name    ipar,delta
+pop_xmin[ipar] =    0.004100
+pop_xmax[ipar] =    0.004100
+pop_smin[ipar] =    0.004100
+pop_smax[ipar] =    0.004100
+pop_sig[ipar]  =    0.0000
+pop_lsig[ipar] =    0.00000
+type real   ,ipar
+adapt   sigma,  ipar,no 
+adapt   lsig ,  ipar,no  
+#
+# GAMMA
+#
+ipar = 24
+pop_name    ipar,gamma
+pop_xmin[ipar] =    0.0147
+pop_xmax[ipar] =    0.0147
+pop_smin[ipar] =    0.01470
+pop_smax[ipar] =    0.01470
+pop_sig[ipar]  =    0.0000
+pop_lsig[ipar] =    0.00000
+type real   ,ipar
+adapt   sigma,  ipar,no 
+adapt   lsig ,  ipar,no  
+#
+# QALP 
+#
+ipar = 25
+pop_name    ipar,qalp 
+pop_xmin[ipar] =    0.00657
+pop_xmax[ipar] =    0.00657
+pop_smin[ipar] =    0.00657
+pop_smax[ipar] =    0.00657
+pop_sig[ipar]  =    0.000
+pop_lsig[ipar] =    0.0000
+type real   ,ipar
+adapt   sigma,  ipar,no  
+adapt   lsig ,  ipar,no  
+#
+# QSIG
+#
+ipar = 26
+pop_name    ipar,qsig
+pop_xmin[ipar] =    0.06078
+pop_xmax[ipar] =    0.06078
+pop_smin[ipar] =    0.06078
+pop_smax[ipar] =    0.06078
+pop_sig[ipar]  =    0.000
+pop_lsig[ipar] =    0.0000
+type real   ,ipar
+adapt   sigma,  ipar,no 
+adapt   lsig ,  ipar,no  
+#
+diff_cr[1]  = 0.9
+diff_f[1]   = 0.81
+diff_lo[1]  = 0.2
+diff_k[1]   = 1.0
+#
+refine      none
+refine       1, 2, 3, 4, 5, 6, 7
+refine       8, 9,10,11,12,13,14
+refine      15
+refine      20,21,22
+#refine      20,21,22,23,24,25,26
+#
+donor      random
+#selection  compare
+selection  best,all
+#
+trialfile  DIFFEV/Versuche
+restrial   DIFFEV/Resultate
+logfile    DIFFEV/Parameter
+summary    DIFFEV/Summary
+#

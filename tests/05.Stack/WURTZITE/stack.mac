@@ -1,0 +1,40 @@
+#
+# stapel.mac
+#
+variable integer,height
+height = int(2.*p_cc/lat[3] + 2)
+#
+stack
+   layer "%c/STRU/$1.%4D.%4D.layer"  ,TMPDIR,kid,indiv
+   layer "%c/STRU/$1.%4D.%4D.rotated",TMPDIR,kid,indiv
+   trans  1,1, -0.3333, 0.3333, 0.5000
+   trans  1,2,  0.3333,-0.3333, 0.5000
+   trans  2,1, -0.3333, 0.3333, 0.5000
+   trans  2,2,  0.3333,-0.3333, 0.5000
+   sigma  1,1,  0.0000, 0.0000, 0.0000
+   sigma  1,2,  0.0000, 0.0000, 0.0000
+   sigma  2,1,  0.0000, 0.0000, 0.0000
+   sigma  2,2,  0.0000, 0.0000, 0.0000
+
+   aver   0.00, 0.00, 1.00
+   modu   1.00, 0.00, 0.00,  0.00, 1.00, 0.00
+   set mod ,on
+   set trans,fixed
+#
+   random prob,0.00
+   random offset, 0.00, 0.00, 0.00
+   random sigma , 0.00, 0.00, 0.00
+#
+   rotate status,off
+#
+   distr  matrix
+#
+   number height
+#
+   crow   1,       $2    ,1.00-$2    
+   crow   2,  1.00-$2    ,     $2    
+#
+#show
+  create
+  run
+exit

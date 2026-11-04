@@ -1,0 +1,19 @@
+#
+#@ HEADER
+#@ NAME         sr0.2.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro refines independent correlations along 
+#@ DESCRIPTION  [100] and [010].  The correlations along [1-10] 
+#@ DESCRIPTION  and [110] are calculated for the display as well.
+#@
+#@ PARAMETER    $0, 3
+#@ PARAMETER    $1, real,  correlation along [100]
+#@ PARAMETER    $1, real,  correlation along [010]
+#@ PARAMETER    $3, real,  temperature
+#@
+#@ USAGE        @sr0.2  <c100>, <c010>, <temperature>
+#@
+#@ END
+#

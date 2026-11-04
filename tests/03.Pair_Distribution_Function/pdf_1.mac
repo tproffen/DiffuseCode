@@ -1,0 +1,55 @@
+#
+#@ HEADER
+#@ NAME         pdf.mac
+#@ 
+#@ KEYWORD      pdf, settings
+#@ 
+#@ DESCRIPTION  This macro reads a nickel unit cell, expands the
+#@ DESCRIPTION  structure to a 3x3x3 crystal and calculates the pdf
+#@ DESCRIPTION  for a variaty of settings
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @pdf 
+#@
+#@ END
+#
+################################################################################
+#
+discus
+#
+read             
+  cell ni.cell,1,1,1
+# cell cartesian.cell,3,3,3
+#                
+pdf                       # switch to DISCUS pdf menu
+  set rang,100.0,0.01     # calculate the pdf up to 5.5Angstroem in 0.02 steps
+  set qbroad,0.0          # switch instrumental broadening off
+  set qdamp,0.010         # switch instrumental damping off
+  set qmax, 30.00         # switch effect of finite Qmax off
+  set bound,periodic,3D   # set periodic boundary conditions
+  set density, auto       # determine the number density from unit cell content
+  set corrquad, 0.0       # switch of distance dependence of peak widths
+  set corrlin , 0.0       # switch of distance dependence of peak widths
+  set therm  , gauss      # do convolute peaks with thermal Gaussian
+  set weight , 1.0        # set an optional weight to 1.0
+  set srat   , 1.0,2.5    # widen peaks below 2.5 Angstroem by factor 1.0
+  set finite,periodic     # use the periodic boundary to determine 4pi rho line
+  set rad,xray            # select x-ray radiation
+#
+  show                    # show the current settings
+#  wait return             # wait for a user return
+  calc                    # calculate the pdf
+  save pdf,$2.pdf    # save the output to file <therm.1.pdf>
+#
+exit
+branch kuplot
+#
+reset
+load xy, $2.pdf
+skal
+mark
+plot
+exit
+#
+exit  ! Return to suite

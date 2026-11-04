@@ -1,0 +1,42 @@
+#
+read
+     cell crystal.cell,50,50,1
+#
+replace cu,void,all,0.50
+#
+mmc
+#
+    set vec,1, 1,1,  1, 0, 0 
+    set vec,2, 1,1, -1, 0, 0
+    set neig,vec,1,2
+#
+    set mode, 1.0, swchem,all
+    set targ,1,corr,cu,void, 0.80, 0.0,CORR   
+    set cyc, 100*n[1]
+    set feed,  5*n[1]
+    set temp,  2.5 
+    run
+exit
+#
+fourier
+  ll -4.0,-4.0,0.0
+  lr  4.0,-4.0,0.0
+  ul -4.0, 4.0,0.0
+  na 201 
+  no 201 
+  abs  h
+  ord  k
+  temp ign
+  disp off
+  set  aver, 10
+  lots box,20,20,1,50,yes
+  show
+  run
+exit
+output
+  outfile example0.inte
+  value   inte
+  form    stan
+  run
+exit
+#

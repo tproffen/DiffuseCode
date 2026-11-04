@@ -1,0 +1,28 @@
+#  dom.triangle.symmetry.mac
+#
+r[1] = nint(dimen*(ran(0)-0.5))
+r[2] = nint(dimen*(ran(0)-0.5))
+chem
+elem
+exit
+show adp:all
+show atom, all
+eval i[0]
+eval r[1]
+eval r[2]
+wait return
+symm
+   uvw   0,0,1
+   angle 0.0
+   orig  0,0,0,crystal
+   trans r[1],r[2],0
+   type  proper
+   mode  copy,old
+   power 1,single
+   domain select,all
+   domain include,1,1
+   domain atoms,apply
+   domain shape,apply
+   show
+   run
+exit

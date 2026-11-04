@@ -1,0 +1,68 @@
+#  dom.perov.relax.mac
+#
+variable real,t_a
+variable real,t_l
+variable real,t_s
+
+t_a = lat[1]
+t_l = lat[1]*1.040       ! 1.025
+t_s = lat[1]/sqrt(1.040) ! 1.025)
+#
+mmc
+  rese
+  set neig, rese
+  set vec,  1,  1,1,  1, 0, 0
+  set vec,  2,  1,1, -1, 0, 0
+  set vec,  3,  1,1,  0, 1, 0
+  set vec,  4,  1,1,  0,-1, 0
+  set vec,  5,  1,1,  0, 0, 1
+  set vec,  6,  1,1,  0, 0,-1
+#
+#
+  set neig, vec,  1, 2
+  set neig, add
+  set neig, vec,  3, 4
+  set neig, add
+  set neig, vec,  5, 6
+#
+  set neig, add
+  set neig, vec,  1, 2, 3, 4, 5, 6
+#
+#
+  set mode, 1.0, shift
+  set move, d100, 0.001, 0.001, 0.001
+  set move, d010, 0.001, 0.001, 0.001
+  set move, d001, 0.001, 0.001, 0.001
+#
+ set target,1,len,d100,d100,t_l,200,12,6
+ set target,1,len,d010,d010,t_s,200,12,6
+ set target,1,len,d001,d001,t_s,200,12,6
+ set target,1,len,d100,d010,t_a,200,12,6
+ set target,1,len,d100,d001,t_a,200,12,6
+ set target,1,len,d010,d001,t_a,200,12,6
+ set target,2,len,d100,d100,t_s,200,12,6
+ set target,2,len,d010,d010,t_l,200,12,6
+ set target,2,len,d001,d001,t_s,200,12,6
+ set target,2,len,d100,d010,t_a,200,12,6
+ set target,2,len,d100,d001,t_a,200,12,6
+ set target,2,len,d010,d001,t_a,200,12,6
+ set target,3,len,d100,d100,t_s,200,12,6
+ set target,3,len,d010,d010,t_s,200,12,6
+ set target,3,len,d001,d001,t_l,200,12,6
+ set target,3,len,d100,d010,t_a,200,12,6
+ set target,3,len,d100,d001,t_a,200,12,6
+ set target,3,len,d010,d001,t_a,200,12,6
+ set target,4,ang,d001,d001,d001,90,0.001
+ set target,4,ang,d010,d010,d010,90,0.001
+ set target,4,ang,d100,d100,d100,90,0.001
+#
+  set temp, 1
+  set cycl, n[1]*100!0 
+  set feed, n[1]* 100
+  show
+  run
+  calc
+exit
+show res
+wait return
+#

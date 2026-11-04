@@ -1,0 +1,6 @@
+title Guest structure for tilted domains
+spcgr  P4
+cell   2.50, 2.50, 2.50, 90.00, 90.00, 90.00
+atom
+ni   0.00000  0.00000  0.00000   0.08
+co   0.50000  0.50000  0.00000   0.10

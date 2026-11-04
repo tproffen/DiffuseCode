@@ -1,0 +1,38 @@
+kuplot
+reset
+load xy, gain.dat, 1, 2
+load xy, gain.dat, 1, 3
+load xy, gain.dat, 1, 4
+load xy, gain.dat, 1, 5
+load xy, gain.dat, 1, 6
+r[0]=0
+do LOOP = 1, n[1]
+  r[0]=max(ymax[LOOP], r[0])
+  mtyp LOOP, 3
+  ltyp LOOP, 1
+enddo
+lcol 1, red
+lcol 2, blue
+lcol 3, green
+lcol 4, magenta
+lcol 5, black
+mcol 1, red
+mcol 2, blue
+mcol 3, green
+mcol 4, magenta
+mcol 5, black
+sann, 1,Global  red    , 0.5, r[0]*0.95
+sann, 2,Sort    blue   , 0.5, r[0]*0.90
+sann, 3,Relax   green  , 0.5, r[0]*0.85
+sann, 4,Fourier magenta, 0.5, r[0]*0.80
+sann, 5,Powder  black  , 0.5, r[0]*0.75
+fnam off
+r[0] = int(r[0]) +1
+skal 0, xmax[1], 0, r[0]
+mark
+aver 1.0
+grid on
+achx Threads
+achy Gain
+plot
+exit ! back to SUITE

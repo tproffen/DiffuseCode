@@ -1,0 +1,115 @@
+discus
+#
+reset
+#
+read
+  cell CELL/znse_wurtzite.cell, 20,20,15
+#
+property
+  prop ignore, all
+exit
+#
+surface
+  set distance,external,all, 3.0
+  boundary sphere, lat[1]*20*0.45
+exit
+i[0] = 0
+i[1] = 0
+i[2] = 0
+do LOOP=1,n[1]
+  if(isprop(LOOP,'external') .and. (.not. isprop(LOOP,'outside'))) then
+! if(isprop(LOOP,'external')) then
+    if(.not. isprop(LOOP,'outside')) then
+    i[m[LOOP]] = i[m[LOOP]] + 1
+  endif
+  endif
+enddo
+eval i[0]
+eval i[1]
+eval i[2]
+wait return
+#
+plot
+  sel zn,se
+  des void
+  program cif
+  prop ignore, all
+  outf all_plot.cif
+  extend all
+  show
+  run
+exit
+prop
+  show 
+exit
+wait return
+#
+plot
+  sel zn,se
+  des void
+  program cif
+  outf surface_plot.cif
+  extend all
+   prop ignore, all
+   prop present,external
+   prop absent ,outside
+  show
+  run
+exit
+prop
+  show 
+exit
+wait return
+sys ls -l *.cif
+wait return
+#
+chem
+  elem
+exit
+i[100] = nint(res[1]*n[1])
+i[101] = nint(res[2]*n[1])
+i[102] = nint(res[3]*n[1])
+wait return
+#
+read
+  stru all_plot.cif
+#
+chem
+  elem
+exit
+i[110] = nint(res[1]*n[1])
+i[111] = nint(res[2]*n[1])
+i[112] = nint(res[3]*n[1])
+wait return
+#
+read
+  stru surface_plot.cif
+#
+chem
+  elem
+exit
+i[120] = nint(res[1]*n[1])
+i[121] = nint(res[2]*n[1])
+i[122] = nint(res[3]*n[1])
+wait return
+#
+echo " CRYSTAL %5d %5d %5d", i[100], i[101], i[102]
+echo " All     %5d %5d %5d", i[110], i[111], i[112]
+echo " Surface %5d %5d %5d", i[120], i[121], i[122]
+#
+# Test for success
+#
+LTEST_MAC = FALSE
+if(i[100]==15386 .and. i[101]==4306 .and. i[102]==4308) then
+  echo Cond 1
+  if(i[110]==0     .and. i[111]==4306 .and. i[112]==4308) then
+    echo Cond 2
+    if(i[120]==0     .and. i[121]==961 .and. i[122]==960) then
+      echo Cond 3
+      LTEST_MAC = TRUE
+    endif
+  endif
+endif
+
+#
+exit        ! back to suite

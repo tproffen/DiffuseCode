@@ -1,0 +1,161 @@
+[49m
+[39m
+ ................................................................................................................................................................................................................................................................
+
+
+
+
+
+
+
+
+
+
+
+
+          ***********************************************************
+          *         D I S C U S - S U I T E  Version 6.20.00a       *
+          *                                                         *
+          *         OpenMP is active; maximum threads   4           *
+          *         Created : 2025-12-21                            *
+          *---------------------------------------------------------*
+          * (c) R.B. Neder  (reinhard.neder@fau.de)                 *
+          * (c) T. Proffen  (tproffen@ornl.gov    )                 *
+          ***********************************************************
+
+ Start directory  : /home/reinhard/discus/AAA_TEST_ALL/09.Nanoparticle_refinement/ZNSE_PDF_suite_release/
+ Access manuals at each section with   : manual
+ Access help at each section/menu with : help  
+ News at each section/Command_lang in  : help News
+ Change font size with                 : CTRL + /CTRL -
+
+
+[31m ------ > Reading macro: [39mrefine.mac
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite>  
+ suite> diffev
+ diffev>  
+ diffev> @cleanup.mac
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> sys rm -f DIFFEV/Eltern*
+ diffev> sys rm -f DIFFEV/Parameter*
+ diffev> sys rm -f DIFFEV/Current*
+ diffev> sys rm -f DIFFEV/Summary*
+ diffev> sys rm -f DIFFEV/Trials*
+ diffev> sys rm -f DIFFEV/Results*
+ diffev> sys rm -f DATA/PD32ZS56.DAT.*
+ diffev> sys rm -f FINAL/*
+ diffev> sys rm -f INDI/*
+ diffev> sys rm -f LOGFILES/*
+ diffev> sys rm -f TEMP/*
+ diffev> sys rm -f STRU/*
+ diffev> sys rm -f GENERATION
+ diffev>  
+ diffev> REF_NINDIV = 3
+ diffev> @get_model.mac
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> @aaa_model.mac
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> variable integer, PERFECT_SPHERE
+ diffev> variable integer, PERFECT_ELLIPSOID
+ diffev> variable integer, STACKED_SPHERE
+ diffev> variable integer, STACKED_ELLIPSOID
+ diffev> variable integer, model
+ diffev>  
+ diffev> PERFECT_SPHERE    = 1
+ diffev> PERFECT_ELLIPSOID = 2
+ diffev> STACKED_SPHERE    = 3
+ diffev> STACKED_ELLIPSOID = 4
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> model = STACKED_ELLIPSOID
+ diffev> if(model == PERFECT_SPHERE .or. model == PERFECT_ELLIPSOID) then
+ diffev> REF_NINDIV = 1
+ diffev> endif
+ diffev> @diffev_setup.mac
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> pop_gen[1]  =   0
+ diffev>  
+ diffev> pop_n[1]    =   6
+ diffev> pop_c[1]    =   6
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> newpara               P_lata  , range:[3.9000,  4.020],  value:[3.900, 4.020], status:free
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> newpara               P_latc  , range:[6.4900,  6.570], value:[ 6.490, 6.510], status:free
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> newpara               P_z_zn  , range:[0.3600,  0.450],  value:[0.373, 0.380], status:free
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> newpara               P_biso  , range:[0.0100,  2.500],  value:[0.700, 0.900], status:free
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> newpara               P_stack , range:[0.0000,  1.000],  value:[0.000, 1.000], status:free
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> newpara               P_ab_dia, range:[5.0000, 45.000], value:[15.000, 40.00], status:free
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> newpara               P_cc_dia, range:[5.0000, 40.000], value:[15.000, 40.00], status:free
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev>  
+ diffev> newpara               P_corrquad  , range:[0.0000,  0.000],  value:[0.000,  0.00, status:fixed
+[31m ***MAC *** Error in macro line:    50 Level   2          ***[39m
+[31m ***MAC *** /home/reinhard/discus/AAA_TEST_ALL/09.Nanoparticle_refinement/ZNSE_PDF_suite_release/diffev_setup.mac[39m
+  
+ ------ > Working directory : /home/reinhard/discus/AAA_TEST_ALL/09.Nanoparticle_refinement/ZNSE_PDF_suite_release/
+  
+ suite >
+ suite >

@@ -1,0 +1,52 @@
+data_00001
+_audit_creation_method   'DISCUS'
+
+_data_chemical_name_common 'Primitive host structure'
+
+_cell_length_a             20.0000
+_cell_length_b             20.0000
+_cell_length_c              5.0000
+_cell_angle_alpha     90.0000
+_cell_angle_beta      90.0000
+_cell_angle_gamma     90.0000
+
+_space_group_crystal_system        triclinic   
+_space_group_IT_number               1
+_space_group_name_H-M_alt          'P1              '
+
+
+
+loop_
+ _space_group_symop_operation_xyz
+ 'x, y, z'
+
+loop_
+_atom_site_label
+_atom_site_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+_atom_site_u_iso_or_equiv
+_atom_site_adp_type
+_atom_site_occupancy
+SI10   SI        0.251250    0.126250    0.005000     0.000633 Uiso 1.000000
+SI11   SI        0.376250    0.126250    0.005000     0.000633 Uiso 1.000000
+SI12   SI        0.501250    0.126250    0.005000     0.000633 Uiso 1.000000
+SI16   SI        0.126250    0.251250    0.005000     0.000633 Uiso 1.000000
+SI20   SI        0.626250    0.251250    0.005000     0.000633 Uiso 1.000000
+SI23   SI        0.126250    0.376250    0.005000     0.000633 Uiso 1.000000
+SI27   SI        0.626250    0.376250    0.005000     0.000633 Uiso 1.000000
+SI30   SI        0.126250    0.501250    0.005000     0.000633 Uiso 1.000000
+SI34   SI        0.626250    0.501250    0.005000     0.000633 Uiso 1.000000
+SI38   SI        0.251250    0.626250    0.005000     0.000633 Uiso 1.000000
+SI39   SI        0.376250    0.626250    0.005000     0.000633 Uiso 1.000000
+SI40   SI        0.501250    0.626250    0.005000     0.000633 Uiso 1.000000
+PT50   PT        0.251250    0.251250    0.005000     0.006333 Uiso 1.000000
+PT51   PT        0.376250    0.251250    0.005000     0.006333 Uiso 1.000000
+PT52   PT        0.501250    0.251250    0.005000     0.006333 Uiso 1.000000
+PT53   PT        0.251250    0.376250    0.005000     0.006333 Uiso 1.000000
+NI54   NI        0.376250    0.376250    0.005000     0.006333 Uiso 1.000000
+PT55   PT        0.501250    0.376250    0.005000     0.006333 Uiso 1.000000
+PT56   PT        0.251250    0.501250    0.005000     0.006333 Uiso 1.000000
+PT57   PT        0.376250    0.501250    0.005000     0.006333 Uiso 1.000000
+PT58   PT        0.501250    0.501250    0.005000     0.006333 Uiso 1.000000

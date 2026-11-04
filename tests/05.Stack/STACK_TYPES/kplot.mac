@@ -1,0 +1,14 @@
+rese
+orient portrait
+load cr, $1.plot
+aver 0.943
+skal xmin[1]+1.5,xmax[1]-1.5,ymin[1]-0.5,ymax[1]+0.5
+mark
+fnam off
+tit1 Crystal structure
+tit2 2-D section
+achx [x 0 0]
+achy [0 y 0]
+msize 1,0.3
+plot
+orient_landscape

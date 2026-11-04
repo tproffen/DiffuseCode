@@ -1,0 +1,10 @@
+#
+orient landscape
+fnam on
+buf 0.1,0.1,0.1,0.1
+font size,1, 16
+font size,2, 14
+font size,3, 12
+font size,4, 12
+font size,5, 12
+font size,6, 12

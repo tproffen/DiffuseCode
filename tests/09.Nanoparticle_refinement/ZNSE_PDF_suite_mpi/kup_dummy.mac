@@ -1,0 +1,6 @@
+#
+# k_dummy.mac
+#
+echo " I am slave %d %d ", REF_KID, REF_INDIV
+cost ran(0)
+exit

@@ -1,0 +1,21 @@
+reset
+load xy, PDF/initial.pdf
+load xy, PDF/final.pdf
+buff 0.15,0.05,0.15,0.15
+skal
+mark
+tit1 PDF for replaced and relaxec nanoparticle
+tit2 blue: replaced; red relaxed
+lwidt 1,0.6
+lwidt 2,0.6
+font size,3,18
+font size,4,18
+sann 1,OFF
+plot
+wait return
+sann 1,Zn-O,1.9,0.5,l,90
+skal 0,10
+mark 1
+achx Distance [\A]
+achy G(r)
+plot

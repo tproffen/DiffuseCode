@@ -1,0 +1,70 @@
+discus   ! Switch to discus section
+#
+#@ HEADER
+#@ NAME         powder.mac
+#@ 
+#@ KEYWORD      powder, small crystal
+#@ 
+#@ DESCRIPTION  reads a unit cell, expands it to a user defined size 
+#@ DESCRIPTION  and calculates the powder pattern
+#@
+#@ PARAMETER    $0, 1
+#@ PARAMETER    $1, integer,  number of unit cells
+#@
+#@ USAGE        @powder <number> 
+#@
+#@ END
+#
+################################################################################
+#
+read                            # Switch to read menu
+  cell $1.cell,1,1,1     # read the unit cell expand to $1*$1*$1 cells 
+#
+powder                          # Switch to powder menu
+  reset
+  neutron                       # Select X-rays
+  set axis,q                    # Perform calculation on equaly spaced Q grid
+  set calc,complete             # Use complete integration algorithm-algorithm
+  set disp,off                  # Switch anomalous dispersion off
+  set delta,0.0                 # Set simple convolution by Gaussian off
+! set qmin,0.5500               # Starting value for Q
+! set qmax,30.1000              # Final value for Q
+! set dq,  0.0005               # Step size for Q
+  set tthmin, 1.0
+  set tthmax, 120.
+  set dtth  , 0.01
+  set dh, 1.0
+  set dk, 1.0
+  set dl, 1.0
+# set tthmin,8.0
+# set tthmax, 120.
+# set dtth, 0.01
+  set profile, off             # Switch convolution by Pseudovoigt function off
+  set profile, pseudo           # Use Pseudovoigt (instead of Gaussian)
+  set profile, uvw, 0.000, 0.000, 0.005 # Cagliotti u,v,w values 
+  set profile, eta, 0.500       # Mixing parameter 1=Lorenzian 0=Gaussian
+  set profile, asym, 0.00, 0.00, 0.00, 0.00 #Asymmetry parameters
+  set temp,use                  # Use the Atomic displacement parameters
+  set wvle,CU12                 # Set the wavelength
+  set four,four                 # Just for stacking fault mode, set to normal
+  set lpcor,bragg, 2.00         # Define Lorentz-Pol to BraggBrentano Diffractometer
+  run                           # Do the actual calculation
+exit                            # Go back to main DISCUS menu
+#
+output                          # Switch to output menu
+  outf  complete.inte           # Define output file name
+  value inte                    # Select intensity as output value
+  form  powder,q  ,0,20,0.001   # Write output as powder data
+  run                           # Perform the actual output
+  outf  complete.tth            # Define output file name
+  value inte                    # Select intensity as output value
+  form  powder,tth              # Write output as powder data
+  run                           # Perform the actual output
+exit                            # Go back to main DISCUS menu
+system cp complete.tth $1.tth
+#
+branch kuplot
+   @kcomplete.mac
+   exit
+#
+exit

@@ -1,0 +1,47 @@
+#  dom.perov.sort.mac
+#
+mmc
+  rese
+  set neig, rese
+  set vec,  1,  1,1,  1, 0, 0
+  set vec,  2,  1,1, -1, 0, 0
+  set vec,  3,  1,1,  0, 1, 0
+  set vec,  4,  1,1,  0,-1, 0
+  set vec,  5,  1,1,  0, 0, 1
+  set vec,  6,  1,1,  0, 0,-1
+exit
+if(dimenz==1) then
+#
+  mmc
+    set neig, vec,  1, 2, 3, 4 !, 5, 6
+    set neig, add
+    set neig, vec,  1, 2, 3, 4 !, 5, 6
+    set neig, add
+    set neig, vec,  1, 2, 3, 4 !, 5, 6
+  exit
+else
+#
+  mmc
+    set neig, vec,  1, 2, 3, 4, 5, 6
+    set neig, add
+    set neig, vec,  1, 2, 3, 4, 5, 6
+    set neig, add
+    set neig, vec,  1, 2, 3, 4, 5, 6
+  exit
+endif
+#
+mmc
+  set mode, 1.0, swchem,local
+#
+  set target,1,corr,d100,d010,0.9,-1.,CORR
+  set target,2,corr,d100,d001,0.9,-1.,CORR
+  set target,3,corr,d010,d001,0.9,-1.,CORR
+#
+  set temp, 5
+  set cycl, n[1]*200!0
+  set feed, n[1]*  50
+  show
+  run
+exit
+#
+wait return

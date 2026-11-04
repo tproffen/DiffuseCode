@@ -1,0 +1,119 @@
+# k.perov.mac
+#
+############################################################
+#
+#  Plots the domain structures that are produced by
+#  dom.perov.mac
+#
+############################################################
+#
+rese
+load cr, dom.perov.random.plot
+#
+aver  1
+buff 0.05,0.05,0.12,0.05
+angle 90
+fnam  off
+msize 1,0.6
+fset  0
+skal -10,10,-10,10
+plot
+#
+############################################################
+# To obtain a postscript file remove the leading '#' from 
+# the next line
+# save ps,dom_per_ran.ps
+#
+wait return
+#
+############################################################
+#
+rese
+load cr, dom.perov.sorted.plot
+aver  1
+buff 0.05,0.05,0.12,0.05
+angle 90
+skal  -10,10,-10,10
+plot
+#
+############################################################
+# To obtain a postscript file remove the leading '#' from 
+# the next line
+# save ps,dom_per_sort.ps
+#
+wait return
+#
+############################################################
+#
+rese
+load cr, dom.perov.relaxed.plot
+aver  1
+angle 90
+skal -10,10,-10,10
+plot
+#
+############################################################
+# To obtain a postscript file remove the leading '#' from
+# the next line
+#save ps,dom_per_relax.ps
+#
+wait return
+#
+############################################################
+#
+rese
+buff 0.1,0.0,0.13,0.05
+load ni, dom.perov.relaxed.inte
+fset  2
+aver  1
+angle 90
+hlin  1,0.1, 0.1, 100, %
+hart  1,2
+cmap  fire
+mark  1,1
+tit1 
+tit2  Fourier of relaxed domainpositions
+achx  [H 0 0]
+achy  [0 K 0]
+font  size,3,18
+font  size,4,18
+fnam  off
+plot
+#
+############################################################
+# To obtain a postscript file remove the leading '#' from
+# the next line
+# save ps,dom_per_relax_f.ps
+#
+wait return
+#
+############################################################
+#
+rese
+load ni, dom.perov.final.inte
+fset  2
+aver  1
+angle 90
+hlin  1, 2.00, 2.00, 20,%
+hart  1,2
+cmap  fire
+mark  1,1
+tit1 
+tit2  Fourier of final preovskite structure
+achx  [H 0 0]
+achy  [0 K 0]
+font  size,3,18
+font  size,4,18
+fnam  off
+plot
+#
+############################################################
+# To obtain a postscript file remove the leading '#' from
+# the next line
+# save ps,dom_per_replaced_f.ps
+eval x[1, 151]
+eval x[1, 150]
+eval x[1, 149]
+eval z[1, 151, 101]
+eval z[1, 150, 101]
+eval z[1, 137, 137]

@@ -1,0 +1,3 @@
+sys rm -f PLOT/*
+sys rm -f PDF/*
+sys rm -f STRU/*

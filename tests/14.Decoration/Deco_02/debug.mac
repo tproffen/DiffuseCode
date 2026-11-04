@@ -1,0 +1,38 @@
+#
+variable integer, LTEST_MAC
+variable integer, LTEST_ALL
+LTEST_MAC = TRUE
+LTEST_ALL = TRUE
+#
+discus
+#
+read
+   lcell CELL/kaolinite.cell, 8,8,8
+#
+#@plot.mac kaolinite, yes
+#wait return
+#
+surface
+   set distance, external, O, 1.1
+   bound hkl,  0, 0, 1,  3./dstar(0,0,1) - 0.2
+   bound hkl,  0, 0,-1,  1./dstar(0,0,1) + 0.1
+   bound hkl,  1, 0, 0,  2./dstar(1,0,0) + 0.01
+   bound hkl, -1, 0, 0,  2./dstar(1,0,0) - 0.5
+   bound hkl,  0, 1, 0,  2./dstar(0,1,0) - 0.4
+   bound hkl,  0,-1, 0,  2./dstar(0,1,0)
+exit
+purge
+#
+@plot.mac shaped, no
+chem
+  elem
+exit
+i[100] = nint(res[1]*n[1])
+i[101] = nint(res[2]*n[1])
+i[102] = nint(res[3]*n[1])
+i[103] = nint(res[4]*n[1])
+i[104] = nint(res[5]*n[1])
+i[105] = nint(res[6]*n[1])
+i[106] = nint(res[7]*n[1])
+#
+wait return

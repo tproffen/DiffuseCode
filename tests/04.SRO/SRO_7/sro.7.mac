@@ -1,0 +1,184 @@
+#
+#@ HEADER
+#@ NAME         sr0.3.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro allows the user to specify four 
+#@ DESCRIPTION  independent correlations,
+#@ DESCRIPTION  [1,0,0];  [0,1,0,]; [1,1,0]; [1,-1,0]
+#@ DESCRIPTION  you will see that not all correlations can actually be achieved.
+#@
+#@ PARAMETER    $0, 5
+#@ PARAMETER    $1, real,  correlation along [100]
+#@ PARAMETER    $2, real,  correlation along [010]
+#@ PARAMETER    $3, real,  correlation along [110]
+#@ PARAMETER    $4, real,  correlation along [-110]
+#@ PARAMETER    $5, real,  temperature
+#@
+#@ USAGE        @sro.3 <c100>, <c010>, <c110>, <c-110>, <temperature>
+#@
+#@ END
+discus
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size_cr
+variable real,comp
+variable real,c100
+variable real,c110
+variable real,c200         # New variable for the diagonal target correlations
+variable real,c220         # 
+variable real,c120         # 
+variable real,a100
+variable real,a110
+variable real,a200
+variable real,a220
+variable real,a120
+variable real,heat
+#
+size_cr =  50
+comp = 0.5
+#
+#  Perform basic error check on user input
+#
+if($0 /= 6) then
+  echo
+  echo Use as: @sro.3  <c100>, <c110>, <c200>, <c221>, <c120>, <temperature>
+  echo
+  continue suite
+endif
+#
+if($1 <  -1.0   .or.   1.0  <   $1) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($2 <  -1.0   .or.   1.0  <   $2) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($3 <  -1.0   .or.   1.0  <   $3) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($4 <  -1.0   .or.   1.0  <   $4) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($5 <  -1.0   .or.   1.0  <   $5) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($6 <   0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue suite
+endif
+c100 = $1
+c110 = $2
+c200 = $3                  # Assign the two further parameter to readable names
+c220 = $4                  #
+c120 = $5                  #
+heat = $6
+#
+@sro-ran.1.mac size_cr,comp
+#
+chem
+  set mode, quick, period, xy
+exit
+#
+mmc
+  rese
+  set neig,rese
+  set vec, rese
+#
+  set vec, 1, 1,1,  1, 0, 0
+  set vec, 2, 1,1, -1, 0, 0
+  set vec, 3, 1,1,  0, 1, 0
+  set vec, 4, 1,1,  0,-1, 0
+#
+  set vec, 5, 1,1,  1, 1, 0
+  set vec, 6, 1,1, -1,-1, 0
+  set vec, 7, 1,1,  1,-1, 0
+  set vec, 8, 1,1, -1, 1, 0
+#
+  set vec, 9, 1,1,  2, 0, 0
+  set vec,10, 1,1, -2, 0, 0
+  set vec,11, 1,1,  0, 2, 0
+  set vec,12, 1,1,  0,-2, 0
+#
+  set vec,13, 1,1,  2, 2, 0
+  set vec,14, 1,1, -2,-2, 0
+  set vec,15, 1,1,  2,-2, 0
+  set vec,16, 1,1, -2, 2, 0
+#
+  set vec,17, 1,1,  2, 1, 0
+  set vec,18, 1,1, -2,-1, 0
+  set vec,19, 1,1,  1,-2, 0
+  set vec,20, 1,1, -1, 2, 0
+  set vec,21, 1,1,  2,-1, 0
+  set vec,22, 1,1, -2, 1, 0
+  set vec,23, 1,1,  1, 2, 0
+  set vec,24, 1,1, -1,-2, 0
+  set neig,vec, 1, 2, 3, 4       ! <100>
+  set neig,add
+  set neig,vec, 5, 6, 7, 8       ! <110>
+  set neig,add
+  set neig,vec, 9,10,11,12       ! <200>
+  set neig,add
+  set neig,vec,13,14,15,16       ! <220>
+  set neig,add
+  set neig,vec,17,18,19,20,21,22,23,24  !<120>
+#
+  set mode, 1.0, swchem,all
+  set targ,1,corr,cu,void,c100,0.0,CORR   #  Now we defined fourt targets
+  set targ,2,corr,cu,void,c110,0.0,CORR   #  each with an independent
+  set targ,3,corr,cu,void,c200,0.0,CORR   # target correlation
+  set targ,4,corr,cu,void,c220,0.0,CORR   #
+  set targ,5,corr,cu,void,c120,0.0,CORR   #
+  set cyc, 200*n[1]
+  set feed, 10*n[1]
+  set temp,heat
+  run
+exit
+#
+@plot.mac example3
+@fourier.mac example3
+#
+chem
+  corr occ,cu,void
+exit
+fopen  1,example3.data
+fformat 1,*
+fput 1,"C100 target/achieved %6.2f %5.2f",c100, res[1]
+fput 1,"C110 target/achieved %6.2f %5.2f",c110, res[2]
+fput 1,"C200 target/achieved %6.2f %5.2f",c200, res[3]
+fput 1,"C220 target/achieved %6.2f %5.2f",c220, res[4]
+fput 1,"C120 target/achieved %6.2f %5.2f",c120, res[5]
+fput 1,"temperature  %5.0f",heat
+chem
+  element
+exit
+fput 1,"copper : voids %5.2f : %5.2f",res[2],res[1]
+fclose 1
+#
+save example3.stru
+exit

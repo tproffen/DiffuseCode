@@ -1,0 +1,28 @@
+#
+#  diffev.mac
+#
+###############################################################################
+#
+#  Main DIFFEV macro. Continuation of a refinement
+#  After parameter definition and initialization, a loop repeatedly calls
+#  the slave program which calculates the cost function and the R-value,
+#  while DIFFEV compares the new R-values and generates a new generation.
+#
+#  If the number in file "REPEAT" is equal to 1, the loop is continued
+#
+@diffev_setup.mac
+#
+fopen 1,GENERATION
+fget 1,pop_gen[1]
+fclose 1
+#
+i[0] = 1
+#
+do while(i[0].eq.1)
+#do i[0]=1,100
+  system ./arctan
+  compare
+  fopen 1, REPEAT
+  fget 1,i[0]
+  fclose 1
+enddo

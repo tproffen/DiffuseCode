@@ -1,0 +1,27 @@
+ General fit parameter settings : 
+   Title            :  
+            
+   Fit function     : f = p[1]*atan((abs(r[0]-p[2])/
+   Data file name   : DATA/data.sigma
+   # of data pts.   :   2001
+   # of parameters  :      3
+   Urf              : 1000.0000
+   Max. cycle       :     50
+   MFEN for maxima  :      5
+   Weighting scheme : w(i) = 1/dy(i) from data set
+
+ Information about the fit : 
+   Sum n-1    :  11109.9                 Sum n   :  11407.3    
+   Difference :  297.455    
+   Urf final  :  2.65107    
+   R4 value   : 0.821605E-01             R exp   : 0.348423E-01
+
+ Correlations larger than 0.8 :
+   ** none **
+  
+ Fit function : F = p[1]*atan((abs(r[0]-p[2])/p[3]))
+
+   p( 1) :  99.9917     +- 0.661010E-01    pinc : 1.
+   p( 2) :  100.265     +- 0.171248        pinc : 1.
+   p( 3) : 0.657837E-01 +- 0.227617E-02    pinc : 1.
+  

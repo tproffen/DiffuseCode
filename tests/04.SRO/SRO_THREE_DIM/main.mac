@@ -1,0 +1,8 @@
+#
+# top level macro
+@sro.2.mac  0.8, 0.6, 0.0, 2.5
+@k_001.mac   c100, c010
+wait return
+@k_010.mac   c100, c010
+wait return
+@k_100.mac   c100, c010

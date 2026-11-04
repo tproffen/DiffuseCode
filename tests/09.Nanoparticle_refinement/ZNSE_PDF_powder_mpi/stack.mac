@@ -1,0 +1,45 @@
+#
+# stack.mac
+#
+#   Stacks the two wurtzite layers along [001]
+#
+variable integer,height
+height = int(2.*P_cc_dia/lat[3] + 2)  !two layers per unit cell thus factor 2.
+#
+stack
+   layer "%c/STRU/%c.%4D.%4D.layer"  ,TMPDIR,SUBSTANCE,REF_KID,indiv
+   layer "%c/STRU/%c.%4D.%4D.rotated",TMPDIR,SUBSTANCE,REF_KID,indiv
+   trans  1,1, -0.3333, 0.3333, 0.5000   ! translation from layer type 1 to type 1
+   trans  1,2,  0.3333,-0.3333, 0.5000   ! translation from layer type 1 to type 2
+   trans  2,1, -0.3333, 0.3333, 0.5000   ! Translations 1=>1=>1 etc gives Zincblende
+   trans  2,2,  0.3333,-0.3333, 0.5000   ! Translations 1=>2=>1 etc gives Wurtzite
+   sigma  1,1,  0.0000, 0.0000, 0.0000   ! options additional "noise"
+   sigma  1,2,  0.0000, 0.0000, 0.0000
+   sigma  2,1,  0.0000, 0.0000, 0.0000
+   sigma  2,2,  0.0000, 0.0000, 0.0000
+
+   aver   0.00, 0.00, 1.00               ! Crystal shall grow on average along [001]
+   modu   1.00, 0.00, 0.00,  0.00, 1.00, 0.00  ! Two vectors, if origin of a layer is 
+#                                        ! further away than +- either vector it is
+#                                        !  shifted along corresponding vector
+   set mod ,on                           ! Use the modulus vectors
+   set trans,fixed                       ! Use average growth direction as on "aver" command
+#
+   random prob,0.00                      ! No randomly shifted faults
+   random offset, 0.00, 0.00, 0.00
+   random sigma , 0.00, 0.00, 0.00
+#
+   rotate status,off                     ! No rotational faults
+#
+   distr  matrix                         ! Use matrix from crow lines to define sequences
+#
+   number height                         ! Build this many layers
+#
+   crow   1,       $1    ,1.00-$1        ! Layer type 1 is followed by layer type 1 with probability $1
+#                                        !         and by layer type 2 with pronbability (1-$1)
+   crow   2,  1.00-$1    ,     $1        ! Other way around for layer type 2
+#
+# show
+  create                                 ! Create list of layer origins
+  run                                    ! Decorate with actual atoms
+exit                                     ! Back to DISCUS main menu

@@ -1,0 +1,4 @@
+@aaa_model.mac             ! Obtain refinement model
+if(model.eq.PERFECT_SPHERE .or. model.eq.PERFECT_ELLIPSOID) then
+   nindiv = 1
+endif

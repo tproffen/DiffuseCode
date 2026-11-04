@@ -1,0 +1,34 @@
+#
+# shape_poly.mac
+#
+variable real,diameterx
+variable real,diametery
+variable real,diameterz
+variable integer, ncellx
+variable integer, ncelly
+variable integer, ncellz
+read
+   cell CELL/$1.cell
+#
+diameterx = 16.0*lat[1]
+diametery =  8.0*lat[2]
+diameterz = 16.0*lat[3]
+ncellx = int(diameterx/lat[1])+6
+ncelly = int(diametery/lat[2])+6
+ncellz = int(diameterz/lat[3])+6
+
+read
+   cell CELL/$1.cell, ncellx,ncelly,ncellz
+#
+surface
+   set distance, external, all, 1.70
+   boundary hkl , 1, 0, 1, diameterx/2. + 0.1
+   boundary hkl ,-1, 0,-1, diameterx/2. + 0.1
+   boundary hkl , 0, 1, 0, diameterx/2. + 0.1
+   boundary hkl , 0,-1, 0, diameterx/2. + 0.1
+   boundary hkl , 1, 0,-1, diameterx/2. + 0.1
+   boundary hkl ,-1, 0, 1, diameterx/2. + 0.1
+exit
+purge
+@plot.mac $1_poly
+#

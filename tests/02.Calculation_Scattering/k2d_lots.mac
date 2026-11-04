@@ -1,0 +1,61 @@
+#
+#  k2d.mac
+#
+################################################################################
+#
+#  This macro plots the result of DISCUS macro <2d.mac>
+#
+################################################################################
+#
+rese
+#
+load ni,$1.inte
+load cr,$1.plot
+#
+nfra 2
+sfra 1, 0.00, 0.30, 0.54, 1.00
+sfra 2, 0.48, 0.30, 1.00, 1.00
+#
+kfra 1,1
+kfra 2,2
+#
+afra 1
+  buff 0.06,0.06,0.10,0.00         # reserve buffer space around the frames
+  aver 1.0                       # set ratio y/x to 1.0
+  angle 90.0                     # set angle x/y-axis = 90.0 degrees
+  achx [ H 0 0 ]                 # text along x-axis
+  achy [ 0 K 0 ]                 # text along y-axis
+  hart 1,2                       # select bitmap style plotting
+  cmap fire                      # select fire as color map scheme
+# hlin 1,1e5,1e5,20              # draw 20 z-levels from 1e5 in 1e5 intervals
+  hlin 1, 5., 5., 20, %          #
+  tit1                           # switch title line 1 off
+  tit2                           # switch title line 1 off
+  fnam off                       # do not show file name
+  achz OFF                       # do not display levels for z-axis
+#
+afra 2
+  buff 0.06,0.06,0.10,0.00         # reserve buffer space around the frames
+  aver 1.0000
+  skal -25,25,-25,25
+  mark 10,10
+  fnam off
+  tit1 
+  tit2 
+  achx [x 0 0]
+  achy [0 y 0]
+  msize 1,0.3
+  fset -3                        # place y-xis marker and text on right side
+#
+plot
+wait return
+afra 1
+skal -1.0, 1.0, -1.0, 1.0
+mark 0.2, 0.2
+plot
+#
+wait return
+#
+skal
+mark
+plot

@@ -1,0 +1,144 @@
+kuplot
+#
+reset
+#
+variable integer, nlayer
+if(nlayer==0) then
+  load h5, INTE/$1_$2.inte.h5, layer:middle
+else
+  load h5, INTE/$1_$2.inte.h5, layer:nlayer
+endif
+load cr, PLOT/$1.plot
+load h5, INTE/$1_$2.3DPDF.h5, layer:middle
+#
+ksav 3
+  form sx, 0.0
+  outf INTE/$1_$2.3DPDF.cut
+  run
+load xy, INTE/$1_$2.3DPDF.cut
+#
+load xy, POWDER/$1_$2.SQ
+load xy, POWDER/$1_$2.gr_period
+#
+nfra 6
+sfra 1, 0.00, 0.50, 0.33, 0.95
+sfra 2, 0.33, 0.50, 0.66, 0.95
+sfra 3, 0.60, 0.505, 1.00, 0.945
+#
+sfra 4, 0.00, 0.055, 0.33, 0.445
+sfra 5, 0.33, 0.055, 0.66, 0.45
+sfra 6, 0.60, 0.055, 1.00, 0.450
+#
+kfra 1, 1   ! Intensity
+kfra 2, 2   ! Structure
+kfra 3, 5   ! S(Q)
+kfra 4, 4   ! Cut through PDF
+kfra 5, 3   ! 3D PDF
+kfra 6, 6   ! G(r) powder PDF
+#
+afra 1
+  buff 0.00, 0.00, 0.00, 0.00
+  aver 1
+  skal 
+  mark
+  angle 90.0
+  hart 1, 2
+  hlin 1, 1.0, 100, %
+  cmap fire
+  cmap invert
+  achx
+  achy
+  tit1
+  tit2 Diffuse intensity
+  font just, center
+  fnam off
+  achz OFF
+  fset 1
+#
+afra 2
+  buff 0.00, 0.00, 0.00, 0.00
+  aver 1
+  skal -10, 9, -10, 9
+  mark
+  angle 90.0
+  achx
+  achy
+  tit1
+  tit2   Structure
+  font just, center
+  fnam off
+  achz OFF
+  fset 1
+#
+afra 3
+  buff 0.06, 0.06, 0.00, 0.00
+  aver
+  skal 0.01, xmax[5], 0, ymax[5]*1.05
+  angle 90.0
+  achx
+  achy
+  tit1
+  tit2 S(Q)
+  font just, center
+  fnam off
+  achz OFF
+  lcol 5, red
+  fset 1
+#
+afra 4
+  buff 0.00, 0.00, 0.00, 0.00
+  aver
+  skal -2.5, 2.5    , ymin[4]*1.05, ymax[4]*1.05
+  mark 1
+  angle 90.0
+  achx
+  achy
+  tit1
+  tit2 3D-\gDPDF cross section
+  font just, center
+  fnam off
+  achz OFF
+  lcol 4, blue
+  fset 2
+#
+afra 5
+  buff 0.00, 0.00, 0.00, 0.00
+  aver 1
+  skal -4, 4, -4, 4
+  mark
+  angle 90.0
+  hart 3,2
+  r[11] = -0.5*abs(zmax[3])
+  r[12] =  0.01*abs(zmax[3])
+  hlin 1, -5000,100, 100
+  hlin 1, r[11], r[12], 100
+  cmap pdf
+  achx
+  achy
+  tit1
+  tit2 3D-\gDPDF 
+  font just, center
+  fnam off
+  achz OFF
+  fset 1
+#
+afra 6
+  buff 0.06, 0.06, 0.00, 0.00
+  aver
+  skal 0.01, 30.0 !, ymin[6]*1.05, ymax[6]*1.05
+  mark 10, 10
+  angle 90.0
+  achx
+  achy
+  tit1
+  tit2 Powder PDF G(r)
+  font just, center
+  fnam off
+  achz OFF
+  lcol 6, blue
+  fset -3
+#
+plot
+save png, primitive_grand_$1.png
+save pdf, primitive_grand_$1.pdf
+exit  ! Back to suite

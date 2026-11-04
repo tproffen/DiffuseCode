@@ -1,0 +1,15 @@
+chem
+   set vec, res
+   set neig, rese
+#
+   set vec, 1, 1,1,   1,  0,  0 
+   set vec, 2, 1,1,  -1,  0,  0 
+   set vec, 3, 1,1,   0,  1,  0 
+   set vec, 4, 1,1,   0, -1,  0 
+#
+   set nei, vec, 1
+   set nei,add
+   set nei, vec, 3
+#
+   field occ, cu,void, field.occ, 0,20,0,20
+exit

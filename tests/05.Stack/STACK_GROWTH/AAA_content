@@ -1,0 +1,12 @@
+DISCUS Macros in this directory are:
+
+
+growth.mac             ! Main stacking fault macro
+growth_setup.mac       ! Defines main parameters
+
+plot.mac               ! Write structure for plot with KUPLOT
+
+KUPLOT Macros in this directory are:
+
+kgrowth.mac            ! Plots the results
+k_stack_growth_xxL.mac ! Plots the results

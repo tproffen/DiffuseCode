@@ -1,0 +1,59 @@
+rese
+#
+load ni,example3.$1
+load cr,example3.plot
+#fopen 1,example3.data
+#
+nfra 3
+sfra 1, 0.00, 0.30, 0.54, 1.00
+sfra 2, 0.48, 0.30, 1.00, 1.00
+sfra 3, 0.30, 0.00, 1.00, 0.30
+buff 0.06,0.06,0.10,0.00
+#
+kfra 1,1
+kfra 2,2
+kfra 3,example3.data
+#
+#r[10] = zmax[1]*1.05
+#do i[0]=1,201,25
+#  do i[1]=1,201,25
+#    z[1,i[0],i[1]] = r[10]
+#  enddo
+#enddo
+#
+afra 1
+  aver 1
+  angle 90
+  achx [ H 0 0 ]
+  achy [ 0 K 0 ]
+  hart 1,2
+if('$1'=='inte') then
+  cmap fire
+#  cmap gray
+  hlin 1,1e7,1e7,20
+  hlin 1, 2.05, 2.05, 20, %
+else
+  hlin 1, -0.7e9,0.7e8,20
+  cmap thermal
+endif
+  tit1 
+  tit2 
+  fnam off
+  achz OFF
+  grid on
+#
+afra 2
+  aver 1.0000
+  skal -25,25,-25,25
+  mark 10,10
+  fnam off
+  tit1 
+  tit2 
+  achx [x 0 0]
+  achy [0 y 0]
+  msize 1,0.3
+  fset -3
+#
+afra 3
+  font size,5,20
+plot

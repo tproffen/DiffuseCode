@@ -1,0 +1,136 @@
+#
+#@ HEADER
+#@ NAME         sr0.2.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro refines independent correlations along 
+#@ DESCRIPTION  [100] and [010].  The correlations along [1-10] 
+#@ DESCRIPTION  and [110] are calculated for the display as well.
+#@
+#@ PARAMETER    $0, 3
+#@ PARAMETER    $1, real,  correlation along [100]
+#@ PARAMETER    $1, real,  correlation along [010]
+#@ PARAMETER    $3, real,  temperature
+#@
+#@ USAGE        @sr0.2  <c100>, <c010>, <temperature>
+#@
+#@ END
+#
+#  sro.2.mac.mac
+#
+################################################################################
+#
+discus
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size_cr
+variable real,comp
+variable real,c100             # Variables for target correlations
+variable real,c010             #
+variable real,c001             #
+variable real,a100             # variables for achieved correlations
+variable real,a010             #
+variable real,a110             #
+variable real,aM10             #
+variable real,heat
+#
+size_cr =  10
+comp = 0.5
+#
+#  Perform basic error check on user input
+#
+if($0 /= 4) then
+  echo
+  echo Use as: @sro.2  <correlation 100>, <correlation 010>, <temperature>
+  echo
+  continue suite
+endif
+#
+if($1 <  -1.0   .or.   1.0  <   $1) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($2 <  -1.0   .or.   1.0  <   $2) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($3 <  -1.0   .or.   1.0  <   $3) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($4 <   0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue suite
+endif
+#
+c100 = $1                      #  The user provides two indipendent correlations
+c010 = $2                      #
+c001 = $2                      #
+heat = $4
+#
+read
+   cell crystal.cell, size_cr, size_cr, size_cr
+replace cu,Au , all, comp
+#do LOOP=1,n[1]/2
+#  replace LOOP, Au, 0.0
+#enddo
+#
+chem
+  set mode, quick, period, xy
+exit
+#
+set parallel, useomp:parallel   ! Increase speed by parallel calculation
+mmc
+  rese
+  set neig,rese
+  set vec ,rese
+#
+  set vec,1, 1,1,  1, 0, 0     #  The first three vector pairs are for the 
+  set vec,2, 1,1, -1, 0, 0     #  targets
+  set vec,3, 1,1,  0, 1, 0     #
+  set vec,4, 1,1,  0,-1, 0     #
+# set vec,5, 1,1,  0, 0, 1     #  
+# set vec,6, 1,1,  0, 0,-1     #  
+#
+  set neig,number:next, vec,1,2
+  set neig,number:next, vec,3,4
+# set neig,number:next, vec,5,6
+#
+  set mode, 1.0, swchem,all
+  set targ,1,corr,cu,Au,c100,0.0,CORR  #  target 1 is for [100]
+  set targ,2,corr,cu,Au,c010,0.0,CORR  #  target 2 is for [010]
+# set targ,3,corr,cu,Au,c001,0.0,CORR  #  target 2 is for [010]
+!
+  set allowed, cu, Au
+  set cyc, 500*n[1]
+  set feed, 50*n[1]
+  set temp,heat
+  set finish, stop:converge, diff:0.055, change:0.052, aver:0.050, feed:3
+# set finish, stop:cycles
+#  set rbn, classic, 0.02, 0.005, 0.005
+show
+  run
+exit
+#
+#@plot.mac example2
+@fourier.mac example_three
+#
+#
+#
+exit   ! BACK TO SUITE
+#

@@ -1,0 +1,43 @@
+kuplot
+reset
+load ni, normal.inte
+aver P_aver
+hart 1, 2
+hlin 1, 0.1,100, %
+cmap fire
+mark 1, 1
+plot
+ksav 1
+  form sx, 0.0
+  outf cut_x0.inte
+  run
+#
+wait return
+#
+reset
+load xy, cut_x0.inte
+ksav 1
+  outf dummy.inte
+  form xy, -0.5, 0.5
+  run
+reset
+#
+load xy, dummy.inte
+skal -0.5, 0.5,0.0, ymax[1]
+mark 0.1
+plot
+fit 1
+  p[1] = ymax[1]
+  p[2] = 0.016
+  func fx, 2, p[1]*exp(-0.5*(r[0]/p[2])**2)
+  para 1, 1
+  para 2, 1
+#
+  cycle 200
+  run
+  show
+exit
+plot
+eval p[2], p[2]/lata
+exit
+

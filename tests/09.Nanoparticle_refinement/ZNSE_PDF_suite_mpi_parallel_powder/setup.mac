@@ -1,0 +1,7 @@
+#
+#  If the nanoparticles contain stacking faults, we need to 
+#  repeat the simulation REF_NINDIV times and average the corresponding 
+#  pattern(powder/pdf) prior to comparison to the experimental 
+#  data
+#
+REF_NINDIV =  5 !20

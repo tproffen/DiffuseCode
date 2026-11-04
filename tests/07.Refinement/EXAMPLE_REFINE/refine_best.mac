@@ -1,0 +1,52 @@
+#@ HEADER
+#@ NAME         refine_best.mac
+#@ 
+#@ KEYWORD      refine, best fit
+#@ 
+#@ DESCRIPTION  This macro contains the parameters for the current best
+#@ DESCRIPTION  fit status.
+#@ DESCRIPTION  
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @refine_best.mac
+#@
+#@ END
+#
+variable real, Rvalue
+variable integer, F_DATA
+variable real, P_ampl          
+variable real, P_wvle          
+variable real, P_phase         
+variable real, P_0             
+variable real, P_1             
+variable real, P_2             
+Rvalue           =      0.11307980     
+F_DATA           =               1
+F_XMIN           =       0.0000000     
+F_XMAX           =       20.000000     
+F_XSTP           =      0.10000000     
+F_YMIN           =       0.0000000     
+F_YMAX           =       0.0000000     
+F_YSTP           =       0.0000000     
+#
+kuplot
+rese
+load xy,noise_osci.dat
+exit
+#
+refine
+#
+#
+P_ampl           =      0.98023395      ! +-      0.10059404E-001
+P_wvle           =      0.49937222      ! +-      0.44658605E-003
+P_phase          =      0.21418203      ! +-      0.20497138E-001
+P_0              =     -0.95891841      ! +-      0.21159779E-001
+P_1              =      0.95011451E-001 ! +-      0.48973125E-002
+P_2              =     -0.99538943E-002 ! +-      0.23725960E-003
+#
+@k_calc.mac
+branch kuplot
+  @k_inter.mac
+#
+exit

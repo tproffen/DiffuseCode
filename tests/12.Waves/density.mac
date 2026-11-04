@@ -1,0 +1,73 @@
+discus
+#
+#
+read
+  cell CELL/primitive.cell,100,100,1
+replace 1,XE,b[1]
+#
+wave
+   density
+   vect   1.00, 0.00, 0.00
+   func   sinus
+   len    lat[1]*10
+   phase  0.00
+   plow   0.00
+   phigh  1.00
+   repl   1,XE
+   des     all
+   sel    PO
+   show
+   run
+exit
+#
+plot
+   progr cif
+   outf  waves.density_plot.cif
+   sel   all
+   prop  ignore,all
+   run
+exit
+#
+chem
+   elem
+exit
+#
+@plot.mac waves.density
+@fourier_2d.mac waves.density
+#
+branch kuplot
+   @k2d.mac waves.density
+   r[210] = z[1, 41, 21]
+   r[211] = z[1, 42, 21]
+   r[212] = z[1, 43, 21]
+   r[213] = z[1, 44, 21]
+   r[214] = z[1, 21, 41]
+   r[215] = z[1, 22, 41]
+   r[216] = z[1, 23, 41]
+   r[217] = z[1, 24, 41]
+  fclose all
+  fopen 1, results.density
+  fput 1, "#"
+  fput 1, "#"
+  fformat 1, f8.2
+  fformat 2, g18.6e3
+  do LOOP=0,7
+    fput 1, LOOP, r[210+LOOP]
+  enddo
+  fclose all
+  exit
+#
+#
+branch kuplot
+reset
+load xy, RESULTS/results.density
+load xy, results.density
+rval 1, 2, one
+r[1] = res[1]
+LTEST_MAC = FALSE
+if(abs(r[1])<0.010) then
+  LTEST_MAC = TRUE
+endif
+eval LTEST_MAC
+exit
+exit   ! back to suite

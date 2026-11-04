@@ -1,0 +1,43 @@
+#
+#  solution.mac
+#
+################################################################################
+#
+#  This macro reads a nickel unit cell, expands the structure to a 3x3x3 crystal
+#  and calculates the pdf for a variaty of settings
+#
+################################################################################
+#
+read             
+  cell ni.cell,3,3,3
+#                
+pdf                       # switch to DISCUS pdf menu
+  set rang,5.5,0.02       # calculate the pdf up to 5.5Angstroem in 0.02 steps
+  set qdamp,0.0           # switch instrumental damping off
+  set qbroad,0.0          # switch instrumental broadening off
+  set qmax,$1             # set Qmax to user input
+  set bound,periodic,3D   # set periodic boundary conditions
+  set density, 0.0        # determine the number density from unit cell content
+  set corrquad, 0.0       # switch of distance dependence of peak widths
+  set corrlin , 0.0       # switch of distance dependence of peak widths
+  set therm  , off        # do not convolute peaks with thermal Gaussian
+  set weight , 1.0        # set an optional weight to 1.0
+  set srat   , 1.0,2.5    # widen peaks below 2.5 Angstroem by factor 1.0
+  set finite,periodic     # use the periodic boundary to determine 4pi rho line
+  set rad,xray            # select x-ray radiation
+#
+  show                    # show the current settings
+  wait return             # wait for a user return
+  calc                    # calculate the pdf
+  save pdf, "pdf_user.1F",$1   #Save the output to file <pdf_qmax_25.0.pdf>
+                                 # 25.0 will be replaced by actual qmax!
+exit
+#
+branch kuplot
+reset
+load xy, "pdf_user.1F",$1
+skal
+mark
+plot
+exit  ! return to discus
+exit  ! Return to suite

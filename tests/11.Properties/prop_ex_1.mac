@@ -1,0 +1,132 @@
+discus
+read
+  cell CELL/primitive.cell,3,3,1
+#
+# Shift all atoms, just to have positive coordinates
+#
+symmetry
+  uvw   0,0,1
+  trans 2,2,0
+  mode repl
+  sel all
+  incl all
+  run
+exit
+#
+# prepare the original structure for the plot
+#
+plot
+  progr kuplot
+  property ignore, all
+  sel   all
+  ext   all
+  vect  0,0,0
+  thick  1000.
+  uvw   0,0,1
+  abs   1,0,0
+  ord   0,1,0
+  set   1, 3, 1, 1.0
+  set   2, 3, 3, 0.8
+  outf  PLOT/primitive.plot
+  run
+exit
+#
+###############################################
+#
+branch kuplot   ! Go sideways to KUPLOT
+reset
+load cr, PLOT/primitive.plot
+aver 1
+skal  0.0,4.0,  0.0, 4.0
+mark 1, 1
+tit1
+tit2 Simple structure
+achx [1 0 0]
+achy [0 1 0]
+msiz 1, 0.8
+fnam off
+plot
+exit  ! back to DISCUS
+#
+###############################################
+#
+# Show all atoms, the properties are just 'N'
+show atom,all
+#
+wait return
+#
+# Cut an arbitrary surface
+#
+surface
+   set distance, external, all, 0.50
+   boundary, hkl, 2,1,0, 3.35
+exit
+#
+#  Prepare plot again, change plot style for voids
+#
+plot
+   set    0, 2, 6, 1.0
+   outf   PLOT/cut.plot
+   run
+exit
+#
+###############################################
+#
+branch kuplot   ! Go sideways to KUPLOT
+reset
+load cr, PLOT/cut.plot
+aver 1
+skal  0.0,4.0,  0.0, 4.0
+mark 1, 1
+tit1
+tit2 Atoms cut; present as voids
+achx [1 0 0]
+achy [0 1 0]
+msiz 1, 0.8
+fnam off
+plot
+exit  ! back to DISCUS
+#
+# Show atoms, row by row
+#
+show atom,  1,  6
+wait return
+show atom,  7, 12
+wait return
+show atom, 13, 18
+#
+###############################################
+#
+wait return
+#
+#  After purge onyl the regular atoms remain
+#
+purge
+plot
+  outf PLOT/purged.plot
+   run
+exit
+#
+###############################################
+#
+branch kuplot   ! Go sideways to KUPLOT
+reset
+load cr, PLOT/purged.plot
+aver 1
+skal  0.0,4.0,  0.0, 4.0
+mark 1, 1
+tit1
+tit2 Atoms cut; after purge
+achx [1 0 0]
+achy [0 1 0]
+msiz 1, 0.8
+fnam off
+plot
+exit  ! back to DISCUS
+#
+show atom,all
+wait return
+#
+###############################################
+#
+exit ! back to suite

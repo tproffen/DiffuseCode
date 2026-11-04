@@ -1,0 +1,43 @@
+discus
+#
+variable integet, ncell
+#
+ncell = 3
+#
+read
+   cell CELL/mapbi_base.cell, ncell, ncell, ncell
+replace Pb, void, all, 1.0
+replace I , void, all, 1.0
+purge
+chem
+   set crystal, ncell, ncell, ncell, 1
+exit
+save
+   outf STRUCTURE/domain.list
+   omit all
+   run
+exit
+read
+   cell CELL/mapbi_base.cell, ncell, ncell, ncell
+#
+domain
+  rese
+  mode   pseudo
+  input  STRUCTURE/domain.list
+  assign char,C ,cube
+  assign fuzzy,C ,1.5
+  assign cont, C , CELL/mapbi_guest.cell
+  assign shape ,C ,1,  1.0, 0. , 0. ,  0.
+  assign shape ,C ,2,  0. , 1.0, 0. ,  0.
+  assign shape ,C ,3,  0. , 0. , 1.0,  0.
+  assign orient,C ,1,  1.0, 0. , 0. ,  0.
+  assign orient,C ,2,  0. , 1.0, 0. ,  0.
+  assign orient,C ,3,  0. , 0. , 1.0,  0.
+  set    distance, all, 1.00 !55              # Define distance to internal
+  set    distance, new, 1.00              # boundary for old and new atoms
+  set    remove, trust
+  show
+#wait return
+  run
+exit
+@plot_cif.mac final

@@ -1,0 +1,15 @@
+kuplot
+reset
+load xy, INDI/perfect_50.0.IQ
+load xy, INDI/indi.0001.0001.IQ
+skal xmin[1], xmax[1], 0.0, max(ymax[1],ymax[2])*1.025
+mark
+plot
+wait return
+reset
+load xy, INDI/perfect_50.0.grcalc
+load xy, INDI/indi.0001.0001.grcalc
+skal xmin[1], xmax[1], min(ymin[1],ymin[2])*1.025 ,  max(ymax[1],ymax[2])*1.025
+mark
+plot
+exit

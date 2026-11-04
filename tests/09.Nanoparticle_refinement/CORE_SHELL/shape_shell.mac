@@ -1,0 +1,41 @@
+#
+#  shape_shell.mac
+#
+################################################################################
+#
+#  Determines in random sequence the location of Cd atoms on the surface of
+#  the core. A Cd atom is on the surface, if it has less than 4 Se neighbors
+#
+################################################################################
+#
+  read
+  stru "STRU/$1.%4D.%4D.core",kid,indiv
+#
+#  copy the standard header of a domain file
+#
+sys "cp CELL/header DOMAIN/domain.%4D.%4D.list",kid,indiv 
+fopen 1,"DOMAIN/domain.%4D.%4D.list",kid,indiv,append
+#
+i[13] = 0
+do while(i[13].lt.num_shell)
+  r[31] = 2*ran(0) - 1.0
+  r[32] = 2*ran(0) - 1.0
+  r[33] = 2*ran(0) - 1.0
+  r[30] = blen(r[31],r[32],r[33])
+  r[31] = r[31]/r[30]*ab_core
+  r[32] = r[32]/r[30]*ab_core
+  r[33] = r[33]/r[30]*cc_core
+  find env, cd, r[31],r[32],r[33],0, 3.8
+  do i[0]=0,env[0]
+    i[100+i[0]] = env[i[0]]
+  enddo
+  do i[0]=1,i[100]
+    find env, se, x[i[100+i[0]]],y[i[100+i[0]]],z[i[100+i[0]]],0, 2.9
+    if(env[0].lt.4) then
+      i[13] = i[13] + 1
+      fput 1,"D%2D  %10.6f  %10.6f  %10.6f  1.0",i[13],x[i[100+i[0]]], y[i[100+i[0]]], z[i[100+i[0]]]
+      break 2
+    endif
+  enddo
+enddo
+fclose 1

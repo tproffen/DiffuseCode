@@ -1,0 +1,42 @@
+@variables.mac             ! Several useful variable names
+#
+read
+   free 3.99, 3.99, 6.050, 90.00, 90.00, 120.00, P63mc  ! Define an empty space in P63mc
+insert Zn, 1./3., 2./3., 0.3675, 0.5   ! Insert the two atoms into the asymmetric unit
+insert Se, 1./3., 2./3., 0.0000, 0.5
+#
+lat[1]   = ref_para[ 01]    ! Copy the generic parameters into legible names
+lat[2]   = ref_para[ 01]
+lat[3]   = ref_para[ 02]
+z[1]     = ref_para[ 03]
+b[1]     = ref_para[ 04]
+b[2]     = ref_para[ 04]
+if(model.eq.PERFECT_SPHERE .or. model.eq.PERFECT_ELLIPSOID) then
+   p_stack  = 1.00             ! Ideal Zincblende
+else
+   p_stack  = ref_para[ 05]    ! stacked Zincblende/Wurtzite 
+endif
+p_ab     = ref_para[ 06]
+if(model.eq.PERFECT_SPHERE .or. model.eq.STACKED_SPHERE) then
+   p_cc     = ref_para[ 06]    ! Spherical model
+else
+   p_cc     = ref_para[ 07]    ! Ellipsoidal model
+endif
+p_qmax      = 30.00
+p_corrlin   = ref_para[ 08]
+p_corrquad  = ref_para[ 09]
+p_qbroad    = ref_para[ 10]
+p_qdamp     = ref_para[ 11]
+p_srat      = ref_para[ 12]
+p_density   = ref_para[ 13]
+p_scale     = ref_para[ 14]
+#
+save                        ! save asymmetric unit into a temporary file
+  outfile "%c/STRU/%c.%4D.%4D.cell", TMPDIR,SUBSTANCE,REF_KID,indiv
+  run
+exit
+@makelayers.mac             ! Create the two Wurtzite layers
+#
+@shape.ellipsoid.mac        ! Build stack and shape into ellipsoid
+@pdf.mac REF_KID,indiv      ! Caclulate the PDF
+#

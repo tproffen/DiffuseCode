@@ -1,0 +1,20 @@
+variable real, result       # Define a variable to hold the result
+
+if ( $1 .gt. 0.0) then      # Check if input is greater than 0
+
+    result = sqrt( $1)      # Determine the square root of input
+
+elseif ($1 .lt. 0.0) then   # Alternatively check if less than 0
+
+    result = $1**2          # Determine the square
+
+else                        # Otherwise, if both conditions are not met
+
+    result  = 0.0           # Define a default value
+
+endif                       # Required statement to indicate end of if-block
+
+evaluate $1                 # Display the input
+evaluate result             # Display the result
+
+echo " Input = %f Result = %f",$1,result  # A little fancier output

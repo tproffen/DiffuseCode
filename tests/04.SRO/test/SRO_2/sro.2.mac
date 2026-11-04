@@ -1,0 +1,140 @@
+#
+#@ HEADER
+#@ NAME         sr0.2.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro refines independent correlations along 
+#@ DESCRIPTION  [100] and [010].  The correlations along [1-10] 
+#@ DESCRIPTION  and [110] are calculated for the display as well.
+#@
+#@ PARAMETER    $0, 3
+#@ PARAMETER    $1, real,  correlation along [100]
+#@ PARAMETER    $1, real,  correlation along [010]
+#@ PARAMETER    $3, real,  temperature
+#@
+#@ USAGE        @sr0.2  <c100>, <c010>, <temperature>
+#@
+#@ END
+#
+#  sro.2.mac.mac
+#
+################################################################################
+#
+discus
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size_cr
+variable real,comp
+variable real,c100             # Variables for target correlations
+variable real,c010             #
+variable real,a100             # variables for achieved correlations
+variable real,a010             #
+variable real,a110             #
+variable real,aM10             #
+variable real,heat
+#
+size_cr =  50
+comp = 0.5
+#
+#  Perform basic error check on user input
+#
+if($0 /= 3) then
+  echo
+  echo Use as: @sro.2  <correlation 100>, <correlation 010>, <temperature>
+  echo
+  continue suite
+endif
+#
+if($1 <  -1.0   .or.   1.0  <   $1) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($2 <  -1.0   .or.   1.0  <   $2) then
+  echo
+  echo Correlation coefficient must be in interval [-1 : +1]
+  echo
+  continue suite
+endif
+#
+if($3 <   0.0) then
+  echo
+  echo Temperature must be greater equal zero
+  echo
+  continue suite
+endif
+#
+c100 = $1                      #  The user provides two indipendent correlations
+c010 = $2                      #
+heat = $3
+#
+read
+   cell crystal.cell, size_cr, size_cr, 1
+replace cu,void, all, comp
+#
+chem
+  set mode, quick, period, xy
+exit
+#
+mmc
+  rese
+  set neig,rese
+  set vec ,rese
+#
+  set vec,1, 1,1,  1, 0, 0     #  The first two vector pairs are for the 
+  set vec,2, 1,1, -1, 0, 0     #  targets
+  set vec,3, 1,1,  0, 1, 0     #
+  set vec,4, 1,1,  0,-1, 0     #
+  set vec,5, 1,1,  1, 1, 0     #  These next vectors are to check achieved
+  set vec,6, 1,1, -1,-1, 0     #  correlations
+  set vec,7, 1,1,  1,-1, 0     #
+  set vec,8, 1,1, -1, 1, 0     #
+  set neig,vec,1,2
+  set neig,add
+  set neig,vec,3,4
+  set neig,add
+  set neig,vec,5,6             #  These neigbourhoods are defined to allow
+  set neig,add                 #  <chem> to determine the actually achieved 
+  set neig,vec,7,8             #  correlations
+#
+  set mode, 1.0, swchem,all
+  set targ,1,corr,cu,void,c100,0.0,CORR  #  target 1 is for [100]
+  set targ,2,corr,cu,void,c010,0.0,CORR  #  target 2 is for [010]
+  set cyc, 50 *n[1]
+  set feed,  5*n[1]
+  set temp,heat
+  run
+exit
+#
+@plot.mac example2
+@fourier.mac example2
+#
+chem
+  corr occ,cu,void
+exit
+fopen  1,example2.data
+fformat 1,*
+fput 1,"C100 target/achieved/%5.2f %5.2f",c100, res[1]
+fput 1,"C010 target/achieved/%5.2f %5.2f",c010, res[2]
+fput 1,"C110 target/achieved   ...... %5.2f",      res[3]
+fput 1,"CM10 target/achieved   ...... %5.2f",      res[4]
+fput 1,"temperature  %5.0f",heat
+chem
+  element
+exit
+fput 1,"copper : voids %5.2f : %5.2f",res[2],res[1]
+fclose 1
+#
+save example2.stru
+#
+#
+branch kuplot
+   @kex2.mac
+exit
+exit           ! back to suite

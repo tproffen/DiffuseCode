@@ -1,0 +1,8 @@
+#
+# Check which model was set by user. If a perfect structure
+# was chosen we only need one single individuum
+#
+@aaa_model.mac             ! Obtain refinement model
+if(model == PERFECT_SPHERE .or. model == PERFECT_ELLIPSOID) then
+   REF_NINDIV = 1
+endif

@@ -1,0 +1,43 @@
+set error,exit
+#
+#@ HEADER
+#@ NAME         dis.diffev.mac
+#@
+#@ KEYWORD      refinemetn, generic, nanoparticle
+#@
+#@ DESCRIPTION  Main macro for the refinement of ellipsoidal
+#@ DESCRIPTION  ZnSe nanoparticles with growth type stacking faults.
+#@ DESCRIPTION  In this set of macros the structure is refined versus
+#@ DESCRIPTION  the PDF
+#@ DESCRIPTION
+#@ DESCRIPTION  As this macro is run as redirected input file on the
+#@ DESCRIPTION  call to DISCUS, the first line MUST be "set prompt,redirect"
+
+#@
+#@ PARAMETER    $0, 1
+#@
+#@ USAGE        @dis.diffev.mac <cwd>, <kid>
+#@
+#@ END
+#
+############################################################
+#
+variable integer, indiv  ! Dummy variable for the local repetitions
+!
+#@setup.mac     ! This defines the number of individual repetions
+@get_model.mac ! Obtain refinement model
+#
+@global.mac    ! Definitions of directories etc
+#
+#system "mkdir -p %c", DATADIR
+#system "mkdir -p %c/DATA", DATADIR
+#system "mkdir -p %c/INDI", INDIDIR
+#
+do indiv = 1, nindiv
+  @discus.znse.mac REF_KID
+enddo
+#
+branch   kuplot    !Switch to KUPLOT
+   @kup.diffev.mac ., REF_KID  ! contains a final exit
+#
+exit    ! Finish DISCUS, back to DIFFEV

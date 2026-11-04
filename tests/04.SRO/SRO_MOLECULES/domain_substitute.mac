@@ -1,0 +1,45 @@
+#
+domain
+  rese
+  mode   pseudo
+  input  STRU/domain.list
+#
+  assign char,Pd,fuzzy
+  assign fuzzy,Pd,1.5
+  assign cont, Pd, CELL/molecule_ptcl4.cell
+  assign shape ,Pd,1,  1.0, 0. , 0. ,  0. 
+  assign shape ,Pd,2,  0. , 1.0, 0. ,  0. 
+  assign shape ,Pd,3,  0. , 0. , 1.0,  0. 
+  assign orient,Pd,1,  1. , 0. , 0. ,  0. 
+  assign orient,Pd,2,  0. , 1. , 0. ,  0. 
+  assign orient,Pd,3,  0. , 0. , 1. ,  0. 
+#
+  assign char,Se,fuzzy
+  assign fuzzy,Se,1.5
+  assign cont, Se, CELL/molecule_so4.cell
+  assign shape ,Se,1,  1.0, 0. , 0. ,  0. 
+  assign shape ,Se,2,  0. , 1.0, 0. ,  0. 
+  assign shape ,Se,3,  0. , 0. , 1.0,  0. 
+  assign orient,Se,1,  1. , 0. , 0. ,  0. 
+  assign orient,Se,2,  0. , 1. , 0. ,  0. 
+  assign orient,Se,3,  0. , 0. , 1. ,  0. 
+#  set    distance, all, 2.90 !55              # Define distance to internal
+#  set    distance, new, 2.55              # boundary for old and new atoms
+#  set    remove, strict
+  set remove, none
+  show
+wait return
+  run
+  reset
+exit
+show atom, 26, 34, style:long
+wait return
+replace Pd, VOID, all, 1.0
+replace Se, VOID, all, 1.0
+purge typei:yes
+show atom,  1, 10, style:long
+wait return
+chemistry
+  set crystal, ncell, ncell, 1,  5
+  set mode, quick, period
+exit

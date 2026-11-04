@@ -1,0 +1,9 @@
+#
+discus
+#
+read
+   lcell CELL/kaolinite.cell, 8,8,8
+chem
+   elem
+exit
+wait return

@@ -1,0 +1,35 @@
+#@ HEADER
+#@ NAME         pit.mac
+#@ 
+#@ KEYWORD      hexagonal, pitfall, error
+#@ 
+#@ DESCRIPTION  This macro modifies a simple structure
+#@ DESCRIPTION  Illustrate possible pitfals, especially in hexagonal or 
+#@ DESCRIPTION  trigonal systems.  Atom coorinates in file "p6.cell" have 
+#@ DESCRIPTION  insufficient number of positional digits resulting in 
+#@ DESCRIPTION  erroneous wyckoff position.
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @pit
+#@
+#@ END
+################################################################################
+#
+# pit.mac
+#
+################################################################################
+#
+#
+################################################################################
+#
+read
+cell hexagonal.cell,2,2,1
+@plot.mac hexagonal
+read
+cell hexagonal.cell
+show atom,all
+#wait return
+read
+cell p6.cell
+show atom,all

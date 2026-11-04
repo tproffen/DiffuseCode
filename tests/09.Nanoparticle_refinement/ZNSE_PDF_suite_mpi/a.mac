@@ -1,0 +1,4 @@
+diffev
+@diffev_setup.mac
+eval par_number('P_latc')
+exit

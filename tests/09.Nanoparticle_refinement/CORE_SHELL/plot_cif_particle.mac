@@ -1,0 +1,21 @@
+#
+# plot_xbs_shell
+#
+################################################################################
+#
+plot
+  prog cif
+  uvw  0,0,1
+  abs  1,0,0
+  ord  0,1,0
+  vect 0,0,0
+  thick 1000
+  outf "PLOT/$1.%4D.%4D.xyz",kid,indiv
+  ext all
+  sel all
+  set zn,3, 0.0,0.0,1.0, 0.4
+  set s ,3, 1.0,1.0,0.0, 0.4
+  set cd,3, 1.0,1.0,1.0, 0.5
+  set se,3, 1.0,0.0,0.0, 0.5
+  run
+exit

@@ -1,0 +1,5 @@
+system date
+string = date(0)
+counter = counter + 1
+fput 1, "%3d  %2c %2c %6c", counter, string(9:10), string(11:12), string(13:18)
+$1 = counter

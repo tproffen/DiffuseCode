@@ -1,0 +1,13 @@
+plot
+  reset
+  program   jmol
+  uvw       0, 0, 1
+  abs       1, 0, 0
+  ord       0, 1, 0
+  ext       all
+  vect      0,0,0
+  thick     1.
+  sel       all
+  outf      PLOT/$1.plot
+  run       plot:inter, kill:yes
+exit

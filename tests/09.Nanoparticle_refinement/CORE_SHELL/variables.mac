@@ -1,0 +1,34 @@
+#
+# Variables for the sizes of core and shell
+#
+variable real, stack_core
+variable real, stack_shell
+#
+# Variables for the sizes of core and shell
+#
+variable real, ab_core
+variable real, cc_core
+variable real, ab_shell
+variable real, si_shell
+variable real, radius_sub
+#
+variable integer, num_shell
+#
+#  Variables for the PDF calculation
+#
+variable real,  p_density
+variable real,  p_delta
+variable real,  p_gamma
+variable real,  p_qalp
+variable real,  p_qsig
+variable real,  p_qmax
+variable real,  p_diameter
+variable real,  p_shape
+variable real,  p_srat
+variable real,  p_scale
+#
+variable real,     chance
+variable integer,  n_shells
+variable integer,  num_cd
+variable integer,  num_zn
+variable real,     shell2core

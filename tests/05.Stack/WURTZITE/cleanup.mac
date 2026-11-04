@@ -1,0 +1,4 @@
+#
+system rm -f INDI/indi*
+system rm -f PLOT/*
+system rm -f STRU/*

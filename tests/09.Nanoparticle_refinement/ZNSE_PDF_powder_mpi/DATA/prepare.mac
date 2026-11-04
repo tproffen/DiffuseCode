@@ -1,0 +1,46 @@
+kuplot
+#
+reset
+load xy, PD32ZS56.DAT
+#
+skal
+mark
+plot
+ccal mul, dy, 1, 0.0
+
+variable real, dy1
+variable real, dy2
+variable real, par1
+variable real, par0
+variable real, dx1
+variable real, dx2
+#
+dx1 = x[1,51]
+dx2 = x[1,np[1]]
+dy1 = 1.0
+dy2 = 0.1
+par1 = (dy1-dy2)/(1./dx1-1./dx2)
+par0 = dy1 - par1/dx1
+func par0 + par1/r[0], dx1, dx2, 0.02
+kfra 1, 2
+skal 0, xmax[2]
+mark 5
+plot
+
+#
+do LOOP=1, 50
+  dy[1,LOOP] = 9999
+enddo
+do LOOP=51,np[1]
+  dy[1,LOOP] = par0 + par1/x[1,LOOP]
+enddo
+kfra 1, 1
+skal
+mark
+plot
+ksav 1
+  outf PD32ZS56.weight
+  form xy
+  run
+
+exit

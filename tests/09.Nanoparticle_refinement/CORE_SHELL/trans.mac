@@ -1,0 +1,19 @@
+#
+# Transforms the structure into a large cartesian unit cell size
+#
+###############################################################################
+#
+r[1] = 50.00*2./blen(2,1,0)
+r[4] = 50.00*1./blen(2,1,0)
+r[2] = 50.00/lat[1]
+r[3] = 50.00/lat[3]
+trans
+  anew r[1], r[4],  0.0
+  bnew  0.0, r[2],  0.0
+  cnew  0.0,  0.0, r[3]
+  onew  0.0,  0.0,  0.0
+  sel all
+  incl all
+  run
+exit
+

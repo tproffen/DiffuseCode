@@ -1,0 +1,7 @@
+plot
+  program   cif
+  ext       all
+  sel       all
+  outf      $1.cif
+  run
+exit

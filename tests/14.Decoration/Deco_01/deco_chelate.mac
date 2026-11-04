@@ -1,0 +1,30 @@
+#
+variable real, p_bond1
+variable real, p_bond2
+if('$1'.eq.'gold') then
+  p_bond1 = 2.01
+  p_bond2 = 2.01
+decorate
+   reset
+   add citric, chelate
+   set citric, ligand, CELL/citric.stru          , 0.02
+   set citric, bond,   Au, 1, p_bond1
+   set citric, bond,   Au, 2, p_bond2
+   set citric, axis, 3, 16
+   show
+   run
+exit
+elseif('$1'.eq.'zno') then
+  p_bond1 = 2.01
+  p_bond2 = 2.01
+decorate
+   reset
+   add citric, chelate
+   set citric, ligand, CELL/citric.stru          , 0.02
+   set citric, bond,   Zn, 1, p_bond1
+   set citric, bond,   Zn, 2, p_bond2
+   set citric, axis, 3, 16
+   show
+   run
+exit
+endif

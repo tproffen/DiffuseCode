@@ -1,0 +1,17 @@
+rese
+load ni,example1.inte
+aver 1
+angle 1
+achx [ H 0 0 ]
+achy [ 0 K 0 ]
+hart 1,2
+cmap fire
+hlin 1,1e5,1e5,20
+tit1 SRO
+tit2 C[100] = 0.9
+plot
+angle 90
+plot
+fnam off
+achz Intensity
+plot

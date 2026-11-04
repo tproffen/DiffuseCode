@@ -1,0 +1,17 @@
+reset
+load xy, PDF/clcl.prior
+load xy, PDF/clcl.after
+buff 0.15,0.05,0.15,0.15
+skal 0,15
+mark 2, 10
+achx Distance r[\A]
+achy Number
+tit1 Histogram of CL-CL Distances
+tit2 blue: starting; red dispersed distribution
+lwidt 1,0.6
+lwidt 2,0.6
+font size,3,18
+font size,4,18
+sann 1,OFF
+#
+plot

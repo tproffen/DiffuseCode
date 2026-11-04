@@ -1,0 +1,95 @@
+@variables
+chem
+  set mode,exact,normal
+exit
+#
+# Read the actual correlations from DIFFEV/Versuche
+#
+fopen 2,"DIFFEV/Versuche.%4D",kid
+fget  2,generation,member,children,parameters
+fget  2,i[1]
+fget 2
+do i[3] = 1,parameters
+  fget 2,r[200+i[3]]
+enddo
+fclose 2
+#
+stack_core  = r[205]
+stack_shell = r[213]
+#
+ab_core     = r[206]
+cc_core     = r[207]
+ab_shell    = r[214]
+si_shell    = r[215]
+#
+num_shell   = r[208]
+#
+p_srat      = r[220]
+p_density   = r[221]
+p_scale     = r[222]
+p_delta     = r[223]
+p_gamma     = r[224]
+p_qalp      = r[225]
+p_qsig      = r[226]
+#
+p_diameter =  100.000
+p_shape    = 1000.000
+#
+read
+stru CELL/cdse_wurtzite.cell
+lat[1] = r[201]
+lat[2] = r[201]
+lat[3] = r[202]
+z[1]   = r[203]
+b[1]   = r[204]
+b[2]   = r[204]
+save
+  outfile "STRU/cdse_wurtzite.%4D.cell",kid
+  run
+exit
+@makelayers.mac cdse_wurtzite,ab_core,lat[1]
+#
+read
+stru CELL/zns_wurtzite.cell
+lat[1] = r[209]
+lat[2] = r[209]
+lat[3] = r[210]
+z[1]   = r[211]
+b[1]   = r[212]
+b[2]   = r[212]
+save
+  outfile "STRU/zns_wurtzite.%4D.cell",kid
+  run
+exit
+@makelayers.mac zns_wurtzite, 2.*ab_shell,lat[1]
+#
+do indiv=indiv_start,nindiv
+  fformat 1,i8
+  fformat 2,i8
+  fopen 1, RESUME_DISCUS
+  fput 1,kid,indiv
+  fclose 1
+#
+  @shape_core.mac  cdse_wurtzite 
+  do i[12]=1,num_shell
+    @para_sub.mac
+    @shape_sub.mac   zns_wurtzite
+  enddo 
+  @shape_shell.mac cdse_wurtzite,zns_wurtzite 
+  @insert_sub.mac
+  @insert_core.mac
+#  @powder.mac kid,indiv
+  @trans_for_pdf.mac
+  @pdf.mac kid,indiv
+  chem
+    elem
+  exit
+  fopen 1,"INDI/content.%4D.%4D",kid,indiv
+  fformat 1,i6
+  fformat 2,i6
+  fformat 3,i6
+  fformat 4,i6
+  fformat 5,f8.4
+  fput 1,res[2]*n[1],res[3]*n[1],res[4]*n[1],res[5]*n[1],(res[2]+res[3])/(res[4]+res[5])
+  fclose 1
+enddo

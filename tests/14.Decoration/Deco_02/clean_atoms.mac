@@ -1,0 +1,11 @@
+chem
+  set mode, exact, normal
+exit
+@connectivity.mac
+property
+   property present , atom:$1,conn:1,nmin:0,nmax:$2
+exit
+replace $1,VOID, all, 1.0
+prop
+   property ignore, all
+exit

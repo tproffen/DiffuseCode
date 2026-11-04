@@ -1,0 +1,12 @@
+#
+#  plot.cif.mac
+#  Write cif file and plot the structure using jmol
+#
+plot
+  reset
+  program   jmol
+  outfile   "PLOT/$1_%5.1F_%5.1F.cif",diameter_ab,diameter_c
+  select    all             ! Select al atom types
+  extend    all             ! Plot entire crystal
+  run       plot:inter, kill:yes      ! Do interactive plot, kill previous windows
+exit

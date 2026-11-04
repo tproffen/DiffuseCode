@@ -1,0 +1,67 @@
+set wait, off
+discus
+#  dom.triangle.mac
+#
+variable integer,dimen
+dimen =  81
+#
+read
+  cell dom.guest.cube.cell,20,20,1
+boundary hkl,1,1,0,0.2
+purge
+save
+  outf dom.guest.cube.stru
+  run
+exit
+#
+read
+  stru dom.domain.domain
+#
+do i[0]=1,20
+  @dom.triangle.symmetry
+  @dom.triangle.shear
+enddo
+chem
+  elem
+exit
+show mole, 1, 1
+show atom, 1, 8, style:long
+show atom, n[1]-7, n[1], style:long
+save
+  outf dom.triangle.list
+  write all
+  run
+exit
+#
+read
+  cell  dom.host.cube.cell,dimen,dimen,1
+#
+domain
+!  reset
+  mode domain
+  input dom.triangle.list
+  show
+  run
+exit
+@plot.two dom.triangle
+@fourier triangle
+#
+branch kuplot
+   @k.triangle.mac
+   wait return
+   @k_triangle_four.mac
+   wait return
+#
+#  Test for Success
+#
+LTEST_MAC = FALSE
+if(0.5 < z[1,26,26]/z[1,27,27] .and. z[1,26,26]/z[1,27,27] < 2.0 ) then
+  echo " COND 1 %7.3f", z[1,26,26]/z[1,27,27] 
+  if(z[1,26,26]/z[1,13,39] >  4) then
+    echo " CON 2 %7.3f",z[1,26,26]/z[1,13,39]
+    LTEST_MAC = TRUE
+  endif
+endif
+exit
+#
+exit  ! BACK TO SUITE

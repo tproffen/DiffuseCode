@@ -1,0 +1,10 @@
+#  dom.perov.make.mac
+#
+read
+  cell perovskite.cell,1,1,1
+#
+save
+  outfile perovskite.stru
+  write ncell
+  run
+exit

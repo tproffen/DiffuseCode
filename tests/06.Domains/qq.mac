@@ -1,0 +1,6 @@
+cd CUBE
+@dom.cube.mac
+@dom.tilt.mac
+cd ../TRIANGLE
+@dom.triangle.mac
+cd ..

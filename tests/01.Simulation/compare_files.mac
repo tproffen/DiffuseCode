@@ -1,0 +1,14 @@
+system "diff -q $1 $2 > diff.diff"
+sys cat diff.diff | wc -l > diff.count
+fclose all
+i[11] = 1
+fopen 1, diff.count
+fget 1, i[11]
+fclose 1
+if(i[11] == 0) then
+  sys rm -f diff.diff
+  sys rm -f diff.count
+  LTEST_MAC = TRUE
+else
+  LTEST_MAC = FALSE
+endif

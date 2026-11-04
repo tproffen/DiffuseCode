@@ -1,0 +1,35 @@
+@combined zno, flat, normal      ! Place ligands in normal mode on top
+@test_normal.mac
+@../../check.mac normal
+wait return
+#
+@combined zno, flat, bridge      ! Place ligands in bridge  mode
+@test_bridge.mac
+@../../check.mac bridge
+wait return
+#
+@combined zno, flat, double      ! Place ligands in double  mode
+@test_double.mac
+@../../check.mac double
+wait return
+#
+@combined zno, flat, chelate     ! Place ligands in chelate mode
+@test_chelate.mac
+@../../check.mac chelate
+wait return
+#
+@combined zno, flat, multi       ! Place ligands in multi   mode
+@test_multi.mac
+@../../check.mac multi
+wait return
+#
+@combined gold, flat, acceptor   ! Place water onto gold
+@test_acceptor.mac
+@../../check.mac acceptor
+wait return
+#
+@combined donor, flat, donor     ! Place water onto special "donor" structure
+@test_donor.mac
+@../../check.mac donor
+wait return
+#

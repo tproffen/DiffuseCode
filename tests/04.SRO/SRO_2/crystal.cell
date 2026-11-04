@@ -1,0 +1,6 @@
+title primitive cubic
+spcgr Pm-3m
+#spcgr P1
+cell 3.50,  3.50,  3.50,  90.00,  90.00,  90.00
+atoms
+cu     0.000000   0.000000   0.000000   1.00

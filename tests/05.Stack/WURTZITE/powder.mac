@@ -1,0 +1,56 @@
+#
+#  powder.mac
+#
+################################################################################
+#
+#  calculates the powder pattern via the Debye equation
+#
+################################################################################
+#
+#powder               ! Swithc to the powder menu
+#    xray             ! Set the calculation for X-rays
+#    set axis,q       ! Calculate on an equally spaced grin in Q, this is the
+#                     ! fastest mode!
+#    set calc,debye   ! Use the Deby equation instead of integration mode
+#    set disp,off     ! Do not use anomalous dispersion
+#    set delta,0.0    ! Do not use convolution by a simple Gaussian
+#    set qmin,1.4000  ! Calculate from Q(min)
+#    set qmax,7.1000  ! to Q(max)
+#    set dq,  0.0005  ! in eual steps of deltaQ
+#    set temp,use     ! Use the Debye-Waller factor 
+#    set wvle,1.54056 ! Set the wave length
+#    set four,four    ! Make sure the standard fourier is used (there is a
+#                     ! special version for singel crystals with stacking faults)
+#    set lpcor,bragg,26.58  ! Set Lorentz-Polarisation for a Bragg-Brenanto
+#                     ! Diffractometer
+#    run              ! Execute the calculation
+#  exit               ! Go back to the main DISCUS menu
+#  
+powder
+  xray
+  set axis,q
+  set calc,debye 
+  set disp,off
+  set delta,0.0
+  set qmin,1.4000
+  set qmax,7.1000
+  set dq,  0.005
+  set tthmin, 20.0
+  set tthmax, 119.98
+  set dtth,0.01
+  set temp,use  
+  set wvle,1.54056
+  set four,four
+  set lpcor,bragg,26.58
+  run
+exit
+output
+   outf "%c/INDI/indi.%4D.%4D.IQ"  ,INDIDIR, $1, $2
+   form powder, q
+   value inte
+   run
+   outf "%c/INDI/indi.%4D.%4D.grcalc", INDIDIR, $1, $2
+   form pdf, r, 0.01, p_ab, 0.01
+   value PDF
+   run
+exit

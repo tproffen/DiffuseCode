@@ -1,0 +1,4 @@
+#
+system rm -f hexagonal.layer
+system rm -f *.plot
+system rm -f *.cif

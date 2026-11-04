@@ -1,0 +1,5 @@
+cd Deco_01
+@cleanup.mac
+cd ../Deco_02
+@cleanup.mac
+cd ..

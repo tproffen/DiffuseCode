@@ -1,0 +1,8 @@
+do i[0]=1,5
+  r[i[0]]  =i[0]**3
+enddo
+#
+do i[0]=1,3
+  r[0] = r[$3]
+  eval r[0]
+enddo

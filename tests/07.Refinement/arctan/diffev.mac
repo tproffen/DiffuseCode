@@ -1,0 +1,30 @@
+#
+#  diffev.mac
+#
+###############################################################################
+#
+#  Main DIFFEV macro.
+#  After parameter definition and initialization, a loop repeatedly calls
+#  the slave program which calculates the cost function and the R-value,
+#  while DIFFEV compares the new R-values and generates a new generation.
+#
+diffev
+#
+@diffev_setup.mac
+init  silent
+#
+fexist ./arctan
+if(res[1].eq.1) then
+  do i[0]=1,100
+    system ./arctan
+    run_mpi kuplot, kup.diffev.mac, repeat:0, compute:serial, logfile:LOGFILES/k
+    echo "Fertig mit Generation %d", REF_GENERATION
+    compare silent
+  enddo
+else
+  do i[0]=1,100
+    run_mpi kuplot, arctan_parallel.mac, repeat:0, compute:serial, logfile:LOGFILES/k
+    echo "Fertig mit Generation %d", REF_GENERATION
+    compare silent
+  enddo
+endif

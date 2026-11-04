@@ -1,0 +1,122 @@
+discus
+var real , rsize
+rsize = 50
+#
+read
+  cell CELL/primitive.cell, 50,50,1
+#
+wave
+   reset
+   vect   1.00, 0.00, 0.00
+   amp    lat[2]*0.25
+   func   sinus
+   len    lat[1]*10
+   trans
+   acco
+   phase  0.00
+   sel    all
+   show
+   run
+   reset
+exit
+#
+plot
+   progr cif
+   outf  waves.trans_plot.cif
+   sel   all
+   prop  ignore,all
+   run
+exit
+@plot.mac waves.trans
+@fourier_2d.mac waves.trans
+#
+branch kuplot
+   @k2d.mac waves.trans
+   r[210] = z[1, 41, 21]
+   r[211] = z[1, 42, 21]
+   r[212] = z[1, 43, 21]
+   r[213] = z[1, 44, 21]
+   r[214] = z[1, 21, 41]
+   r[215] = z[1, 22, 41]
+   r[216] = z[1, 23, 41]
+   r[217] = z[1, 24, 41]
+   r[110] = 38535999488.0  !38573998080.0
+   r[111] =   622270016.0  !  622860032.0
+   r[112] =           0.0
+   r[113] =    72044000.0  !   72101000.0
+   r[114] =  8585500160.0  ! 8593999872.0
+   r[115] =   166930000.0  !  167100000.0
+   r[116] = 12380999680.0  !12392999936.0
+   r[117] =   308540000.0  !  308840000.0
+do LOOP=0,7
+eval r[210+LOOP]
+enddo
+wait return
+   exit
+#
+read
+  cell CELL/primitive.cell, 50,50,1
+#
+wave
+   reset
+   vect   1.00, 0.00, 0.00
+   amp    lat[2]*0.25
+   func   sinus
+   len    lat[1]*10
+   long
+   acco
+   phase  0.00
+   sel    all
+   show
+   run
+   reset
+exit
+#
+plot
+   progr cif
+   outf  waves.long_plot.cif
+   sel   all
+   prop  ignore,all
+   run
+exit
+@plot.mac waves.long
+@fourier_2d.mac waves.long
+#
+branch kuplot
+   @k2d.mac waves.long
+   r[220] = z[1, 41, 21]
+   r[221] = z[1, 42, 21]
+   r[222] = z[1, 43, 21]
+   r[223] = z[1, 44, 21]
+   r[224] = z[1, 21, 41]
+   r[225] = z[1, 22, 41]
+   r[226] = z[1, 23, 41]
+   r[227] = z[1, 24, 41]
+   r[120] =  8585099776.0  ! 8584999936.0  !  8593500160.0
+   r[121] =   156330000.0  !   156480000.0
+   r[122] = 12613999616.0  ! 12625000448.0
+   r[123] =   292500000.0  !   292740000.0
+   r[124] = 38535999488.0  ! 38573998080.0
+   r[125] =   608080000.0  !   608680000.0
+   r[126] =   236260000.0  !   236500000.0
+   r[127] =    98083000.0  !    98179000.0
+   exit
+#
+variable real, eps
+eps = 1.0E-3
+LTEST_MAC = TRUE
+do SLOW=10,20,10
+  do LOOP=0,7
+    if(LTEST_MAC==TRUE .and. (abs(r[200+SLOW+LOOP]-r[100+SLOW+LOOP])<eps*abs(r[200+SLOW+LOOP]) .or. &
+                              abs(r[200+SLOW+LOOP]-r[100+SLOW+LOOP])< 1000.0 )) then
+      LTEST_MAC=TRUE
+    else
+      LTEST_MAC=FALSE
+    endif
+    echo " %3d   %15.1f  %15.1f  %15.1f", LOOP, r[200+SLOW+LOOP], r[100+SLOW+LOOP], &
+         abs(r[200+SLOW+LOOP]-r[100+SLOW+LOOP])
+  enddo
+enddo
+eval LTEST_MAC
+#
+exit ! back to suite

@@ -1,0 +1,13 @@
+#
+cd ZNSE_PDF_suite_mpi
+@cleanup.mac
+cd ..
+cd ZNSE_PDF_suite_release
+@cleanup.mac
+cd ..
+cd ZNSE_PDF_suite_mpi_parallel
+@cleanup.mac
+cd ..
+cd ZNSE_POWDER_suite_mpi
+@cleanup.mac
+cd ..

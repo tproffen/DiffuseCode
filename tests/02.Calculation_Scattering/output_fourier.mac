@@ -1,0 +1,15 @@
+#
+#  output_fourier.mac
+#
+################################################################################
+#
+#  write the output of a Fouriertransform into the file $1.inte
+#
+################################################################################
+#
+output                   # switch to the DISCUS output menu
+  outf $1.inte           # write data into file <$1.inte>
+  value inte             # write intensities
+  form stan              # use standard format
+  run                    # perform the actual write process
+exit                     # go back to the main DISCUS menu

@@ -1,0 +1,66 @@
+#
+#@ HEADER
+#@ NAME         sr0.3.mac
+#@ 
+#@ KEYWORD      SRO, short range order
+#@ 
+#@ DESCRIPTION  This macro allows the user to specify four 
+#@ DESCRIPTION  independent correlations,
+#@ DESCRIPTION  [1,0,0];  [0,1,0,]; [1,1,0]; [1,-1,0]
+#@ DESCRIPTION  you will see that not all correlations can actually be achieved.
+#@
+#@ PARAMETER    $0, 5
+#@ PARAMETER    $1, real,  fractional composition 
+#@ PARAMETER    $2, real,  correlation along [100]
+#@ PARAMETER    $3, real,  correlation along [010]
+#@ PARAMETER    $4, real,  correlation along [110]
+#@ PARAMETER    $5, real,  correlation along [-110]
+#@ PARAMETER    $6, real,  temperature
+#@
+#@ USAGE        @sro.3 <comp>,<c100>, <c010>, <c110>, <c-110>, <temperature>
+#@
+#@ END
+#
+################################################################################
+#
+discus
+#
+################################################################################
+#
+fclose all
+#
+variable integer,size_cr
+variable real,comp
+variable real,c100
+variable real,c010
+variable real,c110         # New variable for the diagonal target correlations
+variable real,cM10         # 
+variable real,a100
+variable real,a010
+variable real,a110
+variable real,aM10
+variable real,heat
+#
+size_cr =  50
+comp = 0.5
+#
+comp = 0.5
+c100 = 0.4
+c010 = 0.4
+c110 = 0.35                # Assign the two further parameter to readable names
+cM10 = 0.35                #
+heat = 1.5
+#
+read
+  stru example3.stru
+#
+set parallel, useomp:serial, nthreads:1
+@fourier.mac example1, 100.0
+set parallel, useomp:use, nthreads:all
+@fourier.mac example3, 100.0
+#
+branch kuplot
+   @kex3.mac example3
+   exit
+exit
+@rval.mac

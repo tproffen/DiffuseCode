@@ -1,0 +1,140 @@
+#
+#@ HEADER
+#@ NAME         nano.mac
+#@ 
+#@ KEYWORD      nanoparticle, ellipsoid, powder, pdf
+#@ 
+#@ DESCRIPTION  This macro creates an ellipsoidal nanoparticle with user
+#@ DESCRIPTION  defined radii. The powder diffraction pattern and the
+#@ DESCRIPTION  pdf are calculated.
+#@
+#@ PARAMETER    $0, 2
+#@ PARAMETER    $1, real,   diameter in a-b-plane
+#@ PARAMETER    $2, real,   diameter along c-axis
+#@
+#@ USAGE        @nano <diameter_ab>, <diameter_c>
+#@
+#@ END
+#
+################################################################################
+#
+discus
+#  Basic error handling
+#
+if($0.ne.3) then
+  echo
+  echo "Usage:"
+  echo "@nano <diameter_ab>, <diameter_c>, <material>"
+  echo
+  wait return
+  exit   ! back to suite
+  continue suite
+endif
+#
+#  Define variables for diameter,  the number of unit cells, and the
+#  average number density
+#
+variable real,    diameter_ab
+variable real,    diameter_c
+variable real,    diameter
+variable integer, ncell_ab
+variable integer, ncell_c
+#
+# Read the unit cell, here just to make sure we have the lattice constants
+#
+read
+  cell CELL/$3.cell
+#
+#  Copy the user  parameter into a more legible variable, and calculate
+#  into how many unit cells the crystal must be expanded.
+#
+diameter_ab = $1
+diameter_c  = $2
+diameter    = (diameter_ab**2*diameter_c)**(1./3.)
+ncell_ab  = 1.5*(int(diameter_ab/lat[1])+1)          ! These are save, upper estimates
+ncell_c   = 1.0*(int(diameter_c /lat[3])+1)          ! an exact calculation uses projections
+#                                                    ! of the diameters on to the base vectors
+#
+#  Now we really read and expand all the cells
+#
+read
+   cell CELL/$3.cell,ncell_ab,ncell_ab,ncell_c
+echo 
+echo Read initial block 
+wait return
+#
+@plot.cif.mac  block
+echo
+echo Wrote block for plotting
+wait return
+#
+#  The "boundary" command changes all atoms outside the diameter into
+#  empty atoms, called "void"
+#
+surface
+  boundary  ellipsoid, diameter_ab, diameter_ab, diameter_c ! ellipsoid takes diameters!
+exit
+@plot.cif.mac with_voids
+echo
+echo Cut the surface, retained the voids
+wait return
+#
+#  Lets check the composition and wait for user input. Then all voids are
+#  removed from internal memory to speed up the computation.
+#
+chem
+   element
+exit
+#
+purge
+chem
+   element
+exit
+echo
+echo Compare the chemistry
+wait return
+#
+#  Macro "powder.mac"   calculates the powder pattern according to Debye
+#        "output.mac"   writes the intensites to a file in x-y format
+#                       and wrtes teh PDF to a file in x-y format
+#        "plot.cif.mac" writes the atom coordinates for plotting
+@powder.mac 
+#wait return
+@output.mac nano, tth   ! alternatively use "q" instead of "tth"
+wait return
+@plot.cif.mac  nano
+#
+#
+save                    ! save the structure to disk
+   outf "STRU/nano_%4.1f_%4.1f.stru", diameter_ab, diameter_c
+   sel  all
+   run
+exit
+#
+branch kuplot           ! step sideways from DISCSU into kuplot for plots
+   @knano.mac $1, $2
+   exit                 ! this goes back from "kuplot" section to "discus"
+#
+branch kuplot
+#
+# Test for Success
+#
+reset
+load xy, POWDER/nano_020.0_050.0.tth
+load xy, RESULTS/nano_020.0_050.0.tth
+rval 1, 2, one
+r[0] = res[1]
+load xy, PDF/nano_020.0_050.0.grcalc
+load xy, RESULTS/nano_020.0_050.0.grcalc
+rval 1, 2, one
+r[1] = res[1]
+LTEST_MAC = FALSE
+if(abs(r[0]) < 0.001) then
+  echo COND 1
+  if(abs(r[1]) < 0.001) then
+    echo COND 2
+    LTEST_MAC = TRUE
+  endif
+endif
+exit   ! Back to DISCUS
+exit   ! back to suite

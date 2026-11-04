@@ -1,0 +1,3 @@
+sys rm -f STRU/*
+sys rm -f INDI/*
+sys rm -f PLOT/*

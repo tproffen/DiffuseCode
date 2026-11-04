@@ -1,0 +1,8 @@
+#
+#
+plot
+  program   cif
+  outfile   PLOT/$1.cif
+  select    all
+  run
+exit

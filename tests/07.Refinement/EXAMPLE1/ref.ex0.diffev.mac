@@ -1,0 +1,34 @@
+#set prompt,redirect
+#
+#@ HEADER
+#@ NAME         diffev.mac
+#@ 
+#@ KEYWORD      diffev, refinement, generic
+#@ 
+#@ DESCRIPTION  This macro  runs a refinement loop
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @diffev 
+#@
+#@ END
+################################################################################
+#
+diffev
+#
+set error,exit
+variable integer, loop
+#
+@cleanup.mac
+@ref.ex0.diffev.setup.mac
+#
+init silent
+#
+do loop =1, 30 
+   run_mpi discus, ref.ex0.dis.diffev.mac, repeat:1, compute:serial,logfile:LOGFILES/d  !/dev/null
+   echo "Finished generation %d", loop-1
+   compare silent
+enddo
+exit
+#
+exit

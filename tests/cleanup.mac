@@ -1,0 +1,42 @@
+cd 01.Simulation
+@cleanup.mac
+cd ..
+cd 02.Calculation_Scattering
+@cleanup.mac
+cd ..
+cd 03.Pair_Distribution_Function
+@cleanup.mac
+cd ..
+cd 04.SRO
+@cleanup.mac
+cd ..
+cd 05.Stack
+@cleanup.mac
+cd ..
+cd 06.Domains
+@cleanup.mac
+cd ..
+cd 07.Refinement
+@cleanup.mac
+cd ..
+cd 08.Nanoparticle_example
+@cleanup.mac
+cd ..
+cd 09.Nanoparticle_refinement
+@cleanup.mac
+cd ..
+#cd 10.Nanoparticle_parallel
+#@cleanup.mac
+#cd ..
+cd 11.Properties
+@cleanup.mac
+cd ..
+cd 12.Waves
+@cleanup.mac
+cd ..
+cd 14.Decoration
+@cleanup.mac
+cd ..
+cd 15.Timing
+@cleanup.mac
+cd ..

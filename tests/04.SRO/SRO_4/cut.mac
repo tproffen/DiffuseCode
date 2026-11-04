@@ -1,0 +1,6 @@
+kuplot
+ksav 5
+outf cut.sx.0
+form sx, 0.0
+run
+exit

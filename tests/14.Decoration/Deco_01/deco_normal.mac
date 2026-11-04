@@ -1,0 +1,48 @@
+#
+variable real, p_bond
+#
+if('$1'.eq.'gold') then
+  p_bond = 2.42
+decorate
+   reset
+   add thio, normal
+   set thio, ligand, CELL/water.stru, 0.015
+   set thio, bond,   au, 1, 2.42
+   set thio, axis, 2, 20
+   set thio, axis, auto
+#  set thio, form,  1, 0, 0
+#   set thio, surface,  17,18
+   set thio, hkl, 1,0,0
+   set thio, form, none
+   show
+  run
+exit
+elseif('$1'.eq.'zno') then
+  p_bond = 2.00
+decorate
+   reset
+   add citric, normal
+   set citric, ligand, CELL/citric.stru, 0.015
+   set citric, bond,   Zn, 1, 2.00
+   set citric, axis, 3, 16
+#  set citric, form,  1, 0, 0
+   show
+   run
+exit
+elseif('$1'.eq.'bgamma') then
+  p_bond = 1.80
+   decorate
+      reset
+      add gamma, normal
+      set gamma, ligand, CELL/ligand.stru, 0.006
+      set gamma, bond,   O , 1, 1.80
+      set gamma, axis, 2, 20
+      set gamma, form,  1, 0, 1
+#     set gamma, form,  0, 1, 0
+      set gamma, surface,  17,18
+      show
+      run
+   exit
+else
+ echo WRONG CONDITION 
+endif

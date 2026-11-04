@@ -1,0 +1,41 @@
+#
+#
+if('$1'.eq.'gold') then
+decorate
+   reset
+#
+   add thio, normal
+   set thio, ligand, CELL/ligand.stru, 0.005
+   set thio, bond,   au, 1, 2.42
+   set thio, axis, 2, 20
+#  set thio, form,  1, 0, 0
+   set thio, surface,  17,18
+#
+   add water, acceptor
+   set water, ligand, CELL/water.stru, 0.045
+   set water, bond,   Au, 2, 1.92
+   set water, surface, 3
+#  set water, form,  1, 0, 0
+   show
+   run
+exit
+elseif('$1'.eq.'zno') then
+decorate
+   reset
+   add citric, normal
+   set citric, ligand, CELL/citric.stru, 0.015
+   set citric, bond,   Zn, 1, 2.00
+   set citric, axis, 3, 16
+#  set citric, form,  1, 0, 0
+#
+   add water, acceptor
+   set water, ligand, CELL/water.stru, 0.085
+   set water, bond,   Zn, 2, 1.92
+   set water, surface, 3
+#  set water, form,  1, 0, 0
+   show
+   run
+exit
+else
+ echo WRONG CONDITION 
+endif

@@ -1,0 +1,22 @@
+#
+variable real, diameter
+read
+   cell CELL/$1.cell, 80,80,80
+diameter = 35.0
+#
+surface
+   set distance, external, all, 1.90
+   boundary sphere, diameter/2.
+exit
+purge
+property
+   property present, external
+   property present, normal
+   property absent,  outside
+exit
+#
+property
+   property ignore, all
+exit
+#
+@plot.mac $1_sphere

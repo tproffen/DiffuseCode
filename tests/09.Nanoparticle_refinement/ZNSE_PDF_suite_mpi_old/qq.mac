@@ -1,0 +1,9 @@
+diffev
+pop_gen[0]=0
+pop_n[0]=10
+pop_c[0]=10
+eval pop_dimx[0]
+newpara xxx, 1.0, 3.0, 2.5, 3.5
+#newpara aaa, 0.0, 1.0, 0.1, 0.9
+eval pop_dimx[0]
+exit

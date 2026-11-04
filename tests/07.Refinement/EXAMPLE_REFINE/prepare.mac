@@ -1,0 +1,32 @@
+#
+#  prepare.mac
+#
+#  Create a function for the test of refine
+#
+variable real, P_ampl
+variable real, P_wvle
+variable real, P_phase
+variable real, P_0
+variable real, P_1
+variable real, P_2
+#
+P_ampl  = 1.000
+P_wvle  = 0.500
+P_phase = 0.25000
+P_0     = -1.00
+P_1     =  0.100
+P_2     = -0.010
+#
+kuplot
+reset
+func P_0 + P_1*r[0] + P_2*r[0]**2 + P_ampl*sin(r[0]/P_wvle + P_phase) + gran(0.2), 0, 20, 0.1
+ccal mul, dy, 1, 0.0
+ccal add, dy, 1, 0.20
+skal
+mark
+plot
+ksave 1
+  outfile noise_osci.dat
+  form xy
+  run
+exit

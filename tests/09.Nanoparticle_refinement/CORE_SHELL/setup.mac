@@ -1,0 +1,9 @@
+variable integer, nindiv
+variable integer, mode
+variable integer, linear,0
+variable integer, square,1
+#
+mode = linear
+mode = square
+# nindiv = 18
+nindiv =     1

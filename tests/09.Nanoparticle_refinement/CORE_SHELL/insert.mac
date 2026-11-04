@@ -1,0 +1,62 @@
+#
+read
+  stru "STRU/zns_wurtzite.%4D.shell",kid
+repl zn,void,all,1.0
+repl s ,void,all,1.0
+purge
+#
+eval num_cd
+eval num_zn
+shell2core = sc_ratio*num_cd/num_zn
+chance   = shell2core -int(shell2core)
+n_shells = int(ran(0) + chance) + int(shell2core)
+#
+echo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+echo "ratio    %15.3f",sc_ratio
+echo "s2c      %15.3f",shell2core
+echo "N_SHELLS %4d",n_shells
+echo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+echo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+do i[0]=1,n_shells
+  insert si,i[0],0,0,1.0
+enddo
+save
+  outf "STRU/positions.shell.%4D",kid
+  omit ncell
+  run
+exit
+#
+read
+  stru "STRU/cdse_wurtzite.%4D.core",kid
+#
+i[1]= n[1]
+#
+  domain
+    assign     character,si, fuzzy
+    assign     content,  si, "STRU/zns_wurtzite.%4D.shell",kid
+    assign     fuzzy  ,  si, 2.0
+    assign     orient ,  si, 1,  1.0, 0.0, 0.0,  0.0
+    assign     orient ,  si, 2,  0.0, 1.0, 0.0,  0.0
+    assign     orient ,  si, 3,  0.0, 0.0, 1.0,  0.0
+    assign     shape  ,  si, 1,  1.0, 0.0, 0.0,  0.0
+    assign     shape  ,  si, 2,  0.0, 1.0, 0.0,  0.0
+    assign     shape  ,  si, 3,  0.0, 0.0, 1.0,  0.0
+    inputfile  "STRU/positions.shell.%4D",kid
+    mode       pseudoatoms
+    show
+    run
+  exit
+#
+save
+  outf "STRU/particle.%4D",kid
+  omit ncell
+  run
+exit
+#
+read
+  stru "STRU/particle.%4D",kid
+#
+chem
+  elem
+exit

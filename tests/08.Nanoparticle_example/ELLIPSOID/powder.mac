@@ -1,0 +1,54 @@
+#
+#  powder.mac
+#
+################################################################################
+#
+#  Calculates the powder pattern according to the Debye equation.
+#  
+#  powder                   ! Switch to the powder menu
+#    xray                   ! Do the calculation for X-ray diffraction
+#    set axis,q             ! Use as axis Q,
+#    set calc,debye         ! Define the calculation mode 
+#    set disp,off           ! Switch anomalous dispersion off
+#    set delta,0.0          ! Optional simple convolution by Gaussian 0=OFF
+#    set qmin,1.1000        ! Define mimium Q value
+#    set qmax,7.1000        ! Define maximum Q value
+#    set dq,  0.005         ! Define steps in Q-space
+#    set temp,use           ! Use the ADP's to calculate Debey-Waller term
+#    set wvle,0.20000       ! Define the wavlength
+#    set profile, pseudo    ! Perform convolution with Pseudo-Voigt profile function
+#    set profile, eta, 0.5, 0.0, 0.0   ! Constant, linear and quadratic eta
+#                           ! Eta is calculated as ety + Q*eta_l + q^2*eta_q
+#    set profile, uvw, 0.0, 0.0, 0.001 ! "Cagliotti" parameters uvw 
+#                           ! FWHM is calculated as modified Cagliotti equation:
+#                           ! SQRT(u*q^2 + v*q + w)
+#    set profile, width, 11 ! Calculate convolution over 20*FWHM
+#    set four,four          ! Do a normal Fouriertransform, there is a
+#                           ! special form for crystals with stacking faults
+#    set lpcor,bragg, 2.00  ! Define Polarisation correction
+#    run                    ! Do the actual calculation
+#  exit                     ! Go back to the main menu
+#
+################################################################################
+#
+powder
+  xray
+  set axis,q
+  set calc,debye 
+  set disp,off
+  set delta,0.0
+  set qmin,1.0000
+  set qmin,0.7000
+  set qmax,25.000
+  set dq,  0.005
+  set temp,use  
+  set wvle,0.20000
+  set profile, pseudo
+  set profile, eta, 0.5, 0.0, 0.0   ! Constant, linear and quadratic eta
+  set profile, uvw, 0.0, 0.0, 0.001 ! "Cagliotti" parameters uvw 
+  set profile, width, 11
+#  set profile, off
+  set four,four
+  set lpcor,bragg, 26.000
+  run
+exit

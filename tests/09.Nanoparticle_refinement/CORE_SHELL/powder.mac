@@ -1,0 +1,21 @@
+powder
+  xray
+  set axis,q
+  set calc,debye
+  set disp,off
+  set qmin,0.9696
+  set qmax,5.5596
+  set dq,  0.001
+  set temp,use
+  set wvle,1.12
+  set four,four
+#  set lpcor,bragg,26.58
+  set lpcor,none
+  run
+exit
+#
+output
+  form     powder,q
+  outfile  "INDI/indi.%4D.%4D.q",$1,$2
+  run
+exit

@@ -1,0 +1,8 @@
+#
+cd SIMPLE
+@cleanup.mac
+cd ../ELLIPSOID
+@cleanup.mac
+cd ../COMPLEX
+@cleanup.mac
+cd ..

@@ -1,0 +1,15 @@
+variable integer, PERFECT_SPHERE
+variable integer, PERFECT_ELLIPSOID
+variable integer, STACKED_SPHERE
+variable integer, STACKED_ELLIPSOID
+variable integer, model
+#
+PERFECT_SPHERE    = 1
+PERFECT_ELLIPSOID = 2
+STACKED_SPHERE    = 3
+STACKED_ELLIPSOID = 4
+#
+!model = PERFECT_SPHERE
+!model = PERFECT_ELLIPSOID
+!model = STACKED_SPHERE
+model = STACKED_ELLIPSOID

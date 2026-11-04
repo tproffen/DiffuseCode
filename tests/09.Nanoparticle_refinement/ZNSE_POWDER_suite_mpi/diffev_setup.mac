@@ -1,0 +1,64 @@
+#
+variable  integer,ipar
+#
+pop_gen[1]  =   0
+#
+pop_n[1]    =  5
+pop_c[1]    =  5
+pop_dimx[1] =   7
+#
+#  1 lattice constant a
+#
+ipar =  1
+@diffev_para.mac  ipar, lata  , 3.9000,  4.020,  3.980, 3.990
+#
+#  2 lattice constant c
+#
+ipar =  ipar + 1
+@diffev_para.mac  ipar, latc  , 6.4900,  6.570,  6.490, 6.510
+#
+#  3 z value Zn
+#
+ipar =  ipar + 1
+@diffev_para.mac  ipar, z_zn  , 0.3600,  0.450,  0.373, 0.380
+#
+#  4 B value   
+#
+ipar =  ipar + 1
+@diffev_para.mac  ipar, biso  , 0.0100,  2.500,  0.700, 0.900
+#
+#  5 stacking fault property
+#
+ipar =  ipar + 1
+@diffev_para.mac  ipar, stack , 0.0000,  1.000,  0.700, 0.800
+#
+#  6 diameter in ab plane
+#
+ipar =  ipar + 1
+@diffev_para.mac  ipar, ab_dia, 5.0000, 30.000, 25.000, 30.00
+#
+#  7 diameter along c-axis
+#
+ipar =  ipar + 1
+@diffev_para.mac  ipar, cc_dia, 5.0000, 40.000, 32.000, 40.00
+#
+################################################################################
+#
+diff_cr[1]  = 0.9
+diff_f[1]   = 0.81
+diff_lo[1]  = 0.0
+diff_k[1]   = 1.0
+#
+refine      none
+refine      1,  2,  3,  4,  5,  6,  7
+#
+donor      random
+#selection  compare
+selection  best,all
+#
+trialfile  silent
+restrial   silent
+logfile    DIFFEV/Parameter
+summary    DIFFEV/Summary
+#
+backup TEMP/calc, FINAL/final

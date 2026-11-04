@@ -1,0 +1,186 @@
+#
+#@ HEADER
+#@ NAME         growth.mac
+#@ 
+#@ KEYWORD      stacking fault, hexagonal, hcp, fcc
+#@ 
+#@ DESCRIPTION  Simulate a closed packed structure with growth faults
+#@
+#@ PARAMETER    $0, 1
+#@ PARAMETER    $1, real, probability
+#@
+#@ USAGE        @growth.mac <probability>
+#@
+#@ END
+#
+############################################################
+discus
+#
+if($0 /= 1) then
+  echo
+  echo " Usage:"
+  echo " @growth.mac <probability>"
+  echo
+#  wait return
+  exit  ! back to suite
+  continue suite
+endif
+#
+############################################################
+#
+#    prob      stacking fault probability
+#    layers    number of layers
+#    naver     number of crystasl to be averaged
+#    hmin      lower lomit for loop over h
+#    hmax      upper lomit for loop over h
+#    kmin      lower lomit for loop over k
+#    kmax      upper lomit for loop over k
+#    hh        dummy variables
+#    kk        dummy variables
+#    indiv     dummy variables
+############################################################
+#
+#  The macro starts by defining a few useful variables
+#  and stores the probability that is given as parameter
+#  The variables are written into file 'growth.setup.mac',
+#  to be used in the plot macro
+#
+variable real,prob
+variable integer,layers
+variable integer,naver
+variable integer,hmin
+variable integer,hmax
+variable integer,kmin
+variable integer,kmax
+variable integer,hh
+variable integer,kk
+variable integer,indiv
+############################################################
+# Take the stacking fault probability
+############################################################
+#
+prob   = $1
+#
+layers =  4000
+layers =    10
+naver  =    50
+hmin   = 0
+hmax   = 03
+kmin   = 0
+kmax   = 02
+fclose all
+fopen  1, growth.setup.mac
+fput   1,'prob  = ',prob
+fput   1,'naver = ',naver
+fput   1,'hmin  = ',hmin
+fput   1,'hmax  = ',hmax
+fput   1,'kmin  = ',kmin
+fput   1,'kmax  = ',kmax
+fclose 1
+#
+############################################################
+#
+read
+  cell  hexagonal.cell, 1, 1, 1
+#
+############################################################
+#
+#  At first, a general setup for the Fourier transform is
+#  defined
+#
+fourier
+  abs    l
+  ord    h
+  na   151
+  no     1
+  neut
+  temp ignore
+  disp off
+  wvle 0.5
+  set  aver,0.0
+exit
+############################################################
+#
+# Setup for the stacking fault
+# Since the intensity will be calculated for integer h,k 
+# the layer can be restricted to just one unit cell
+#
+stack
+  layer   hexagonal.cell
+  layer   hexagonal.cell
+  trans   1,1, 1./3.,-1./3., 1./2
+  trans   1,2,-1./3., 1./3., 1./2
+  trans   2,1, 1./3.,-1./3., 1./2
+  trans   2,2,-1./3., 1./3., 1./2
+#
+  distr   matrix
+  crow    1,    prob, 1.-prob
+  crow    2, 1.-prob,    prob
+  number  layers
+#
+  aver    0.00, 0.00, 1.00
+  modul   1.00, 0.00, 0.00, 0.00, 1.00, 0.00
+  set     modulus,off
+  set     trans,fixed
+exit
+#
+############################################################
+#
+#  The outer loop runs over all crystals to be averaged
+#  Within this loop, the stacking fault sequence is generated
+#  and a loop over all hk positions calculates the 
+#  Fouriertransform along an xxL rod
+#  Files are saved into directory INDI with file names:
+#  growth.hkl_x.xx_yyyy
+#  x.xx is the stacking fault probability,
+#  yyyy the number of the crystal
+#
+do indiv=1,naver
+#
+  stack
+    create
+  exit
+#
+  do hh = hmin, hmax
+    do kk = kmin, kmax
+      four
+        ll   hh ,   kk, -0.5
+        lr   hh ,   kk,  2.5
+        ul   hh ,   kk, -0.5
+      exit
+#
+      stack
+        four
+      exit
+#
+      output
+        outfile "INDI/growth.%1D%1Dl_%4.2F_%4D",hh,kk,prob,indiv
+        value   inte
+        run
+      exit
+    enddo
+  enddo
+enddo
+#
+############################################################
+# That's it. Use the macro 'kgrowth.mac' to display the
+# results of the simulation.
+############################################################
+branch kuplot
+   @kgrowth.mac
+   exit
+#
+exit    ! back to suite
+#
+# Test for Success
+#
+kuplot
+#
+load xy, RESULTS/growth.32l_0.45
+rval 1, 2, one
+r[0]=res[1]
+LTEST_MAC = FALSE
+if(LTEST_MAC < 0.20) then
+  LTEST_MAC = TRUE
+endif
+exit

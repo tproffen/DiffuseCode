@@ -1,0 +1,71 @@
+set prompt,redirect
+set error,live
+#
+#@ HEADER
+#@ NAME         nano.znse.mac
+#@
+#@ KEYWORD      refinemetn, generic, nanoparticle
+#@
+#@ DESCRIPTION  Main macro for the refinement of ellipsoidal
+#@ DESCRIPTION  CdSe/ZnS nanoparticles. The core consists of CdSe with 
+#@ DESCRIPTION  growth type stacking faults. The shell consists of small 
+#@ DESCRIPTION  semispherical ZnS nanoparticles which are locally in
+#@ DESCRIPTION  epitaxial condition on the CdSe core.
+#@ DESCRIPTION  In this set of macros the structure is refined versus
+#@ DESCRIPTION  the PDF
+#@ DESCRIPTION
+#@ DESCRIPTION  As this macro is run as redirected input file on the
+#@ DESCRIPTION  call to DISCUS, the first line MUST be "set prompt,redirect"
+
+#@
+#@ PARAMETER    $0, 0
+#@
+#@ USAGE        @nano.znse
+#@
+#@ END
+#
+###############################################################################
+#
+#
+variable integer,generation
+variable integer,member
+variable integer,children
+variable integer,parameters
+variable integer,kid
+variable integer,indiv
+variable integer,child_start
+variable integer,indiv_start
+#
+@setup.mac
+#
+fopen 1,GENERATION
+fget  1,generation,member,children,parameters
+fclose 1
+#
+fexist RESUME_DISCUS
+if(res[1].eq.1) then
+  fopen 1,RESUME_DISCUS
+  fget  1,child_start,indiv_start
+  fclose 1
+else
+  child_start = 1
+  indiv_start = 1
+endif
+#
+kid   = 1
+do kid =child_start,children
+  @discus_main.mac 
+  indiv_start = 1
+enddo
+#
+  fformat 1,i8
+  fformat 2,i8
+  fopen 1, RESUME_DISCUS
+  fput 1,children+1,nindiv+1
+  fclose 1
+
+echo ENDE DES MACROS
+chem
+elem
+exit
+exit

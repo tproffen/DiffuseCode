@@ -1,0 +1,3 @@
+system rm -f *_plot.cif
+system rm -f *.inte
+system rm -f *.plot

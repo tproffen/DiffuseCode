@@ -1,0 +1,8 @@
+diffev
+read
+@parameter_release.mac
+   run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, logfile:LOGFILES/d, compute:serial
+   compare silent            ! Compare R-values to previous generation
+ 
+exit
+

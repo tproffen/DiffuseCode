@@ -1,0 +1,100 @@
+rese
+#
+load ni,example4.inte
+load xy,cucu.hist
+load xy,cuau.hist
+load xy,auau.hist
+load ni, example4.3DPDF
+#
+nfra 4
+sfra 1, 0.00, 0.45, 0.54, 1.00
+sfra 2, 0.48, 0.45, 1.00, 1.00
+sfra 3, 0.00, 0.00, 0.60, 0.30
+sfra 4, 0.48, 0.00, 1.00, 0.55
+#
+kfra 1,1
+kfra 2,2,3,4
+kfra 3,example4.data
+kfra 4, 5
+#
+fopen 1,example4.hist
+fget 1,r[10],r[11]
+fget 1,r[13],r[14]
+fget 1,r[16],r[17]
+fclose 1
+#
+afra 1
+  buff 0.06,0.06,0.10,0.00
+  aver 1
+  angle 90
+  achx [ H 0 0 ]
+  achy [ 0 K 0 ]
+  hart 1,2
+  cmap fire
+# hlin 1,1e7,1e7,20
+  hlin 1, 1., 1.,100, %
+  hlin 1, 0.5, 0.5, 100, %
+  skal -4.5, 4.5, -4.5, 4.5
+  mark 1.0, 1.0
+  tit1 
+  tit2 Diffraction pattern; no Bragg
+  fnam off
+  achz OFF
+#
+afra 2
+  buff 0.06,0.06,0.10,0.00
+  lcol 2, red
+  lcol 3, green
+  lcol 4, blue
+  r[20] = min(r[10],min(r[13],r[16]))
+  r[21] = max(r[10],max(r[13],r[16]))
+  r[22] = max(r[11],max(r[14],r[17]))
+  aver 
+  skal r[20]- 5.*r[22],r[21]+ 5*r[22],0,max(ymax[4],max(ymax[2],ymax[3]))*1.025
+  if(max(ymax[2],max(ymax[3],ymax[4]))<500.) then
+    r[31] = int((max(ymax[2],max(ymax[3],ymax[4]))*1.025)/5./10.)*10.
+  else
+    r[31] = int((max(ymax[2],max(ymax[3],ymax[4]))*1.025)/5./100.)*100.
+  endif
+  r[32] = int(max(0.1, r[22]*5)*10.)/20.
+  mark r[32]              , r[31]
+  fnam off
+  tit1 
+  tit2 Histogram Pair-wise distances
+  achx r [\A]
+  achy number 
+  fset -3
+#
+afra 3
+  font size,5,16
+#
+afra 4
+  buff 0.06,0.06,0.10,0.00
+  aver 1
+  angle 90
+  skal -4, 4, -4, 4
+  mark 1, 1
+  achx [ x 0 0 ]
+  achy [ 0 y 0 ]
+  cmap pdf
+  hart 5,2
+  r[0] = abs(zmin[5])
+  r[1] = abs(zmax[5])
+!  if(zmin[5]<0.0) then
+!    if(abs(zmax[5]/zmin[5])> 5.0) then
+!      hlin 1, -0.5*r[0], 0.05*r[0], 100
+!    else
+!      hlin 1, -0.05*r[0], 0.005*r[0], 21
+!    endif
+!  else
+!    r[10] = zmin[5] + 0.05*(zmax[5]-zmin[5])
+!    r[11] =           0.01*(zmax[5]-zmin[5])
+!    hlin 1, r[10], r[11], 101
+!  endif
+  hlin 1, 0.1, 100, %
+  tit1
+  tit2
+  fnam off
+  achz OFF
+  fset 2
+plot

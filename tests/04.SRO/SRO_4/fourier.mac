@@ -1,0 +1,30 @@
+fourier
+  xray
+  ll -9.5,-9.5,0.0
+  lr  9.5,-9.5,0.0
+  ul -9.5, 9.5,0.0
+  tl -9.5,-9.5,0.0
+  na 301 
+  no 301 
+  nt   1 
+  abs  h
+  ord  k
+  top  l
+  temp ign
+  disp off
+  set  aver, 10
+  lots box,20,20,1,50,yes
+! lots OFF
+  show
+  run
+exit
+output
+  outfile $1.inte
+  value   inte
+  form    stan
+  run
+  outfile $1.3DPDF
+  value  3DPDF
+  form    stan
+  run
+exit

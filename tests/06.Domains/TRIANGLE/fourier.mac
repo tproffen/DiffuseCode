@@ -1,0 +1,22 @@
+fourier
+  ll  0.0, 0.0,0.0
+  lr  1.0, 0.0,0.0
+  ul  0.0, 1.0,0.0
+  na  51 
+  no  51 
+  abs  h
+  ord  k
+  temp ign
+  disp off
+  set  aver, 100
+  lots off
+  wvle MOA1
+  show
+  run  sigabs:[0.01, 1,0,0], sigord:[0.01, 0,1,0], sigtop:[0.01, 0,0,1]
+exit
+output
+  outfile $1.inte
+  value   inte
+  form    stan
+  run
+exit

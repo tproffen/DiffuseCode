@@ -1,0 +1,138 @@
+Nur in /home/reinhard/Dokumente/Vorlesungen/DISCUS_WORKSHOP/Macros_2026/07.Domains/Perovskite/: cleanup.mac.
+diff Perovskite/dom.perov.fourier.mac /home/reinhard/Dokumente/Vorlesungen/DISCUS_WORKSHOP/Macros_2026/07.Domains/Perovskite/dom.perov.fourier.mac
+2d1
+< i[0] = 201
+6,8c5,7
+<     ll -4.0,-4.0, 0.0
+<     lr  4.0,-4.0, 0.0
+<     ul -4.0, 4.0, 0.0
+---
+>     ll -4.0, 0.0,0.0
+>     lr  4.0, 0.0,0.0
+>     ul -4.0, 8.0,0.0
+16,17d14
+<     set aver,100
+<     lots box, 20,20,1, 20, yes
+21d17
+<     reset
+32,33d27
+<     set aver,100
+<     lots box, 20,20,20, 20, yes
+43c37,41
+< #  lots OFF
+---
+>   lots OFF
+>     set technique:nufft
+>     set symmetry:ignore
+>     set filter:lanczos, width:11, damp:0.5
+>     set aver, 100
+45c43
+<   run     sigabs:[0.010, 1,0,0], sigord:[0.010, 0,1,0], sigtop:[0.010, 0,0,1]
+---
+>   run
+diff Perovskite/dom.perov.mac /home/reinhard/Dokumente/Vorlesungen/DISCUS_WORKSHOP/Macros_2026/07.Domains/Perovskite/dom.perov.mac
+22d21
+< reset
+29,31c28,30
+< ratio = 1.0015
+< dimenx = 120
+< dimeny = 120
+---
+> ratio = 1.0025
+> dimenx = 200
+> dimeny = 200
+66,67d64
+< show adp:all
+< wait return
+70d66
+<   wait return
+72c68
+< #show config
+---
+> show config
+74,79d69
+< purge 
+< chem
+<   set crystal, dimenx,dimeny,dimenz, 5 
+<   set mode, quick, period
+< exit
+< show adp:all
+89,108d78
+< kuplot
+< #
+< #  Test for Success
+< #
+< load ni, RESULTS/dom.perov.final.inte
+< match sca, 2, 1
+< rval 1, 2, one
+< r[0] = res[1]
+< LTEST_MAC = FALSE
+< if(z[1, 148, 101]>z[1, 148, 103]) then
+<   echo COND 1  
+< ! if(z[1,150,101]/z[1,137,137]> 200) then
+< !   echo COND 2
+<     if(r[0]< 0.85) then
+<     echo COND 3
+<     LTEST_MAC = TRUE
+<     endif
+< ! endif
+< endif
+< exit
+diff Perovskite/dom.perov.relax.mac /home/reinhard/Dokumente/Vorlesungen/DISCUS_WORKSHOP/Macros_2026/07.Domains/Perovskite/dom.perov.relax.mac
+64d63
+<   calc
+66,67d64
+< show res
+< wait return
+diff Perovskite/dom.perov.replace.mac /home/reinhard/Dokumente/Vorlesungen/DISCUS_WORKSHOP/Macros_2026/07.Domains/Perovskite/dom.perov.replace.mac
+46,47d45
+< show adp:all
+< wait return
+diff Perovskite/dom.perov.sort.mac /home/reinhard/Dokumente/Vorlesungen/DISCUS_WORKSHOP/Macros_2026/07.Domains/Perovskite/dom.perov.sort.mac
+34c34
+<   set mode, 1.0, swchem,local
+---
+>   set mode, 1.0, swchem,all 
+47d46
+< wait return
+diff Perovskite/k.perov.mac /home/reinhard/Dokumente/Vorlesungen/DISCUS_WORKSHOP/Macros_2026/07.Domains/Perovskite/k.perov.mac
+67c67
+< fset  2
+---
+> fset  3
+70c70
+< hlin  1,0.1, 0.1, 100, %
+---
+> hlin  1,1e6,1e6,20
+72c72
+< cmap  fire
+---
+> cmap  gray
+94c94
+< fset  2
+---
+> fset  3
+97c97
+< hlin  1, 2.00, 2.00, 20,%
+---
+> hlin  1,1e6,1e6,20
+99c99
+< cmap  fire
+---
+> cmap  gray
+114,119d113
+< eval x[1, 151]
+< eval x[1, 150]
+< eval x[1, 149]
+< eval z[1, 151, 101]
+< eval z[1, 150, 101]
+< eval z[1, 137, 137]
+diff Perovskite/perovskite.stru /home/reinhard/Dokumente/Vorlesungen/DISCUS_WORKSHOP/Macros_2026/07.Domains/Perovskite/perovskite.stru
+3a4,9
+> scat  SR  ,  TI  ,  O   
+> adp    0.199997664,    0.099998832,    0.299996495
+> anis type:01, values:[  0.002533000]
+> anis type:02, values:[  0.001266500]
+> anis type:03, values:[  0.003799500]
+> occ    1.000000,      1.000000,      1.000000
+Nur in Perovskite/: RESULTS.
