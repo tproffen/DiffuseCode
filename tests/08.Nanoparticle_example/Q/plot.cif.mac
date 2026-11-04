@@ -2,10 +2,12 @@
 #
 plot
   reset
-  program   jmol
+#  program   jmol   ! JMOL is interactive only; disabled for the test suite
+  program   cif      ! writes the same CIF file without JMOL
   outfile   PLOT/$1.cif
   select    all
   extend    all
-  run       plot:inter, kill:yes
+#  run       plot:inter, kill:yes
+  run
   show
 exit

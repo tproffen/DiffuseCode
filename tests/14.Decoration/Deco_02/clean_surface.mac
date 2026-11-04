@@ -16,5 +16,6 @@ exit
 plot
    sel all
    des void
-   run plot:inter
+#   run plot:inter   ! JMOL is interactive only; disabled for the test suite
+   run
 exit

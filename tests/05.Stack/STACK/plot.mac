@@ -21,12 +21,14 @@ enddo
 plot
   outf      $1.plot
   run
-  program   jmol
+#  program   jmol   ! JMOL is interactive only; disabled for the test suite
+  program   cif      ! writes the same CIF file without JMOL
   outf      $1.cif
   ext       all
   uvw       1,1,0
   abs       0,0,1
   ord       1,-1,0
   thick     1e9
-  run       plot:inter, kill:yes
+#  run       plot:inter, kill:yes
+  run
 exit
