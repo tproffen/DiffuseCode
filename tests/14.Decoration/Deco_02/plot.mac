@@ -1,6 +1,7 @@
 plot
    reset
-   program jmol
+#   program jmol   ! JMOL is interactive only; disabled for the test suite
+   program   cif      ! writes the same CIF file without JMOL
    sel all
    des void
    ext all
@@ -10,5 +11,6 @@ plot
    prop ignore,all
    outf PLOT/$1_plot.cif
    poly 'Si,Al',O,nmin:4,nmax:6, dmin:1.3,dmax:2.1, face:flat, hue:solid
-   run plot:inter, kill:$2
+#   run plot:inter, kill:$2
+   run
 exit
