@@ -26,7 +26,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               hdf5_def.f90 
               wichtung.f90
               length_string_mod.f90 lib_f90_config.f90 lib_f90_fftw3.f90 
-              lib_conv.f90 lib_conver_shelx.f90 lib_element_status.f90 
+              lib_conv.f90 lib_conver_shelx.f90 lib_detect.f90 lib_element_status.f90 
               lib_functions.f90 
               lib_h5fortran_mod.f90
               lib_get_var_type.f90  lib_global_flags.f90 
