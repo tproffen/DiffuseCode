@@ -360,12 +360,13 @@ character(len=11) :: color   ! Use this color
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -30
+       INTEGER, PARAMETER :: iu = -31
        INTEGER, PARAMETER :: io =   0
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
-       DATA ERROR (-30:-21) /                       &
+       DATA ERROR ( iu:-21) /                       &
+     &  'Unknown file format   ',                   & ! -31 ! io
      &  'Unexpected file name  ',                   & ! -30 ! io
      &  'Number of data points exceeds limit',      & ! -29 ! io
      &  'Format number outside allowed range',      & ! -28 ! io
