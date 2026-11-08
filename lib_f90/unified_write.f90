@@ -107,7 +107,7 @@ call       unified_dump_structure( unit_cell_lengths, unit_cell_angles,         
                              NMSG, ier_num, ier_msg)
 endif
 !
-call h5f_reset
+!call h5f_reset
 call h5f_open(h5f, infile, 'w', NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 call h5f%create_group('/entry')
@@ -310,7 +310,7 @@ if(present(anisotropic_adp)) then
 endif
 !
 call h5f%close()
-call h5f_reset
+!call h5f_reset
 !
 end subroutine unified_write_structure
 !
@@ -364,6 +364,7 @@ use precision_mod
 use unified_dump_mod
 !
 use h5fortran, only: hdf5_file
+use hdf5, only: H5F_ACC_RDONLY_F, H5F_ACC_RDWR_F, H5F_ACC_TRUNC_F
 !
 implicit none
 !
@@ -470,9 +471,10 @@ integer, dimension(11) :: data_info
 !
 data_info = 0           ! Generic integer array
 !
-call h5f_reset
+!call h5f_reset
 call h5f_open(h5f, datafile, 'w', NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
+!call hdf5_set_state
 call h5f%create_group('/entry')
 call h5f%create_group('/entry/data')
 !
@@ -699,9 +701,9 @@ if(data_type_style=='powder_pdf' .or. data_type_style=='single_pdf') then
 endif
 !
 call h5f%close()
-call h5f_reset
+!call h5f_reset
 !
-l_dump = .true.
+!l_dump = .true.
 if(l_dump) then
    call unified_dump_data(unit_cell_lengths, unit_cell_angles,           &
                              symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &

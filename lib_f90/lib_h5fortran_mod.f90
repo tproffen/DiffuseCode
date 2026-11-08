@@ -5,12 +5,12 @@ module lib_h5fortran_mod
 ! checks available in the library to gracefully return to the calling program.
 !
 use precision_mod
-use hdf5   , only : HSIZE_T, H5F_ACC_RDONLY_F, H5F_ACC_TRUNC_F
+use hdf5   , only : HSIZE_T! , H5F_ACC_RDONLY_F, H5F_ACC_TRUNC_F
 !, H5_INDEX_NAME_F, &
 ! H5_ITER_NATIVE_F, C_FUNPTR, C_PTR, H5Literate_f
 !
 private
-public h5f_reset
+!
 public h5f_open                          ! Check if file exists and open the file
 public h5f_read                          ! Interface to all reading routines
 public h5f_write                         ! Interface to all writing routines
@@ -57,27 +57,6 @@ contains
 !
 !*******************************************************************************
 !
-subroutine h5f_reset
-!-
-! Reset two HDF5 flags to zero to avoid issues in h5fortran libraries with multiple open
-!-
-!
-! To avoid h5fortran library issue with h5_open, reset these to zero,
-! If H5fortran had been used, set H5F_ACC_TRUNC_F to its previous value
-!                             might be OS dependent?
-!write(*,*) H5F_ACC_RDONLY_F , H5F_ACC_TRUNC_F
-H5F_ACC_RDONLY_F  = 0
-H5F_ACC_TRUNC_F   = 0
-if(H5F_INITIALIZED) then
-   H5F_ACC_TRUNC_F   = H5F_ACC_TRUNC_F_LOCAL
-endif
-!write(*,*) H5F_ACC_RDONLY_F , H5F_ACC_TRUNC_F,  &
-!           H5F_ACC_RDONLY_F/= H5F_ACC_TRUNC_F 
-!
-end subroutine h5f_reset
-!
-!*******************************************************************************
-!
 subroutine h5f_open(h5f, infile, read_write, NMSG, ier_num, ier_msg)
 !-
 !  Check for existence and open infile
@@ -116,12 +95,7 @@ if(read_write=='r') then
 endif
 if(lexist.or. read_write=='w') then         ! Input file exists or write
    call h5f%open(infile, action=read_write) !, debug=debug, ok=ok)
-!write(*,*) H5F_ACC_RDONLY_F , H5F_ACC_TRUNC_F,  &
-!           H5F_ACC_RDONLY_F/= H5F_ACC_TRUNC_F 
    H5F_INITIALIZED = .true.
-   H5F_ACC_TRUNC_F_LOCAL = H5F_ACC_TRUNC_F
-!write(*,*) H5F_ACC_RDONLY_F , H5F_ACC_TRUNC_F,  &
-!           H5F_ACC_RDONLY_F/= H5F_ACC_TRUNC_F 
 else
    ier_num = -1
    ier_msg(1) = infile
@@ -775,7 +749,7 @@ use lib_unified_chars_mod
 use precision_mod
 !
 type(hdf5_file)                    , intent(inout) :: h5f       ! The h5fortan object
-integer                            , intent(in)    :: lib_type  ! 1==Structure; 2==Data
+integer                            , intent(inout) :: lib_type  ! 1==Structure; 2==Data
 character(len=PREC_STRING), dimension(N_META)            , intent(out) :: crystal_meta
 integer                            , intent(out)   :: ier_num
 integer                            , intent(in )   :: NMSG
@@ -798,8 +772,16 @@ do i=1, N_META                     ! Go through all required fields
    endif
 enddo
 !
-if(all(l_meta)) then        ! All meta are present; check the first field for library
+if(lib_type==-1) then 
+   if(crystal_meta(1) == c_dictionary_names(1)) then
+      lib_type = 1
+   elseif(crystal_meta(1) == c_dictionary_names(2)) then
+      lib_type = 2
+   endif
+   return
+endif
 !
+if(all(l_meta)) then        ! All meta are present; check the first field for library
    if(crystal_meta(1) /= c_dictionary_names(lib_type))   then
       ier_num = -7
       ier_msg(1) = 'Wrong HDF5 library'
@@ -807,7 +789,6 @@ if(all(l_meta)) then        ! All meta are present; check the first field for li
       ier_msg(3) = 'Instead of : ' // c_dictionary_names(lib_type)(1:len_trim(c_dictionary_names(lib_type)))
 !
       call h5f%close()
-      call h5f_reset
       return
    endif
 else                        ! Some meta are missing
@@ -824,7 +805,6 @@ else                        ! Some meta are missing
    enddo
 !
    call h5f%close()
-   call h5f_reset
    return
 endif
 !
