@@ -476,6 +476,7 @@ USE get_params_mod
 USE prompt_mod 
 USE times_mod 
 USE lib_errlist_func
+use lib_detect
 USE lib_length
 use lib_load_mod
 USE precision_mod
@@ -503,6 +504,7 @@ CHARACTER(len=5) :: unter
 REAL(KIND=PREC_DP) :: werte (maxw) 
 INTEGER lpara (maxw) 
 INTEGER ii, ll, ianz, istr, nfile 
+integer :: iformat   ! Autodetected file format
 LOGICAL zz_mod 
 !                                                                       
 INTEGER ifiles
@@ -583,6 +585,8 @@ IF (ianz.ge.2) then
             ier_typ = ER_IO 
             RETURN 
          ENDIF 
+!
+!   call detect_format(ifil, cpara(2)(1:lpara(2)), iformat)
 !
          IF(unter=='H5') THEN    ! HDF5 file
 !           if(lpresent(O_TRANS) .and.                                            &
