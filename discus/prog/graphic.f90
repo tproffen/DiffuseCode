@@ -2667,6 +2667,7 @@ else
    i = 0
    if(four_symm) i = 1
    if(data_type_style=='powder_diffraction' .or. data_type_style=='single_diffraction') then  ! Intensities
+      data_type_number = 'real'
    call unified_write_data(datafile, cr_a0, cr_win,               &
                            symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
                            symmetry_mat,                                                &
@@ -2691,6 +2692,7 @@ else
                                           crystal_meta                   &
                            )
    elseif(data_type_style=='single_pdf') then  ! Intensities
+      data_type_number = 'real'
       call chem_get_composition(sample_composition)
 !
       write(source_conversion,'(2a)') 'discus_single ' // version
@@ -2765,6 +2767,7 @@ else
       source_fourier_qmin_qmax(1) = pow_qmin_u
       source_fourier_qmin_qmax(2) = pow_qmax_u
       source_correction           = 0.0_PREC_DP
+      data_type_number = 'real'
 !
    call unified_write_data(datafile, cr_a0, cr_win,               &
                            symmetry_H_M, symmetry_origin, symmetry_abc, symmetry_n_mat, &
