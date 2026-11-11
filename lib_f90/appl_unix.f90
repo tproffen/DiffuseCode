@@ -1894,7 +1894,8 @@ real(kind=PREC_SP)         :: r         ! packet loss percentage MacOs     versi
 lnetz = .false.
 r = 0.0
 i = 0
-cfile = tmp_dir(1:tmp_dir_l) // '/check_github.txt'
+! Process ID in the name: several discus_suite processes may start at once
+write(cfile,'(a,a,i10.10)') tmp_dir(1:tmp_dir_l), '/check_github.', PID
 string = 'ping -c 1 -W 3 140.82.121.3 2> /dev/null > '// cfile(1:len_trim(cfile)) &
          // '; echo $? >> ' // cfile(1:len_trim(cfile)) 
 ! Include a wait, to make reasonably sure that the temp file is written
