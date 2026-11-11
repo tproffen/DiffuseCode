@@ -88,6 +88,7 @@ character(len=*)          , dimension(NMSG)              , intent(out) :: ier_ms
 !
 type(hdf5_file) :: h5f
 !
+integer :: lib_type
 integer :: i,j, k
 !
 character(len=256) :: string
@@ -95,13 +96,13 @@ integer, dimension(3) :: cdim
 logical :: lexist
 logical :: temp_atom_property = .false.  ! If atom_property is absent flag a temorary need for dump
 !
-call h5f_reset
 call h5f_open(h5f, infile, 'r', NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 !
 ! Check if all META fields are present and if we have the correct library; 1 = 'Disorder structure'
 !
-call h5f_check_read_meta(h5f, 1, crystal_meta, NMSG, ier_num, ier_msg) 
+lib_type = 1
+call h5f_check_read_meta(h5f, lib_type, crystal_meta, NMSG, ier_num, ier_msg) 
 if(ier_num/=0) return
 !
 call h5f_check_crystal_fields(h5f, NMSG, ier_num, ier_msg)
@@ -110,7 +111,6 @@ do i=1, 18
       ier_msg(i) = c_fields_crystal(i)
       ier_num = -8
       call h5f%close()
-      call h5f_reset
       return
    endif
 enddo
@@ -347,7 +347,6 @@ if(lexist) then
 endif
 !
 call h5f%close()
-call h5f_reset
 !
 if(l_dump) then    ! Dump upon user request
 temp_atom_property = .false.
@@ -487,14 +486,15 @@ real(kind=PREC_DP)        , dimension(1)                 , intent(out) :: source
 type(hdf5_file) :: h5f
 integer, dimension(3) :: cdim
 integer, dimension(3) :: data_info, source_info
+integer :: lib_type
 !
-call h5f_reset
 call h5f_open(h5f, infile, 'r', NMSG, ier_num, ier_msg)
 if(ier_num/=0) return
 !
 ! Check if all META fields are present and if we have the correct library; 2= Disorder unified data
 !
-call h5f_check_read_meta(h5f, 2, crystal_meta, NMSG, ier_num, ier_msg) 
+lib_type = 2
+call h5f_check_read_meta(h5f, lib_type, crystal_meta, NMSG, ier_num, ier_msg) 
 if(ier_num/=0) return            ! Fatal error in the meta fields
 !
 call h5f_check_data_fields(h5f, NMSG, ier_num, ier_msg)
@@ -785,7 +785,6 @@ else
 endif
 !
 call h5f%close()
-call h5f_reset
 !
 if(l_dump) then 
    call unified_dump_data(unit_cell_lengths, unit_cell_angles,           &

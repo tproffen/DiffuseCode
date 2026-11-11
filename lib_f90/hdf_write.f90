@@ -93,6 +93,7 @@ TYPE(C_PTR)                            :: f_ptr           ! C-type pointer to da
 !  END FUNCTION qval
 !END INTERFACE
 !
+hdferr = 0    ! Start with clean error code
 if(.not. hdf5_get_state()) then
    CALL H5open_f(hdferr)                                     ! Open access to HDF5 stream
    call hdf5_set_state
@@ -323,8 +324,8 @@ CALL H5Fclose_f(file_id , hdferr)
 DEALLOCATE(values)
 !
 ! To avoid h5fortran library issue with h5_open, reset these to zero
-H5F_ACC_RDONLY_F  = 0
-H5F_ACC_TRUNC_F   = 0
+!H5F_ACC_RDONLY_F  = 0
+!H5F_ACC_TRUNC_F   = 0
 !call gen_hdf5_show(outfile, uc_hdf, out_vi)
 !
 END SUBROUTINE gen_hdf5_write
@@ -405,7 +406,6 @@ integer(kind=HID_T)                    :: attr_id         ! Attribute Indicator 
 character(len=PREC_STRING)             :: grp_name
 character(len=PREC_STRING)             :: attr_name
 !
-!write(*,*) ' in gen_hdf5_nexus_scattering ', outfile(1:LEN_TRIM(outfile))
 !
 if(.not. hdf5_get_state()) then
    call H5open_f(hdferr)                                     ! Open access to HDF5 stream
