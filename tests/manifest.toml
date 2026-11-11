@@ -1,0 +1,266 @@
+# Test manifest for the legacy macro test suite.
+#
+# Read by tools/run_legacy_tests.py (and tests/python/test_legacy_macros.py).
+# Each [[test]] entry runs one macro in a fresh copy of its top-level test
+# folder, with LTEST_BATCH = TRUE so that check.mac writes PASS/FAIL lines
+# to a result file instead of stopping.
+#
+# Fields
+#   id           unique name, used for filtering and in reports
+#   dir          folder below tests/ in which the macro is started
+#   macro        macro file name, relative to dir
+#   args         macro parameters exactly as typed after @macro (optional)
+#   check        "macro"    – runner calls check.mac after the macro (default)
+#                "internal" – the macro calls check.mac itself
+#                "none"     – no check exists; the test only has to finish
+#   checks       number of PASS lines expected (default 1)
+#   tags         fast (< 10 s), medium (< 30 s), slow (>= 30 s),
+#                mc (stochastic: Monte Carlo / random), mpi, nocheck,
+#                exclusive (the macro sets its own OpenMP thread count with
+#                "set parallel"; the runner runs it alone, not in parallel)
+#   timeout      seconds before the run is killed (default 600)
+#   in_test_all  true if test_all.mac runs the same macro (default true)
+#   enabled      false to skip, with a reason in skip_reason
+#
+# Keep this file and test_all.mac in step:
+#   python3 tools/run_legacy_tests.py --check-test-all
+# reports differences.
+
+# ---------------------------------------------------------------- 01 Simulation
+[[test]]
+id    = "01.circle"
+dir   = "01.Simulation"
+macro = "circle.mac"
+args  = "10,13"
+tags  = ["fast"]
+
+[[test]]
+id    = "01.checkerboard"
+dir   = "01.Simulation"
+macro = "checkerboard.mac"
+args  = "13,8"
+tags  = ["fast"]
+
+[[test]]
+id    = "01.symmetry"
+dir   = "01.Simulation"
+macro = "symmetry.mac"
+tags  = ["fast"]
+
+[[test]]
+id    = "01.shear"
+dir   = "01.Simulation"
+macro = "shear.mac"
+tags  = ["fast"]
+
+# ------------------------------------------------------- 02 Scattering (Fourier)
+[[test]]
+id    = "02.1d"
+dir   = "02.Calculation_Scattering"
+macro = "1d.mac"
+args  = "7"
+tags  = ["fast"]
+
+[[test]]
+id    = "02.1d_periodic"
+dir   = "02.Calculation_Scattering"
+macro = "1d_periodic.mac"
+args  = "7"
+tags  = ["fast"]
+
+[[test]]
+id    = "02.2d"
+dir   = "02.Calculation_Scattering"
+macro = "2d.mac"
+tags  = ["fast"]
+
+[[test]]
+id    = "02.2d_lots"
+dir   = "02.Calculation_Scattering"
+macro = "2d_lots.mac"
+args  = "example3"
+tags  = ["fast", "mc"]
+
+[[test]]
+id    = "02.powder"
+dir   = "02.Calculation_Scattering"
+macro = "powder.mac"
+args  = "10, 15"
+tags  = ["fast"]
+
+# --------------------------------------------------------------------- 03 PDF
+[[test]]
+id    = "03.pdf"
+dir   = "03.Pair_Distribution_Function"
+macro = "pdf.mac"
+check = "none"
+tags  = ["fast", "nocheck"]
+# No self-check yet (WP0 task 0.4): the test passes if the macro finishes.
+
+# --------------------------------------------------------------------- 04 SRO
+[[test]]
+id    = "04.sro0"
+dir   = "04.SRO/SRO_0"
+macro = "sro.0.mac"
+args  = "0.7,1.5"
+tags  = ["medium", "mc"]
+
+[[test]]
+id    = "04.sro1"
+dir   = "04.SRO/SRO_1"
+macro = "sro.1.mac"
+args  = "0.7,1.5"
+tags  = ["fast", "mc", "exclusive"]
+
+[[test]]
+id          = "04.sro2"
+dir         = "04.SRO/SRO_2"
+macro       = "sro.2.mac"
+args        = "0.7,-0.7,1.5"
+tags        = ["mc"]
+in_test_all = false
+enabled     = false
+skip_reason = "Commented out in test_all.mac (#QQQ); re-enable or remove in WP0 task 0.4"
+
+[[test]]
+id    = "04.sro3"
+dir   = "04.SRO/SRO_3"
+macro = "sro.3.mac"
+args  = "0.5, 0.5, 0.5, 0.48, 0.48, 1.5"
+tags  = ["fast", "mc", "exclusive"]
+
+[[test]]
+id    = "04.sro4"
+dir   = "04.SRO/SRO_4"
+macro = "sro.4.mac"
+args  = "0.05, 1.5"
+tags  = ["slow", "mc"]
+
+# ------------------------------------------------------------------- 05 Stack
+[[test]]
+id    = "05.stack"
+dir   = "05.Stack/STACK"
+macro = "stack.01.mac"
+args  = "0.33333"
+tags  = ["fast", "mc"]
+
+[[test]]
+id    = "05.stack_growth"
+dir   = "05.Stack/STACK_GROWTH"
+macro = "growth.mac"
+args  = "0.450"
+tags  = ["slow", "mc"]
+
+[[test]]
+id    = "05.stack_file"
+dir   = "05.Stack/STACK_FILE"
+macro = "stack.01.mac"
+tags  = ["fast", "mc"]
+
+[[test]]
+id    = "05.stack_types"
+dir   = "05.Stack/STACK_TYPES"
+macro = "stack.01.mac"
+args  = "0.7500"
+tags  = ["fast", "mc"]
+
+# ----------------------------------------------------------------- 06 Domains
+[[test]]
+id    = "06.cube"
+dir   = "06.Domains/CUBE"
+macro = "dom.cube.mac"
+tags  = ["fast", "mc"]
+
+[[test]]
+id    = "06.tilt"
+dir   = "06.Domains/CUBE"
+macro = "dom.tilt.mac"
+tags  = ["fast", "mc"]
+
+[[test]]
+id    = "06.triangle"
+dir   = "06.Domains/TRIANGLE"
+macro = "dom.triangle.mac"
+tags  = ["fast", "mc"]
+
+[[test]]
+id    = "06.perovskite"
+dir   = "06.Domains/Perovskite"
+macro = "dom.perov.mac"
+tags  = ["medium", "mc"]
+
+# -------------------------------------------------------------- 07 Refinement
+[[test]]
+id    = "07.refine"
+dir   = "07.Refinement/EXAMPLE_REFINE"
+macro = "refine.mac"
+tags  = ["slow", "mc"]
+
+# ------------------------------------------------------------ 08 Nanoparticles
+[[test]]
+id    = "08.nano_simple"
+dir   = "08.Nanoparticle_example/SIMPLE"
+macro = "nano.mac"
+args  = "30, zno"
+tags  = ["fast"]
+
+[[test]]
+id    = "08.nano_ellipsoid"
+dir   = "08.Nanoparticle_example/ELLIPSOID"
+macro = "nano.mac"
+args  = "20,50, znse_wurtzite"
+tags  = ["fast"]
+
+# ----------------------------------------------- 09 Nanoparticle refinement (MPI)
+[[test]]
+id          = "09.znse_pdf_mpi"
+dir         = "09.Nanoparticle_refinement/ZNSE_PDF_suite_mpi"
+macro       = "refine.mac"
+check       = "none"
+tags        = ["slow", "mpi", "mc", "nocheck"]
+in_test_all = false   # test_all.mac reaches it via "system ./TEST.sh" (mpiexec ... -macro refine.mac)
+enabled     = false
+skip_reason = "Needs mpiexec and DISCUS_NCPU; test_all.mac calls ./TEST.sh, which has no execute bit. WP0 task 0.4"
+
+# --------------------------------------------------------------- 11 Properties
+[[test]]
+id    = "11.properties"
+dir   = "11.Properties"
+macro = "main.mac"
+tags  = ["medium"]
+
+# -------------------------------------------------------------------- 12 Waves
+[[test]]
+id    = "12.waves"
+dir   = "12.Waves"
+macro = "main.mac"
+tags  = ["fast"]
+
+[[test]]
+id    = "12.waves_density"
+dir   = "12.Waves"
+macro = "density.mac"
+tags  = ["fast"]
+
+# ------------------------------------------------------------------ 13 Analyze
+[[test]]
+id    = "13.analyze"
+dir   = "13.Analyze"
+macro = "analyze.mac"
+tags  = ["fast", "mc"]
+
+# --------------------------------------------------------------- 14 Decoration
+[[test]]
+id     = "14.deco01_all"
+dir    = "14.Decoration/Deco_01"
+macro  = "all.mac"
+check  = "internal"
+checks = 7
+tags   = ["fast"]
+# all.mac calls check.mac after each of its 7 decoration modes.
+
+[[test]]
+id    = "14.deco02"
+dir   = "14.Decoration/Deco_02"
+macro = "main.mac"
+tags  = ["fast", "mc"]

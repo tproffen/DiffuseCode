@@ -5,11 +5,14 @@ WP0 is the safety net: before any Fortran is wrapped or refactored, we need a te
 suite that runs unattended, reports pass/fail reliably, and stores reference
 ("golden") results to compare against.
 
-This document has two parts:
+This document has three parts:
 
 1. **Where we are** – what the existing `tests/` folder covers and what happened
    when it was run headless on Linux.
 2. **WP0 work plan** – the tasks to turn it into an automated regression baseline.
+3. **Progress log** – what has been done so far.
+
+`mixscat` is deprecated and is left out of WP0 (and of the migration).
 
 ---
 
@@ -123,6 +126,25 @@ them: `01.Simulation/plotcif.mac`, `04.SRO/SRO_MOLECULES/plot_jmol.mac`,
    `/usr/bin`. The binary works fine from the build tree.
 9. The build requires an `FC` environment variable even for re-running CMake.
 
+**Found while doing 0.2 / 0.3**
+
+10. **Start-up race (fixed).** On every start `discus_suite` pings GitHub
+    (`check_github` in `lib_f90/appl_unix.f90`) and wrote the answer to a
+    fixed file, `/tmp/check_github.txt`. Two processes starting at the same
+    time could delete each other's file, and one crashed with a Fortran
+    runtime error. The file name now includes the process ID, like the other
+    temporary files. The ping also means every start tries to reach the
+    network; in CI it simply fails quickly.
+11. **Macros override the thread count.** `04.SRO/SRO_1/sro.1.mac` and
+    `SRO_3/sro.3.mac` call `set parallel, useomp:use, nthreads:all`, which
+    overrides `OMP_NUM_THREADS`. Next to other tests this over-commits the
+    CPUs, and the OpenMP threads slow down by up to ~100× (2.4 s → 130–340 s).
+    These tests are tagged `exclusive` and the runner runs them alone.
+12. **Endless prompt loop.** When `check.mac` calls `stop` (interactive mode)
+    and stdin is at end of file, `discus_suite` prints `suite >` prompts
+    forever (18 MB of log in 20 s). Batch mode never calls `stop`, and the
+    runner's timeout would catch it, but the input loop should end on EOF.
+
 ---
 
 ## 2. WP0 work plan
@@ -136,18 +158,19 @@ can compare against.
 
 ```
 tests/                       # existing macro tests stay where they are
-  check.mac                  # extended to write a result line to a file
-  test_all.mac               # kept for interactive use
-  manifest.yaml              # NEW: list of tests (dir, macro, args, outputs, tolerances)
-  golden/                    # NEW: reference outputs, one folder per test id
-  python/                    # NEW: pytest harness
-    conftest.py              #   locates discus_suite, sets up temp copies, xvfb
-    test_legacy_macros.py    #   one parametrised test per manifest entry
-    compare.py               #   numeric comparisons (R-value, max-abs, atom sets)
+  check.mac                  # [done] batch mode writes PASS/FAIL to a result file
+  test_all.mac               # kept for interactive use (unchanged)
+  manifest.toml              # [done] list of tests (TOML: read by Python's standard library)
+  README.md                  # [done] how to run the tests
+  golden/                    # 0.6: reference outputs, one folder per test id
+  python/                    # pytest harness
+    conftest.py              #   [done] registers the manifest tags as markers
+    test_legacy_macros.py    #   [done] one test per manifest entry + manifest checks
+    compare.py               #   0.6: numeric comparisons (R-value, max-abs, atom sets)
 tools/
-  run_legacy_tests.py        # NEW: CLI wrapper -> JUnit XML + JSON summary
+  run_legacy_tests.py        # [done] runner -> console table, JUnit XML, JSON
 .github/workflows/
-  legacy-tests.yml           # NEW: build + run on every push to claude-python-app
+  legacy-tests.yml           # 0.9: build + run on every push to claude-python-app
 ```
 
 ### Tasks
@@ -155,8 +178,8 @@ tools/
 | # | Task | Details | Done when | Effort |
 |---|---|---|---|---|
 | 0.1 | **Headless run** | JMOL disabled in the test plot macros *(done in this branch)*. Run under `xvfb-run` with PGPLOT; later use the no-graphics build once 0.8 is fixed. | `test_all.mac` completes unattended | done |
-| 0.2 | **Machine-readable results** | Extend `check.mac` to append `<dir> <macro> PASS/FAIL` to `test_results.txt` instead of `stop`-ing. Add a driver that runs each manifest entry in a fresh temp copy (a prototype exists from this analysis) and converts results to JUnit XML. Treat a missing result line as ABORTED. | CI shows per-test pass/fail; process exits non-zero on any failure or abort | 2–3 d |
-| 0.3 | **Test manifest** | Move the list of tests out of `test_all.mac` into `manifest.yaml`: test id, folder, macro, args, expected outputs, comparison type and tolerance, and tags (`fast`, `mc`, `mpi`, `slow`). | Harness and `test_all.mac` cover the same 30 tests | 1–2 d |
+| 0.2 ✅ | **Machine-readable results** | Extend `check.mac` to append `<dir> <macro> PASS/FAIL` to `test_results.txt` instead of `stop`-ing. Add a driver that runs each manifest entry in a fresh temp copy (a prototype exists from this analysis) and converts results to JUnit XML. Treat a missing result line as ABORTED. | CI shows per-test pass/fail; process exits non-zero on any failure or abort | 2–3 d |
+| 0.3 ✅ | **Test manifest** | Move the list of tests out of `test_all.mac` into `manifest.toml`: test id, folder, macro, args, expected outputs, comparison type and tolerance, and tags (`fast`, `mc`, `mpi`, `slow`). | Harness and `test_all.mac` cover the same 30 tests | 1–2 d |
 | 0.4 | **Close the silent gaps** | Add a check to 03 PDF (compare G(r) against a new `RESULTS/` file). Re-enable or remove SRO_2. Add an aggregated check to Deco_01. Make 09 runnable: execute bit + serial variant for CI, MPI variant tagged `mpi`. | No section prints SUCCESS without a check | 2–3 d |
 | 0.5a | **Debug `seed`** | Find out why `seed` does not give repeatable MMC results (see 1.3 #4). Candidates: the generator being re-seeded inside `mmc`/`read`/`insert`, per-thread generators, or a seed state that is not fully applied. Add a minimal test: seed → draw N numbers → seed again → same N numbers, then the same through `mmc run`. | Two runs with the same seed give identical `sro.0` output on one build | 1–3 d |
 | 0.5 | **Reproducibility** | Once 0.5a is fixed, add `seed` to every stochastic test (MC, RMC, DIFFEV, stacking, domains). Record whether a test is bit-reproducible on one platform/thread count, and keep statistical tolerances where it is not (OpenMP order, compiler). | Same seed gives the same output on the same build | 2 d |
@@ -202,9 +225,56 @@ FC=$(which gfortran) cmake ../DiffuseCode -DCMAKE_BUILD_TYPE=Release -DPGPLOT_DI
 make -j"$(nproc)"
 ```
 
+Unattended, with per-test results (from the `DiffuseCode` folder; the runner
+copies each test, so `tests/` stays clean):
+
 ```bash
-cp -r ../DiffuseCode/tests /tmp/dc_tests && cd /tmp/dc_tests && \
-PGPLOT_DIR=/usr/lib/pgplot5 xvfb-run -a ../DiffuseBuild/suite/prog/discus_suite -macro test_all.mac < /dev/null
+python3 tools/run_legacy_tests.py --exe ../DiffuseBuild/suite/prog/discus_suite -j 4 --junit results.xml
 ```
 
-Run the tests on a copy, because they write output files into `tests/`.
+Or the classic way, on a copy because the macros write output files into
+`tests/`:
+
+```bash
+cp -r tests /tmp/dc_tests && cd /tmp/dc_tests && \
+PGPLOT_DIR=/usr/lib/pgplot5 xvfb-run -a "$OLDPWD/../DiffuseBuild/suite/prog/discus_suite" -macro test_all.mac < /dev/null
+```
+
+---
+
+## 3. Progress log
+
+### 0.2 + 0.3 – runner, batch mode and manifest
+
+* `tests/check.mac` has a batch mode. With `LTEST_BATCH = TRUE` it appends
+  `PASS <name>` / `FAIL <name>` to the file in `LTEST_FILE` and carries on,
+  judging each check on its own. Interactive behaviour is unchanged
+  (`test_all.mac` still passes all 13 sections). `check.mac` declares
+  `LTEST_BATCH` itself, so test macros run by hand still work.
+* `tests/manifest.toml` lists 33 tests: the 31 macros run by `test_all.mac`,
+  plus `04.sro2` and `09.znse_pdf_mpi`, which are disabled with a reason.
+  `--check-test-all` confirms that it matches `test_all.mac`.
+  `14.deco01_all` now counts its 7 internal checks; before, it had no
+  overall check.
+* `tools/run_legacy_tests.py` (standard library only):
+  * Runs each test in a fresh copy, in its own process group, under xvfb when
+    there is no display. Runs tests in parallel (`-j`) and runs tests tagged
+    `exclusive` alone.
+  * Kills the whole process group on timeout, retries on another display if
+    Xvfb cannot start, and writes JUnit XML and JSON.
+  * Exits with 1 on FAIL, ABORTED or TIMEOUT.
+* `tests/python/` gives the same tests as pytest tests, plus the manifest
+  checks (which run without a binary).
+* `tests/README.md` explains how to run and add tests.
+* `lib_f90/appl_unix.f90`: fixed the start-up race (finding 10).
+
+Checked:
+
+| Run | Result |
+|---|---|
+| Full manifest, `-j 4` (4 cores) | 30 PASS, 1 RAN (`03.pdf`), 2 SKIPPED; 78 s wall time; repeated 3 times, same result |
+| Full manifest, `-j 1` | same result; 210 s |
+| Deliberate failures (wrong result, bad parameter, too few checks, 5 s timeout) | FAIL, ABORTED (first error line reported), ABORTED, TIMEOUT; exit code 1; no processes left behind |
+| Display already taken | retried on another display, PASS |
+| Runner and pytest at the same time | all pass; no display clashes |
+| `test_all.mac` (interactive mode) | all 13 sections SUCCESS |

@@ -8,3 +8,5 @@ Doxygen*
 .ipynb_checkpoints/
 python/.ipynb_checkpoints/
 private.f90
+__pycache__/
+.pytest_cache/
