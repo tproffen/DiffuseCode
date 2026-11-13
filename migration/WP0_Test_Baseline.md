@@ -1,6 +1,6 @@
 # WP0 – Regression test baseline
 
-Part of the Python migration plan (`DiffuseCode_Python_Migration_Plan.html`, option B).
+Part of the Python migration plan ([`DiffuseCode_Python_Migration_Plan.md`](DiffuseCode_Python_Migration_Plan.md), option B).
 WP0 is the safety net: before any Fortran is wrapped or refactored, we need a test
 suite that runs unattended, reports pass/fail reliably, and stores reference
 ("golden") results to compare against.
