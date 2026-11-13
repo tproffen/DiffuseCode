@@ -1,4 +1,35 @@
-if(LTEST_ALL==TRUE .and. LTEST_MAC==TRUE) then
+#
+#  check.mac  <name>
+#
+#  Called after each test macro. The test macro sets LTEST_MAC to TRUE when
+#  its own check succeeded.
+#
+#  Interactive use (default, LTEST_BATCH = FALSE):
+#     A failure prints a message and stops the macro run.
+#
+#  Batch use (LTEST_BATCH = TRUE, set by tools/run_legacy_tests.py):
+#     Each call appends one line "PASS <name>" or "FAIL <name>" to the file
+#     named in LTEST_FILE, and the run continues. Each check is judged on
+#     its own LTEST_MAC, so one failure does not mark later checks as failed.
+#     The runner evaluates the file; a missing line means the test aborted
+#     before reaching its check.
+#
+#  Re-declaring a variable keeps its value; a new one starts as 0 (= FALSE).
+#  This keeps check.mac working when a test macro is run on its own.
+#
+variable integer,   LTEST_BATCH
+variable character, LTEST_FILE
+#
+if(LTEST_BATCH==TRUE) then
+  fopen 1, "%c", LTEST_FILE, append
+  if(LTEST_MAC==TRUE) then
+    fput  1, "PASS %c", '$1'
+  else
+    fput  1, "FAIL %c", '$1'
+    LTEST_ALL = FALSE
+  endif
+  fclose 1
+elseif(LTEST_ALL==TRUE .and. LTEST_MAC==TRUE) then
   LTEST_ALL = TRUE
 else
   LTEST_ALL = FALSE
@@ -10,3 +41,4 @@ else
 endif
 #
 LTEST_MAC = FALSE    ! Assume failure in next macro
+#
