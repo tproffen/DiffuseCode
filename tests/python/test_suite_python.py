@@ -24,7 +24,7 @@ import numpy as np
 import pytest
 
 from compare import check_golden, load_columns, rvalue
-from suite_session import MacroError
+from diffuse import MacroError
 
 TESTS = Path(__file__).resolve().parents[1]
 SCATTERING = TESTS / "02.Calculation_Scattering"

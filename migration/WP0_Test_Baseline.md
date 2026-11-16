@@ -167,7 +167,6 @@ tests/                       # existing macro tests stay where they are
     conftest.py              #   [done] registers the manifest tags as markers
     test_legacy_macros.py    #   [done] one test per manifest entry + manifest checks
     compare.py               #   [started] R-value, golden .npz read/write (0.6)
-    suite_session.py         #   [done] test helper around the f2py module suite_python
     test_suite_python.py     #   [done] in-process Python tests against RESULTS/ and golden/
 tools/
   run_legacy_tests.py        # [done] runner -> console table, JUnit XML, JSON
@@ -287,7 +286,7 @@ Checked:
   `discus_all`. `experi_kdo` calls `exp3_pdf`, so the f2py module built but
   failed on import with `undefined symbol: __exp3_pdf_menu_MOD_exp3_pdf`.
   `experi_all` now comes first.
-* `tests/python/suite_session.py` wraps `suite_python` for tests. `run()`
+* A test helper wraps `suite_python` (now `diffuse.session()`, see below). `run()`
   writes a driver macro that `cd`s into the test folder (the suite keeps its
   own working directory, so `os.chdir` is not enough) and sets `r[499]` on
   its last line. A command error ends the whole macro run, so a flag that is
@@ -315,4 +314,32 @@ Checked (gfortran 13, 4 cores):
 |---|---|
 | `pytest tests/python`, `OMP_NUM_THREADS` 1 and 4 | 9 passed (33 legacy macro tests skipped, no `DISCUS_SUITE`), under 1 s |
 | Same build, `run_legacy_tests.py -j 4 --tags fast,mc` | 29 PASS, 1 RAN, 2 SKIPPED |
+
+### Demo API: `python/diffuse/` (ahead of WP3/WP5)
+
+A first Python package for the demo, built on `suite_python`:
+`read_structure()` (CIF, `.cell`, `.stru`, with supercells), `Crystal.atoms()`,
+`powder()` returning NumPy arrays, `PowderPattern.plot()` with matplotlib,
+and `run_macro()` for everything else. See `python/README.md`.
+
+* The test helper moved into the package (`diffuse/_session.py`), and the
+  `suite` fixture now returns `diffuse.session()`. The session also captures
+  DISCUS output (stdout/stderr go to a temporary file during each call, with
+  `GFORTRAN_UNBUFFERED_PRECONNECTED=y` so nothing is flushed late), and
+  `MacroError` carries the `***` error lines.
+* `n[]` and `lat[]` are only defined inside the `discus` section; the read
+  macro copies them to `r[490]`–`r[496]`, which are reserved for the package
+  (`r[499]` is the completion flag).
+* Reading a CIF makes DISCUS write a `.stru` file next to the input, so
+  inputs are copied to a scratch folder first.
+* `python/examples/powder_demo.py`: anatase from `anatase.cif` (COD 1010942),
+  X-ray vs neutron and crystal-size broadening, saved as a PNG. Peak positions
+  were checked against the allowed I4₁/amd reflections ((101) strongest for
+  X-rays at Q = 1.81 Å⁻¹).
+* `tests/python/test_diffuse_api.py`: 12 tests (reading, supercells, errors,
+  powder grid and (101) position, X-ray/neutron golden data, reloading an
+  older `Crystal`, plotting, the demo script). CI installs matplotlib.
+
+Checked: `pytest tests/python` gives 21 passed (33 legacy macro tests skipped
+without `DISCUS_SUITE`), about 2 s, with `OMP_NUM_THREADS` 1 and 4.
 

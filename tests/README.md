@@ -75,11 +75,13 @@ DISCUS_SUITE=/path/to/discus_suite pytest tests/python -m "not slow"
 
 Without `DISCUS_SUITE` only the manifest checks run.
 
-## 3. Python interface: `tests/python/test_suite_python.py`
+## 3. Python: `tests/python/test_suite_python.py`, `test_diffuse_api.py`
 
-Runs DISCUS in-process through the f2py module `suite_python` and checks the
+Run DISCUS in-process through the f2py module `suite_python` and check the
 results as NumPy arrays, against the legacy `RESULTS/` files and against
-golden data in `tests/golden/<id>/`. Build with `-DDIFFUSE_PYTHON=ON`, then:
+golden data in `tests/golden/<id>/`. `test_diffuse_api.py` tests the
+`diffuse` package (`python/diffuse/`, see `python/README.md`) and the demo
+script `python/examples/powder_demo.py` (needs matplotlib). Build with `-DDIFFUSE_PYTHON=ON`, then:
 
 ```bash
 DIFFUSE_PYTHON_PATH=/path/to/build/python pytest tests/python
@@ -91,7 +93,8 @@ DIFFUSE_PYTHON_PATH=/path/to/build/python pytest tests/python
 | `DIFFUSE_REQUIRE_PYTHON=1` | fail instead of skip if the module cannot be imported (used in CI) |
 | `DIFFUSE_UPDATE_GOLDEN=1` | write the golden files instead of comparing; review the diff before committing |
 
-To add a test, use the `suite` fixture: `suite.run(commands, folder)` runs
+To add a test, use the `suite` fixture (the session from `diffuse.session()`) or
+the `diffuse` functions directly. `suite.run(commands, folder)` runs
 macro text with `folder` as working directory and raises `MacroError` if a
 command fails; `suite.value("n[1]")` evaluates an expression;
 `suite.dataset(1)` / `suite.dataset_2d(1)` return KUPLOT data set 1. Load

@@ -1,6 +1,6 @@
 # Build DiffuseCode with the Python module and run the tests.
 #
-#   1. pytest tests/python   – Python interface (suite_python) + golden data
+#   1. pytest tests/python   – diffuse package, suite_python, golden data, demo
 #   2. legacy macro tests     – tools/run_legacy_tests.py, tags fast and mc
 #
 # Development happens on claude-python-app until the first release of the
@@ -35,7 +35,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             gfortran cmake make libfftw3-dev libhdf5-dev libreadline-dev \
             libpng-dev libx11-dev zlib1g-dev pgplot5 xvfb \
-            python3-dev python3-numpy python3-pytest
+            python3-dev python3-numpy python3-pytest python3-matplotlib
 
       - name: Configure
         run: |
@@ -50,6 +50,7 @@ jobs:
         env:
           DIFFUSE_PYTHON_PATH: ${{ github.workspace }}/build/python
           DIFFUSE_REQUIRE_PYTHON: "1"
+          MPLBACKEND: Agg
         # DISCUS_SUITE is not set here, so the legacy macro tests inside
         # pytest are skipped; the next step runs them in parallel.
         run: python3 -m pytest tests/python -v --junitxml=pytest-results.xml
