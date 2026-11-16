@@ -4,7 +4,12 @@
 
 Until the first release of the Python package, **all migration work is built
 against and merged into `claude-python-app`**, not `master`. Start feature
-branches from `origin/claude-python-app` and target pull requests at it.
+branches from `origin/claude-python-app`.
+
+When a piece of work is finished and pushed, **open the pull request
+yourself, with base `claude-python-app`** (never `master`), so the owner
+cannot merge into `master` by accident. Say in the PR description that it
+targets `claude-python-app`.
 
 ## Plan and progress
 
