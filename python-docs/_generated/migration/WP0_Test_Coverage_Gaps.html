@@ -544,15 +544,15 @@ counted for <code class="docutils literal notranslate"><span class="pre">set</sp
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Structure export/import: <code class="docutils literal notranslate"><span class="pre">export</span></code> (SHELX, CIF, RMCProfile, VASP …), <code class="docutils literal notranslate"><span class="pre">import</span></code></p></td>
-<td><p>Not reached. <code class="docutils literal notranslate"><span class="pre">01.Simulation/export.mac</span></code> exists with 9 checks but is <strong>not</strong> in <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code>, and it fails 6 of 9 (see 4.1)</p></td>
+<td><p><strong>Covered</strong> (<code class="docutils literal notranslate"><span class="pre">tests/python/test_wp3_structures.py</span></code>): CIF and RMCProfile export → import round trips give the same atoms; CIF also read by gemmi; VASP checked by parsing. <strong>SHELX export is broken</strong> (writes the whole cell <em>and</em> the symmetry; known-failure test). <code class="docutils literal notranslate"><span class="pre">01.Simulation/export.mac</span></code> itself still fails 6 of 9 (see 4.1)</p></td>
 <td><p>The Python <code class="docutils literal notranslate"><span class="pre">Crystal</span></code> class must read and write the same files</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">save</span></code> options (<code class="docutils literal notranslate"><span class="pre">format</span></code>, <code class="docutils literal notranslate"><span class="pre">incl</span></code>, <code class="docutils literal notranslate"><span class="pre">omit</span></code>, <code class="docutils literal notranslate"><span class="pre">prop</span></code>, <code class="docutils literal notranslate"><span class="pre">asym</span></code> …)</p></td>
-<td><p>4 / 13 options</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">save</span></code> + <code class="docutils literal notranslate"><span class="pre">read</span> <span class="pre">stru</span></code> round trip covered (with molecules); other options still 4 / 13</p></td>
 <td><p>Round trip Python → Fortran → file</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">spacegroup</span></code>, <code class="docutils literal notranslate"><span class="pre">wyckoff</span></code>, <code class="docutils literal notranslate"><span class="pre">asym</span></code>, <code class="docutils literal notranslate"><span class="pre">symmetry</span></code> details</p></td>
-<td><p>Not reached / 14 of 24 sub-commands</p></td>
+<td><p>Space-group expansion <strong>covered</strong>: 10 structures (C2/c, Cmcm, Cmc2₁, Cmm2, F-43m, Pn-3m, Fm-3m, P4mm, P6₃/mmc, I4₁/amd CIF) agree site by site with gemmi; supercells checked. <code class="docutils literal notranslate"><span class="pre">wyckoff</span></code>, <code class="docutils literal notranslate"><span class="pre">asym</span></code>, <code class="docutils literal notranslate"><span class="pre">symmetry</span></code> still open. Found: in the legacy (blank-separated) atom format, fractions such as <code class="docutils literal notranslate"><span class="pre">1./3.</span></code> are silently misread; the comma format evaluates them (see 4.1)</p></td>
 <td><p>Space-group expansion is wrapped in WP3</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">transform</span></code> (new cell, origin shift)</p></td>
@@ -582,19 +582,19 @@ counted for <code class="docutils literal notranslate"><span class="pre">set</sp
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Radiation and energy: <code class="docutils literal notranslate"><span class="pre">electron</span></code>, <code class="docutils literal notranslate"><span class="pre">energy</span></code> (instead of <code class="docutils literal notranslate"><span class="pre">wvle</span></code>)</p></td>
-<td><p>Not reached</p></td>
+<td><p><strong>Covered</strong> (<code class="docutils literal notranslate"><span class="pre">tests/python/test_wp4_fourier.py</span></code>): golden maps for X-rays, neutrons, electrons; <code class="docutils literal notranslate"><span class="pre">energy</span></code> = <code class="docutils literal notranslate"><span class="pre">wvle</span></code>; X-ray form factors within 1 % of IT92; Debye-Waller factor exact; fcc extinctions</p></td>
 <td><p>Every radiation type needs a golden result</p></td>
 </tr>
 <tr class="row-odd"><td><p>Anomalous dispersion <code class="docutils literal notranslate"><span class="pre">delf</span></code>, single <code class="docutils literal notranslate"><span class="pre">hkl</span></code>, <code class="docutils literal notranslate"><span class="pre">layer</span></code></p></td>
-<td><p>Not reached</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">delf</span></code>/<code class="docutils literal notranslate"><span class="pre">disp</span> <span class="pre">anom</span></code> <strong>covered</strong>: Friedel pairs in ZnSe match the structure-factor prediction (0.5 %), nickel stays Friedel-symmetric, tabulated <code class="docutils literal notranslate"><span class="pre">moa1</span></code> values golden. Note: <code class="docutils literal notranslate"><span class="pre">disp</span> <span class="pre">on</span></code> does <em>not</em> switch dispersion on (only <code class="docutils literal notranslate"><span class="pre">anom</span></code> does). <code class="docutils literal notranslate"><span class="pre">hkl</span></code>, <code class="docutils literal notranslate"><span class="pre">layer</span></code> still open</p></td>
 <td><p>Options the API must expose</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">technique</span></code> (standard vs. NUFFT)</p></td>
-<td><p>Used once</p></td>
+<td><p><strong>NUFFT is wrong for small crystals on many grids</strong> (e.g. Ni 4×4×4, hk0 −3…3: R = 1.7, spurious maxima every 0.08–0.16 in h); exact for the 50×50 layer and some size/grid combinations. Known-failure test; the default technique is unaffected. Likely related to the rare broken Fourier result in <code class="docutils literal notranslate"><span class="pre">04.sro3</span></code>, which uses NUFFT</p></td>
 <td><p>The two methods should agree: a cheap consistency test</p></td>
 </tr>
 <tr class="row-odd"><td><p>Only <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">aver</span></code> and <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">technique</span></code> used</p></td>
-<td><p>–</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">lots</span></code> with <code class="docutils literal notranslate"><span class="pre">seed</span></code> covered: repeats exactly (1 and 4 threads), golden; ADPs covered. Filters, <code class="docutils literal notranslate"><span class="pre">symm</span></code> modes still open</p></td>
 <td><p>Check the other <code class="docutils literal notranslate"><span class="pre">set</span></code> options (filters, lots variants, ADPs)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">diff-four</span></code></p></td>
@@ -838,18 +838,22 @@ through the new runner, none of them passes today:</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">01.Simulation/export.mac</span></code> (9 checks)</p></td>
-<td><p>6 FAIL, 3 PASS</p></td>
-<td><p>SHELX and CIF exports differ from <code class="docutils literal notranslate"><span class="pre">Original/</span></code> in 2 atoms. Either the export changed (<strong>possible regression, needs a human look</strong>) or the reference files are outdated. The macro also writes <code class="docutils literal notranslate"><span class="pre">cmm2_export.rmc6f</span></code> but compares <code class="docutils literal notranslate"><span class="pre">cmm2_export.rmcf6</span></code> (typo)</p></td>
+<td><p>6 FAIL, 3 PASS (two of the passes are false)</p></td>
+<td><p>Re-checked: the CIF, VASP and POSCAR differences are format changes (version string, newer CIF symmetry block), not wrong atoms; the CIF round trip is exact (Python tests). The SHELX export <em>is</em> wrong (whole cell written with the space-group symmetry). The RMCProfile and SCATTY comparisons name files that do not exist (<code class="docutils literal notranslate"><span class="pre">.rmcf6</span></code> typo; <code class="docutils literal notranslate"><span class="pre">version:7</span></code> writes <code class="docutils literal notranslate"><span class="pre">.rmc6f.rmc7</span></code>), and <code class="docutils literal notranslate"><span class="pre">compare_files.mac</span></code> counts only <code class="docutils literal notranslate"><span class="pre">diff</span></code>’s output, so a missing file <strong>passes</strong>. The RMCProfile import check fails. Suggest: compare atoms instead of text, and make <code class="docutils literal notranslate"><span class="pre">compare_files.mac</span></code> fail on a missing file</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_2/sro.2.mac</span> <span class="pre">0.7,-0.7,1.5</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">01.Simulation/calculate.cell</span></code></p></td>
+<td><p>–</p></td>
+<td><p>Uses the legacy atom format (bare <code class="docutils literal notranslate"><span class="pre">atoms</span></code>, values separated by blanks) with <code class="docutils literal notranslate"><span class="pre">1./3.</span></code>. Only the comma format with a column header (<code class="docutils literal notranslate"><span class="pre">atoms</span> <span class="pre">x,</span> <span class="pre">y,</span> <span class="pre">z,</span> <span class="pre">Biso</span></code>) evaluates expressions; in the legacy format Fortran’s list-directed read stops at <code class="docutils literal notranslate"><span class="pre">/</span></code>, so DISCUS reads 1. and puts Co at (0,0,0) instead of (1/3,2/3,0), without a warning. Fix the file (decimals or comma format); consider making the legacy reader reject <code class="docutils literal notranslate"><span class="pre">/</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_2/sro.2.mac</span> <span class="pre">0.7,-0.7,1.5</span></code></p></td>
 <td><p>FAIL</p></td>
 <td><p>Commented out in <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code>; the result is outside its tolerance</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_MOLECULES/sro.2.mac</span> <span class="pre">0.7,-0.7,1.5</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_MOLECULES/sro.2.mac</span> <span class="pre">0.7,-0.7,1.5</span></code></p></td>
 <td><p>ABORTED: error opening a file</p></td>
 <td><p>Input file missing or renamed</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">08.Nanoparticle_example/Q/nano.mac</span> <span class="pre">30,</span> <span class="pre">zno</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">08.Nanoparticle_example/Q/nano.mac</span> <span class="pre">30,</span> <span class="pre">zno</span></code></p></td>
 <td><p>ABORTED: KUPLOT “Incompatible data sets for KCAL”</p></td>
 <td><p>Output format changed since the reference was made</p></td>
 </tr>

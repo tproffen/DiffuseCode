@@ -55,9 +55,9 @@ How the numbers are made, and their limits:
 
 | Gap | Today | Why it matters |
 |---|---|---|
-| Structure export/import: `export` (SHELX, CIF, RMCProfile, VASP …), `import` | Not reached. `01.Simulation/export.mac` exists with 9 checks but is **not** in `test_all.mac`, and it fails 6 of 9 (see 4.1) | The Python `Crystal` class must read and write the same files |
-| `save` options (`format`, `incl`, `omit`, `prop`, `asym` …) | 4 / 13 options | Round trip Python → Fortran → file |
-| `spacegroup`, `wyckoff`, `asym`, `symmetry` details | Not reached / 14 of 24 sub-commands | Space-group expansion is wrapped in WP3 |
+| Structure export/import: `export` (SHELX, CIF, RMCProfile, VASP …), `import` | **Covered** (`tests/python/test_wp3_structures.py`): CIF and RMCProfile export → import round trips give the same atoms; CIF also read by gemmi; VASP checked by parsing. **SHELX export is broken** (writes the whole cell *and* the symmetry; known-failure test). `01.Simulation/export.mac` itself still fails 6 of 9 (see 4.1) | The Python `Crystal` class must read and write the same files |
+| `save` options (`format`, `incl`, `omit`, `prop`, `asym` …) | `save` + `read stru` round trip covered (with molecules); other options still 4 / 13 | Round trip Python → Fortran → file |
+| `spacegroup`, `wyckoff`, `asym`, `symmetry` details | Space-group expansion **covered**: 10 structures (C2/c, Cmcm, Cmc2₁, Cmm2, F-43m, Pn-3m, Fm-3m, P4mm, P6₃/mmc, I4₁/amd CIF) agree site by site with gemmi; supercells checked. `wyckoff`, `asym`, `symmetry` still open. Found: in the legacy (blank-separated) atom format, fractions such as `1./3.` are silently misread; the comma format evaluates them (see 4.1) | Space-group expansion is wrapped in WP3 |
 | `transform` (new cell, origin shift) | No sub-commands reached | Cell transformations are part of the data model |
 | `d2r`, `r2d`, `index2cell`, `vprod` | Mostly not reached | Small metric helpers; cheap exact tests |
 | KUPLOT `load` formats (`csv`, `h5`, `nexus`, `mrc`, …), `ksave`, `dsave` | 3 / 16 formats | Data-file parity when I/O moves to h5py |
@@ -66,10 +66,10 @@ How the numbers are made, and their limits:
 
 | Gap | Today | Why it matters |
 |---|---|---|
-| Radiation and energy: `electron`, `energy` (instead of `wvle`) | Not reached | Every radiation type needs a golden result |
-| Anomalous dispersion `delf`, single `hkl`, `layer` | Not reached | Options the API must expose |
-| `set technique` (standard vs. NUFFT) | Used once | The two methods should agree: a cheap consistency test |
-| Only `set aver` and `set technique` used | – | Check the other `set` options (filters, lots variants, ADPs) |
+| Radiation and energy: `electron`, `energy` (instead of `wvle`) | **Covered** (`tests/python/test_wp4_fourier.py`): golden maps for X-rays, neutrons, electrons; `energy` = `wvle`; X-ray form factors within 1 % of IT92; Debye-Waller factor exact; fcc extinctions | Every radiation type needs a golden result |
+| Anomalous dispersion `delf`, single `hkl`, `layer` | `delf`/`disp anom` **covered**: Friedel pairs in ZnSe match the structure-factor prediction (0.5 %), nickel stays Friedel-symmetric, tabulated `moa1` values golden. Note: `disp on` does *not* switch dispersion on (only `anom` does). `hkl`, `layer` still open | Options the API must expose |
+| `set technique` (standard vs. NUFFT) | **NUFFT is wrong for small crystals on many grids** (e.g. Ni 4×4×4, hk0 −3…3: R = 1.7, spurious maxima every 0.08–0.16 in h); exact for the 50×50 layer and some size/grid combinations. Known-failure test; the default technique is unaffected. Likely related to the rare broken Fourier result in `04.sro3`, which uses NUFFT | The two methods should agree: a cheap consistency test |
+| Only `set aver` and `set technique` used | `lots` with `seed` covered: repeats exactly (1 and 4 threads), golden; ADPs covered. Filters, `symm` modes still open | Check the other `set` options (filters, lots variants, ADPs) |
 | `diff-four` | Not reached | |
 | Strong checks exist (R < 0.001 against `RESULTS/`) | 02.1d, 02.1d_periodic, 02.2d | Good model for the rest |
 
@@ -159,7 +159,8 @@ through the new runner, none of them passes today:
 
 | Macro | Result | Likely cause |
 |---|---|---|
-| `01.Simulation/export.mac` (9 checks) | 6 FAIL, 3 PASS | SHELX and CIF exports differ from `Original/` in 2 atoms. Either the export changed (**possible regression, needs a human look**) or the reference files are outdated. The macro also writes `cmm2_export.rmc6f` but compares `cmm2_export.rmcf6` (typo) |
+| `01.Simulation/export.mac` (9 checks) | 6 FAIL, 3 PASS (two of the passes are false) | Re-checked: the CIF, VASP and POSCAR differences are format changes (version string, newer CIF symmetry block), not wrong atoms; the CIF round trip is exact (Python tests). The SHELX export *is* wrong (whole cell written with the space-group symmetry). The RMCProfile and SCATTY comparisons name files that do not exist (`.rmcf6` typo; `version:7` writes `.rmc6f.rmc7`), and `compare_files.mac` counts only `diff`'s output, so a missing file **passes**. The RMCProfile import check fails. Suggest: compare atoms instead of text, and make `compare_files.mac` fail on a missing file |
+| `01.Simulation/calculate.cell` | – | Uses the legacy atom format (bare `atoms`, values separated by blanks) with `1./3.`. Only the comma format with a column header (`atoms x, y, z, Biso`) evaluates expressions; in the legacy format Fortran's list-directed read stops at `/`, so DISCUS reads 1. and puts Co at (0,0,0) instead of (1/3,2/3,0), without a warning. Fix the file (decimals or comma format); consider making the legacy reader reject `/` |
 | `04.SRO/SRO_2/sro.2.mac 0.7,-0.7,1.5` | FAIL | Commented out in `test_all.mac`; the result is outside its tolerance |
 | `04.SRO/SRO_MOLECULES/sro.2.mac 0.7,-0.7,1.5` | ABORTED: error opening a file | Input file missing or renamed |
 | `08.Nanoparticle_example/Q/nano.mac 30, zno` | ABORTED: KUPLOT "Incompatible data sets for KCAL" | Output format changed since the reference was made |

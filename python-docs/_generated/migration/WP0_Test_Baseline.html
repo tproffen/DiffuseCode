@@ -1121,6 +1121,63 @@ whole Python process, so after any <code class="docutils literal notranslate"><s
 user’s script pointed somewhere else. <code class="docutils literal notranslate"><span class="pre">Session.run()</span></code> now restores the
 caller’s working directory (test <code class="docutils literal notranslate"><span class="pre">test_working_directory_kept</span></code>).</p>
 </section>
+<section id="for-wp3-and-wp4-structures-and-single-crystal-fourier">
+<span id="06--07-for-wp3-and-wp4--structures-and-single-crystal-fourier"></span><h3>0.6 + 0.7 for WP3 and WP4 – structures and single-crystal Fourier<a class="headerlink" href="#for-wp3-and-wp4-structures-and-single-crystal-fourier" title="Link to this heading">#</a></h3>
+<p>Golden data and coverage for the first two work packages that will be
+rewired, checked against independent references wherever possible (new
+<code class="docutils literal notranslate"><span class="pre">tests/requirements.txt</span></code>: gemmi).</p>
+<p><code class="docutils literal notranslate"><span class="pre">tests/python/test_wp3_structures.py</span></code> (26 tests):</p>
+<ul class="simple">
+<li><p>Space-group expansion of 10 structures (monoclinic C2/c to cubic, origin
+choice 1, hexagonal, a CIF, one with molecules) agrees site by site with
+gemmi’s symmetry operations; the CIF cell parameters too.</p></li>
+<li><p>Supercells contain every unit-cell site exactly once per cell.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">save</span></code> → <code class="docutils literal notranslate"><span class="pre">read</span> <span class="pre">stru</span></code>, CIF and RMCProfile export → import round trips give
+the same atoms; DISCUS’s CIF read by gemmi gives the same cell; VASP export
+checked by parsing (metric, counts, coordinates).</p></li>
+<li><p>Known failure (strict xfail): SHELX export/import round trip.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">tests/python/test_wp4_fourier.py</span></code> (16 tests):</p>
+<ul class="simple">
+<li><p>fcc extinctions and equal intensities; Debye-Waller factor
+exp(−B|d*|²/2) to 1e-3; X-ray form factors within 1 % of IT92 (gemmi).</p></li>
+<li><p>Anomalous dispersion: Friedel pairs in ZnSe differ by the ratio the
+structure factor predicts (0.5 %); centrosymmetric nickel stays symmetric;
+without dispersion pairs are equal; tabulated <code class="docutils literal notranslate"><span class="pre">moa1</span></code> values (golden).</p></li>
+<li><p>Golden maps for X-rays, neutrons and electrons; <code class="docutils literal notranslate"><span class="pre">energy</span></code> = <code class="docutils literal notranslate"><span class="pre">wvle</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lots</span></code> with <code class="docutils literal notranslate"><span class="pre">seed</span></code>: repeats exactly with 1 and 4 threads; golden.</p></li>
+<li><p>NUFFT agrees with the standard technique for the 50×50 layer on the
+<code class="docutils literal notranslate"><span class="pre">04.sro3</span></code> grid; known failure (strict xfail) for small crystals.</p></li>
+</ul>
+<p><strong>Findings</strong> (details in <code class="docutils literal notranslate"><span class="pre">WP0_Test_Coverage_Gaps.md</span></code>):</p>
+<ol class="arabic simple">
+<li><p><strong>NUFFT gives wrong maps for small crystals</strong> on many grids (e.g. Ni
+4×4×4, hk0 −3…3: R = 1.7), but is exact for others (10×10 cells, the
+50×50 layer, a 9×9 grid over 0…4). The default technique is unaffected.
+Probably related to the rare Infinity/NaN map in <code class="docutils literal notranslate"><span class="pre">04.sro3</span></code>, which uses
+NUFFT. Needs fixing before WP4 wraps the technique option.</p></li>
+<li><p><strong>SHELX export</strong> writes every atom of the cell together with the
+space-group symmetry (and occupancy 0.5): re-reading CuO gives 32 atoms
+instead of 8.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">disp</span> <span class="pre">on</span></code> does not switch on anomalous dispersion</strong>; only <code class="docutils literal notranslate"><span class="pre">disp</span> <span class="pre">anom</span></code>
+does. Any macro using <code class="docutils literal notranslate"><span class="pre">disp</span> <span class="pre">on</span></code> silently gets no dispersion.</p></li>
+<li><p><strong>Fractions in the legacy atom format are silently misread.</strong> <code class="docutils literal notranslate"><span class="pre">.cell</span></code>
+files have two atom formats. The comma format with a column header
+(<code class="docutils literal notranslate"><span class="pre">atoms</span> <span class="pre">x,</span> <span class="pre">y,</span> <span class="pre">z,</span> <span class="pre">Biso</span></code> / <code class="docutils literal notranslate"><span class="pre">co</span> <span class="pre">1./3.,</span> <span class="pre">2./3.,</span> <span class="pre">0.0,</span> <span class="pre">1.0</span></code>) runs the values
+through the interpreter, so <code class="docutils literal notranslate"><span class="pre">1./3.</span></code> works. The legacy format (bare
+<code class="docutils literal notranslate"><span class="pre">atoms</span></code>, values separated by blanks) uses a list-directed read, which
+stops at <code class="docutils literal notranslate"><span class="pre">/</span></code>: <code class="docutils literal notranslate"><span class="pre">1./3.</span></code> becomes 1., without a warning. Mixing the two (bare
+<code class="docutils literal notranslate"><span class="pre">atoms</span></code> with commas, or a header with blanks) gives an error.
+<code class="docutils literal notranslate"><span class="pre">01.Simulation/calculate.cell</span></code> uses the legacy format and gets Co at
+(0,0,0) instead of (1/3,2/3,0).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">export.mac</span></code></strong>: its failures are mostly outdated reference files and
+typos; two checks pass falsely because <code class="docutils literal notranslate"><span class="pre">compare_files.mac</span></code> treats a
+missing file as “no differences”.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Crystal.atoms()</span></code> (Python) failed on structures with molecules; fixed.</p></li>
+</ol>
+<p>Checked: <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">tests/python</span></code> 80 passed, 2 known failures, the same with
+<code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code> 1 and 4.</p>
+</section>
 </section>
 </section>
 
@@ -1193,6 +1250,7 @@ caller’s working directory (test <code class="docutils literal notranslate"><s
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-seed-first-half-fixed">0.5a – <code class="docutils literal notranslate"><span class="pre">seed</span></code> (first half fixed)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seeded-monte-carlo-tests">0.5 – seeded Monte-Carlo tests</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#demo-api-single-crystal-fourier-and-pdf">Demo API: single-crystal Fourier and PDF</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#for-wp3-and-wp4-structures-and-single-crystal-fourier">0.6 + 0.7 for WP3 and WP4 – structures and single-crystal Fourier</a></li>
 </ul>
 </li>
 </ul>

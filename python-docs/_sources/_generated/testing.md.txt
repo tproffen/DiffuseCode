@@ -86,8 +86,17 @@ golden data in `tests/golden/<id>/`. `test_diffuse_api.py` tests the
 script `python/examples/powder_demo.py` (needs matplotlib). Build with `-DDIFFUSE_PYTHON=ON`, then:
 
 ```bash
+pip install -r tests/requirements.txt      # gemmi, for independent references
 DIFFUSE_PYTHON_PATH=/path/to/build/python pytest tests/python
 ```
+
+Besides the API tests, `test_wp3_structures.py` and `test_wp4_fourier.py`
+are the safety net for the WP3 (structures, I/O) and WP4 (single-crystal
+Fourier) work: they compare DISCUS with gemmi's space groups and form
+factors and with physical rules, and hold golden data. Tests marked
+`xfail(strict=True)` document known DISCUS bugs; they turn red when the bug
+is fixed, so the mark can be removed. Without gemmi the cross-checks are
+skipped.
 
 | Variable | Meaning |
 |---|---|

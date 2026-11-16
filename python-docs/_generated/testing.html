@@ -572,9 +572,17 @@ results as NumPy arrays, against the legacy <code class="docutils literal notran
 golden data in <code class="docutils literal notranslate"><span class="pre">tests/golden/&lt;id&gt;/</span></code>. <code class="docutils literal notranslate"><span class="pre">test_diffuse_api.py</span></code> tests the
 <code class="docutils literal notranslate"><span class="pre">diffuse</span></code> package (<code class="docutils literal notranslate"><span class="pre">python/diffuse/</span></code>, see <code class="docutils literal notranslate"><span class="pre">python/README.md</span></code>) and the demo
 script <code class="docutils literal notranslate"><span class="pre">python/examples/powder_demo.py</span></code> (needs matplotlib). Build with <code class="docutils literal notranslate"><span class="pre">-DDIFFUSE_PYTHON=ON</span></code>, then:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DIFFUSE_PYTHON_PATH</span><span class="o">=</span>/path/to/build/python<span class="w"> </span>pytest<span class="w"> </span>tests/python
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>tests/requirements.txt<span class="w">      </span><span class="c1"># gemmi, for independent references</span>
+<span class="nv">DIFFUSE_PYTHON_PATH</span><span class="o">=</span>/path/to/build/python<span class="w"> </span>pytest<span class="w"> </span>tests/python
 </pre></div>
 </div>
+<p>Besides the API tests, <code class="docutils literal notranslate"><span class="pre">test_wp3_structures.py</span></code> and <code class="docutils literal notranslate"><span class="pre">test_wp4_fourier.py</span></code>
+are the safety net for the WP3 (structures, I/O) and WP4 (single-crystal
+Fourier) work: they compare DISCUS with gemmi’s space groups and form
+factors and with physical rules, and hold golden data. Tests marked
+<code class="docutils literal notranslate"><span class="pre">xfail(strict=True)</span></code> document known DISCUS bugs; they turn red when the bug
+is fixed, so the mark can be removed. Without gemmi the cross-checks are
+skipped.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Variable</p></th>
