@@ -37,6 +37,8 @@ Useful options:
 | `--id '04.*'` | only tests whose id matches (repeatable) |
 | `--junit FILE`, `--json FILE` | machine-readable reports |
 | `--workdir DIR`, `--keep` | where copies and logs go; keep passing tests' copies too |
+| `--seed N`, `--no-seed` | tests tagged `mc` run with `seed N` (default 1234; a test's own `seed` in the manifest wins) on one OpenMP thread, so they repeat exactly; `--no-seed` runs them unseeded with their own thread settings |
+| `--retry-mc N` | re-run a failed test tagged `mc` up to N times; a pass on retry is reported as `flaky` (MMC ignores `seed`, WP0 0.5a) |
 | `--list` | show what would run |
 | `--check-test-all` | check that `manifest.toml` and `test_all.mac` list the same macros |
 
@@ -74,6 +76,41 @@ DISCUS_SUITE=/path/to/discus_suite pytest tests/python -m "not slow"
 ```
 
 Without `DISCUS_SUITE` only the manifest checks run.
+
+## 3. Python: `tests/python/test_suite_python.py`, `test_diffuse_api.py`
+
+Run DISCUS in-process through the f2py module `suite_python` and check the
+results as NumPy arrays, against the legacy `RESULTS/` files and against
+golden data in `tests/golden/<id>/`. `test_diffuse_api.py` tests the
+`diffuse` package (`python/diffuse/`, see `python/README.md`) and the demo
+script `python/examples/powder_demo.py` (needs matplotlib). Build with `-DDIFFUSE_PYTHON=ON`, then:
+
+```bash
+DIFFUSE_PYTHON_PATH=/path/to/build/python pytest tests/python
+```
+
+| Variable | Meaning |
+|---|---|
+| `DIFFUSE_PYTHON_PATH` | folder that holds `suite_python*.so` (`<build>/python`) |
+| `DIFFUSE_REQUIRE_PYTHON=1` | fail instead of skip if the module cannot be imported (used in CI) |
+| `DIFFUSE_UPDATE_GOLDEN=1` | write the golden files instead of comparing; review the diff before committing |
+
+To add a test, use the `suite` fixture (the session from `diffuse.session()`) or
+the `diffuse` functions directly. `suite.run(commands, folder)` runs
+macro text with `folder` as working directory and raises `MacroError` if a
+command fails; `suite.value("n[1]")` evaluates an expression;
+`suite.dataset(1)` / `suite.dataset_2d(1)` return KUPLOT data set 1. Load
+results into KUPLOT (`kuplot`, `rese`, `load ...`) to read them back.
+`compare.check_golden(id, name, r_max=..., axis..., result)` handles golden
+data. The Fortran state is global and shared by all tests in one pytest run,
+so start each calculation with the relevant `reset`.
+
+## CI
+
+`.github/workflows/tests.yml` builds with the Python module and runs the
+pytest tests, then the legacy tests tagged `fast` and `mc`, on every push to
+`claude-python-app` (and `claude/**` branches) and on pull requests into
+`claude-python-app`.
 
 ## Adding a test
 

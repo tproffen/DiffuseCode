@@ -1,0 +1,142 @@
+# Build DiffuseCode with the Python module and run the tests.
+#
+#   1. pytest tests/python   – diffuse package, suite_python, golden data, demo
+#   2. legacy macro tests     – tools/run_legacy_tests.py, tags fast and mc
+#   3. documentation          – Sphinx (docs/), uploaded as the "docs-html"
+#                               artifact; not published anywhere yet
+#
+# Development happens on claude-python-app until the first release of the
+# Python package; feature branches (claude/**) merge into it.
+name: tests
+
+on:
+  push:
+    branches: [claude-python-app, "claude/**"]
+  pull_request:
+    branches: [claude-python-app]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      FC: gfortran
+      CC: gcc
+      CXX: g++
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gfortran cmake make libfftw3-dev libhdf5-dev libreadline-dev \
+            libpng-dev libx11-dev zlib1g-dev pgplot5 xvfb \
+            python3-dev python3-numpy python3-pytest python3-matplotlib python3-venv
+
+      - name: Configure
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+                -DDIFFUSE_PYTHON=ON -DPGPLOT_DIR=/usr/lib/pgplot5 \
+                -DPYTHON_EXECUTABLE=/usr/bin/python3 -Wno-dev
+
+      - name: Build
+        run: cmake --build build -j "$(nproc)"
+
+      - name: Python tests (pytest)
+        env:
+          DIFFUSE_PYTHON_PATH: ${{ github.workspace }}/build/python
+          DIFFUSE_REQUIRE_PYTHON: "1"
+          MPLBACKEND: Agg
+        # DISCUS_SUITE is not set here, so the legacy macro tests inside
+        # pytest are skipped; the next step runs them in parallel.
+        run: python3 -m pytest tests/python -v --junitxml=pytest-results.xml
+
+      - name: Legacy macro tests
+        # Tests tagged mc run with "seed 1234" on one thread (repeatable). A
+        # failed mc test is still re-run: 04.sro3 rarely gets a broken Fourier
+        # result (WP0 log). A pass on retry is reported as flaky; a real break
+        # still fails.
+        run: |
+          python3 tools/run_legacy_tests.py \
+            --exe build/suite/prog/discus_suite -j "$(nproc)" \
+            --tags fast,mc --retry-mc 2 --junit legacy-results.xml --workdir legacy-work
+
+      - name: Documentation
+        if: success() || failure()
+        env:
+          DIFFUSE_PYTHON_PATH: ${{ github.workspace }}/build/python
+          MPLBACKEND: Agg
+        # Warnings are errors, so broken docstrings or links fail the build.
+        # --system-site-packages: use the apt NumPy/matplotlib that the
+        # compiled module was built against.
+        run: |
+          python3 -m venv --system-site-packages .venv-docs
+          .venv-docs/bin/pip install --quiet -r docs/requirements.txt
+          .venv-docs/bin/python -m sphinx -W --keep-going -b html docs docs/_build/html
+
+      - name: Upload documentation
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-html
+          path: docs/_build/html
+          if-no-files-found: ignore
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            pytest-results.xml
+            legacy-results.xml
+            legacy-work/**/*.log
+          if-no-files-found: ignore
+
+  # Publish the docs to https://tproffen.github.io/DiffuseCode/python-docs/
+  # The gh-pages branch is the DISCUS homepage: tools/publish_docs.sh only
+  # replaces python-docs/ (plus an empty .nojekyll at the root) and refuses
+  # to publish if anything else would change.
+  publish-docs:
+    needs: linux
+    if: github.event_name == 'push' && github.ref == 'refs/heads/claude-python-app'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    concurrency:
+      group: publish-docs
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docs-html
+          path: docs-html
+
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Put the docs into gh-pages/python-docs
+        run: tools/publish_docs.sh docs-html gh-pages
+
+      - name: Commit and push
+        working-directory: gh-pages
+        run: |
+          if git diff --cached --quiet; then
+            echo "Docs unchanged."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Python docs from ${GITHUB_SHA::7} (claude-python-app)"
+          git push origin HEAD:gh-pages

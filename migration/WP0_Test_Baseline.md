@@ -162,15 +162,16 @@ tests/                       # existing macro tests stay where they are
   test_all.mac               # kept for interactive use (unchanged)
   manifest.toml              # [done] list of tests (TOML: read by Python's standard library)
   README.md                  # [done] how to run the tests
-  golden/                    # 0.6: reference outputs, one folder per test id
+  golden/                    # 0.6: [started] reference outputs, one folder per test id
   python/                    # pytest harness
     conftest.py              #   [done] registers the manifest tags as markers
     test_legacy_macros.py    #   [done] one test per manifest entry + manifest checks
-    compare.py               #   0.6: numeric comparisons (R-value, max-abs, atom sets)
+    compare.py               #   [started] R-value, golden .npz read/write (0.6)
+    test_suite_python.py     #   [done] in-process Python tests against RESULTS/ and golden/
 tools/
   run_legacy_tests.py        # [done] runner -> console table, JUnit XML, JSON
 .github/workflows/
-  legacy-tests.yml           # 0.9: build + run on every push to claude-python-app
+  tests.yml                  # [done] 0.9: build + pytest + legacy tests on claude-python-app
 ```
 
 ### Tasks
@@ -186,7 +187,7 @@ tools/
 | 0.6 | **Golden data capture** | For each test, copy key outputs (intensities, powder, PDF, 3D-PDF, final structure/CIF, histograms) into `tests/golden/<id>/` with a `meta.json` (DiffuseCode version, git commit, compiler, flags, date). Python compares with NumPy (R-value, max-abs, atom-set match) using tolerances from the manifest. Keep the macro self-checks as a second line of defence. | Every test has at least one golden numeric output | 3–4 d |
 | 0.7 | **Coverage expansion** | Confirm the uncovered-command list from 1.3, then add short, deterministic tests for the commands that WP3–WP8 will wrap first: space-group expansion / `wyckoff`, `patterson`, `inverse`, `rmc`, `molecularize`/`demolecularize`, `perioditize`, `storage`/`super`, `bragg`, and kuplot `fit`. | All commands planned for WP3–WP8 have at least one test | 5–8 d |
 | 0.8 | **Build fixes** | Make `suite/prog/CMakeLists.txt` honour `DIFFUSE_GRAPHICS`. Make the PGPLOT install paths configurable / optional. Drop the hard `FC` requirement in favour of CMake's normal compiler detection. | `cmake -DDIFFUSE_GRAPHICS=OFF` builds and the suite passes | 1–2 d |
-| 0.9 | **CI** | GitHub Actions on `ubuntu-24.04`: apt (gfortran, FFTW, HDF5, readline, PNG, X11, pgplot5, xvfb), build, run `tools/run_legacy_tests.py --tags fast,mc`, upload JUnit + logs. Nightly job for `slow`/`mpi`. Add a macOS job once Linux is stable. | Red/green status on every push to `claude-python-app` | 1–2 d |
+| 0.9 ✅ | **CI** | GitHub Actions on `ubuntu-24.04`: apt (gfortran, FFTW, HDF5, readline, PNG, X11, pgplot5, xvfb), build, run `tools/run_legacy_tests.py --tags fast,mc`, upload JUnit + logs. Nightly job for `slow`/`mpi`. Add a macOS job once Linux is stable. | Red/green status on every push to `claude-python-app` | 1–2 d |
 | 0.10 | **Repo hygiene** | Run `cleanup.mac` logic, remove committed generated outputs, add a `.gitignore` for them, and keep only inputs + `RESULTS/` + `golden/`. Consider Git LFS for golden files larger than ~1 MB. | `git status` is clean after a test run | 1 d |
 
 **Total: about 4–6 weeks for one developer.** That fits the "months 0–3"
@@ -278,3 +279,137 @@ Checked:
 | Display already taken | retried on another display, PASS |
 | Runner and pytest at the same time | all pass; no display clashes |
 | `test_all.mac` (interactive mode) | all 13 sections SUCCESS |
+
+### 0.9 (and start of 0.6) – CI and Python-interface tests
+
+* **Build fix:** `python/CMakeLists.txt` linked `experi_all` after
+  `discus_all`. `experi_kdo` calls `exp3_pdf`, so the f2py module built but
+  failed on import with `undefined symbol: __exp3_pdf_menu_MOD_exp3_pdf`.
+  `experi_all` now comes first.
+* A test helper wraps `suite_python` (now `diffuse.session()`, see below). `run()`
+  writes a driver macro that `cd`s into the test folder (the suite keeps its
+  own working directory, so `os.chdir` is not enough) and sets `r[499]` on
+  its last line. A command error ends the whole macro run, so a flag that is
+  not set raises `MacroError`. `dataset()` / `dataset_2d()` return KUPLOT
+  data sets as NumPy arrays.
+* `tests/python/test_suite_python.py`: expressions, error detection, crystal
+  build, 1-D Fourier, 2-D Fourier and Debye powder, run in-process. The
+  1-D Fourier and powder results are compared with the legacy `RESULTS/`
+  files (R < 1e-3; actual about 1e-6) and all three with golden data.
+* `tests/python/compare.py` and `tests/golden/<id>/` (`.npz` + `meta.json`):
+  first golden data for `02.1d`, `02.2d`, `02.powder`. Rewrite with
+  `DIFFUSE_UPDATE_GOLDEN=1`.
+* `.github/workflows/tests.yml`: Ubuntu 24.04, apt dependencies, build with
+  `-DDIFFUSE_PYTHON=ON`, then pytest (`DIFFUSE_REQUIRE_PYTHON=1`, so a broken
+  module fails instead of skipping), then the legacy runner with
+  `--tags fast,mc`. JUnit XML and logs are uploaded.
+
+Limits of the f2py module that the tests work around (to fix in WP2):
+`execute_macro` reports errors only as text; `set_value` only works on
+user-defined variables, not `r[]`; data come back as single precision.
+
+Checked (gfortran 13, 4 cores):
+
+| Run | Result |
+|---|---|
+| `pytest tests/python`, `OMP_NUM_THREADS` 1 and 4 | 9 passed (33 legacy macro tests skipped, no `DISCUS_SUITE`), under 1 s |
+| Same build, `run_legacy_tests.py -j 4 --tags fast,mc` | 29 PASS, 1 RAN, 2 SKIPPED |
+
+### Demo API: `python/diffuse/` (ahead of WP3/WP5)
+
+A first Python package for the demo, built on `suite_python`:
+`read_structure()` (CIF, `.cell`, `.stru`, with supercells), `Crystal.atoms()`,
+`powder()` returning NumPy arrays, `PowderPattern.plot()` with matplotlib,
+and `run_macro()` for everything else. See `python/README.md`.
+
+* The test helper moved into the package (`diffuse/_session.py`), and the
+  `suite` fixture now returns `diffuse.session()`. The session also captures
+  DISCUS output (stdout/stderr go to a temporary file during each call, with
+  `GFORTRAN_UNBUFFERED_PRECONNECTED=y` so nothing is flushed late), and
+  `MacroError` carries the `***` error lines.
+* `n[]` and `lat[]` are only defined inside the `discus` section; the read
+  macro copies them to `r[490]`–`r[496]`, which are reserved for the package
+  (`r[499]` is the completion flag).
+* Reading a CIF makes DISCUS write a `.stru` file next to the input, so
+  inputs are copied to a scratch folder first.
+* `python/examples/powder_demo.py`: anatase from `anatase.cif` (COD 1010942),
+  X-ray vs neutron and crystal-size broadening, saved as a PNG. Peak positions
+  were checked against the allowed I4₁/amd reflections ((101) strongest for
+  X-rays at Q = 1.81 Å⁻¹).
+* `tests/python/test_diffuse_api.py`: 12 tests (reading, supercells, errors,
+  powder grid and (101) position, X-ray/neutron golden data, reloading an
+  older `Crystal`, plotting, the demo script). CI installs matplotlib.
+
+Checked: `pytest tests/python` gives 21 passed (33 legacy macro tests skipped
+without `DISCUS_SUITE`), about 2 s, with `OMP_NUM_THREADS` 1 and 4.
+
+### Flaky Monte-Carlo test in CI
+
+CI run 2 failed on `04.sro3` (FAIL from its own check) with exactly the code
+that passed in run 1; locally it passed 8 times in a row. MMC does not use
+the value set with `seed` (known bug, task 0.5a), so tests tagged `mc` are
+random and checked against statistical limits (R < 0.38, correlations
+within ±0.08), and they can fail by chance.
+
+Until 0.5a is fixed, `run_legacy_tests.py --retry-mc N` re-runs a failed
+`mc` test up to N times. A pass on retry is counted as PASS, with the
+message `flaky: passed on retry k; first run ...` in the summary and the
+JUnit report. A real regression fails every attempt, and the run still
+fails. CI uses `--retry-mc 2`. Once `seed` works, the `mc` tests should get
+fixed seeds and the retry should be removed.
+
+### 0.5a – `seed` (first half fixed)
+
+**Cause 1 (fixed): `seed` set only part of the generator state.** DISCUS uses
+the Fortran intrinsic `random_number`. gfortran's state has 8 integers
+(`random_seed(size=...)`). `ini_ran_ix` (`lib_f90/random_state_mod.f90`)
+copied only the values the user gave (`seed 1234` gives one) and left the
+other words at their clock-based values from start-up, so every run was
+different. The remaining words are now derived from the user's values.
+
+**Cause 2 (open): OpenMP.** With threads, MMC is still not reproducible.
+`random_number` keeps one state per thread, and `random_seed(put=...)` only
+resets the calling thread's; the worker threads keep their own. The threads
+also change the shared crystal while others evaluate their moves, so the
+result depends on timing. A fix needs per-thread streams seeded from the
+`seed` value, plus a fixed order for applying the moves.
+
+Checked with `04.SRO/SRO_0/sro.0.mac 0.7,1.5`, `seed` directly before the
+macro, comparing `example0.stru`:
+
+| Setting | Same seed twice | Different seed |
+|---|---|---|
+| before the fix, `useomp:serial` | different | – |
+| after the fix, `useomp:serial` | **identical** | different |
+| after the fix, `nthreads:4` | different (cause 2) | different |
+
+The earlier test (section 1.3, finding 4) used `OMP_NUM_THREADS=1`, but the
+SRO macros call `set parallel, nthreads:all`, which overrides it, so that
+run was threaded. After the fix, `pytest tests/python` and the legacy runner
+(`--tags fast,mc`) pass as before.
+
+### 0.5 – seeded Monte-Carlo tests
+
+`run_legacy_tests.py` now runs every test tagged `mc` with `seed 1234` (option
+`--seed`, or a test's own `seed` in the manifest) and with
+`OMP_THREAD_LIMIT=1`. The limit also caps `set parallel, nthreads:all` in the
+SRO macros (DISCUS reports "maximum threads 1"). `--no-seed` gives the old
+behaviour. Seeded tests run on one thread, so the `exclusive` tests no longer
+need to run alone.
+
+Checked by running all 16 enabled `mc` tests twice (`--keep`) and comparing
+every output file: **byte-identical** in both runs, apart from the generated
+driver macro (it contains the work-folder path) and one `04.sro3` run, see
+below. All pass with seed 1234.
+
+**New finding: rare broken Fourier result in `04.sro3`.** In one of the two
+runs, `04.sro3` aborted. Its MC structure (`example3.stru`) was identical
+to the other run's, but the Fourier step (`fourier.mac`: random `lots`
+plus `set technique:nufft`) wrote 1530 `Infinity` values and blocks of zeros
+to `example3.inte`, and NaN to `example3.3DPDF`; `kex3.mac` then failed on
+`zmax[3]`. 14 more seeded runs (6 serial, 8 with 4 at a time) all gave the
+same correct result, so it is rare (1 in about 17 so far). It may also
+explain the original CI failure of `04.sro3` (run 2). Needs its own
+investigation: uninitialised memory or a race in the lots/NUFFT path are
+candidates. Until then, CI keeps `--retry-mc 2`.
+

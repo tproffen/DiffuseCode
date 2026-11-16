@@ -112,6 +112,13 @@ ELSE                                 ! more than one value or non-zero value
    DO i=1, MIN(np,nseeds)            ! Loop over all seeds or all provided values
       seed_vals(i) = iwerte(i)
    ENDDO
+!  The compiler's generator state usually has more words than the user gave
+!  (gfortran: 8). Fill the rest from the user's values, so that the same
+!  "seed" command always gives the same sequence. Before, these words kept
+!  their clock-based values from the start-up initialisation.
+   DO i=np+1, nseeds
+      seed_vals(i) = 2*MOD(IABS(iwerte(MOD(i-1,np)+1))+INIT(1)*i, INIT(2)) - INIT(2) + i
+   ENDDO
    CALL RANDOM_SEED(PUT=seed_vals)
 !  idum = 0                      ! User provided three numbers
 ENDIF

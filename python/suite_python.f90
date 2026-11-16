@@ -34,6 +34,7 @@ PUBLIC get_data_3d         ! Gets 3d data from DISCUS
 PUBLIC get_data_length     ! Returns length of KUPLOT data set ik
 PUBLIC get_data_sets       ! Returns number of loaded KUPLOT data sets
 public python_error
+PUBLIC flush_output       ! Flush the Fortran output units (for Python output capture)
 !
 CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -317,5 +318,26 @@ WRITE(error_io,1500) TRIM(color_err),'ER_PYTH',error(num),num,TRIM(color_fg)
 1500  FORMAT(a,' ***',a,'*** ',a45,' ***',i4,' ***',a)
 !
 END SUBROUTINE python_error
+!
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE flush_output()
+!
+!  Write out anything the Fortran runtime still holds for the output and
+!  error units. Python redirects these file descriptors to capture the
+!  text; buffered output would otherwise appear later, outside the capture.
+!
+USE prompt_mod
+USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY: OUTPUT_UNIT, ERROR_UNIT
+!
+IMPLICIT NONE
+!
+FLUSH(OUTPUT_UNIT)
+FLUSH(ERROR_UNIT)
+IF(output_io /= OUTPUT_UNIT .AND. output_io /= ERROR_UNIT) FLUSH(output_io)
+IF(error_io  /= OUTPUT_UNIT .AND. error_io  /= ERROR_UNIT) FLUSH(error_io)
+!
+END SUBROUTINE flush_output
 !
 END MODULE suite
