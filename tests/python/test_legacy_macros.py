@@ -65,7 +65,7 @@ def workdir():
 def test_macro(test, workdir):
     opts = argparse.Namespace(
         xvfb=not os.environ.get("DISPLAY") and runner.shutil.which("xvfb-run") is not None,
-        omp_threads=None, timeout_scale=1.0, keep=False)
+        omp_threads=None, timeout_scale=1.0, keep=False, seed=runner.DEFAULT_SEED)
     displays = runner.queue.Queue()
     displays.put(100 + (os.getpid() % 100) * 8)
     r = runner.run_one(test, EXE, workdir, displays, opts)
