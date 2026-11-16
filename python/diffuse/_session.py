@@ -68,12 +68,21 @@ def _import_suite_python():
 
 
 class _Capture:
-    """Send file descriptors 1 and 2 to a temporary file."""
+    """Send file descriptors 1 and 2 to a temporary file.
 
-    def __init__(self):
+    ``flush`` writes out what the Fortran runtime still buffers. Setting
+    GFORTRAN_UNBUFFERED_PRECONNECTED is not enough on its own: libgfortran
+    reads it once, when it is first loaded, and NumPy (through OpenBLAS) may
+    have loaded it before this module.
+    """
+
+    def __init__(self, flush=None):
         self.text = ""
+        self._flush = flush
 
     def __enter__(self):
+        if self._flush is not None:
+            self._flush()               # output from before the capture
         sys.stdout.flush()
         sys.stderr.flush()
         self._file = tempfile.TemporaryFile(mode="w+b")
@@ -83,6 +92,8 @@ class _Capture:
         return self
 
     def __exit__(self, *exc):
+        if self._flush is not None:
+            self._flush()
         os.dup2(self._saved[0], 1)
         os.dup2(self._saved[1], 2)
         for fd in self._saved:
@@ -104,9 +115,15 @@ class Session:
         self._workdir = Path(tempfile.mkdtemp(prefix="diffuse_"))
         atexit.register(shutil.rmtree, self._workdir, ignore_errors=True)
         self.current_crystal = None      # the Crystal now held by DISCUS
-        with _Capture() as cap:
+        # flush_output() is in suite_python.f90 since the demo API; builds
+        # without it rely on GFORTRAN_UNBUFFERED_PRECONNECTED alone.
+        self._flush = getattr(self._s, "flush_output", None)
+        with self._capture() as cap:
             self._s.initialize_suite()
         self._show(cap.text)
+
+    def _capture(self) -> _Capture:
+        return _Capture(self._flush)
 
     def _show(self, text: str) -> None:
         self.last_output = text
@@ -130,7 +147,7 @@ class Session:
             f"{FLAG} = 0\n"
             f"{commands.strip()}\n"
             f"{FLAG} = 1\n")
-        with _Capture() as cap:
+        with self._capture() as cap:
             self._s.execute_macro("@" + str(driver))
             ok = self._s.get_value(FLAG) == 1.0
         self._show(cap.text)
@@ -142,7 +159,7 @@ class Session:
 
     def value(self, expression: str) -> float:
         """Value of a DISCUS expression, e.g. ``n[1]`` or ``lat[1]``."""
-        with _Capture() as cap:
+        with self._capture() as cap:
             v = float(self._s.get_value(expression))
         if "***" in cap.text:
             raise MacroError(f"cannot evaluate '{expression}':\n  " + cap.text.strip(), cap.text)
