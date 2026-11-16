@@ -736,6 +736,306 @@ grid, for periodic crystals.</p></li>
 </dd></dl>
 
 </section>
+<section id="single-crystal-diffraction">
+<h2>Single-crystal diffraction<a class="headerlink" href="#single-crystal-diffraction" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="diffuse.fourier">
+<span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">fourier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crystal</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ll</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(201,</span> <span class="pre">201)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radiation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xray'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtract_average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/fourier.html#fourier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.fourier" title="Link to this definition">#</a></dt>
+<dd><p>Calculate single-crystal intensities on a line or plane with DISCUS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crystal</strong> (<a class="reference internal" href="#diffuse.Crystal" title="diffuse.Crystal"><em>Crystal</em></a>) – The structure, from <a class="reference internal" href="#diffuse.read_structure" title="diffuse.read_structure"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_structure()</span></code></a>.</p></li>
+<li><p><strong>ll</strong> (<em>sequence</em><em> of </em><em>3 float</em>) – Lower-left and lower-right corner (h, k, l); the abscissa runs from
+<code class="docutils literal notranslate"><span class="pre">ll</span></code> to <code class="docutils literal notranslate"><span class="pre">lr</span></code>.</p></li>
+<li><p><strong>lr</strong> (<em>sequence</em><em> of </em><em>3 float</em>) – Lower-left and lower-right corner (h, k, l); the abscissa runs from
+<code class="docutils literal notranslate"><span class="pre">ll</span></code> to <code class="docutils literal notranslate"><span class="pre">lr</span></code>.</p></li>
+<li><p><strong>ul</strong> (<em>sequence</em><em> of </em><em>3 float</em><em>, </em><em>optional</em>) – Upper-left corner; the ordinate runs from <code class="docutils literal notranslate"><span class="pre">ll</span></code> to <code class="docutils literal notranslate"><span class="pre">ul</span></code>. Leave it
+out for a line.</p></li>
+<li><p><strong>npoints</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>(</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>)</em>) – Number of points along the abscissa and the ordinate (a plain int
+for a line, or the same along both axes of a plane).</p></li>
+<li><p><strong>radiation</strong> (<em>{&quot;xray&quot;</em><em>, </em><em>&quot;neutron&quot;</em><em>, </em><em>&quot;electron&quot;}</em>) – Radiation type; selects the atomic form factors or scattering lengths.</p></li>
+<li><p><strong>wavelength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>optional</em>) – Wavelength in Å. Default: DISCUS’s current setting.</p></li>
+<li><p><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Apply the atomic displacement parameters.</p></li>
+<li><p><strong>subtract_average</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Percentage (0–100) of the average structure’s scattering to subtract.
+100 removes the Bragg peaks of the average structure and leaves the
+diffuse scattering of a disordered crystal.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>FourierMap</em></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – For an unknown <code class="docutils literal notranslate"><span class="pre">radiation</span></code>, bad corners or point counts.</p></li>
+<li><p><a class="reference internal" href="#diffuse.MacroError" title="diffuse.MacroError"><strong>MacroError</strong></a> – If the calculation fails inside DISCUS.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#diffuse.FourierMap" title="diffuse.fourier.FourierMap"><em>FourierMap</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>The hk0 plane from -3 to 3 in h and k:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">fourier</span><span class="p">(</span><span class="n">cr</span><span class="p">,</span> <span class="n">ll</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">lr</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">ul</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<span class="gp">... </span>               <span class="n">npoints</span><span class="o">=</span><span class="p">(</span><span class="mi">301</span><span class="p">,</span> <span class="mi">301</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="diffuse.FourierMap">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">FourierMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ll</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ul</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crystal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/fourier.html#FourierMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.FourierMap" title="Link to this definition">#</a></dt>
+<dd><p>Intensities on a line or plane in reciprocal space. See <a class="reference internal" href="#diffuse.fourier" title="diffuse.fourier"><code class="xref py py-func docutils literal notranslate"><span class="pre">fourier()</span></code></a>.</p>
+<p>The points are <code class="docutils literal notranslate"><span class="pre">ll</span> <span class="pre">+</span> <span class="pre">i/(na-1)</span> <span class="pre">*</span> <span class="pre">(lr</span> <span class="pre">-</span> <span class="pre">ll)</span> <span class="pre">+</span> <span class="pre">j/(no-1)</span> <span class="pre">*</span> <span class="pre">(ul</span> <span class="pre">-</span> <span class="pre">ll)</span></code> for
+<code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">&lt;</span> <span class="pre">na</span></code> along the abscissa and <code class="docutils literal notranslate"><span class="pre">j</span> <span class="pre">&lt;</span> <span class="pre">no</span></code> along the ordinate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>intensity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>)</p></li>
+<li><p><strong>ll</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>)</p></li>
+<li><p><strong>lr</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>)</p></li>
+<li><p><strong>ul</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>)</p></li>
+<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>)</p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>)</p></li>
+<li><p><strong>x_label</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
+<li><p><strong>y_label</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
+<li><p><strong>settings</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a>)</p></li>
+<li><p><strong>crystal</strong> (<a class="reference internal" href="#diffuse.Crystal" title="diffuse.crystal.Crystal"><em>Crystal</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.FourierMap.intensity">
+<span class="sig-name descname"><span class="pre">intensity</span></span><a class="headerlink" href="#diffuse.FourierMap.intensity" title="Link to this definition">#</a></dt>
+<dd><p>Shape <code class="docutils literal notranslate"><span class="pre">(na,</span> <span class="pre">no)</span></code> for a plane, <code class="docutils literal notranslate"><span class="pre">(na,)</span></code> for a line; index 0 runs
+along the abscissa (<code class="docutils literal notranslate"><span class="pre">ll</span></code> to <code class="docutils literal notranslate"><span class="pre">lr</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">ll,</span> <span class="pre">lr,</span> <span class="pre">ul</span></span></dt>
+<dd><p>Corners in reciprocal-lattice units (h, k, l): lower left, lower
+right, upper left.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">x,</span> <span class="pre">y</span></span></dt>
+<dd><p>Axis values used for plotting: the Miller index that changes most
+along each axis (named in <code class="docutils literal notranslate"><span class="pre">x_label</span></code>, <code class="docutils literal notranslate"><span class="pre">y_label</span></code>). <code class="docutils literal notranslate"><span class="pre">y</span></code> is empty
+for a line.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.FourierMap.settings">
+<span class="sig-name descname"><span class="pre">settings</span></span><a class="headerlink" href="#diffuse.FourierMap.settings" title="Link to this definition">#</a></dt>
+<dd><p>The arguments the map was calculated with.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.FourierMap.crystal">
+<span class="sig-name descname"><span class="pre">crystal</span></span><a class="headerlink" href="#diffuse.FourierMap.crystal" title="Link to this definition">#</a></dt>
+<dd><p>The structure it was calculated for.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#diffuse.Crystal" title="diffuse.Crystal">Crystal</a> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="diffuse.FourierMap.is_line">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_line</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><a class="headerlink" href="#diffuse.FourierMap.is_line" title="Link to this definition">#</a></dt>
+<dd><p>True for a 1-D line, False for a 2-D plane.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diffuse.FourierMap.hkl">
+<span class="sig-name descname"><span class="pre">hkl</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/fourier.html#FourierMap.hkl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.FourierMap.hkl" title="Link to this definition">#</a></dt>
+<dd><p>Reciprocal-space coordinates (h, k, l) of every point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>numpy.ndarray</em> – Shape <code class="docutils literal notranslate"><span class="pre">(na,</span> <span class="pre">3)</span></code> for a line, <code class="docutils literal notranslate"><span class="pre">(na,</span> <span class="pre">no,</span> <span class="pre">3)</span></code> for a plane.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diffuse.FourierMap.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/fourier.html#FourierMap.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.FourierMap.plot" title="Link to this definition">#</a></dt>
+<dd><p>Plot the map (image) or line with matplotlib.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.11.2)"><em>matplotlib.axes.Axes</em></a><em>, </em><em>optional</em>) – Axes to draw into. Default: a new figure.</p></li>
+<li><p><strong>log</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Logarithmic intensity scale (zero intensities are masked).</p></li>
+<li><p><strong>dynamic_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – With <code class="docutils literal notranslate"><span class="pre">log</span></code>, show intensities down to <code class="docutils literal notranslate"><span class="pre">max</span> <span class="pre">/</span> <span class="pre">dynamic_range</span></code>.
+Finite crystals have fringes many decades below the peaks;
+without a limit they would swamp the map.</p></li>
+<li><p><strong>cmap</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Colour map for a plane.</p></li>
+<li><p><strong>**kwargs</strong> – Passed on to <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.imshow.html#matplotlib.axes.Axes.imshow" title="(in Matplotlib v3.11.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">imshow()</span></code></a> (plane) or
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html#matplotlib.axes.Axes.plot" title="(in Matplotlib v3.11.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot()</span></code></a> (line).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>matplotlib.axes.Axes</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="pair-distribution-function">
+<h2>Pair distribution function<a class="headerlink" href="#pair-distribution-function" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="diffuse.pdf">
+<span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crystal</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radiation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xray'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qbroad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thermal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrlin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrquad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_diameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/pdf.html#pdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.pdf" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the pair distribution function G(r) of a crystal with DISCUS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crystal</strong> (<a class="reference internal" href="#diffuse.Crystal" title="diffuse.Crystal"><em>Crystal</em></a>) – The structure, from <a class="reference internal" href="#diffuse.read_structure" title="diffuse.read_structure"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_structure()</span></code></a>.</p></li>
+<li><p><strong>rmax</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Largest distance and step in Å.</p></li>
+<li><p><strong>dr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Largest distance and step in Å.</p></li>
+<li><p><strong>radiation</strong> (<em>{&quot;xray&quot;</em><em>, </em><em>&quot;neutron&quot;</em><em>, </em><em>&quot;electron&quot;}</em>) – Weights the atom pairs by scattering power.</p></li>
+<li><p><strong>qmax</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Qmax in Å⁻¹ of the termination ripples to include; 0 means none.</p></li>
+<li><p><strong>qdamp</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Instrumental damping and resolution broadening (as in PDFgui).</p></li>
+<li><p><strong>qbroad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Instrumental damping and resolution broadening (as in PDFgui).</p></li>
+<li><p><strong>thermal</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Broaden each pair by a Gaussian from the displacement parameters.
+False gives sharp, histogram-like peaks.</p></li>
+<li><p><strong>corrlin</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Linear and quadratic correlated-motion corrections (peak sharpening
+at small r); only with <code class="docutils literal notranslate"><span class="pre">thermal=True</span></code>.</p></li>
+<li><p><strong>corrquad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Linear and quadratic correlated-motion corrections (peak sharpening
+at small r); only with <code class="docutils literal notranslate"><span class="pre">thermal=True</span></code>.</p></li>
+<li><p><strong>particle_diameter</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>optional</em>) – Treat the crystal as a finite spherical particle of this diameter in
+Å (no periodic boundaries; the -4πρ₀r baseline is corrected for a
+sphere). Default: an infinite crystal with periodic boundaries.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>PDFPattern</em></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – For an unknown <code class="docutils literal notranslate"><span class="pre">radiation</span></code> or invalid ranges.</p></li>
+<li><p><a class="reference internal" href="#diffuse.MacroError" title="diffuse.MacroError"><strong>MacroError</strong></a> – If the calculation fails inside DISCUS.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#diffuse.PDFPattern" title="diffuse.pdf.PDFPattern"><em>PDFPattern</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">cr</span><span class="p">,</span> <span class="n">rmax</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">qmax</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="diffuse.PDFPattern">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">PDFPattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crystal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/pdf.html#PDFPattern"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.PDFPattern" title="Link to this definition">#</a></dt>
+<dd><p>A calculated pair distribution function. See <a class="reference internal" href="#diffuse.pdf" title="diffuse.pdf"><code class="xref py py-func docutils literal notranslate"><span class="pre">pdf()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>)</p></li>
+<li><p><strong>G</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>)</p></li>
+<li><p><strong>settings</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a>)</p></li>
+<li><p><strong>crystal</strong> (<a class="reference internal" href="#diffuse.Crystal" title="diffuse.crystal.Crystal"><em>Crystal</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.PDFPattern.r">
+<span class="sig-name descname"><span class="pre">r</span></span><a class="headerlink" href="#diffuse.PDFPattern.r" title="Link to this definition">#</a></dt>
+<dd><p>Distance r in Å.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.PDFPattern.G">
+<span class="sig-name descname"><span class="pre">G</span></span><a class="headerlink" href="#diffuse.PDFPattern.G" title="Link to this definition">#</a></dt>
+<dd><p>G(r) = 4πr(ρ(r) − ρ₀) in Å⁻².</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.PDFPattern.settings">
+<span class="sig-name descname"><span class="pre">settings</span></span><a class="headerlink" href="#diffuse.PDFPattern.settings" title="Link to this definition">#</a></dt>
+<dd><p>The arguments it was calculated with.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.PDFPattern.crystal">
+<span class="sig-name descname"><span class="pre">crystal</span></span><a class="headerlink" href="#diffuse.PDFPattern.crystal" title="Link to this definition">#</a></dt>
+<dd><p>The structure it was calculated for.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#diffuse.Crystal" title="diffuse.Crystal">Crystal</a> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diffuse.PDFPattern.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/pdf.html#PDFPattern.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.PDFPattern.plot" title="Link to this definition">#</a></dt>
+<dd><p>Plot G(r) with matplotlib.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.11.2)"><em>matplotlib.axes.Axes</em></a><em>, </em><em>optional</em>) – Axes to draw into. Default: a new figure.</p></li>
+<li><p><strong>**kwargs</strong> – Passed on to <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html#matplotlib.axes.Axes.plot" title="(in Matplotlib v3.11.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">matplotlib.axes.Axes.plot()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>matplotlib.axes.Axes</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="running-discus-directly">
 <h2>Running DISCUS directly<a class="headerlink" href="#running-discus-directly" title="Link to this heading">#</a></h2>
 <dl class="py function">
@@ -942,6 +1242,31 @@ the text DISCUS wrote during the failed call.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.PowderPattern.crystal"><code class="docutils literal notranslate"><span class="pre">PowderPattern.crystal</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.PowderPattern.two_theta"><code class="docutils literal notranslate"><span class="pre">PowderPattern.two_theta()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.PowderPattern.plot"><code class="docutils literal notranslate"><span class="pre">PowderPattern.plot()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-crystal-diffraction">Single-crystal diffraction</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.fourier"><code class="docutils literal notranslate"><span class="pre">fourier()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.FourierMap"><code class="docutils literal notranslate"><span class="pre">FourierMap</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.FourierMap.intensity"><code class="docutils literal notranslate"><span class="pre">FourierMap.intensity</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.FourierMap.settings"><code class="docutils literal notranslate"><span class="pre">FourierMap.settings</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.FourierMap.crystal"><code class="docutils literal notranslate"><span class="pre">FourierMap.crystal</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.FourierMap.is_line"><code class="docutils literal notranslate"><span class="pre">FourierMap.is_line</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.FourierMap.hkl"><code class="docutils literal notranslate"><span class="pre">FourierMap.hkl()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.FourierMap.plot"><code class="docutils literal notranslate"><span class="pre">FourierMap.plot()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pair-distribution-function">Pair distribution function</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.pdf"><code class="docutils literal notranslate"><span class="pre">pdf()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.PDFPattern"><code class="docutils literal notranslate"><span class="pre">PDFPattern</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.PDFPattern.r"><code class="docutils literal notranslate"><span class="pre">PDFPattern.r</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.PDFPattern.G"><code class="docutils literal notranslate"><span class="pre">PDFPattern.G</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.PDFPattern.settings"><code class="docutils literal notranslate"><span class="pre">PDFPattern.settings</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.PDFPattern.crystal"><code class="docutils literal notranslate"><span class="pre">PDFPattern.crystal</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.PDFPattern.plot"><code class="docutils literal notranslate"><span class="pre">PDFPattern.plot()</span></code></a></li>
 </ul>
 </li>
 </ul>

@@ -20,6 +20,40 @@ documentation is built, so the output and plots here are real results.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Calculate the pair distribution function G(r) with diffuse.pdf: how a finite Q range adds termination ripples, and how X-rays and neutrons weight the atom pairs differently.">
+
+.. only:: html
+
+  .. image:: /gallery/images/thumb/sphx_glr_pdf_demo_thumb.png
+    :alt:
+
+  :doc:`/gallery/pdf_demo`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Pair distribution functions</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Calculate intensities on planes in reciprocal space with diffuse.fourier, for an ordered crystal (anatase) and for a Cu/Au layer with short-range order, where removing the average structure leaves the diffuse scattering.">
+
+.. only:: html
+
+  .. image:: /gallery/images/thumb/sphx_glr_fourier_demo_thumb.png
+    :alt:
+
+  :doc:`/gallery/fourier_demo`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Single-crystal diffraction and diffuse scattering</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Read a CIF file, let DISCUS build a supercell, calculate X-ray and neutron powder patterns with the Debye equation, and plot them with matplotlib.">
 
 .. only:: html
@@ -45,6 +79,8 @@ documentation is built, so the output and plots here are real results.
 .. toctree::
    :hidden:
 
+   /gallery/pdf_demo
+   /gallery/fourier_demo
    /gallery/powder_demo
 
 
