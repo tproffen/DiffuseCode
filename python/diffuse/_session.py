@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import atexit
 import importlib
-import itertools
 import os
 import re
 import shutil
@@ -115,7 +114,6 @@ class Session:
         self.echo = bool(os.environ.get("DIFFUSE_ECHO")) if echo is None else echo
         self.last_output = ""
         self._s = _import_suite_python()
-        self._count = itertools.count()
         self._workdir = Path(tempfile.mkdtemp(prefix="diffuse_"))
         atexit.register(shutil.rmtree, self._workdir, ignore_errors=True)
         self.current_crystal = None      # the Crystal now held by DISCUS
@@ -145,7 +143,12 @@ class Session:
         Raises MacroError if a command error stopped the macro.
         """
         cwd = Path(cwd or self._workdir).resolve()
-        driver = self._workdir / f"_driver_{next(self._count)}.mac"
+        # One driver file per session, overwritten on every call. DISCUS keeps
+        # macros in memory by file name, but empties that store when a
+        # top-level macro ends (also after an error), so the new text is
+        # always read. The scratch folder stays at a few files however many
+        # calls a session makes.
+        driver = self._workdir / "_driver.mac"
         driver.write_text(
             f"cd {cwd}\n"
             f"{FLAG} = 0\n"
