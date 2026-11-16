@@ -388,3 +388,28 @@ SRO macros call `set parallel, nthreads:all`, which overrides it, so that
 run was threaded. After the fix, `pytest tests/python` and the legacy runner
 (`--tags fast,mc`) pass as before.
 
+### 0.5 – seeded Monte-Carlo tests
+
+`run_legacy_tests.py` now runs every test tagged `mc` with `seed 1234` (option
+`--seed`, or a test's own `seed` in the manifest) and with
+`OMP_THREAD_LIMIT=1`. The limit also caps `set parallel, nthreads:all` in the
+SRO macros (DISCUS reports "maximum threads 1"). `--no-seed` gives the old
+behaviour. Seeded tests run on one thread, so the `exclusive` tests no longer
+need to run alone.
+
+Checked by running all 16 enabled `mc` tests twice (`--keep`) and comparing
+every output file: **byte-identical** in both runs, apart from the generated
+driver macro (it contains the work-folder path) and one `04.sro3` run, see
+below. All pass with seed 1234.
+
+**New finding: rare broken Fourier result in `04.sro3`.** In one of the two
+runs, `04.sro3` aborted. Its MC structure (`example3.stru`) was identical
+to the other run's, but the Fourier step (`fourier.mac`: random `lots`
+plus `set technique:nufft`) wrote 1530 `Infinity` values and blocks of zeros
+to `example3.inte`, and NaN to `example3.3DPDF`; `kex3.mac` then failed on
+`zmax[3]`. 14 more seeded runs (6 serial, 8 with 4 at a time) all gave the
+same correct result, so it is rare (1 in about 17 so far). It may also
+explain the original CI failure of `04.sro3` (run 2). Needs its own
+investigation: uninitialised memory or a race in the lots/NUFFT path are
+candidates. Until then, CI keeps `--retry-mc 2`.
+

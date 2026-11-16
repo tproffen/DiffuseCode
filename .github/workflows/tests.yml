@@ -56,9 +56,10 @@ jobs:
         run: python3 -m pytest tests/python -v --junitxml=pytest-results.xml
 
       - name: Legacy macro tests
-        # MMC ignores "seed" (known bug, WP0 task 0.5a), so tests tagged mc are
-        # random and checked against statistical limits. A failed mc test is
-        # re-run; a pass on retry is reported as flaky, a real break still fails.
+        # Tests tagged mc run with "seed 1234" on one thread (repeatable). A
+        # failed mc test is still re-run: 04.sro3 rarely gets a broken Fourier
+        # result (WP0 log). A pass on retry is reported as flaky; a real break
+        # still fails.
         run: |
           python3 tools/run_legacy_tests.py \
             --exe build/suite/prog/discus_suite -j "$(nproc)" \
