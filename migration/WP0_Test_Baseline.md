@@ -343,3 +343,18 @@ and `run_macro()` for everything else. See `python/README.md`.
 Checked: `pytest tests/python` gives 21 passed (33 legacy macro tests skipped
 without `DISCUS_SUITE`), about 2 s, with `OMP_NUM_THREADS` 1 and 4.
 
+### Flaky Monte-Carlo test in CI
+
+CI run 2 failed on `04.sro3` (FAIL from its own check) with exactly the code
+that passed in run 1; locally it passed 8 times in a row. MMC does not use
+the value set with `seed` (known bug, task 0.5a), so tests tagged `mc` are
+random and checked against statistical limits (R < 0.38, correlations
+within ±0.08), and they can fail by chance.
+
+Until 0.5a is fixed, `run_legacy_tests.py --retry-mc N` re-runs a failed
+`mc` test up to N times. A pass on retry is counted as PASS, with the
+message `flaky: passed on retry k; first run ...` in the summary and the
+JUnit report. A real regression fails every attempt, and the run still
+fails. CI uses `--retry-mc 2`. Once `seed` works, the `mc` tests should get
+fixed seeds and the retry should be removed.
+

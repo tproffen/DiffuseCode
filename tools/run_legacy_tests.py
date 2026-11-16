@@ -403,6 +403,9 @@ def main(argv: list[str] | None = None) -> int:
                    help="first X display number used with xvfb "
                         "(default: 100 + a number derived from the process ID)")
     p.add_argument("--timeout-scale", type=float, default=1.0)
+    p.add_argument("--retry-mc", type=int, default=0, metavar="N",
+                   help="re-run a failed test tagged 'mc' up to N times; a pass on "
+                        "retry counts as PASS but is reported as flaky")
     p.add_argument("--list", action="store_true", help="list the selected tests and exit")
     p.add_argument("--check-test-all", action="store_true",
                    help="compare the manifest with test_all.mac and exit")
@@ -463,6 +466,23 @@ def main(argv: list[str] | None = None) -> int:
                 r = fut.result()
                 results[r.id] = r
                 print(f"  {r.status:<8} {r.id} ({r.seconds} s)", flush=True)
+
+    # Monte-Carlo tests are not reproducible yet (seed does not fix MMC runs,
+    # WP0 task 0.5a) and are checked against statistical limits, so they can
+    # fail by chance. Re-run those, one at a time; a real regression fails
+    # every time.
+    for t in to_run:
+        r = results[t.id]
+        if r.status not in BAD or "mc" not in t.tags:
+            continue
+        first = f"{r.status}: {r.message}" if r.message else r.status
+        for attempt in range(1, opts.retry_mc + 1):
+            r = run_one(t, exe, work, displays, opts)
+            print(f"  {r.status:<8} {r.id} (retry {attempt}, {r.seconds} s)", flush=True)
+            if r.status not in BAD:
+                r.message = f"flaky: passed on retry {attempt}; first run {first}"
+                break
+        results[t.id] = r
 
     ordered = [results[t.id] for t in to_run] + skipped
     print()

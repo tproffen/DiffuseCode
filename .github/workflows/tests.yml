@@ -56,10 +56,13 @@ jobs:
         run: python3 -m pytest tests/python -v --junitxml=pytest-results.xml
 
       - name: Legacy macro tests
+        # MMC ignores "seed" (known bug, WP0 task 0.5a), so tests tagged mc are
+        # random and checked against statistical limits. A failed mc test is
+        # re-run; a pass on retry is reported as flaky, a real break still fails.
         run: |
           python3 tools/run_legacy_tests.py \
             --exe build/suite/prog/discus_suite -j "$(nproc)" \
-            --tags fast,mc --junit legacy-results.xml --workdir legacy-work
+            --tags fast,mc --retry-mc 2 --junit legacy-results.xml --workdir legacy-work
 
       - name: Upload results
         if: always()

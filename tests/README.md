@@ -37,6 +37,7 @@ Useful options:
 | `--id '04.*'` | only tests whose id matches (repeatable) |
 | `--junit FILE`, `--json FILE` | machine-readable reports |
 | `--workdir DIR`, `--keep` | where copies and logs go; keep passing tests' copies too |
+| `--retry-mc N` | re-run a failed test tagged `mc` up to N times; a pass on retry is reported as `flaky` (MMC ignores `seed`, WP0 0.5a) |
 | `--list` | show what would run |
 | `--check-test-all` | check that `manifest.toml` and `test_all.mac` list the same macros |
 
