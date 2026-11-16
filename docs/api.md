@@ -22,6 +22,24 @@
    :members: two_theta, plot
 ```
 
+## Single-crystal diffraction
+
+```{eval-rst}
+.. autofunction:: fourier
+
+.. autoclass:: FourierMap
+   :members: hkl, plot, is_line
+```
+
+## Pair distribution function
+
+```{eval-rst}
+.. autofunction:: pdf
+
+.. autoclass:: PDFPattern
+   :members: plot
+```
+
 ## Running DISCUS directly
 
 ```{eval-rst}
