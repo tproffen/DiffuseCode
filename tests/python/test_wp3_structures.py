@@ -133,11 +133,26 @@ def test_cif_expansion_matches_gemmi(dc):
     assert cr.lattice == pytest.approx((cell.a, cell.b, cell.c, cell.alpha, cell.beta, cell.gamma))
 
 
-def test_cell_file_fractions_are_not_evaluated(dc):
-    """Known DISCUS behaviour: '1./3.' in a .cell file is read as 1. (Fortran
-    list-directed input stops at '/'), so 01.Simulation/calculate.cell puts
-    Co at (0,0,0) instead of hcp's (1/3,2/3,0). Documents the current
-    behaviour; change this test if the reader learns fractions."""
+HCP_HEAD = "title hcp\nspcgr P63mc\ncell 3.0 3.0 4.8989797 90.0 90.0 120.0\n"
+
+
+def test_cell_comma_format_evaluates_expressions(dc, tmp_path):
+    """Comma format with a column header: atom values go through the
+    interpreter, so '1./3.' is one third."""
+    f = tmp_path / "hcp.cell"
+    f.write_text(HCP_HEAD + "atoms x, y, z, Biso\nco 1./3., 2./3., 0.0, 1.0\n")
+    _, xyz = dc.read_structure(f).atoms()
+    assert_same_sites([("CO", [1 / 3, 2 / 3, 0.0]), ("CO", [2 / 3, 1 / 3, 0.5])],
+                      [("CO", x) for x in np.mod(xyz, 1.0)])
+
+
+def test_cell_legacy_format_misreads_fractions(dc):
+    """Legacy format (bare 'atoms', values separated by blanks): no
+    expressions; Fortran list-directed input stops at '/', so '1./3.' is
+    read as 1. without a warning. 01.Simulation/calculate.cell uses this
+    format and puts Co at (0,0,0) instead of hcp's (1/3,2/3,0). Documents
+    the current behaviour; change this test if the reader learns
+    expressions or rejects such lines."""
     cr = dc.read_structure(T / "01.Simulation/calculate.cell")
     _, xyz = cr.atoms()
     assert np.allclose(np.mod(xyz[:, :2], 1.0), 0.0)

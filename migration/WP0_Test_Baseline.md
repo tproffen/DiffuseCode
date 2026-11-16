@@ -477,9 +477,15 @@ rewired, checked against independent references wherever possible (new
    instead of 8.
 3. **`disp on` does not switch on anomalous dispersion**; only `disp anom`
    does. Any macro using `disp on` silently gets no dispersion.
-4. **`.cell` files cannot contain fractions** such as `1./3.`: Fortran
-   list-directed input stops at `/`, without a warning.
-   `01.Simulation/calculate.cell` is affected.
+4. **Fractions in the legacy atom format are silently misread.** `.cell`
+   files have two atom formats. The comma format with a column header
+   (`atoms x, y, z, Biso` / `co 1./3., 2./3., 0.0, 1.0`) runs the values
+   through the interpreter, so `1./3.` works. The legacy format (bare
+   `atoms`, values separated by blanks) uses a list-directed read, which
+   stops at `/`: `1./3.` becomes 1., without a warning. Mixing the two (bare
+   `atoms` with commas, or a header with blanks) gives an error.
+   `01.Simulation/calculate.cell` uses the legacy format and gets Co at
+   (0,0,0) instead of (1/3,2/3,0).
 5. **`export.mac`**: its failures are mostly outdated reference files and
    typos; two checks pass falsely because `compare_files.mac` treats a
    missing file as "no differences".
