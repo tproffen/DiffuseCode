@@ -75,6 +75,22 @@ def test_working_directory_kept(dc, tmp_path, monkeypatch):
     assert Path.cwd() == tmp_path
 
 
+def test_scratch_folder_does_not_grow(dc):
+    """Every call reuses the same driver macro; the scratch folder stays small."""
+    cr = dc.read_structure(ANATASE)
+    dc.powder(cr, qmax=3.0)
+    before = sorted(p.name for p in dc.session().workdir.rglob("*"))
+    for value in range(20):
+        dc.run_macro(f"r[1] = {value}")
+        assert dc.session().value("r[1]") == value      # new text every time
+    with pytest.raises(dc.MacroError):
+        dc.run_macro("discus\n  no_such_command\nexit")
+    dc.run_macro("r[1] = 99")                           # and after an error
+    assert dc.session().value("r[1]") == 99
+    dc.powder(cr, qmax=3.0)
+    assert sorted(p.name for p in dc.session().workdir.rglob("*")) == before
+
+
 def test_macro_error_message(dc):
     with pytest.raises(dc.MacroError) as info:
         dc.run_macro("discus\n  no_such_command 1\nexit")
