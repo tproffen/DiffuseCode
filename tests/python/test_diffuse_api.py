@@ -134,14 +134,13 @@ def test_plot(dc):
     plt.close("all")
 
 
-def test_demo_script(tmp_path):
-    """python/examples/powder_demo.py runs and writes its plot (own process)."""
+@pytest.mark.parametrize("script", sorted(p.name for p in EXAMPLES.glob("*.py")))
+def test_example_script(script, tmp_path):
+    """Each script in python/examples/ runs on its own (own process, no display)."""
     pytest.importorskip("matplotlib")
     if not os.environ.get("DIFFUSE_PYTHON_PATH"):
         pytest.skip("DIFFUSE_PYTHON_PATH not set")
     env = os.environ | {"PYTHONPATH": str(REPO / "python"), "MPLBACKEND": "Agg"}
-    out = tmp_path / "demo.png"
-    r = subprocess.run([sys.executable, str(EXAMPLES / "powder_demo.py"), "--out", str(out)],
+    r = subprocess.run([sys.executable, str(EXAMPLES / script)], cwd=tmp_path,
                        env=env, capture_output=True, text=True, timeout=300)
     assert r.returncode == 0, r.stdout + r.stderr
-    assert out.stat().st_size > 10_000

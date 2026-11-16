@@ -19,10 +19,22 @@ _STRU_SUFFIXES = {".stru"}
 
 @dataclass(eq=False)
 class Crystal:
-    """A structure loaded into DISCUS.
+    """A structure loaded into DISCUS. Create it with :func:`read_structure`.
 
-    DISCUS holds one structure at a time. A Crystal remembers how it was
-    made, so a calculation on an older Crystal reads it in again first.
+    DISCUS holds one structure at a time. A ``Crystal`` remembers how it was
+    made, so a calculation on an older ``Crystal`` reads it in again first.
+
+    Attributes
+    ----------
+    path : pathlib.Path
+        The structure file it was read from.
+    supercell : tuple of int or None
+        Number of unit cells along a, b and c, or None for a ``.stru`` file
+        read as it is.
+    natoms : int
+        Number of atoms in the whole crystal.
+    lattice : tuple of float
+        ``(a, b, c, alpha, beta, gamma)`` in Å and degrees.
     """
 
     path: Path
@@ -33,6 +45,7 @@ class Crystal:
 
     @property
     def a(self) -> float:
+        """Lattice parameter a in Å."""
         return self.lattice[0]
 
     @property
@@ -43,9 +56,19 @@ class Crystal:
         return float(a * b * c * np.sqrt(1 - ca**2 - cb**2 - cg**2 + 2 * ca * cb * cg))
 
     def atoms(self) -> tuple[np.ndarray, np.ndarray]:
-        """Atom names and fractional coordinates, shape (natoms,) and (natoms, 3).
+        """Atom names and fractional coordinates.
 
-        DISCUS saves the crystal to a ``.stru`` file, which is read back here.
+        Returns
+        -------
+        names : numpy.ndarray of str, shape (natoms,)
+            Atom names as DISCUS uses them, for example ``"TI4+"``.
+        xyz : numpy.ndarray of float, shape (natoms, 3)
+            Fractional coordinates in units of the unit cell.
+
+        Notes
+        -----
+        DISCUS saves the crystal to a ``.stru`` file, which is read back.
+        The result is cached on the ``Crystal``.
         """
         if self._atoms is None:
             _ensure_loaded(self)
@@ -65,7 +88,7 @@ class Crystal:
         return self._atoms
 
     def positions(self) -> np.ndarray:
-        """Fractional coordinates, shape (natoms, 3)."""
+        """Fractional coordinates, shape (natoms, 3). See :meth:`atoms`."""
         return self.atoms()[1]
 
     def __repr__(self) -> str:
@@ -78,10 +101,36 @@ def read_structure(path: str | os.PathLike,
                    supercell: tuple[int, int, int] | int | None = None) -> Crystal:
     """Read a structure file into DISCUS.
 
-    ``.cell`` and ``.cif`` files hold an asymmetric unit: DISCUS applies the
-    space group and builds ``supercell`` unit cells (default 1 x 1 x 1).
-    ``.stru`` files hold a whole crystal and are read as they are, unless a
-    ``supercell`` is given.
+    Parameters
+    ----------
+    path : str or os.PathLike
+        A ``.cif`` or ``.cell`` file (an asymmetric unit: DISCUS applies the
+        space group) or a ``.stru`` file (a whole crystal).
+    supercell : int or tuple of 3 int, optional
+        Number of unit cells along a, b and c; an int means the same along
+        all three. Default: 1 x 1 x 1 for ``.cif``/``.cell``, and a ``.stru``
+        file is read as it is.
+
+    Returns
+    -------
+    Crystal
+        The structure, now held by DISCUS.
+
+    Raises
+    ------
+    FileNotFoundError
+        If ``path`` does not exist.
+    DiffuseError
+        If the file type is not supported.
+    MacroError
+        If DISCUS cannot read the file.
+
+    Examples
+    --------
+    >>> import diffuse as dc
+    >>> cr = dc.read_structure("anatase.cif", supercell=(10, 10, 4))  # doctest: +SKIP
+    >>> cr.natoms  # doctest: +SKIP
+    4800
     """
     path = Path(path).expanduser().resolve()
     if not path.is_file():

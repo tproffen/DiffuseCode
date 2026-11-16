@@ -1,66 +1,78 @@
-"""Demo: read a CIF, calculate powder patterns with DISCUS, plot with matplotlib.
+"""
+Powder patterns of anatase
+==========================
 
-    DIFFUSE_PYTHON_PATH=<build>/python PYTHONPATH=python \\
-        python3 python/examples/powder_demo.py [--show] [--out powder_demo.png]
+Read a CIF file, let DISCUS build a supercell, calculate X-ray and neutron
+powder patterns with the Debye equation, and plot them with matplotlib.
 
-The structure is anatase (TiO2), COD entry 1010942 (anatase.cif here).
+The structure is anatase (TiO\\ :sub:`2`), COD entry 1010942
+(``python/examples/anatase.cif``).
+
+To run it yourself, from the repository root::
+
+    DIFFUSE_PYTHON_PATH=build/python PYTHONPATH=python python3 python/examples/powder_demo.py
 """
 
-import argparse
-import time
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 
 import diffuse as dc
 
-HERE = Path(__file__).resolve().parent
+# sphinx_gallery_start_ignore
+try:
+    HERE = Path(__file__).resolve().parent
+except NameError:            # the docs gallery runs examples from their folder
+    HERE = Path.cwd()
+# sphinx_gallery_end_ignore
+CIF = HERE / "anatase.cif"
 
+# %%
+# Read the structure
+# ------------------
+# A CIF file holds the asymmetric unit. DISCUS applies the space group
+# (I4\ :sub:`1`/amd) and builds 10 x 10 x 4 unit cells.
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--cif", default=HERE / "anatase.cif", type=Path)
-    parser.add_argument("--out", default="powder_demo.png", type=Path)
-    parser.add_argument("--show", action="store_true", help="open a plot window")
-    args = parser.parse_args()
+crystal = dc.read_structure(CIF, supercell=(10, 10, 4))
+print(crystal)
 
-    # 1. Read the structure: DISCUS applies the space group and builds a supercell
-    crystal = dc.read_structure(args.cif, supercell=(10, 10, 4))
-    print(crystal)
+# %%
+# Calculate powder patterns
+# -------------------------
+# The results are NumPy arrays (``q`` and ``intensity``), so any plotting or
+# analysis library can use them.
 
-    # 2. Powder patterns: X-rays and neutrons, Debye equation
-    t0 = time.perf_counter()
-    xray = dc.powder(crystal, qmin=0.5, qmax=10, dq=0.005, radiation="xray")
-    neutron = dc.powder(crystal, qmin=0.5, qmax=10, dq=0.005, radiation="neutron")
-    print(f"two patterns of {len(xray.q)} points in {time.perf_counter() - t0:.2f} s")
+xray = dc.powder(crystal, qmin=0.5, qmax=10, dq=0.005, radiation="xray")
+neutron = dc.powder(crystal, qmin=0.5, qmax=10, dq=0.005, radiation="neutron")
+print(f"{len(xray.q)} points from Q = {xray.q[0]} to {xray.q[-1]} Å⁻¹")
 
-    # 3. Finite-size broadening: the same structure as a much smaller crystal
-    small = dc.read_structure(args.cif, supercell=(3, 3, 1))
-    xray_small = dc.powder(small, qmin=0.5, qmax=10, dq=0.005, radiation="xray")
+# %%
+# A much smaller crystal of the same structure shows how the crystal size
+# broadens the peaks.
 
-    # 4. Plot: these are plain NumPy arrays, so any plotting library works
-    fig, (top, bottom) = plt.subplots(2, 1, figsize=(9, 7), sharex=True,
-                                      constrained_layout=True)
-    top.plot(xray.q, xray.intensity / xray.intensity.max(), lw=1, label="X-ray")
-    top.plot(neutron.q, neutron.intensity / neutron.intensity.max(), lw=1, label="neutron")
-    top.set_title(f"Anatase, {crystal.supercell[0]}×{crystal.supercell[1]}×"
-                  f"{crystal.supercell[2]} unit cells ({crystal.natoms} atoms)")
-    top.set_ylabel("Intensity (normalised)")
-    top.legend()
+small = dc.read_structure(CIF, supercell=(3, 3, 1))
+xray_small = dc.powder(small, qmin=0.5, qmax=10, dq=0.005, radiation="xray")
 
-    for p, label in ((xray, f"{crystal.natoms} atoms"), (xray_small, f"{small.natoms} atoms")):
-        bottom.plot(p.q, p.intensity / p.intensity.max(), lw=1, label=label)
-    bottom.set_title("X-ray: crystal size broadens the peaks")
-    bottom.set_xlabel(r"$Q$ (Å$^{-1}$)")
-    bottom.set_ylabel("Intensity (normalised)")
-    bottom.set_xlim(xray.q[0], xray.q[-1])
-    bottom.legend()
+# %%
+# Plot
+# ----
+# X-rays see mostly titanium; neutrons see oxygen much more strongly, so the
+# relative peak heights change.
 
-    fig.savefig(args.out, dpi=150)
-    print(f"plot written to {args.out}")
-    if args.show:
-        plt.show()
+fig, (top, bottom) = plt.subplots(2, 1, figsize=(9, 7), sharex=True,
+                                  constrained_layout=True)
+top.plot(xray.q, xray.intensity / xray.intensity.max(), lw=1, label="X-ray")
+top.plot(neutron.q, neutron.intensity / neutron.intensity.max(), lw=1, label="neutron")
+top.set_title(f"Anatase, 10×10×4 unit cells ({crystal.natoms} atoms)")
+top.set_ylabel("Intensity (normalised)")
+top.legend()
 
+for p, label in ((xray, f"{crystal.natoms} atoms"), (xray_small, f"{small.natoms} atoms")):
+    bottom.plot(p.q, p.intensity / p.intensity.max(), lw=1, label=label)
+bottom.set_title("X-ray: crystal size broadens the peaks")
+bottom.set_xlabel(r"$Q$ (Å$^{-1}$)")
+bottom.set_ylabel("Intensity (normalised)")
+bottom.set_xlim(xray.q[0], xray.q[-1])
+bottom.legend()
 
-if __name__ == "__main__":
-    main()
+plt.show()

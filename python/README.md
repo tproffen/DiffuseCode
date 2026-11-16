@@ -16,7 +16,8 @@ p.q, p.intensity     # NumPy arrays
 p.plot()             # matplotlib; p.plot(x="tth") for 2-theta
 ```
 
-![Powder patterns of anatase](examples/powder_demo.png)
+The documentation (installation, API reference and an example gallery with
+plots) is built from `docs/`; see "Documentation" below.
 
 ## Running the demo
 
@@ -34,12 +35,12 @@ cmake --build build -j
 Then run the demo (needs NumPy and matplotlib):
 
 ```bash
-DIFFUSE_PYTHON_PATH=build/python PYTHONPATH=python python3 python/examples/powder_demo.py --show
+DIFFUSE_PYTHON_PATH=build/python PYTHONPATH=python python3 python/examples/powder_demo.py
 ```
 
 It reads `examples/anatase.cif`, calculates X-ray and neutron patterns for a
-10×10×4 supercell and an X-ray pattern for a 3×3×1 crystal, and writes
-`powder_demo.png`.
+10×10×4 supercell and an X-ray pattern for a 3×3×1 crystal, and shows the
+plot.
 
 For Jupyter, set the two variables before starting it, or at the top of the
 notebook before `import diffuse`:
@@ -82,6 +83,31 @@ files or KUPLOT data sets. See `diffuse/_session.py`.
 The migration plan (`migration/DiffuseCode_Python_Migration_Plan.md`,
 WP1–WP5) replaces `suite_python` underneath with a `bind(C)` core and a
 proper `pip install`. The aim is to keep this API while doing so.
+
+## Documentation
+
+Sphinx sources are in `docs/`: Markdown pages, the API reference generated
+from the docstrings (NumPy style), and a gallery made by running every script
+in `python/examples/`. To build it:
+
+```bash
+pip install -r docs/requirements.txt
+```
+
+```bash
+DIFFUSE_PYTHON_PATH=build/python python3 -m sphinx -W -b html docs docs/_build/html
+```
+
+`DIFFUSE_DOCS_NO_GALLERY=1` skips the gallery (no compiled module needed);
+`DIFFUSE_DOCS_OFFLINE=1` skips the links into the NumPy/matplotlib docs.
+CI builds the docs on every push and keeps the HTML as the `docs-html`
+artifact of the run. They are not published yet (GitHub Pages of this
+repository serves the DISCUS homepage).
+
+When adding to the API: give every public function a NumPy-style docstring
+(Parameters, Returns, Raises, Examples), list it in `docs/api.md`, and add an
+example script to `python/examples/` for each new capability (it becomes a
+gallery page and is run by the tests).
 
 ## Tests
 

@@ -47,7 +47,11 @@ class DiffuseError(RuntimeError):
 
 
 class MacroError(DiffuseError):
-    """A command failed inside DISCUS; ``.output`` holds the captured text."""
+    """A command failed inside DISCUS.
+
+    The message holds DISCUS's ``***`` error lines; ``output`` holds all
+    the text DISCUS wrote during the failed call.
+    """
 
     def __init__(self, message: str, output: str = ""):
         super().__init__(message)

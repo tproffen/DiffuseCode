@@ -24,3 +24,14 @@ python3 tools/run_legacy_tests.py --exe build/suite/prog/discus_suite -j 4 --tag
 ```
 
 CMake needs `FC` set. Keep build trees outside `tests/`.
+
+## Documentation
+
+Sphinx in `docs/` (MyST Markdown, autodoc + napoleon, sphinx-gallery over
+`python/examples/`). Build with
+`DIFFUSE_PYTHON_PATH=build/python python3 -m sphinx -W -b html docs docs/_build/html`
+(`DIFFUSE_DOCS_OFFLINE=1` without network). New public API needs a NumPy-style
+docstring, an entry in `docs/api.md`, and an example in `python/examples/`.
+CI uploads the HTML as the `docs-html` artifact. Do not publish to the
+`gh-pages` branch: it holds the DISCUS homepage.
+
