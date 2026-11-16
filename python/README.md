@@ -101,9 +101,12 @@ DIFFUSE_PYTHON_PATH=build/python python3 -m sphinx -W -b html docs docs/_build/h
 `DIFFUSE_DOCS_NO_GALLERY=1` skips the gallery (no compiled module needed);
 `DIFFUSE_DOCS_OFFLINE=1` skips the links into the NumPy/matplotlib docs.
 CI builds the docs on every push and keeps the HTML as the `docs-html`
-artifact of the run (open the run on GitHub, download `docs-html`, open
-`index.html`). They are not published until the first release; GitHub
-Pages of this repository serves the DISCUS homepage.
+artifact of the run. Pushes to `claude-python-app` also publish them at
+https://tproffen.github.io/DiffuseCode/python-docs/. The `gh-pages` branch
+is the DISCUS homepage, so `tools/publish_docs.sh` only replaces the
+`python-docs/` folder (plus an empty `.nojekyll` at the root, which Sphinx
+output needs) and refuses to publish if anything else would change. The
+docs are not linked from the homepage.
 
 When adding to the API: give every public function a NumPy-style docstring
 (Parameters, Returns, Raises, Examples), list it in `docs/api.md`, and add an

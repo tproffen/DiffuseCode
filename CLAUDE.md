@@ -32,9 +32,10 @@ Sphinx in `docs/` (MyST Markdown, autodoc + napoleon, sphinx-gallery over
 `DIFFUSE_PYTHON_PATH=build/python python3 -m sphinx -W -b html docs docs/_build/html`
 (`DIFFUSE_DOCS_OFFLINE=1` without network). New public API needs a NumPy-style
 docstring, an entry in `docs/api.md`, and an example in `python/examples/`.
-CI uploads the HTML as the `docs-html` artifact. Decision (Nov 2026): the
-docs are **not published** until the first release; the artifact is the way
-to read them. Do not publish to the `gh-pages` branch: it holds the DISCUS
-homepage. When publishing is wanted, the preferred route is a separate docs
-repository with its own GitHub Pages site.
-
+CI uploads the HTML as the `docs-html` artifact, and pushes to
+`claude-python-app` publish it to
+https://tproffen.github.io/DiffuseCode/python-docs/ (job `publish-docs`).
+The `gh-pages` branch holds the DISCUS homepage: publishing may only change
+`python-docs/` and the empty root `.nojekyll` (agreed with the owner, Nov
+2026). `tools/publish_docs.sh` enforces this; keep it that way, and do not
+link the docs from the homepage.

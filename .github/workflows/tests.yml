@@ -98,3 +98,45 @@ jobs:
             legacy-results.xml
             legacy-work/**/*.log
           if-no-files-found: ignore
+
+  # Publish the docs to https://tproffen.github.io/DiffuseCode/python-docs/
+  # The gh-pages branch is the DISCUS homepage: tools/publish_docs.sh only
+  # replaces python-docs/ (plus an empty .nojekyll at the root) and refuses
+  # to publish if anything else would change.
+  publish-docs:
+    needs: linux
+    if: github.event_name == 'push' && github.ref == 'refs/heads/claude-python-app'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    concurrency:
+      group: publish-docs
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docs-html
+          path: docs-html
+
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Put the docs into gh-pages/python-docs
+        run: tools/publish_docs.sh docs-html gh-pages
+
+      - name: Commit and push
+        working-directory: gh-pages
+        run: |
+          if git diff --cached --quiet; then
+            echo "Docs unchanged."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Python docs from ${GITHUB_SHA::7} (claude-python-app)"
+          git push origin HEAD:gh-pages
