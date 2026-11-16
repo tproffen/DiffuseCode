@@ -459,7 +459,6 @@
 
 <span class="kn">import</span> <span class="nn">atexit</span>
 <span class="kn">import</span> <span class="nn">importlib</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
@@ -560,7 +559,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">echo</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;DIFFUSE_ECHO&quot;</span><span class="p">))</span> <span class="k">if</span> <span class="n">echo</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">echo</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_s</span> <span class="o">=</span> <span class="n">_import_suite_python</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;diffuse_&quot;</span><span class="p">))</span>
         <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_crystal</span> <span class="o">=</span> <span class="kc">None</span>      <span class="c1"># the Crystal now held by DISCUS</span>
@@ -592,7 +590,12 @@
 <span class="sd">        Raises MacroError if a command error stopped the macro.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cwd</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">cwd</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-        <span class="n">driver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;_driver_</span><span class="si">{</span><span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">)</span><span class="si">}</span><span class="s2">.mac&quot;</span>
+        <span class="c1"># One driver file per session, overwritten on every call. DISCUS keeps</span>
+        <span class="c1"># macros in memory by file name, but empties that store when a</span>
+        <span class="c1"># top-level macro ends (also after an error), so the new text is</span>
+        <span class="c1"># always read. The scratch folder stays at a few files however many</span>
+        <span class="c1"># calls a session makes.</span>
+        <span class="n">driver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">/</span> <span class="s2">&quot;_driver.mac&quot;</span>
         <span class="n">driver</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;cd </span><span class="si">{</span><span class="n">cwd</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">FLAG</span><span class="si">}</span><span class="s2"> = 0</span><span class="se">\n</span><span class="s2">&quot;</span>
