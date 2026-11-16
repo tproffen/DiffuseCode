@@ -358,3 +358,33 @@ JUnit report. A real regression fails every attempt, and the run still
 fails. CI uses `--retry-mc 2`. Once `seed` works, the `mc` tests should get
 fixed seeds and the retry should be removed.
 
+### 0.5a – `seed` (first half fixed)
+
+**Cause 1 (fixed): `seed` set only part of the generator state.** DISCUS uses
+the Fortran intrinsic `random_number`. gfortran's state has 8 integers
+(`random_seed(size=...)`). `ini_ran_ix` (`lib_f90/random_state_mod.f90`)
+copied only the values the user gave (`seed 1234` gives one) and left the
+other words at their clock-based values from start-up, so every run was
+different. The remaining words are now derived from the user's values.
+
+**Cause 2 (open): OpenMP.** With threads, MMC is still not reproducible.
+`random_number` keeps one state per thread, and `random_seed(put=...)` only
+resets the calling thread's; the worker threads keep their own. The threads
+also change the shared crystal while others evaluate their moves, so the
+result depends on timing. A fix needs per-thread streams seeded from the
+`seed` value, plus a fixed order for applying the moves.
+
+Checked with `04.SRO/SRO_0/sro.0.mac 0.7,1.5`, `seed` directly before the
+macro, comparing `example0.stru`:
+
+| Setting | Same seed twice | Different seed |
+|---|---|---|
+| before the fix, `useomp:serial` | different | – |
+| after the fix, `useomp:serial` | **identical** | different |
+| after the fix, `nthreads:4` | different (cause 2) | different |
+
+The earlier test (section 1.3, finding 4) used `OMP_NUM_THREADS=1`, but the
+SRO macros call `set parallel, nthreads:all`, which overrides it, so that
+run was threaded. After the fix, `pytest tests/python` and the legacy runner
+(`--tags fast,mc`) pass as before.
+
