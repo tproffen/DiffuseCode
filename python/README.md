@@ -1,7 +1,9 @@
 # DiffuseCode from Python
 
 `python/diffuse/` is an early Python API for DISCUS. It currently covers a
-small set of commands: reading a structure and calculating a powder pattern.
+small set of commands: reading a structure, and calculating powder patterns,
+single-crystal intensities (including diffuse scattering) and pair
+distribution functions.
 The results are NumPy arrays, so they can be plotted with matplotlib or any
 other library.
 
@@ -61,6 +63,10 @@ import diffuse as dc
 | `Crystal.atoms()`, `.positions()` | Atom names and fractional coordinates as arrays |
 | `powder(crystal, qmin, qmax, dq, radiation, wavelength, method, temperature, lp_correction)` | Powder pattern on a Q grid. `radiation`: `"xray"`, `"neutron"`, `"electron"`; `method`: `"debye"` or `"complete"`. Returns a `PowderPattern`. |
 | `PowderPattern.q`, `.intensity`, `.two_theta()`, `.plot()` | Results and a quick matplotlib plot |
+| `fourier(crystal, ll, lr, ul=None, npoints, radiation, wavelength, temperature, subtract_average)` | Single-crystal intensities on a line (`ul` left out) or plane in reciprocal space; `subtract_average=100` leaves the diffuse scattering. Returns a `FourierMap`. |
+| `FourierMap.intensity`, `.hkl()`, `.x`, `.y`, `.plot(log=...)` | Intensities (`[i, j]`: i along `ll`→`lr`, j along `ll`→`ul`), their (h, k, l), and an image or line plot |
+| `pdf(crystal, rmax, dr, radiation, qmax, qdamp, qbroad, thermal, corrlin, corrquad, particle_diameter)` | Pair distribution function G(r), for a periodic crystal or a finite particle. Returns a `PDFPattern`. |
+| `PDFPattern.r`, `.G`, `.plot()` | Results and a plot |
 | `run_macro(text)` | Runs any DISCUS macro text, for commands that are not wrapped yet |
 | `MacroError` | Raised when a DISCUS command fails; the message holds the `***` error lines |
 

@@ -151,9 +151,15 @@ class Session:
             f"{FLAG} = 0\n"
             f"{commands.strip()}\n"
             f"{FLAG} = 1\n")
-        with self._capture() as cap:
-            self._s.execute_macro("@" + str(driver))
-            ok = self._s.get_value(FLAG) == 1.0
+        # DISCUS's "cd" changes the working directory of the whole process;
+        # give the caller theirs back afterwards.
+        caller_cwd = os.getcwd()
+        try:
+            with self._capture() as cap:
+                self._s.execute_macro("@" + str(driver))
+                ok = self._s.get_value(FLAG) == 1.0
+        finally:
+            os.chdir(caller_cwd)
         self._show(cap.text)
         if not ok:
             errors = [line.strip() for line in cap.text.splitlines() if "***" in line]

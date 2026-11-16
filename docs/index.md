@@ -16,6 +16,9 @@ import diffuse as dc
 cr = dc.read_structure("anatase.cif", supercell=(10, 10, 4))
 p = dc.powder(cr, qmin=0.5, qmax=10, dq=0.005, radiation="xray")
 p.plot()
+
+f = dc.fourier(cr, ll=(-4, -4, 0), lr=(4, -4, 0), ul=(-4, 4, 0))   # hk0 plane
+g = dc.pdf(cr, rmax=20, qmax=25)                                    # G(r)
 ```
 
 ```{toctree}

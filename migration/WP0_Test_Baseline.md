@@ -413,3 +413,26 @@ explain the original CI failure of `04.sro3` (run 2). Needs its own
 investigation: uninitialised memory or a race in the lots/NUFFT path are
 candidates. Until then, CI keeps `--retry-mc 2`.
 
+### Demo API: single-crystal Fourier and PDF
+
+`diffuse.fourier()` (line or plane in reciprocal space, optional removal of
+the average structure for diffuse scattering) and `diffuse.pdf()` (G(r),
+periodic crystal or finite particle), with result objects `FourierMap` and
+`PDFPattern`, plots, and two gallery examples (`fourier_demo.py`,
+`pdf_demo.py`). Tests: `tests/python/test_fourier_pdf.py`.
+
+Checked against independent references:
+
+| Check | Result |
+|---|---|
+| `pdf()` vs the legacy `03.Pair_Distribution_Function/*.grcalc` (histogram, thermal, Qmax 30, Qdamp 0.02) | identical (R ≤ 1e-9). The reference files come from `water_hex.cell` (O only), although `pdf.mac`'s plot titles say nickel. |
+| `fourier()` line vs `02.Calculation_Scattering/RESULTS/1d.inte` | R = 1.7e-7 |
+| `fourier()` plane vs golden `02.2d` | identical |
+| Orientation: a row of atoms along a, neutrons, no ADPs | intensity varies only along the first index (h), exactly constant along k |
+| Finite particle (`particle_diameter`) | G(r) = 0 beyond the particle; a periodic crystal keeps its peaks |
+
+**Bug found and fixed:** DISCUS's `cd` changes the working directory of the
+whole Python process, so after any `diffuse` call, relative paths in the
+user's script pointed somewhere else. `Session.run()` now restores the
+caller's working directory (test `test_working_directory_kept`).
+

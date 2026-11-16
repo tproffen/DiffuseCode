@@ -65,6 +65,16 @@ def test_read_errors(dc, tmp_path):
         dc.read_structure(ANATASE, supercell=(0, 1, 1))
 
 
+def test_working_directory_kept(dc, tmp_path, monkeypatch):
+    """DISCUS's cd must not change the caller's working directory."""
+    monkeypatch.chdir(tmp_path)
+    dc.read_structure(ANATASE)
+    assert Path.cwd() == tmp_path
+    with pytest.raises(dc.MacroError):
+        dc.run_macro("discus\n  no_such_command\nexit")
+    assert Path.cwd() == tmp_path
+
+
 def test_macro_error_message(dc):
     with pytest.raises(dc.MacroError) as info:
         dc.run_macro("discus\n  no_such_command 1\nexit")
