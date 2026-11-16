@@ -24,6 +24,7 @@ targets `claude-python-app`.
 FC=gfortran CC=gcc CXX=g++ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
     -DDIFFUSE_PYTHON=ON -DPGPLOT_DIR=/usr/lib/pgplot5
 cmake --build build -j
+pip install -r tests/requirements.txt          # gemmi
 DIFFUSE_PYTHON_PATH=build/python python3 -m pytest tests/python
 python3 tools/run_legacy_tests.py --exe build/suite/prog/discus_suite -j 4 --tags fast,mc
 ```
