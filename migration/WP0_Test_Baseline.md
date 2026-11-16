@@ -162,15 +162,17 @@ tests/                       # existing macro tests stay where they are
   test_all.mac               # kept for interactive use (unchanged)
   manifest.toml              # [done] list of tests (TOML: read by Python's standard library)
   README.md                  # [done] how to run the tests
-  golden/                    # 0.6: reference outputs, one folder per test id
+  golden/                    # 0.6: [started] reference outputs, one folder per test id
   python/                    # pytest harness
     conftest.py              #   [done] registers the manifest tags as markers
     test_legacy_macros.py    #   [done] one test per manifest entry + manifest checks
-    compare.py               #   0.6: numeric comparisons (R-value, max-abs, atom sets)
+    compare.py               #   [started] R-value, golden .npz read/write (0.6)
+    suite_session.py         #   [done] test helper around the f2py module suite_python
+    test_suite_python.py     #   [done] in-process Python tests against RESULTS/ and golden/
 tools/
   run_legacy_tests.py        # [done] runner -> console table, JUnit XML, JSON
 .github/workflows/
-  legacy-tests.yml           # 0.9: build + run on every push to claude-python-app
+  tests.yml                  # [done] 0.9: build + pytest + legacy tests on claude-python-app
 ```
 
 ### Tasks
@@ -186,7 +188,7 @@ tools/
 | 0.6 | **Golden data capture** | For each test, copy key outputs (intensities, powder, PDF, 3D-PDF, final structure/CIF, histograms) into `tests/golden/<id>/` with a `meta.json` (DiffuseCode version, git commit, compiler, flags, date). Python compares with NumPy (R-value, max-abs, atom-set match) using tolerances from the manifest. Keep the macro self-checks as a second line of defence. | Every test has at least one golden numeric output | 3–4 d |
 | 0.7 | **Coverage expansion** | Confirm the uncovered-command list from 1.3, then add short, deterministic tests for the commands that WP3–WP8 will wrap first: space-group expansion / `wyckoff`, `patterson`, `inverse`, `rmc`, `molecularize`/`demolecularize`, `perioditize`, `storage`/`super`, `bragg`, and kuplot `fit`. | All commands planned for WP3–WP8 have at least one test | 5–8 d |
 | 0.8 | **Build fixes** | Make `suite/prog/CMakeLists.txt` honour `DIFFUSE_GRAPHICS`. Make the PGPLOT install paths configurable / optional. Drop the hard `FC` requirement in favour of CMake's normal compiler detection. | `cmake -DDIFFUSE_GRAPHICS=OFF` builds and the suite passes | 1–2 d |
-| 0.9 | **CI** | GitHub Actions on `ubuntu-24.04`: apt (gfortran, FFTW, HDF5, readline, PNG, X11, pgplot5, xvfb), build, run `tools/run_legacy_tests.py --tags fast,mc`, upload JUnit + logs. Nightly job for `slow`/`mpi`. Add a macOS job once Linux is stable. | Red/green status on every push to `claude-python-app` | 1–2 d |
+| 0.9 ✅ | **CI** | GitHub Actions on `ubuntu-24.04`: apt (gfortran, FFTW, HDF5, readline, PNG, X11, pgplot5, xvfb), build, run `tools/run_legacy_tests.py --tags fast,mc`, upload JUnit + logs. Nightly job for `slow`/`mpi`. Add a macOS job once Linux is stable. | Red/green status on every push to `claude-python-app` | 1–2 d |
 | 0.10 | **Repo hygiene** | Run `cleanup.mac` logic, remove committed generated outputs, add a `.gitignore` for them, and keep only inputs + `RESULTS/` + `golden/`. Consider Git LFS for golden files larger than ~1 MB. | `git status` is clean after a test run | 1 d |
 
 **Total: about 4–6 weeks for one developer.** That fits the "months 0–3"
@@ -278,3 +280,39 @@ Checked:
 | Display already taken | retried on another display, PASS |
 | Runner and pytest at the same time | all pass; no display clashes |
 | `test_all.mac` (interactive mode) | all 13 sections SUCCESS |
+
+### 0.9 (and start of 0.6) – CI and Python-interface tests
+
+* **Build fix:** `python/CMakeLists.txt` linked `experi_all` after
+  `discus_all`. `experi_kdo` calls `exp3_pdf`, so the f2py module built but
+  failed on import with `undefined symbol: __exp3_pdf_menu_MOD_exp3_pdf`.
+  `experi_all` now comes first.
+* `tests/python/suite_session.py` wraps `suite_python` for tests. `run()`
+  writes a driver macro that `cd`s into the test folder (the suite keeps its
+  own working directory, so `os.chdir` is not enough) and sets `r[499]` on
+  its last line. A command error ends the whole macro run, so a flag that is
+  not set raises `MacroError`. `dataset()` / `dataset_2d()` return KUPLOT
+  data sets as NumPy arrays.
+* `tests/python/test_suite_python.py`: expressions, error detection, crystal
+  build, 1-D Fourier, 2-D Fourier and Debye powder, run in-process. The
+  1-D Fourier and powder results are compared with the legacy `RESULTS/`
+  files (R < 1e-3; actual about 1e-6) and all three with golden data.
+* `tests/python/compare.py` and `tests/golden/<id>/` (`.npz` + `meta.json`):
+  first golden data for `02.1d`, `02.2d`, `02.powder`. Rewrite with
+  `DIFFUSE_UPDATE_GOLDEN=1`.
+* `.github/workflows/tests.yml`: Ubuntu 24.04, apt dependencies, build with
+  `-DDIFFUSE_PYTHON=ON`, then pytest (`DIFFUSE_REQUIRE_PYTHON=1`, so a broken
+  module fails instead of skipping), then the legacy runner with
+  `--tags fast,mc`. JUnit XML and logs are uploaded.
+
+Limits of the f2py module that the tests work around (to fix in WP2):
+`execute_macro` reports errors only as text; `set_value` only works on
+user-defined variables, not `r[]`; data come back as single precision.
+
+Checked (gfortran 13, 4 cores):
+
+| Run | Result |
+|---|---|
+| `pytest tests/python`, `OMP_NUM_THREADS` 1 and 4 | 9 passed (33 legacy macro tests skipped, no `DISCUS_SUITE`), under 1 s |
+| Same build, `run_legacy_tests.py -j 4 --tags fast,mc` | 29 PASS, 1 RAN, 2 SKIPPED |
+

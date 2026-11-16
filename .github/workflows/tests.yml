@@ -1,0 +1,72 @@
+# Build DiffuseCode with the Python module and run the tests.
+#
+#   1. pytest tests/python   – Python interface (suite_python) + golden data
+#   2. legacy macro tests     – tools/run_legacy_tests.py, tags fast and mc
+#
+# Development happens on claude-python-app until the first release of the
+# Python package; feature branches (claude/**) merge into it.
+name: tests
+
+on:
+  push:
+    branches: [claude-python-app, "claude/**"]
+  pull_request:
+    branches: [claude-python-app]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      FC: gfortran
+      CC: gcc
+      CXX: g++
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gfortran cmake make libfftw3-dev libhdf5-dev libreadline-dev \
+            libpng-dev libx11-dev zlib1g-dev pgplot5 xvfb \
+            python3-dev python3-numpy python3-pytest
+
+      - name: Configure
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+                -DDIFFUSE_PYTHON=ON -DPGPLOT_DIR=/usr/lib/pgplot5 \
+                -DPYTHON_EXECUTABLE=/usr/bin/python3 -Wno-dev
+
+      - name: Build
+        run: cmake --build build -j "$(nproc)"
+
+      - name: Python tests (pytest)
+        env:
+          DIFFUSE_PYTHON_PATH: ${{ github.workspace }}/build/python
+          DIFFUSE_REQUIRE_PYTHON: "1"
+        # DISCUS_SUITE is not set here, so the legacy macro tests inside
+        # pytest are skipped; the next step runs them in parallel.
+        run: python3 -m pytest tests/python -v --junitxml=pytest-results.xml
+
+      - name: Legacy macro tests
+        run: |
+          python3 tools/run_legacy_tests.py \
+            --exe build/suite/prog/discus_suite -j "$(nproc)" \
+            --tags fast,mc --junit legacy-results.xml --workdir legacy-work
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            pytest-results.xml
+            legacy-results.xml
+            legacy-work/**/*.log
+          if-no-files-found: ignore
