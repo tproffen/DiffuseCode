@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Test coverage gaps – what to add and harden &#8212; DiffuseCode Python</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_generated/migration/WP0_Test_Coverage_Gaps';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="WP0 – Regression test baseline" href="WP0_Test_Baseline.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">DiffuseCode Python</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../gallery/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../testing.html">
+    DISCUS-suite macro tests
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="DiffuseCode_Python_Migration_Plan.html">
+    DiffuseCode: moving to a Python framework
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="WP0_Test_Baseline.html">
+    WP0 – Regression test baseline
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="#" aria-current="page">
+    Test coverage gaps – what to add and harden
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tproffen/DiffuseCode" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../gallery/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../testing.html">
+    DISCUS-suite macro tests
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="DiffuseCode_Python_Migration_Plan.html">
+    DiffuseCode: moving to a Python framework
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="WP0_Test_Baseline.html">
+    WP0 – Regression test baseline
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#" aria-current="page">
+    Test coverage gaps – what to add and harden
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tproffen/DiffuseCode" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Test coverage gaps – what to add and harden</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="test-coverage-gaps-what-to-add-and-harden">
+<span id="test-coverage-gaps--what-to-add-and-harden"></span><h1>Test coverage gaps – what to add and harden<a class="headerlink" href="#test-coverage-gaps-what-to-add-and-harden" title="Link to this heading">#</a></h1>
+<p>Part of WP0 (<a class="reference internal" href="WP0_Test_Baseline.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">WP0_Test_Baseline.md</span></code></span></a>) of the <a class="reference internal" href="DiffuseCode_Python_Migration_Plan.html"><span class="std std-doc">migration plan</span></a>. This compares the commands
+documented in the help files with what the current macro tests actually run
+and check. It then lists the tests to add or strengthen, ordered by when the
+migration work packages (WP3–WP9) need them. <code class="docutils literal notranslate"><span class="pre">mixscat</span></code> is deprecated and not
+included.</p>
+<p>Generated from the run of 2026-11-13 (<code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code> after PR #33; 31
+tests). Re-run at any time:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>tools/run_legacy_tests.py<span class="w"> </span>--exe<span class="w"> </span>/path/to/discus_suite<span class="w"> </span>-j<span class="w"> </span><span class="m">4</span><span class="w"> </span>--workdir<span class="w"> </span>/tmp/run
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>tools/command_coverage.py<span class="w"> </span>--logs<span class="w"> </span>/tmp/run<span class="w"> </span>--markdown<span class="w"> </span>coverage.md
+</pre></div>
+</div>
+<hr class="docutils" />
+<section id="summary">
+<span id="1-summary"></span><h2>1. Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Program</p></th>
+<th class="head"><p>Commands reached</p></th>
+<th class="head"><p>Sub-commands / options reached</p></th>
+<th class="head"><p>Comment</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DISCUS</p></td>
+<td><p>28 / 61</p></td>
+<td><p>136 / 402</p></td>
+<td><p>Core scattering paths covered; I/O, symmetry, many structure-editing commands, RMC and Patterson not reached</p></td>
+</tr>
+<tr class="row-odd"><td><p>KUPLOT</p></td>
+<td><p>34 / 82</p></td>
+<td><p>9 / 69</p></td>
+<td><p>Used mainly as a test harness (<code class="docutils literal notranslate"><span class="pre">load</span></code>, <code class="docutils literal notranslate"><span class="pre">rvalue</span></code>) and for plot styling; <code class="docutils literal notranslate"><span class="pre">fit</span></code> and data processing not reached</p></td>
+</tr>
+<tr class="row-even"><td><p>DIFFEV</p></td>
+<td><p>0 / 28</p></td>
+<td><p>–</p></td>
+<td><p><strong>Not tested at all</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>REFINE</p></td>
+<td><p>6 / 9</p></td>
+<td><p>3 / 4</p></td>
+<td><p>One test</p></td>
+</tr>
+<tr class="row-even"><td><p>SUITE</p></td>
+<td><p>3 / 7</p></td>
+<td><p>–</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">diffev</span></code> branch, <code class="docutils literal notranslate"><span class="pre">parallel</span></code> not reached</p></td>
+</tr>
+<tr class="row-odd"><td><p>Command language (<code class="docutils literal notranslate"><span class="pre">lib_f90</span></code>)</p></td>
+<td><p>19 / 31</p></td>
+<td><p>–</p></td>
+<td><p>Covered as a side effect; <code class="docutils literal notranslate"><span class="pre">seed</span></code> never used</p></td>
+</tr>
+<tr class="row-even"><td><p>EXPERI</p></td>
+<td><p>0 / 1</p></td>
+<td><p>0 / 10</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">exp2pdf</span></code> not reached (still in use?)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Reached is not the same as checked.</strong> Many tests run a command but only
+check something simple afterwards. Section 3 rates each test’s check.</p>
+<p>How the numbers are made, and their limits:</p>
+<ul class="simple">
+<li><p>Commands come from the help files: level 2 is a command, level 3 is a
+sub-command or option.</p></li>
+<li><p>What ran comes from the command echo in the test logs, matched by unique
+prefix, since the command language accepts abbreviations.</p></li>
+<li><p>Macro echo also prints the lines of <code class="docutils literal notranslate"><span class="pre">if</span></code> branches that are not taken.
+Commands inside <code class="docutils literal notranslate"><span class="pre">do</span></code> loops in a sub-menu are echoed with the outer prompt.
+A few counts can therefore be off; for example, <code class="docutils literal notranslate"><span class="pre">transform</span></code> counts as
+reached because a <code class="docutils literal notranslate"><span class="pre">trans</span> <span class="pre">…</span></code> line inside a menu loop matched it.</p></li>
+<li><p>Options passed as parameters (for example <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">technique:nufft</span></code>) are only
+counted for <code class="docutils literal notranslate"><span class="pre">set</span></code>. Everything else is counted at command level.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="gaps-by-migration-work-package">
+<span id="2-gaps-by-migration-work-package"></span><h2>2. Gaps by migration work package<a class="headerlink" href="#gaps-by-migration-work-package" title="Link to this heading">#</a></h2>
+<section id="wp3-crystal-model-and-i-o-needed-first">
+<span id="wp3--crystal-model-and-io-needed-first"></span><h3>WP3 – Crystal model and I/O (needed first)<a class="headerlink" href="#wp3-crystal-model-and-i-o-needed-first" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Gap</p></th>
+<th class="head"><p>Today</p></th>
+<th class="head"><p>Why it matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Structure export/import: <code class="docutils literal notranslate"><span class="pre">export</span></code> (SHELX, CIF, RMCProfile, VASP …), <code class="docutils literal notranslate"><span class="pre">import</span></code></p></td>
+<td><p>Not reached. <code class="docutils literal notranslate"><span class="pre">01.Simulation/export.mac</span></code> exists with 9 checks but is <strong>not</strong> in <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code>, and it fails 6 of 9 (see 4.1)</p></td>
+<td><p>The Python <code class="docutils literal notranslate"><span class="pre">Crystal</span></code> class must read and write the same files</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">save</span></code> options (<code class="docutils literal notranslate"><span class="pre">format</span></code>, <code class="docutils literal notranslate"><span class="pre">incl</span></code>, <code class="docutils literal notranslate"><span class="pre">omit</span></code>, <code class="docutils literal notranslate"><span class="pre">prop</span></code>, <code class="docutils literal notranslate"><span class="pre">asym</span></code> …)</p></td>
+<td><p>4 / 13 options</p></td>
+<td><p>Round trip Python → Fortran → file</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">spacegroup</span></code>, <code class="docutils literal notranslate"><span class="pre">wyckoff</span></code>, <code class="docutils literal notranslate"><span class="pre">asym</span></code>, <code class="docutils literal notranslate"><span class="pre">symmetry</span></code> details</p></td>
+<td><p>Not reached / 14 of 24 sub-commands</p></td>
+<td><p>Space-group expansion is wrapped in WP3</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">transform</span></code> (new cell, origin shift)</p></td>
+<td><p>No sub-commands reached</p></td>
+<td><p>Cell transformations are part of the data model</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">d2r</span></code>, <code class="docutils literal notranslate"><span class="pre">r2d</span></code>, <code class="docutils literal notranslate"><span class="pre">index2cell</span></code>, <code class="docutils literal notranslate"><span class="pre">vprod</span></code></p></td>
+<td><p>Mostly not reached</p></td>
+<td><p>Small metric helpers; cheap exact tests</p></td>
+</tr>
+<tr class="row-odd"><td><p>KUPLOT <code class="docutils literal notranslate"><span class="pre">load</span></code> formats (<code class="docutils literal notranslate"><span class="pre">csv</span></code>, <code class="docutils literal notranslate"><span class="pre">h5</span></code>, <code class="docutils literal notranslate"><span class="pre">nexus</span></code>, <code class="docutils literal notranslate"><span class="pre">mrc</span></code>, …), <code class="docutils literal notranslate"><span class="pre">ksave</span></code>, <code class="docutils literal notranslate"><span class="pre">dsave</span></code></p></td>
+<td><p>3 / 16 formats</p></td>
+<td><p>Data-file parity when I/O moves to h5py</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="wp4-single-crystal-fourier">
+<span id="wp4--single-crystal-fourier"></span><h3>WP4 – Single-crystal Fourier<a class="headerlink" href="#wp4-single-crystal-fourier" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Gap</p></th>
+<th class="head"><p>Today</p></th>
+<th class="head"><p>Why it matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Radiation and energy: <code class="docutils literal notranslate"><span class="pre">electron</span></code>, <code class="docutils literal notranslate"><span class="pre">energy</span></code> (instead of <code class="docutils literal notranslate"><span class="pre">wvle</span></code>)</p></td>
+<td><p>Not reached</p></td>
+<td><p>Every radiation type needs a golden result</p></td>
+</tr>
+<tr class="row-odd"><td><p>Anomalous dispersion <code class="docutils literal notranslate"><span class="pre">delf</span></code>, single <code class="docutils literal notranslate"><span class="pre">hkl</span></code>, <code class="docutils literal notranslate"><span class="pre">layer</span></code></p></td>
+<td><p>Not reached</p></td>
+<td><p>Options the API must expose</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">technique</span></code> (standard vs. NUFFT)</p></td>
+<td><p>Used once</p></td>
+<td><p>The two methods should agree: a cheap consistency test</p></td>
+</tr>
+<tr class="row-odd"><td><p>Only <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">aver</span></code> and <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">technique</span></code> used</p></td>
+<td><p>–</p></td>
+<td><p>Check the other <code class="docutils literal notranslate"><span class="pre">set</span></code> options (filters, lots variants, ADPs)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">diff-four</span></code></p></td>
+<td><p>Not reached</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>Strong checks exist (R &lt; 0.001 against <code class="docutils literal notranslate"><span class="pre">RESULTS/</span></code>)</p></td>
+<td><p>02.1d, 02.1d_periodic, 02.2d</p></td>
+<td><p>Good model for the rest</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="wp5-powder">
+<span id="wp5--powder"></span><h3>WP5 – Powder<a class="headerlink" href="#wp5-powder" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Gap</p></th>
+<th class="head"><p>Today</p></th>
+<th class="head"><p>Why it matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Neutron and electron powder (<code class="docutils literal notranslate"><span class="pre">neut</span></code>, <code class="docutils literal notranslate"><span class="pre">electron</span></code>)</p></td>
+<td><p>Not reached</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>One parameter set only</p></td>
+<td><p>All 3 powder runs use the same <code class="docutils literal notranslate"><span class="pre">set</span></code> values (axis, calc, profile, lpcor, …)</p></td>
+<td><p>Need variations: Debye vs. complete vs. FFT method, profile shapes, preferred orientation, 2θ vs. Q output</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="wp6-pdf-3d-pdf-patterson">
+<span id="wp6--pdf-3d-pdf-patterson"></span><h3>WP6 – PDF, 3D-PDF, Patterson<a class="headerlink" href="#wp6-pdf-3d-pdf-patterson" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Gap</p></th>
+<th class="head"><p>Today</p></th>
+<th class="head"><p>Why it matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong><code class="docutils literal notranslate"><span class="pre">03.pdf</span></code> has no check</strong></p></td>
+<td><p>Runs 9 PDF calculations; nothing is compared</p></td>
+<td><p>Highest priority: add a G(r) comparison against a reference</p></td>
+</tr>
+<tr class="row-odd"><td><p>PDF fitting mode (<code class="docutils literal notranslate"><span class="pre">pdf</span> <span class="pre">run</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">i/jsele</span></code>)</p></td>
+<td><p>Not reached</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">patterson</span></code></p></td>
+<td><p>Not reached</p></td>
+<td><p>Wrapped in WP6</p></td>
+</tr>
+<tr class="row-odd"><td><p>3D-PDF</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RESULTS/*.3DPDF</span></code> exist in SRO_2, SRO_3, SRO_4, SRO_MOLECULES but are not compared</p></td>
+<td><p>Easy win: compare them in the SRO tests</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">exp2pdf</span></code> (DISCUS) and EXPERI <code class="docutils literal notranslate"><span class="pre">exp2pdf</span></code></p></td>
+<td><p>Not reached</p></td>
+<td><p>Clarify whether EXPERI is still used</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="wp7-structure-building-and-defects">
+<span id="wp7--structure-building-and-defects"></span><h3>WP7 – Structure building and defects<a class="headerlink" href="#wp7-structure-building-and-defects" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Gap</p></th>
+<th class="head"><p>Today</p></th>
+<th class="head"><p>Why it matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Atom editing: <code class="docutils literal notranslate"><span class="pre">remove</span></code>, <code class="docutils literal notranslate"><span class="pre">kick</span></code>, <code class="docutils literal notranslate"><span class="pre">displacement</span></code>, <code class="docutils literal notranslate"><span class="pre">change</span></code>, <code class="docutils literal notranslate"><span class="pre">copy</span></code>, <code class="docutils literal notranslate"><span class="pre">define</span></code>, <code class="docutils literal notranslate"><span class="pre">append</span></code>, <code class="docutils literal notranslate"><span class="pre">anis</span></code></p></td>
+<td><p>Not reached</p></td>
+<td><p>Small deterministic tests with exact atom-position checks</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">insert</span></code> options (<code class="docutils literal notranslate"><span class="pre">fuzzy</span></code>, <code class="docutils literal notranslate"><span class="pre">density</span></code>, <code class="docutils literal notranslate"><span class="pre">origin</span></code>, axes …)</p></td>
+<td><p>Only the plain form</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>Molecules: <code class="docutils literal notranslate"><span class="pre">molecularize</span></code>, <code class="docutils literal notranslate"><span class="pre">demolecularize</span></code>, molecule plotting</p></td>
+<td><p>Not reached; <code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_MOLECULES</span></code> exists but is not in the suite and aborts (see 4.1)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">perioditize</span></code>, <code class="docutils literal notranslate"><span class="pre">superspace</span></code>, <code class="docutils literal notranslate"><span class="pre">storage</span></code>, <code class="docutils literal notranslate"><span class="pre">switch</span></code>, <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">inverse</span></code>, <code class="docutils literal notranslate"><span class="pre">bragg</span></code></p></td>
+<td><p>Not reached</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stack</span></code> modes <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">four</span></code>, <code class="docutils literal notranslate"><span class="pre">rotate</span></code>, <code class="docutils literal notranslate"><span class="pre">sigma</span></code></p></td>
+<td><p>Not reached</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">waves</span></code> (<code class="docutils literal notranslate"><span class="pre">osci</span></code>, <code class="docutils literal notranslate"><span class="pre">rot</span></code>, <code class="docutils literal notranslate"><span class="pre">shift</span></code>, <code class="docutils literal notranslate"><span class="pre">dens</span></code> …)</p></td>
+<td><p>15 / 26</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">chemistry</span></code> analysis (<code class="docutils literal notranslate"><span class="pre">neig</span></code>, <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">homo</span></code>, <code class="docutils literal notranslate"><span class="pre">angle</span></code>, …)</p></td>
+<td><p>7 / 18</p></td>
+<td><p>Analysis output is exact and easy to compare</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">connectivity</span></code></p></td>
+<td><p>Reached, no sub-commands</p></td>
+<td><p>Used by decoration and molecules</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="wp8-monte-carlo">
+<span id="wp8--monte-carlo"></span><h3>WP8 – Monte Carlo<a class="headerlink" href="#wp8-monte-carlo" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Gap</p></th>
+<th class="head"><p>Today</p></th>
+<th class="head"><p>Why it matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rmc</span></code>, <code class="docutils literal notranslate"><span class="pre">mc</span></code> (old MC)</p></td>
+<td><p>Not reached</p></td>
+<td><p>Wrapped in WP8</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mmc</span></code></p></td>
+<td><p>5 tests, all with statistical tolerances (R &lt; 0.25–0.6, correlation ±0.04–0.09)</p></td>
+<td><p>Needs <code class="docutils literal notranslate"><span class="pre">seed</span></code> fixed (WP0 task 0.5a); then exact golden results</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code></p></td>
+<td><p>Never used in a test</p></td>
+<td><p>Fix first (0.5a), then use it everywhere</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="wp9-refinement-and-plotting">
+<span id="wp9--refinement-and-plotting"></span><h3>WP9 – Refinement and plotting<a class="headerlink" href="#wp9-refinement-and-plotting" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Gap</p></th>
+<th class="head"><p>Today</p></th>
+<th class="head"><p>Why it matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>DIFFEV: 0 / 28 commands</strong></p></td>
+<td><p>Not tested. Candidates exist in <code class="docutils literal notranslate"><span class="pre">07.Refinement/EXAMPLE1</span></code>, <code class="docutils literal notranslate"><span class="pre">EXAMPLE_COMP</span></code>, <code class="docutils literal notranslate"><span class="pre">arctan</span></code></p></td>
+<td><p>The Python DE replacement needs reference behaviour</p></td>
+</tr>
+<tr class="row-odd"><td><p>REFINE <code class="docutils literal notranslate"><span class="pre">fix</span></code>, <code class="docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="docutils literal notranslate"><span class="pre">finished</span></code></p></td>
+<td><p>Not reached</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>KUPLOT <code class="docutils literal notranslate"><span class="pre">fit</span></code> (least squares)</p></td>
+<td><p>Not reached</p></td>
+<td><p>Compare against lmfit/scipy in WP9</p></td>
+</tr>
+<tr class="row-odd"><td><p>KUPLOT data processing: <code class="docutils literal notranslate"><span class="pre">smooth</span></code>, <code class="docutils literal notranslate"><span class="pre">rebin</span></code>, <code class="docutils literal notranslate"><span class="pre">derivative</span></code>, <code class="docutils literal notranslate"><span class="pre">integral</span></code>, <code class="docutils literal notranslate"><span class="pre">fft</span></code>, <code class="docutils literal notranslate"><span class="pre">merge</span></code>, <code class="docutils literal notranslate"><span class="pre">convolute</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">spline</span></code>, <code class="docutils literal notranslate"><span class="pre">sort</span></code></p></td>
+<td><p>Mostly not reached</p></td>
+<td><p><strong>Decide:</strong> if these move to NumPy, test only what users rely on</p></td>
+</tr>
+<tr class="row-even"><td><p>KUPLOT plot styling (colours, fonts, frames, titles)</p></td>
+<td><p>Reached but not checked</p></td>
+<td><p><strong>Do not test.</strong> Replaced by matplotlib/plotly</p></td>
+</tr>
+<tr class="row-odd"><td><p>MPI runs (<code class="docutils literal notranslate"><span class="pre">09.Nanoparticle_refinement</span></code>)</p></td>
+<td><p>Disabled</p></td>
+<td><p>Nightly or manual job</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="command-language-and-suite">
+<h3>Command language and suite<a class="headerlink" href="#command-language-and-suite" title="Link to this heading">#</a></h3>
+<p>The command language is being retired, so test only what macros still depend
+on. <code class="docutils literal notranslate"><span class="pre">if</span></code>, <code class="docutils literal notranslate"><span class="pre">do</span></code>, <code class="docutils literal notranslate"><span class="pre">variable</span></code>, <code class="docutils literal notranslate"><span class="pre">fopen</span></code>, <code class="docutils literal notranslate"><span class="pre">fput</span></code> and similar are already covered as
+a side effect. Exceptions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>: needed for reproducible tests (0.5a).</p></li>
+<li><p>Error handling: no test checks that a bad command gives the expected
+error. WP2 maps errors to Python exceptions, so a small set of
+“this input must fail with error N” tests is worth having.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="strength-of-the-existing-checks">
+<span id="3-strength-of-the-existing-checks"></span><h2>3. Strength of the existing checks<a class="headerlink" href="#strength-of-the-existing-checks" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Check</p></th>
+<th class="head"><p>Tests</p></th>
+<th class="head"><p>Assessment</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Exact reference data</strong>, tight tolerance (R &lt; 0.001–0.01 against <code class="docutils literal notranslate"><span class="pre">RESULTS/</span></code>)</p></td>
+<td><p>02.1d, 02.1d_periodic, 02.2d, 02.powder, 08.nano_simple, 08.nano_ellipsoid, 12.waves_density, 13.analyze</p></td>
+<td><p>Strong. Model for new tests</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Statistical / loose</strong></p></td>
+<td><p>02.2d_lots (R &lt; 0.13–0.15), 04.sro0/1/3/4 (R &lt; 0.25–0.6), 05.stack_growth, 06.perovskite, 07.refine, 06.triangle (intensity ratios)</p></td>
+<td><p>Catches large breaks only. Tighten after <code class="docutils literal notranslate"><span class="pre">seed</span></code> works</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Structural only</strong> (atom counts, a few positions, cell size)</p></td>
+<td><p>01.circle, 01.checkerboard, 01.symmetry, 01.shear, 05.stack, 05.stack_file, 05.stack_types, 06.cube, 06.tilt, 11.properties, 12.waves (internal consistency), 14.deco01_all, 14.deco02</p></td>
+<td><p>Checks the structure is plausible, not that it is right. Add golden structure files (WP0 task 0.6)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>None</strong></p></td>
+<td><p>03.pdf</p></td>
+<td><p>Add a check (task 0.4)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Plot macros now write CIF files (<code class="docutils literal notranslate"><span class="pre">program</span> <span class="pre">cif</span></code>), but nothing compares them.
+<code class="docutils literal notranslate"><span class="pre">08.Nanoparticle_example/SIMPLE/PLOT/block.cif</span></code> came out byte-identical to the
+committed copy, so these could become cheap golden checks.</p>
+</section>
+<hr class="docutils" />
+<section id="work-list">
+<span id="4-work-list"></span><h2>4. Work list<a class="headerlink" href="#work-list" title="Link to this heading">#</a></h2>
+<section id="repair-existing-tests-that-are-not-in-the-suite">
+<span id="41-repair-existing-tests-that-are-not-in-the-suite"></span><h3>4.1 Repair existing tests that are not in the suite<a class="headerlink" href="#repair-existing-tests-that-are-not-in-the-suite" title="Link to this heading">#</a></h3>
+<p>These macros check themselves, but <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> does not run them. Run
+through the new runner, none of them passes today:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Macro</p></th>
+<th class="head"><p>Result</p></th>
+<th class="head"><p>Likely cause</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">01.Simulation/export.mac</span></code> (9 checks)</p></td>
+<td><p>6 FAIL, 3 PASS</p></td>
+<td><p>SHELX and CIF exports differ from <code class="docutils literal notranslate"><span class="pre">Original/</span></code> in 2 atoms. Either the export changed (<strong>possible regression, needs a human look</strong>) or the reference files are outdated. The macro also writes <code class="docutils literal notranslate"><span class="pre">cmm2_export.rmc6f</span></code> but compares <code class="docutils literal notranslate"><span class="pre">cmm2_export.rmcf6</span></code> (typo)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_2/sro.2.mac</span> <span class="pre">0.7,-0.7,1.5</span></code></p></td>
+<td><p>FAIL</p></td>
+<td><p>Commented out in <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code>; the result is outside its tolerance</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_MOLECULES/sro.2.mac</span> <span class="pre">0.7,-0.7,1.5</span></code></p></td>
+<td><p>ABORTED: error opening a file</p></td>
+<td><p>Input file missing or renamed</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">08.Nanoparticle_example/Q/nano.mac</span> <span class="pre">30,</span> <span class="pre">zno</span></code></p></td>
+<td><p>ABORTED: KUPLOT “Incompatible data sets for KCAL”</p></td>
+<td><p>Output format changed since the reference was made</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="harden-existing-tests">
+<span id="42-harden-existing-tests"></span><h3>4.2 Harden existing tests<a class="headerlink" href="#harden-existing-tests" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>#</p></th>
+<th class="head"><p>Task</p></th>
+<th class="head"><p>WP0 task</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>H1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">03.pdf</span></code>: compare G(r) against a stored reference</p></td>
+<td><p>0.4</p></td>
+</tr>
+<tr class="row-odd"><td><p>H2</p></td>
+<td><p>SRO tests: also compare the existing <code class="docutils literal notranslate"><span class="pre">RESULTS/*.3DPDF</span></code> files</p></td>
+<td><p>0.4 / 0.6</p></td>
+</tr>
+<tr class="row-even"><td><p>H3</p></td>
+<td><p>Store golden outputs for the “structural only” tests (final structure, CIF) and compare atom positions</p></td>
+<td><p>0.6</p></td>
+</tr>
+<tr class="row-odd"><td><p>H4</p></td>
+<td><p>After <code class="docutils literal notranslate"><span class="pre">seed</span></code> is fixed, run MC tests with a fixed seed and tighten tolerances (SRO, stack growth, domains, 2d_lots, refine)</p></td>
+<td><p>0.5a / 0.5</p></td>
+</tr>
+<tr class="row-even"><td><p>H5</p></td>
+<td><p>Compare the CIF files written by the plot macros</p></td>
+<td><p>0.6</p></td>
+</tr>
+<tr class="row-odd"><td><p>H6</p></td>
+<td><p>Run deterministic tests with 1 and N OpenMP threads and compare</p></td>
+<td><p>0.5</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="new-tests-by-priority">
+<span id="43-new-tests-by-priority"></span><h3>4.3 New tests, by priority<a class="headerlink" href="#new-tests-by-priority" title="Link to this heading">#</a></h3>
+<p>Ordered by when the migration needs them. Each test should be small (under
+10 s), deterministic (fixed seed), compare one feature against a golden result,
+and need no interactive viewer.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Area</p></th>
+<th class="head"><p>Test</p></th>
+<th class="head"><p>Check</p></th>
+<th class="head"><p>Needed by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A1</p></td>
+<td><p>I/O</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">read</span></code> → <code class="docutils literal notranslate"><span class="pre">save</span></code> → <code class="docutils literal notranslate"><span class="pre">read</span></code> round trip for <code class="docutils literal notranslate"><span class="pre">.stru</span></code>/<code class="docutils literal notranslate"><span class="pre">.cell</span></code>/free cell; all <code class="docutils literal notranslate"><span class="pre">save</span></code> options</p></td>
+<td><p>exact atoms</p></td>
+<td><p>WP3</p></td>
+</tr>
+<tr class="row-odd"><td><p>A2</p></td>
+<td><p>I/O</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">export</span></code>/<code class="docutils literal notranslate"><span class="pre">import</span></code> CIF, SHELX, RMCProfile, VASP (repair <code class="docutils literal notranslate"><span class="pre">export.mac</span></code> first)</p></td>
+<td><p>file + atoms</p></td>
+<td><p>WP3</p></td>
+</tr>
+<tr class="row-even"><td><p>A3</p></td>
+<td><p>Symmetry</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">spacegroup</span></code> expansion for representative groups (triclinic … cubic, non-standard settings), <code class="docutils literal notranslate"><span class="pre">wyckoff</span></code>, <code class="docutils literal notranslate"><span class="pre">asym</span></code></p></td>
+<td><p>atom count + positions</p></td>
+<td><p>WP3</p></td>
+</tr>
+<tr class="row-odd"><td><p>A4</p></td>
+<td><p>Metric</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">transform</span></code> to a new cell and back; <code class="docutils literal notranslate"><span class="pre">d2r</span></code>, <code class="docutils literal notranslate"><span class="pre">r2d</span></code>, <code class="docutils literal notranslate"><span class="pre">vprod</span></code>, <code class="docutils literal notranslate"><span class="pre">index2cell</span></code></p></td>
+<td><p>exact numbers</p></td>
+<td><p>WP3</p></td>
+</tr>
+<tr class="row-even"><td><p>A5</p></td>
+<td><p>Fourier</p></td>
+<td><p>X-ray / neutron / electron, <code class="docutils literal notranslate"><span class="pre">energy</span></code> vs <code class="docutils literal notranslate"><span class="pre">wvle</span></code>, <code class="docutils literal notranslate"><span class="pre">delf</span></code>, single <code class="docutils literal notranslate"><span class="pre">hkl</span></code></p></td>
+<td><p>golden intensity</p></td>
+<td><p>WP4</p></td>
+</tr>
+<tr class="row-odd"><td><p>A6</p></td>
+<td><p>Fourier</p></td>
+<td><p>Standard vs NUFFT technique on the same structure</p></td>
+<td><p>agree within tolerance</p></td>
+<td><p>WP4</p></td>
+</tr>
+<tr class="row-even"><td><p>A7</p></td>
+<td><p>Fourier</p></td>
+<td><p>3D volume and lots variants</p></td>
+<td><p>golden</p></td>
+<td><p>WP4</p></td>
+</tr>
+<tr class="row-odd"><td><p>A8</p></td>
+<td><p>Powder</p></td>
+<td><p>Neutron and electron; Debye vs complete vs FFT; profiles; preferred orientation; 2θ vs Q</p></td>
+<td><p>golden pattern</p></td>
+<td><p>WP5</p></td>
+</tr>
+<tr class="row-even"><td><p>A9</p></td>
+<td><p>PDF</p></td>
+<td><p>X-ray and neutron G(r) with damping/broadening options</p></td>
+<td><p>golden G(r)</p></td>
+<td><p>WP6</p></td>
+</tr>
+<tr class="row-odd"><td><p>A10</p></td>
+<td><p>Patterson / 3D-PDF</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">patterson</span></code>; 3D-PDF of a small disordered crystal</p></td>
+<td><p>golden map</p></td>
+<td><p>WP6</p></td>
+</tr>
+<tr class="row-even"><td><p>A11</p></td>
+<td><p>exp2pdf</p></td>
+<td><p>DISCUS <code class="docutils literal notranslate"><span class="pre">exp2pdf</span></code> on a stored powder pattern</p></td>
+<td><p>golden G(r)</p></td>
+<td><p>WP6</p></td>
+</tr>
+<tr class="row-odd"><td><p>B1</p></td>
+<td><p>Editing</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">remove</span></code>, <code class="docutils literal notranslate"><span class="pre">kick</span></code>, <code class="docutils literal notranslate"><span class="pre">displacement</span></code>, <code class="docutils literal notranslate"><span class="pre">change</span></code>, <code class="docutils literal notranslate"><span class="pre">copy</span></code>, <code class="docutils literal notranslate"><span class="pre">define</span></code>, <code class="docutils literal notranslate"><span class="pre">append</span></code>, <code class="docutils literal notranslate"><span class="pre">anis</span></code></p></td>
+<td><p>exact atoms</p></td>
+<td><p>WP7</p></td>
+</tr>
+<tr class="row-even"><td><p>B2</p></td>
+<td><p>Insert</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">insert</span></code> options (origin, axes, density, fuzzy)</p></td>
+<td><p>exact atoms</p></td>
+<td><p>WP7</p></td>
+</tr>
+<tr class="row-odd"><td><p>B3</p></td>
+<td><p>Molecules</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">molecularize</span></code>/<code class="docutils literal notranslate"><span class="pre">demolecularize</span></code>; repair SRO_MOLECULES</p></td>
+<td><p>molecule table</p></td>
+<td><p>WP7</p></td>
+</tr>
+<tr class="row-even"><td><p>B4</p></td>
+<td><p>Defects</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">perioditize</span></code>, <code class="docutils literal notranslate"><span class="pre">superspace</span></code>, <code class="docutils literal notranslate"><span class="pre">storage</span></code>, <code class="docutils literal notranslate"><span class="pre">switch</span></code>, <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">inverse</span></code>, <code class="docutils literal notranslate"><span class="pre">bragg</span></code></p></td>
+<td><p>exact / golden</p></td>
+<td><p>WP7</p></td>
+</tr>
+<tr class="row-odd"><td><p>B5</p></td>
+<td><p>Stack</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">four</span></code>, <code class="docutils literal notranslate"><span class="pre">rotate</span></code>, <code class="docutils literal notranslate"><span class="pre">sigma</span></code> modes</p></td>
+<td><p>golden</p></td>
+<td><p>WP7</p></td>
+</tr>
+<tr class="row-even"><td><p>B6</p></td>
+<td><p>Analysis</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">chemistry</span></code> <code class="docutils literal notranslate"><span class="pre">neig</span></code>, <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">homo</span></code>, <code class="docutils literal notranslate"><span class="pre">angle</span></code>, <code class="docutils literal notranslate"><span class="pre">bval</span></code> on a fixed structure</p></td>
+<td><p>exact numbers</p></td>
+<td><p>WP7</p></td>
+</tr>
+<tr class="row-odd"><td><p>B7</p></td>
+<td><p>Waves</p></td>
+<td><p>remaining wave types (<code class="docutils literal notranslate"><span class="pre">osci</span></code>, <code class="docutils literal notranslate"><span class="pre">rot</span></code>, <code class="docutils literal notranslate"><span class="pre">shift</span></code>, <code class="docutils literal notranslate"><span class="pre">dens</span></code>)</p></td>
+<td><p>golden</p></td>
+<td><p>WP7</p></td>
+</tr>
+<tr class="row-even"><td><p>C1</p></td>
+<td><p>MC</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mmc</span></code> with fixed seed: exact correlations (after 0.5a)</p></td>
+<td><p>exact</p></td>
+<td><p>WP8</p></td>
+</tr>
+<tr class="row-odd"><td><p>C2</p></td>
+<td><p>MC</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rmc</span></code> small fit to a stored pattern</p></td>
+<td><p>R-value + seed</p></td>
+<td><p>WP8</p></td>
+</tr>
+<tr class="row-even"><td><p>C3</p></td>
+<td><p>MC</p></td>
+<td><p>old <code class="docutils literal notranslate"><span class="pre">mc</span></code> (only if still in use)</p></td>
+<td><p></p></td>
+<td><p>WP8</p></td>
+</tr>
+<tr class="row-odd"><td><p>D1</p></td>
+<td><p>DIFFEV</p></td>
+<td><p>small DE fit (polynomial or <code class="docutils literal notranslate"><span class="pre">arctan</span></code> example) with seed, serial</p></td>
+<td><p>final parameters</p></td>
+<td><p>WP9</p></td>
+</tr>
+<tr class="row-even"><td><p>D2</p></td>
+<td><p>REFINE</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fix</span></code>, <code class="docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="docutils literal notranslate"><span class="pre">finished</span></code></p></td>
+<td><p>parameters + errors</p></td>
+<td><p>WP9</p></td>
+</tr>
+<tr class="row-odd"><td><p>D3</p></td>
+<td><p>KUPLOT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fit</span></code> of a known function</p></td>
+<td><p>parameters</p></td>
+<td><p>WP9</p></td>
+</tr>
+<tr class="row-even"><td><p>D4</p></td>
+<td><p>KUPLOT</p></td>
+<td><p>data processing actually used by users (after the keep/drop decision)</p></td>
+<td><p>golden arrays</p></td>
+<td><p>WP9</p></td>
+</tr>
+<tr class="row-odd"><td><p>E1</p></td>
+<td><p>Errors</p></td>
+<td><p>Bad commands, bad parameters and missing files give the expected error number; the run continues</p></td>
+<td><p>error code</p></td>
+<td><p>WP2</p></td>
+</tr>
+<tr class="row-even"><td><p>E2</p></td>
+<td><p>Command language</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code> reproducibility: same seed → same random numbers</p></td>
+<td><p>exact</p></td>
+<td><p>0.5a</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="out-of-scope-decide-once-then-document">
+<span id="44-out-of-scope-decide-once-then-document"></span><h3>4.4 Out of scope (decide once, then document)<a class="headerlink" href="#out-of-scope-decide-once-then-document" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>KUPLOT plot styling</strong> (colours, fonts, frames, titles, marks): replaced by
+matplotlib/plotly, so not worth testing.</p></li>
+<li><p><strong>Command-language features</strong> not used by any macro (<code class="docutils literal notranslate"><span class="pre">learn</span></code>, <code class="docutils literal notranslate"><span class="pre">mount</span></code>,
+<code class="docutils literal notranslate"><span class="pre">fsub</span></code>, <code class="docutils literal notranslate"><span class="pre">timer</span></code>, sockets): retire rather than test.</p></li>
+<li><p><strong>mixscat</strong>: deprecated.</p></li>
+<li><p><strong>EXPERI</strong>: test only if it is still used.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="conventions-for-new-tests">
+<span id="5-conventions-for-new-tests"></span><h2>5. Conventions for new tests<a class="headerlink" href="#conventions-for-new-tests" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>One feature per macro, small crystal, run time under 10 s.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code> at the start of every stochastic test (once 0.5a is fixed).</p></li>
+<li><p>Compare against stored reference data (<code class="docutils literal notranslate"><span class="pre">RESULTS/</span></code> now, <code class="docutils literal notranslate"><span class="pre">golden/</span></code> from task
+0.6), not only against counts or ranges.</p></li>
+<li><p>Plot macros use <code class="docutils literal notranslate"><span class="pre">program</span> <span class="pre">cif</span></code> and <code class="docutils literal notranslate"><span class="pre">run</span></code>, never <code class="docutils literal notranslate"><span class="pre">program</span> <span class="pre">jmol</span></code> or
+<code class="docutils literal notranslate"><span class="pre">run</span> <span class="pre">plot:inter</span></code>.</p></li>
+<li><p>Add every test to <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> and <code class="docutils literal notranslate"><span class="pre">manifest.toml</span></code> together. Tag it
+(<code class="docutils literal notranslate"><span class="pre">fast</span></code>, <code class="docutils literal notranslate"><span class="pre">mc</span></code>, …), and check with <code class="docutils literal notranslate"><span class="pre">tools/run_legacy_tests.py</span> <span class="pre">--check-test-all</span></code>.</p></li>
+<li><p>After adding tests, re-run <code class="docutils literal notranslate"><span class="pre">tools/command_coverage.py</span></code> and update the
+appendix below.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="appendix-command-coverage-tables-generated">
+<span id="appendix--command-coverage-tables-generated"></span><h2>Appendix – command coverage tables (generated)<a class="headerlink" href="#appendix-command-coverage-tables-generated" title="Link to this heading">#</a></h2>
+<p>Output of <code class="docutils literal notranslate"><span class="pre">tools/command_coverage.py</span></code> for the run above.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Program</p></th>
+<th class="head"><p>Commands reached</p></th>
+<th class="head"><p>Sub-commands / options reached</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>suite</p></td>
+<td><p>3 / 7</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p>discus</p></td>
+<td><p>28 / 61</p></td>
+<td><p>136 / 402</p></td>
+</tr>
+<tr class="row-even"><td><p>kuplot</p></td>
+<td><p>34 / 82</p></td>
+<td><p>9 / 69</p></td>
+</tr>
+<tr class="row-odd"><td><p>diffev</p></td>
+<td><p>0 / 28</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p>refine</p></td>
+<td><p>6 / 9</p></td>
+<td><p>3 / 4</p></td>
+</tr>
+<tr class="row-odd"><td><p>experi</p></td>
+<td><p>0 / 1</p></td>
+<td><p>0 / 10</p></td>
+</tr>
+<tr class="row-even"><td><p>lib</p></td>
+<td><p>19 / 31</p></td>
+<td><p>–</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="suite">
+<h3>suite<a class="headerlink" href="#suite" title="Link to this heading">#</a></h3>
+<p><strong>Not reached:</strong> <code class="docutils literal notranslate"><span class="pre">diffev</span></code>, <code class="docutils literal notranslate"><span class="pre">parallel</span></code>, <code class="docutils literal notranslate"><span class="pre">show</span></code>, <code class="docutils literal notranslate"><span class="pre">update</span></code></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Command</p></th>
+<th class="head text-right"><p>Tests</p></th>
+<th class="head"><p>Sub-commands reached</p></th>
+<th class="head"><p>Sub-commands not reached</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">discus</span></code></p></td>
+<td class="text-right"><p>30</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kuplot</span></code></p></td>
+<td class="text-right"><p>6</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">refine</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="discus">
+<h3>discus<a class="headerlink" href="#discus" title="Link to this heading">#</a></h3>
+<p><strong>Not reached:</strong> <code class="docutils literal notranslate"><span class="pre">anis</span></code>, <code class="docutils literal notranslate"><span class="pre">append</span></code>, <code class="docutils literal notranslate"><span class="pre">asym</span></code>, <code class="docutils literal notranslate"><span class="pre">bragg</span></code>, <code class="docutils literal notranslate"><span class="pre">change</span></code>, <code class="docutils literal notranslate"><span class="pre">copy</span></code>, <code class="docutils literal notranslate"><span class="pre">d2r</span></code>, <code class="docutils literal notranslate"><span class="pre">define</span></code>, <code class="docutils literal notranslate"><span class="pre">demolecularize</span></code>, <code class="docutils literal notranslate"><span class="pre">diff-four</span></code>, <code class="docutils literal notranslate"><span class="pre">displacement</span></code>, <code class="docutils literal notranslate"><span class="pre">exp2pdf</span></code>, <code class="docutils literal notranslate"><span class="pre">export</span></code>, <code class="docutils literal notranslate"><span class="pre">import</span></code>, <code class="docutils literal notranslate"><span class="pre">index2cell</span></code>, <code class="docutils literal notranslate"><span class="pre">inverse</span></code>, <code class="docutils literal notranslate"><span class="pre">kick</span></code>, <code class="docutils literal notranslate"><span class="pre">mc</span></code>, <code class="docutils literal notranslate"><span class="pre">molecularize</span></code>, <code class="docutils literal notranslate"><span class="pre">patterson</span></code>, <code class="docutils literal notranslate"><span class="pre">perioditize</span></code>, <code class="docutils literal notranslate"><span class="pre">private</span></code>, <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">r2d</span></code>, <code class="docutils literal notranslate"><span class="pre">remove</span></code>, <code class="docutils literal notranslate"><span class="pre">rmc</span></code>, <code class="docutils literal notranslate"><span class="pre">seed</span></code>, <code class="docutils literal notranslate"><span class="pre">spacegroup</span></code>, <code class="docutils literal notranslate"><span class="pre">storage</span></code>, <code class="docutils literal notranslate"><span class="pre">superspace</span></code>, <code class="docutils literal notranslate"><span class="pre">switch</span></code>, <code class="docutils literal notranslate"><span class="pre">ther</span></code>, <code class="docutils literal notranslate"><span class="pre">wyckoff</span></code></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Command</p></th>
+<th class="head text-right"><p>Tests</p></th>
+<th class="head"><p>Sub-commands reached</p></th>
+<th class="head"><p>Sub-commands not reached</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">boundary</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">branch</span></code></p></td>
+<td class="text-right"><p>25</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">chemistry</span></code></p></td>
+<td class="text-right"><p>16</p></td>
+<td><p>7 / 18</p></td>
+<td><p>angle, apply_symmetry, bval, coordination, disp, env, field, homo, mode, neig, trans</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">connectivity</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>0 / 9</p></td>
+<td><p>add, create, delete, recreate, remove, reset, set, show, switch</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">decorate</span></code></p></td>
+<td class="text-right"><p>2</p></td>
+<td><p>5 / 5</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">domain</span></code></p></td>
+<td class="text-right"><p>26</p></td>
+<td><p>7 / 8</p></td>
+<td><p>instructions</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">find</span></code></p></td>
+<td class="text-right"><p>2</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fourier</span></code></p></td>
+<td class="text-right"><p>13</p></td>
+<td><p>21 / 27</p></td>
+<td><p>calc, delf, electron, energy, hkl, layer</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">insert</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>0 / 14</p></td>
+<td><p>adp, cent, character, density, file, fuzzy, origin, reset, run, show, type, xaxis, yaxis, zaxis</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mmc</span></code></p></td>
+<td class="text-right"><p>5</p></td>
+<td><p>4 / 5</p></td>
+<td><p>apply_symmetry</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">output</span></code></p></td>
+<td class="text-right"><p>16</p></td>
+<td><p>4 / 9</p></td>
+<td><p>input, range, reset, show, threshold</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pdf</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>5 / 9</p></td>
+<td><p>data, i/jdese, i/jsele, run</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot</span></code></p></td>
+<td class="text-right"><p>26</p></td>
+<td><p>16 / 28</p></td>
+<td><p>asym, back, bonds, chem, col, hkl, line, mdes, mole, msel, title, type</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">powder</span></code></p></td>
+<td class="text-right"><p>3</p></td>
+<td><p>5 / 7</p></td>
+<td><p>electron, neut</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">property</span></code></p></td>
+<td class="text-right"><p>3</p></td>
+<td><p>1 / 2</p></td>
+<td><p>set/clear</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">purge</span></code></p></td>
+<td class="text-right"><p>6</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">read</span></code></p></td>
+<td class="text-right"><p>30</p></td>
+<td><p>4 / 5</p></td>
+<td><p>exit</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">replace</span></code></p></td>
+<td class="text-right"><p>11</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reset</span></code></p></td>
+<td class="text-right"><p>4</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">save</span></code></p></td>
+<td class="text-right"><p>13</p></td>
+<td><p>4 / 13</p></td>
+<td><p>asym, chem, des, format, incl, omit, prop, reset, show</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">shear</span></code></p></td>
+<td class="text-right"><p>2</p></td>
+<td><p>6 / 20</p></td>
+<td><p>calc, des, eigen, hkl, mdes, mincl, mode, msel, odes, oincl, osel, show, uvw, vector</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">show</span></code></p></td>
+<td class="text-right"><p>11</p></td>
+<td><p>5 / 18</p></td>
+<td><p>adp, asym, bval, chem, config, connectivity, envi, error, mass, menv, object, scat, symmetry</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stack</span></code></p></td>
+<td class="text-right"><p>4</p></td>
+<td><p>11 / 19</p></td>
+<td><p>ccol, cele, dist, four, random, reset, rotate, sigma</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">surface</span></code></p></td>
+<td class="text-right"><p>5</p></td>
+<td><p>2 / 4</p></td>
+<td><p>character, show</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">symmetry</span></code></p></td>
+<td class="text-right"><p>3</p></td>
+<td><p>14 / 24</p></td>
+<td><p>asym, calc, chem, des, hkl, mdes, odes, oincl, osel, use</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">transform</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>0 / 33</p></td>
+<td><p>anew, aold, asnew, asold, asym, bnew, bold, bsnew, bsold, c2new, c2old, chem, cnew, cold, csnew, csold, des, h2new, h2old, incl, onew, oold, reset, run, sel, set, show, xnew, xold, ynew, yold, znew, zold</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vprod</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">waves</span></code></p></td>
+<td class="text-right"><p>2</p></td>
+<td><p>15 / 26</p></td>
+<td><p>asym, chem, dens, mdes, mrep, msel, opti, osci, rot, shift, tran</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="kuplot">
+<h3>kuplot<a class="headerlink" href="#kuplot" title="Link to this heading">#</a></h3>
+<p><strong>Not reached:</strong> <code class="docutils literal notranslate"><span class="pre">adt</span></code>, <code class="docutils literal notranslate"><span class="pre">alloc</span></code>, <code class="docutils literal notranslate"><span class="pre">bond</span></code>, <code class="docutils literal notranslate"><span class="pre">branch</span></code>, <code class="docutils literal notranslate"><span class="pre">close</span></code>, <code class="docutils literal notranslate"><span class="pre">color</span></code>, <code class="docutils literal notranslate"><span class="pre">convolute</span></code>, <code class="docutils literal notranslate"><span class="pre">cost</span></code>, <code class="docutils literal notranslate"><span class="pre">derivative</span></code>, <code class="docutils literal notranslate"><span class="pre">dsave</span></code>, <code class="docutils literal notranslate"><span class="pre">ecolor</span></code>, <code class="docutils literal notranslate"><span class="pre">etype</span></code>, <code class="docutils literal notranslate"><span class="pre">excl</span></code>, <code class="docutils literal notranslate"><span class="pre">fft</span></code>, <code class="docutils literal notranslate"><span class="pre">fill</span></code>, <code class="docutils literal notranslate"><span class="pre">fit</span></code>, <code class="docutils literal notranslate"><span class="pre">fourier</span></code>, <code class="docutils literal notranslate"><span class="pre">function</span></code>, <code class="docutils literal notranslate"><span class="pre">glat</span></code>, <code class="docutils literal notranslate"><span class="pre">grid</span></code>, <code class="docutils literal notranslate"><span class="pre">hcolor</span></code>, <code class="docutils literal notranslate"><span class="pre">hlab</span></code>, <code class="docutils literal notranslate"><span class="pre">hpak</span></code>, <code class="docutils literal notranslate"><span class="pre">htype</span></code>, <code class="docutils literal notranslate"><span class="pre">ident</span></code>, <code class="docutils literal notranslate"><span class="pre">integral</span></code>, <code class="docutils literal notranslate"><span class="pre">kpar_par</span></code>, <code class="docutils literal notranslate"><span class="pre">kpara</span></code>, <code class="docutils literal notranslate"><span class="pre">lart</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">merge</span></code>, <code class="docutils literal notranslate"><span class="pre">mouse</span></code>, <code class="docutils literal notranslate"><span class="pre">nexus</span></code>, <code class="docutils literal notranslate"><span class="pre">print</span></code>, <code class="docutils literal notranslate"><span class="pre">ptype</span></code>, <code class="docutils literal notranslate"><span class="pre">rdef</span></code>, <code class="docutils literal notranslate"><span class="pre">rebin</span></code>, <code class="docutils literal notranslate"><span class="pre">sann</span></code>, <code class="docutils literal notranslate"><span class="pre">scale</span></code>, <code class="docutils literal notranslate"><span class="pre">sdef</span></code>, <code class="docutils literal notranslate"><span class="pre">show</span></code>, <code class="docutils literal notranslate"><span class="pre">sleg</span></code>, <code class="docutils literal notranslate"><span class="pre">sm</span></code>, <code class="docutils literal notranslate"><span class="pre">smax</span></code>, <code class="docutils literal notranslate"><span class="pre">sort</span></code>, <code class="docutils literal notranslate"><span class="pre">spline</span></code>, <code class="docutils literal notranslate"><span class="pre">torefine</span></code>, <code class="docutils literal notranslate"><span class="pre">window</span></code></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Command</p></th>
+<th class="head text-right"><p>Tests</p></th>
+<th class="head"><p>Sub-commands reached</p></th>
+<th class="head"><p>Sub-commands not reached</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">achx</span></code></p></td>
+<td class="text-right"><p>23</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">achy</span></code></p></td>
+<td class="text-right"><p>23</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">achz</span></code></p></td>
+<td class="text-right"><p>9</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">angle</span></code></p></td>
+<td class="text-right"><p>10</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aver</span></code></p></td>
+<td class="text-right"><p>19</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">buffer</span></code></p></td>
+<td class="text-right"><p>12</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ccalc</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cmap</span></code></p></td>
+<td class="text-right"><p>9</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fname</span></code></p></td>
+<td class="text-right"><p>22</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">font</span></code></p></td>
+<td class="text-right"><p>5</p></td>
+<td><p>1 / 4</p></td>
+<td><p>color, just, typ</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">frames</span></code></p></td>
+<td class="text-right"><p>12</p></td>
+<td><p>4 / 7</p></td>
+<td><p>bframe, cframe, frame</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fset</span></code></p></td>
+<td class="text-right"><p>12</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hart</span></code></p></td>
+<td class="text-right"><p>9</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hline</span></code></p></td>
+<td class="text-right"><p>9</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">kcalc</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ksave</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>1 / 6</p></td>
+<td><p>form, m999, run, show, threshold</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lcolor</span></code></p></td>
+<td class="text-right"><p>3</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">load</span></code></p></td>
+<td class="text-right"><p>28</p></td>
+<td><p>3 / 16</p></td>
+<td><p>csv, de, gs, h5, ma, mc, mp, mrc, nexus, pg, sc/st, xx, zz</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ltype</span></code></p></td>
+<td class="text-right"><p>2</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lwidth</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mark</span></code></p></td>
+<td class="text-right"><p>24</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">match</span></code></p></td>
+<td class="text-right"><p>2</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mcolor</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">msize</span></code></p></td>
+<td class="text-right"><p>19</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mtype</span></code></p></td>
+<td class="text-right"><p>2</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">orientation</span></code></p></td>
+<td class="text-right"><p>3</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot</span></code></p></td>
+<td class="text-right"><p>26</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reset</span></code></p></td>
+<td class="text-right"><p>26</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rvalue</span></code></p></td>
+<td class="text-right"><p>16</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">save</span></code></p></td>
+<td class="text-right"><p>3</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">skal</span></code></p></td>
+<td class="text-right"><p>24</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">smooth</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tit1</span></code></p></td>
+<td class="text-right"><p>22</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tit2</span></code></p></td>
+<td class="text-right"><p>22</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="diffev">
+<h3>diffev<a class="headerlink" href="#diffev" title="Link to this heading">#</a></h3>
+<p><strong>Not reached:</strong> <code class="docutils literal notranslate"><span class="pre">adapt</span></code>, <code class="docutils literal notranslate"><span class="pre">allocate</span></code>, <code class="docutils literal notranslate"><span class="pre">backup</span></code>, <code class="docutils literal notranslate"><span class="pre">branch</span></code>, <code class="docutils literal notranslate"><span class="pre">compare</span></code>, <code class="docutils literal notranslate"><span class="pre">constraint</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">deallocate</span></code>, <code class="docutils literal notranslate"><span class="pre">dismiss</span></code>, <code class="docutils literal notranslate"><span class="pre">donor</span></code>, <code class="docutils literal notranslate"><span class="pre">fix</span></code>, <code class="docutils literal notranslate"><span class="pre">initialize</span></code>, <code class="docutils literal notranslate"><span class="pre">lastfile</span></code>, <code class="docutils literal notranslate"><span class="pre">logfile</span></code>, <code class="docutils literal notranslate"><span class="pre">newparam</span></code>, <code class="docutils literal notranslate"><span class="pre">purge</span></code>, <code class="docutils literal notranslate"><span class="pre">read</span></code>, <code class="docutils literal notranslate"><span class="pre">refine</span></code>, <code class="docutils literal notranslate"><span class="pre">release</span></code>, <code class="docutils literal notranslate"><span class="pre">reset</span></code>, <code class="docutils literal notranslate"><span class="pre">restart</span></code>, <code class="docutils literal notranslate"><span class="pre">restrial</span></code>, <code class="docutils literal notranslate"><span class="pre">run_mpi</span></code>, <code class="docutils literal notranslate"><span class="pre">selection</span></code>, <code class="docutils literal notranslate"><span class="pre">show</span></code>, <code class="docutils literal notranslate"><span class="pre">trialfile</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">write</span></code></p>
+</section>
+<section id="refine">
+<h3>refine<a class="headerlink" href="#refine" title="Link to this heading">#</a></h3>
+<p><strong>Not reached:</strong> <code class="docutils literal notranslate"><span class="pre">finished</span></code>, <code class="docutils literal notranslate"><span class="pre">fix</span></code>, <code class="docutils literal notranslate"><span class="pre">sigma</span></code></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Command</p></th>
+<th class="head text-right"><p>Tests</p></th>
+<th class="head"><p>Sub-commands reached</p></th>
+<th class="head"><p>Sub-commands not reached</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">data</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">newparam</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reset</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">run</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">set</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>3 / 4</p></td>
+<td><p>log</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">show</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="experi">
+<h3>experi<a class="headerlink" href="#experi" title="Link to this heading">#</a></h3>
+<p><strong>Not reached:</strong> <code class="docutils literal notranslate"><span class="pre">exp2pdf</span></code></p>
+</section>
+<section id="lib">
+<h3>lib<a class="headerlink" href="#lib" title="Link to this heading">#</a></h3>
+<p><strong>Not reached:</strong> <code class="docutils literal notranslate"><span class="pre">cd</span></code>, <code class="docutils literal notranslate"><span class="pre">fend</span></code>, <code class="docutils literal notranslate"><span class="pre">fexist</span></code>, <code class="docutils literal notranslate"><span class="pre">fsub</span></code>, <code class="docutils literal notranslate"><span class="pre">input</span></code>, <code class="docutils literal notranslate"><span class="pre">learn</span></code>, <code class="docutils literal notranslate"><span class="pre">lend</span></code>, <code class="docutils literal notranslate"><span class="pre">mount</span></code>, <code class="docutils literal notranslate"><span class="pre">seed</span></code>, <code class="docutils literal notranslate"><span class="pre">sleep</span></code>, <code class="docutils literal notranslate"><span class="pre">timer</span></code>, <code class="docutils literal notranslate"><span class="pre">umount</span></code></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Command</p></th>
+<th class="head text-right"><p>Tests</p></th>
+<th class="head"><p>Sub-commands reached</p></th>
+<th class="head"><p>Sub-commands not reached</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">break</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">continue</span></code></p></td>
+<td class="text-right"><p>10</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">do</span></code></p></td>
+<td class="text-right"><p>24</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">echo</span></code></p></td>
+<td class="text-right"><p>30</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">evaluate</span></code></p></td>
+<td class="text-right"><p>16</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">exit</span></code></p></td>
+<td class="text-right"><p>31</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fclose</span></code></p></td>
+<td class="text-right"><p>31</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fformat</span></code></p></td>
+<td class="text-right"><p>5</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fget</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fopen</span></code></p></td>
+<td class="text-right"><p>31</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fput</span></code></p></td>
+<td class="text-right"><p>31</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">if</span></code></p></td>
+<td class="text-right"><p>30</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">matrix</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">set</span></code></p></td>
+<td class="text-right"><p>31</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">show</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stop</span></code></p></td>
+<td class="text-right"><p>30</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">system</span></code></p></td>
+<td class="text-right"><p>30</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">variable</span></code></p></td>
+<td class="text-right"><p>31</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wait</span></code></p></td>
+<td class="text-right"><p>19</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="set-parameters-used-inside-menus">
+<h3><code class="docutils literal notranslate"><span class="pre">set</span></code> parameters used inside menus<a class="headerlink" href="#set-parameters-used-inside-menus" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Menu</p></th>
+<th class="head"><p>Parameters (number of tests)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>discus/chemistry</p></td>
+<td><p>bang (1), bin (2), blen (2), crystal (1), mode (7), nei (1), neig (1), vec (1)</p></td>
+</tr>
+<tr class="row-odd"><td><p>discus/decorate</p></td>
+<td><p>citric (1), water (2)</p></td>
+</tr>
+<tr class="row-even"><td><p>discus/domain</p></td>
+<td><p>remove (1)</p></td>
+</tr>
+<tr class="row-odd"><td><p>discus/fourier</p></td>
+<td><p>aver (12), technique (1)</p></td>
+</tr>
+<tr class="row-even"><td><p>discus/mmc</p></td>
+<td><p>allowed (1), cyc (3), cycl (2), feed (5), finish (4), mode (5), move (2), neig (5), output (1), targ (4), target (1), temp (5), vec (5)</p></td>
+</tr>
+<tr class="row-odd"><td><p>discus/pdf</p></td>
+<td><p>bound (1), corrlin (1), corrquad (1), density (1), finite (1), qbroad (1), qdamp (1), qmax (1), rad (1), rang (1), srat (1), therm (1), weight (1)</p></td>
+</tr>
+<tr class="row-even"><td><p>discus/plot</p></td>
+<td><p>0 (17), 1 (19), 2 (3), 3 (2), d001 (1), d010 (1), d100 (1)</p></td>
+</tr>
+<tr class="row-odd"><td><p>discus/powder</p></td>
+<td><p>axis (3), calc (3), delta (3), disp (3), dq (3), four (3), lpcor (3), profile (3), qmax (3), qmin (3), temp (3), wvle (3)</p></td>
+</tr>
+<tr class="row-even"><td><p>discus/stack</p></td>
+<td><p>modulus (4), trans (4)</p></td>
+</tr>
+<tr class="row-odd"><td><p>discus/surface</p></td>
+<td><p>distance (3)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="WP0_Test_Baseline.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">WP0 – Regression test baseline</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">1. Summary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gaps-by-migration-work-package">2. Gaps by migration work package</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp3-crystal-model-and-i-o-needed-first">WP3 – Crystal model and I/O (needed first)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp4-single-crystal-fourier">WP4 – Single-crystal Fourier</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp5-powder">WP5 – Powder</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp6-pdf-3d-pdf-patterson">WP6 – PDF, 3D-PDF, Patterson</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp7-structure-building-and-defects">WP7 – Structure building and defects</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp8-monte-carlo">WP8 – Monte Carlo</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp9-refinement-and-plotting">WP9 – Refinement and plotting</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#command-language-and-suite">Command language and suite</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#strength-of-the-existing-checks">3. Strength of the existing checks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-list">4. Work list</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#repair-existing-tests-that-are-not-in-the-suite">4.1 Repair existing tests that are not in the suite</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#harden-existing-tests">4.2 Harden existing tests</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-tests-by-priority">4.3 New tests, by priority</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#out-of-scope-decide-once-then-document">4.4 Out of scope (decide once, then document)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conventions-for-new-tests">5. Conventions for new tests</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#appendix-command-coverage-tables-generated">Appendix – command coverage tables (generated)</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#suite">suite</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#discus">discus</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kuplot">kuplot</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffev">diffev</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#refine">refine</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#experi">experi</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lib">lib</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-parameters-used-inside-menus"><code class="docutils literal notranslate"><span class="pre">set</span></code> parameters used inside menus</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/_generated/migration/WP0_Test_Coverage_Gaps.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright DiffuseCode developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

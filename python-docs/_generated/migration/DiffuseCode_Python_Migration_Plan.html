@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>DiffuseCode: moving to a Python framework &#8212; DiffuseCode Python</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_generated/migration/DiffuseCode_Python_Migration_Plan';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="WP0 – Regression test baseline" href="WP0_Test_Baseline.html" />
+    <link rel="prev" title="DISCUS-suite macro tests" href="../testing.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">DiffuseCode Python</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../gallery/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../testing.html">
+    DISCUS-suite macro tests
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="#" aria-current="page">
+    DiffuseCode: moving to a Python framework
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="WP0_Test_Baseline.html">
+    WP0 – Regression test baseline
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="WP0_Test_Coverage_Gaps.html">
+    Test coverage gaps – what to add and harden
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tproffen/DiffuseCode" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../gallery/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../testing.html">
+    DISCUS-suite macro tests
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#" aria-current="page">
+    DiffuseCode: moving to a Python framework
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="WP0_Test_Baseline.html">
+    WP0 – Regression test baseline
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="WP0_Test_Coverage_Gaps.html">
+    Test coverage gaps – what to add and harden
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tproffen/DiffuseCode" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">DiffuseCode: moving to a Python framework</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="diffusecode-moving-to-a-python-framework">
+<h1>DiffuseCode: moving to a Python framework<a class="headerlink" href="#diffusecode-moving-to-a-python-framework" title="Link to this heading">#</a></h1>
+<p>A high-level look at the current Fortran code and options for separating compute from the command language, graphics and I/O, with a web front end as a later goal.</p>
+<blockquote>
+<div><p><strong>Branches:</strong> until the first release of the Python package, all migration work is built against and merged into the <strong><code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code></strong> branch, not <code class="docutils literal notranslate"><span class="pre">master</span></code>. Feature branches start from <code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code>, and pull requests target it. CI (<code class="docutils literal notranslate"><span class="pre">.github/workflows/tests.yml</span></code>) runs on pushes to it and on pull requests into it.</p>
+</div></blockquote>
+<blockquote>
+<div><p><strong>Related documents:</strong> progress on WP0 is tracked in <a class="reference internal" href="WP0_Test_Baseline.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">WP0_Test_Baseline.md</span></code></span></a>; test gaps are in <a class="reference internal" href="WP0_Test_Coverage_Gaps.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">WP0_Test_Coverage_Gaps.md</span></code></span></a>. <code class="docutils literal notranslate"><span class="pre">mixscat</span></code> is deprecated and not part of the migration.</p>
+</div></blockquote>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#what-the-code-is-today">What the code is today</a></p></li>
+<li><p><a class="reference internal" href="#target-architecture-shared-by-all-options">Target architecture</a></p></li>
+<li><p><a class="reference internal" href="#high-level-options">High-level options</a></p></li>
+<li><p><a class="reference internal" href="#suggested-route-b-then-d">Suggested route</a></p></li>
+<li><p><a class="reference internal" href="#main-risks-and-decisions-to-make-early">Main risks and decisions to make early</a></p></li>
+<li><p><a class="reference internal" href="#bottom-line">Bottom line</a></p></li>
+<li><p><a class="reference internal" href="#detailed-plan-for-option-b">Detailed plan for option B</a></p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#goals-and-non-goals">Goals and non-goals</a></p></li>
+<li><p><a class="reference internal" href="#guiding-principles">Guiding principles</a></p></li>
+<li><p><a class="reference internal" href="#package-layout">Package layout</a></p></li>
+<li><p><a class="reference internal" href="#interface-design">Interface design</a></p></li>
+<li><p><a class="reference internal" href="#target-python-api-sketch">Target Python API (sketch)</a></p></li>
+<li><p><a class="reference internal" href="#work-packages">Work packages</a></p></li>
+<li><p><a class="reference internal" href="#timeline">Timeline</a></p></li>
+<li><p><a class="reference internal" href="#testing-strategy">Testing strategy</a></p></li>
+<li><p><a class="reference internal" href="#parallelism-and-performance">Parallelism and performance</a></p></li>
+<li><p><a class="reference internal" href="#risks-and-mitigations">Risks and mitigations</a></p></li>
+<li><p><a class="reference internal" href="#first-90-days">First 90 days</a></p></li>
+<li><p><a class="reference internal" href="#decisions-needed">Decisions needed</a></p></li>
+</ol>
+</li>
+</ol>
+<section id="what-the-code-is-today">
+<span id="1-what-the-code-is-today"></span><h2>1. What the code is today<a class="headerlink" href="#what-the-code-is-today" title="Link to this heading">#</a></h2>
+<p><strong>Size and makeup</strong> (Fortran line counts, not counting the bundled <code class="docutils literal notranslate"><span class="pre">finufft</span></code> and <code class="docutils literal notranslate"><span class="pre">h5fortran</span></code>)</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Files</p></th>
+<th class="head"><p>Lines</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">discus</span></code></p></td>
+<td><p>~200</p></td>
+<td><p><strong>~156k</strong></p></td>
+<td><p>Builds structures, simulates defects (MC/RMC/MMC, domains, stacking faults, molecules, surfaces, waves), and computes Fourier, powder, PDF, 3D-PDF and Patterson</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lib_f90</span></code></p></td>
+<td><p>~150</p></td>
+<td><p>~70k</p></td>
+<td><p>Shared base: the command interpreter, variables, macros, loops, expression evaluator, error lists, HDF5/NeXus I/O, FFT, random numbers, MPI/OpenMP glue, sockets, readline, and a Fortran↔Python bridge (<code class="docutils literal notranslate"><span class="pre">forpy</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">kuplot</span></code></p></td>
+<td><p>66</p></td>
+<td><p>~38k</p></td>
+<td><p>Plotting (PGPLOT on X11, Windows or PNG) plus data loading, maths and least-squares fitting</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diffev</span></code></p></td>
+<td><p>39</p></td>
+<td><p>~10k</p></td>
+<td><p>Differential-evolution refinement, with MPI for parallel cost functions</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">refine</span></code></p></td>
+<td><p>31</p></td>
+<td><p>~8k</p></td>
+<td><p>Least-squares refinement that drives <code class="docutils literal notranslate"><span class="pre">discus</span></code> macros</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">suite</span></code></p></td>
+<td><p>16</p></td>
+<td><p>~3k</p></td>
+<td><p>One umbrella program that joins all of the above and switches between their menus</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mixscat</span></code>, <code class="docutils literal notranslate"><span class="pre">experi</span></code>, <code class="docutils literal notranslate"><span class="pre">nexus</span></code></p></td>
+<td><p>small</p></td>
+<td><p>~7k</p></td>
+<td><p>Extra tools</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>There is also C/C++: <code class="docutils literal notranslate"><span class="pre">finufft</span></code>, plus readline, sockets and glob helpers.</p>
+<section id="architecture">
+<h3>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Everything runs through the command language.</strong> Each program and each sub-menu has its own <code class="docutils literal notranslate"><span class="pre">*_loop</span></code> → <code class="docutils literal notranslate"><span class="pre">get_cmd</span></code> → <code class="docutils literal notranslate"><span class="pre">*_kdo</span></code>. In <code class="docutils literal notranslate"><span class="pre">discus</span></code>, 30 files contain such a menu loop, and the top-level <code class="docutils literal notranslate"><span class="pre">discus_kdo</span></code> dispatches about 70 commands. In <code class="docutils literal notranslate"><span class="pre">discus/prog</span></code> alone the code makes about 1,700 <code class="docutils literal notranslate"><span class="pre">str_comp</span></code> keyword comparisons, about 1,100 <code class="docutils literal notranslate"><span class="pre">get_params</span></code>/<code class="docutils literal notranslate"><span class="pre">ber_params</span></code> calls and about 3,400 <code class="docutils literal notranslate"><span class="pre">ier_num</span></code> error checks.</p></li>
+<li><p><strong>The command language is a whole small language.</strong> It has variables (<code class="docutils literal notranslate"><span class="pre">i[]</span></code>, <code class="docutils literal notranslate"><span class="pre">r[]</span></code>, <code class="docutils literal notranslate"><span class="pre">res[]</span></code>), an expression evaluator, <code class="docutils literal notranslate"><span class="pre">do</span></code>/<code class="docutils literal notranslate"><span class="pre">if</span></code> blocks, macros with parameters, <code class="docutils literal notranslate"><span class="pre">branch</span></code> between programs, <code class="docutils literal notranslate"><span class="pre">system</span></code>, <code class="docutils literal notranslate"><span class="pre">socket</span></code> and <code class="docutils literal notranslate"><span class="pre">learn</span></code>.</p></li>
+<li><p><strong>All state is global.</strong> Crystal, Fourier, powder, MC and similar data live in roughly 75 <code class="docutils literal notranslate"><span class="pre">*_mod</span></code> modules (for example <code class="docutils literal notranslate"><span class="pre">crystal_mod</span></code> holds <code class="docutils literal notranslate"><span class="pre">cr_pos</span></code>, <code class="docutils literal notranslate"><span class="pre">cr_iscat</span></code> and so on). Compute routines read their inputs from these modules and write results back into them, not through arguments.</p></li>
+<li><p><strong>Results come back as text and through <code class="docutils literal notranslate"><span class="pre">res_para</span></code>.</strong> There are about 1,250 <code class="docutils literal notranslate"><span class="pre">WRITE(output_io…)</span></code> statements in <code class="docutils literal notranslate"><span class="pre">discus</span></code>, and numeric results go into <code class="docutils literal notranslate"><span class="pre">res[]</span></code> for macros to use.</p></li>
+<li><p><strong>The programs talk to each other through macros.</strong> <code class="docutils literal notranslate"><span class="pre">refine</span></code> and <code class="docutils literal notranslate"><span class="pre">diffev</span></code> work by running user macros that call <code class="docutils literal notranslate"><span class="pre">discus</span></code> and <code class="docutils literal notranslate"><span class="pre">kuplot</span></code>, then reading the results back from variables or files. MPI spreads those macro runs across processes.</p></li>
+<li><p><strong>Graphics live in <code class="docutils literal notranslate"><span class="pre">kuplot</span></code>, which calls PGPLOT directly.</strong> A no-graphics build already exists (<code class="docutils literal notranslate"><span class="pre">*_nographic.f90</span></code> and the <code class="docutils literal notranslate"><span class="pre">DIFFUSE_GRAPHICS=OFF</span></code> option).</p></li>
+<li><p><strong>Some useful pieces already exist:</strong></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">python/suite_python.f90</span></code> (built with f2py) offers <code class="docutils literal notranslate"><span class="pre">initialize_suite</span></code>, <code class="docutils literal notranslate"><span class="pre">execute_macro</span></code>, <code class="docutils literal notranslate"><span class="pre">get_data</span></code> and <code class="docutils literal notranslate"><span class="pre">set_value</span></code>. Python can call it, but only by passing command strings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">discus_py.f90</span></code>, <code class="docutils literal notranslate"><span class="pre">kuplot_py.f90</span></code> and <code class="docutils literal notranslate"><span class="pre">diffev_py.f90</span></code> expose <code class="docutils literal notranslate"><span class="pre">command()</span></code>, <code class="docutils literal notranslate"><span class="pre">get</span></code> and <code class="docutils literal notranslate"><span class="pre">send</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">forpy</span></code> lets the Fortran side call Python.</p></li>
+<li><p>There is a CUDA kernel for the structure factor, OpenMP in the Fourier, PDF and MMC code, and FINUFFT for non-uniform FFTs.</p></li>
+</ul>
+</li>
+<li><p><strong>There are almost no tests.</strong> The repo has only <code class="docutils literal notranslate"><span class="pre">sysmac/systest.mac</span></code> files, so there is no regression suite.</p></li>
+</ul>
+<p><strong>What this means for a migration.</strong> The compute kernels themselves are mostly decoupled. For example, <code class="docutils literal notranslate"><span class="pre">four_strucf</span></code> only uses <code class="docutils literal notranslate"><span class="pre">discus_config_mod</span></code>, <code class="docutils literal notranslate"><span class="pre">diffuse_mod</span></code> and <code class="docutils literal notranslate"><span class="pre">precision_mod</span></code>. The coupling sits in the menu layer around them: it parses commands, sets global module variables, calls the kernel, then prints the results or stores them in <code class="docutils literal notranslate"><span class="pre">res[]</span></code>. So the usual entry point is not “the algorithm” but “the global state that menu commands have built up”. That global state is the main obstacle, more than the Fortran language itself.</p>
+</section>
+</section>
+<section id="target-architecture-shared-by-all-options">
+<span id="2-target-architecture-shared-by-all-options"></span><h2>2. Target architecture (shared by all options)<a class="headerlink" href="#target-architecture-shared-by-all-options" title="Link to this heading">#</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span> Web UI / Jupyter / scripts / CLI
+            │
+   Python API layer   (Crystal, Structure, Fourier, Powder, PDF, MC, Fit objects)
+            │                     │                    │
+   I/O (CIF, HDF5/NeXus,     Plotting (matplotlib,   Refinement (scipy.optimize,
+   ASE/pymatgen, xarray)     plotly, a web viewer)   lmfit, DE, dask/MPI)
+            │
+   Compute core: no global I/O and no parsing; arrays in, arrays out
+   (the existing Fortran kernels behind a thin interface, or Python versions)
+</pre></div>
+</div>
+<p>The rules this architecture follows:</p>
+<ul class="simple">
+<li><p>The core never prints, never parses text and never draws.</p></li>
+<li><p>The core reports errors through return codes or exceptions, not <code class="docutils literal notranslate"><span class="pre">ier_num</span></code> and a global error state.</p></li>
+<li><p>Plotting, file formats and refinement become ordinary Python libraries.</p></li>
+<li><p>The command language becomes optional: a compatibility layer at most, not the main interface.</p></li>
+</ul>
+</section>
+<section id="high-level-options">
+<span id="3-high-level-options"></span><h2>3. High-level options<a class="headerlink" href="#high-level-options" title="Link to this heading">#</a></h2>
+<section id="a-wrap-the-current-interpreter-weeks">
+<h3>A. Wrap the current interpreter (weeks)<a class="headerlink" href="#a-wrap-the-current-interpreter-weeks" title="Link to this heading">#</a></h3>
+<p>Extend the existing <code class="docutils literal notranslate"><span class="pre">suite_python</span></code> and f2py bridge. Python sends command strings, and data comes back as NumPy arrays through <code class="docutils literal notranslate"><span class="pre">get_data</span></code>, <code class="docutils literal notranslate"><span class="pre">get_r</span></code> and <code class="docutils literal notranslate"><span class="pre">set_value</span></code>.</p>
+<p><strong>Good:</strong> almost no Fortran changes, works now, and is useful for Jupyter.</p>
+<p><strong>Bad:</strong> the command language remains the real API, global state stays, and you can’t run two structures at once. Errors and output are still text. A web UI on top of this would be fragile.</p>
+<p><strong>Best use:</strong> a short-term stopgap, and a way to build a regression-test corpus.</p>
+</section>
+<section id="b-fortran-compute-behind-a-clean-python-api-recommended">
+<span id="b-fortran-compute-behind-a-clean-python-api--recommended"></span><h3>B. Fortran compute behind a clean Python API — recommended<a class="headerlink" href="#b-fortran-compute-behind-a-clean-python-api-recommended" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Find the computational entry points: structure factor and Fourier, powder, PDF, 3D-PDF, Patterson, MC/RMC/MMC moves and energies, symmetry and space-group expansion, stacking faults, domains, and so on.</p></li>
+<li><p>For each one, write a <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> wrapper that takes explicit arguments (positions, types, cell, q-grid, form factors) and returns arrays. At first, the wrapper can copy its arguments into the existing global modules and call the current routine. Later, refactor each routine so it takes arguments directly.</p></li>
+<li><p>Build it as a Python extension, either with f2py or with <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> + nanobind/pybind11/ctypes, packaged by scikit-build-core or meson-python. The second route handles derived types and allocatable arrays more cleanly and gives proper wheels.</p></li>
+<li><p>Write a Pythonic object model on top: <code class="docutils literal notranslate"><span class="pre">Crystal</span></code>, <code class="docutils literal notranslate"><span class="pre">Fourier(…)</span></code>, <code class="docutils literal notranslate"><span class="pre">Powder(…)</span></code> and similar, using NumPy and xarray.</p></li>
+<li><p>Replace <code class="docutils literal notranslate"><span class="pre">kuplot</span></code> plotting with matplotlib/plotly, <code class="docutils literal notranslate"><span class="pre">refine</span></code> with scipy/lmfit, and <code class="docutils literal notranslate"><span class="pre">diffev</span></code> with scipy’s DE or a small Python DE that uses dask/mpi4py/Ray for parallel runs. Move file I/O to h5py, gemmi/ASE/pymatgen (CIF) and nexusformat.</p></li>
+<li><p>Optional: a thin “macro compatibility” translator for existing user scripts, or keep the old <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> binary as a legacy build alongside.</p></li>
+</ol>
+<p><strong>Good:</strong> keeps decades of validated physics and the existing speed (OpenMP, CUDA, FINUFFT). Each step can be tested against the old binary. It also leads naturally to a web or service backend.</p>
+<p><strong>Bad:</strong> removing the global state needs care. Several modules, especially <code class="docutils literal notranslate"><span class="pre">mmc</span></code> (~9k lines), <code class="docutils literal notranslate"><span class="pre">structur</span></code>, <code class="docutils literal notranslate"><span class="pre">chem</span></code> and <code class="docutils literal notranslate"><span class="pre">place_molecule</span></code>, are tightly tied to their menus. Building and packaging Fortran plus HDF5 and FFTW for wheels takes real work, though cibuildwheel can handle it.</p>
+</section>
+<section id="c-full-rewrite-in-python-years">
+<h3>C. Full rewrite in Python (years)<a class="headerlink" href="#c-full-rewrite-in-python-years" title="Link to this heading">#</a></h3>
+<p>Reimplement the physics in pure Python, with Numba, JAX or CuPy for the hot loops: structure factors, PDF histograms, MC.</p>
+<p><strong>Good:</strong> one language, simplest packaging, the easiest code for others to contribute to, and GPU support and automatic differentiation (JAX) for refinement.</p>
+<p><strong>Bad:</strong> about 160k lines of domain logic to re-derive and re-validate, with no test suite as a safety net. It would take years of effort and carries a high risk of subtle physics regressions.</p>
+<p><strong>Best use:</strong> only for selected parts, for example new features, or kernels that are short and easy to check, such as the Debye sum, PDF histogramming and the structure factor on a grid.</p>
+</section>
+<section id="d-hybrid-that-grows-into-a-rewrite-long-term">
+<h3>D. Hybrid that grows into a rewrite (long term)<a class="headerlink" href="#d-hybrid-that-grows-into-a-rewrite-long-term" title="Link to this heading">#</a></h3>
+<p>Start with B. Port each module to Python when it is cheaper to rewrite than to untangle: I/O, plotting, refinement, set-up and geometry tools, symmetry (using spglib/gemmi). Keep Fortran, C++ or CUDA for the heavy kernels (Fourier, MC energy loops, powder/PDF) for as long as they are faster.</p>
+<p>This is option B followed by C, done as a long-term plan.</p>
+</section>
+</section>
+<section id="suggested-route-b-then-d">
+<span id="4-suggested-route-b-then-d"></span><h2>4. Suggested route (B, then D)<a class="headerlink" href="#suggested-route-b-then-d" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Phase</p></th>
+<th class="head"><p>Work</p></th>
+<th class="head"><p>Outcome</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>0. Safety net</strong></p></td>
+<td><p>Use the existing <code class="docutils literal notranslate"><span class="pre">suite_python</span></code> (option A) to run a set of representative macros (Manual examples, user workflows) and save the outputs as golden HDF5/NumPy files. Add CI with pytest.</p></td>
+<td><p>Regression tests: the precondition for everything else</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>1. Packaging</strong></p></td>
+<td><p>Add a <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> with scikit-build-core around the existing CMake. Build one importable <code class="docutils literal notranslate"><span class="pre">diffuse._core</span></code> with <code class="docutils literal notranslate"><span class="pre">DIFFUSE_GRAPHICS=OFF</span></code>, no X11 and no readline.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> works</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>2. Data model</strong></p></td>
+<td><p>Python <code class="docutils literal notranslate"><span class="pre">Crystal</span></code>/<code class="docutils literal notranslate"><span class="pre">Structure</span></code> classes holding NumPy arrays, plus Fortran getters and setters for <code class="docutils literal notranslate"><span class="pre">crystal_mod</span></code> arrays (positions, types, cell, properties, molecules).</p></td>
+<td><p>Structures move between Python and Fortran without files</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>3. Kernel APIs</strong></p></td>
+<td><p>Fourier/structure factor, then powder (Debye and FFT), then PDF, then 3D-PDF/Patterson. Each gets a pure-argument entry point and is checked against the golden data.</p></td>
+<td><p>The main calculations can be called from Python</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>4. Remove pieces from Fortran</strong></p></td>
+<td><p>Replace plotting with matplotlib/plotly, refinement with lmfit/scipy plus Python DE, and file I/O with h5py/gemmi/ASE. Stop maintaining <code class="docutils literal notranslate"><span class="pre">kuplot</span></code>, <code class="docutils literal notranslate"><span class="pre">refine</span></code> and <code class="docutils literal notranslate"><span class="pre">diffev</span></code> as Fortran menus.</p></td>
+<td><p>Smaller Fortran code, Python-native workflows</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>5. Simulation engines</strong></p></td>
+<td><p>MC/MMC/RMC, domains, stacking, surfaces, molecules. These are the hardest because they hold the most state. Consider a callback or “move/energy plug-in” interface, or port parts to Numba.</p></td>
+<td><p>Defect modelling from Python</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>6. Front ends</strong></p></td>
+<td><p>Jupyter widgets first. Then a service layer (FastAPI with a job queue such as Celery, RQ or Dask, results in HDF5/Zarr) and a web UI (React with plotly or three.js for 3D reciprocal space).</p></td>
+<td><p>Web front end</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>7. Legacy</strong></p></td>
+<td><p>Freeze <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> as the classic interface, or offer a macro→Python translator for common commands.</p></td>
+<td><p>Existing users keep working</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="main-risks-and-decisions-to-make-early">
+<span id="5-main-risks-and-decisions-to-make-early"></span><h2>5. Main risks and decisions to make early<a class="headerlink" href="#main-risks-and-decisions-to-make-early" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Global state vs. multiple instances.</strong> A web service needs several independent sessions. With global Fortran modules, each session needs its own process, which is acceptable at first and naturally handled by workers. True re-entrancy requires refactoring into derived types.</p></li>
+<li><p><strong>Error handling.</strong> <code class="docutils literal notranslate"><span class="pre">ier_num</span></code>/<code class="docutils literal notranslate"><span class="pre">ier_typ</span></code> and some <code class="docutils literal notranslate"><span class="pre">STOP</span></code> paths must become return codes turned into Python exceptions. A Fortran <code class="docutils literal notranslate"><span class="pre">STOP</span></code> would kill the Python process.</p></li>
+<li><p><strong>Output.</strong> The many <code class="docutils literal notranslate"><span class="pre">WRITE(output_io…)</span></code> calls need a quiet or logging mode.</p></li>
+<li><p><strong>Precision and compiler matrix.</strong> You currently support gfortran, ifort, PGI, OpenMP and optional CUDA. Wheels mean picking a supported subset.</p></li>
+<li><p><strong>User base.</strong> Macros are how existing users work, so decide early whether you need backward compatibility (a translator, or the old binary frozen) or will make a clean break.</p></li>
+<li><p><strong>Licensing and dependencies.</strong> PGPLOT disappears (a good thing). FFTW, HDF5 and FINUFFT stay as build dependencies.</p></li>
+</ul>
+</section>
+<section id="bottom-line">
+<span id="6-bottom-line"></span><h2>6. Bottom line<a class="headerlink" href="#bottom-line" title="Link to this heading">#</a></h2>
+<p>The physics code is valuable and fairly modular, but it is wrapped in a command interpreter and global-state layer that makes up a large share of the code. The recommendation is <strong>option B</strong>, a Python API over the existing Fortran kernels, built in phases. Start by building the regression-test corpus and Python packaging, replace plotting, I/O and refinement with standard Python libraries, and port kernels to Python only where it pays off. That gives a scriptable Python package in months rather than years, and a natural backend for a web front end later.</p>
+</section>
+<section id="detailed-plan-for-option-b">
+<span id="7-detailed-plan-for-option-b"></span><h2>7. Detailed plan for option B<a class="headerlink" href="#detailed-plan-for-option-b" title="Link to this heading">#</a></h2>
+<p>Option B keeps the Fortran physics and replaces everything around it, one piece at a time. Each step must leave a working <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> and a passing test suite. The plan is written for a small team (about 1–2 developers plus a domain expert to review results). All durations are rough estimates.</p>
+<section id="goals-and-non-goals">
+<span id="71-goals-and-non-goals"></span><h3>7.1 Goals and non-goals<a class="headerlink" href="#goals-and-non-goals" title="Link to this heading">#</a></h3>
+<p><strong>Goals</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">diffuse</span></code> gives a Python package with no X11, PGPLOT or readline.</p></li>
+<li><p>Structures, Fourier, powder, PDF and defect simulations can be run from Python with NumPy arrays in and out. No command strings and no temporary files.</p></li>
+<li><p>Plotting, file I/O and refinement are handled by standard Python libraries.</p></li>
+<li><p>Errors become Python exceptions, and output goes to Python <code class="docutils literal notranslate"><span class="pre">logging</span></code>.</p></li>
+<li><p>The package works as the compute backend for a later web service.</p></li>
+</ul>
+<p><strong>Non-goals (for option B)</strong></p>
+<ul class="simple">
+<li><p>Rewriting the numerical kernels in Python (that is option C/D, case by case).</p></li>
+<li><p>Making the Fortran core fully re-entrant in the first pass. Isolation comes from processes at first.</p></li>
+<li><p>Reproducing every command-language feature (loops, <code class="docutils literal notranslate"><span class="pre">branch</span></code>, <code class="docutils literal notranslate"><span class="pre">socket</span></code>, <code class="docutils literal notranslate"><span class="pre">learn</span></code>). Python replaces them.</p></li>
+<li><p>Dropping <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code>. It stays as a legacy build until users have moved.</p></li>
+</ul>
+</section>
+<section id="guiding-principles">
+<span id="72-guiding-principles"></span><h3>7.2 Guiding principles<a class="headerlink" href="#guiding-principles" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Strangler pattern.</strong> New Python entry points wrap existing routines. The command menus keep calling the same routines, so old and new paths share one implementation and both stay correct.</p></li>
+<li><p><strong>Golden data first.</strong> No refactor lands without a regression test that compares against output from the current release.</p></li>
+<li><p><strong>Thin, flat C boundary.</strong> The only thing that crosses from Fortran to Python is plain C types and contiguous arrays (<code class="docutils literal notranslate"><span class="pre">iso_c_binding</span></code>). No Fortran derived types, strings or allocatables cross it.</p></li>
+<li><p><strong>Python owns the data model.</strong> The truth lives in Python objects. Fortran modules are a cache that gets filled before a computation runs. Later refactors can remove that cache one module at a time.</p></li>
+<li><p><strong>Keep the menu layer, stop growing it.</strong> New features are added as Python API first, and as a menu command only if really needed.</p></li>
+</ul>
+</section>
+<section id="package-layout">
+<span id="73-package-layout"></span><h3>7.3 Package layout<a class="headerlink" href="#package-layout" title="Link to this heading">#</a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>DiffuseCode/
+├── (existing Fortran trees: discus/ lib_f90/ kuplot/ diffev/ refine/ suite/ …)
+├── capi/                        # NEW: Fortran bind(C) shims + C header
+│   ├── dc_capi_core.f90         #   init, reset, errors, log redirection
+│   ├── dc_capi_crystal.f90      #   get/set cell, atoms, scattering types, molecules
+│   ├── dc_capi_fourier.f90      #   single-crystal Fourier / structure factor
+│   ├── dc_capi_powder.f90
+│   ├── dc_capi_pdf.f90
+│   └── diffuse_capi.h
+├── pyproject.toml               # NEW: scikit-build-core, drives the existing CMake
+└── python/diffuse/              # NEW: the Python package
+    ├── _core.cpp                #   nanobind module over diffuse_capi.h
+    ├── __init__.py
+    ├── errors.py                #   DiffuseError hierarchy mapped from ier_num/ier_typ
+    ├── crystal.py               #   Crystal / Structure / Molecule classes
+    ├── io/                      #   CIF (gemmi), DISCUS .stru, HDF5/NeXus (h5py), xyz, …
+    ├── scattering/              #   fourier.py, powder.py, pdf.py, patterson.py
+    ├── defects/                 #   replace, domains, stacking, surface, waves, …
+    ├── mc/                      #   MMC / RMC drivers
+    ├── refine/                  #   lmfit + differential-evolution wrappers
+    ├── plot/                    #   matplotlib / plotly helpers (replaces kuplot)
+    └── legacy.py                #   run_macro() via suite_python, for migration
+</pre></div>
+</div>
+<p>CMake already builds <code class="docutils literal notranslate"><span class="pre">lib_f90</span></code>, <code class="docutils literal notranslate"><span class="pre">discus_all</span></code> and the others as libraries, so the new extension can link them directly. One build step needs untangling: <code class="docutils literal notranslate"><span class="pre">discus</span></code> currently includes and links <code class="docutils literal notranslate"><span class="pre">kuplot</span></code>, so the dependency on <code class="docutils literal notranslate"><span class="pre">kuplot</span></code>’s plotting code has to be cut or replaced with stubs for the Python build. The existing <code class="docutils literal notranslate"><span class="pre">*_nographic.f90</span></code> files give a head start.</p>
+</section>
+<section id="interface-design">
+<span id="74-interface-design"></span><h3>7.4 Interface design<a class="headerlink" href="#interface-design" title="Link to this heading">#</a></h3>
+<section id="the-c-abi-shim">
+<h4>The C-ABI shim<a class="headerlink" href="#the-c-abi-shim" title="Link to this heading">#</a></h4>
+<p>Each shim function takes plain arguments, fills the existing global modules, calls the existing routine and copies results back out. Example for the structure:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>module dc_capi_crystal
+  use iso_c_binding
+  use crystal_mod
+  use discus_allocate_appl_mod
+  implicit none
+contains
+  integer(c_int) function dc_set_atoms(n, pos, iscat, prop, surf) &amp;
+       bind(C, name=&quot;dc_set_atoms&quot;)
+    integer(c_int), value         :: n
+    real(c_double), intent(in)    :: pos(3, n)     ! fractional coordinates
+    integer(c_int), intent(in)    :: iscat(n), prop(n), surf(n)
+    call dc_clear_error()
+    if (n &gt; NMAX) call alloc_crystal_nmax(n)       ! grow existing arrays
+    cr_natoms        = n
+    cr_pos(:, 1:n)   = pos
+    cr_iscat(1:n,1)  = iscat
+    cr_prop(1:n)     = prop
+    ! … surface, molecule info, then update derived quantities
+    dc_set_atoms = dc_status()                     ! 0 = ok, else ier_num
+  end function
+end module
+</pre></div>
+</div>
+<p>The same pattern applies to <code class="docutils literal notranslate"><span class="pre">dc_set_cell</span></code>, <code class="docutils literal notranslate"><span class="pre">dc_set_scat_types</span></code>, <code class="docutils literal notranslate"><span class="pre">dc_get_atoms</span></code> and others. The existing <code class="docutils literal notranslate"><span class="pre">discus_allocate_appl_mod</span></code> already contains the resizing routines (<code class="docutils literal notranslate"><span class="pre">alloc_crystal_nmax</span></code>, <code class="docutils literal notranslate"><span class="pre">alloc_crystal_scat</span></code>, <code class="docutils literal notranslate"><span class="pre">alloc_diffuse_four</span></code> and so on).</p>
+</section>
+<section id="calls-into-compute-routines">
+<h4>Calls into compute routines<a class="headerlink" href="#calls-into-compute-routines" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>Each <code class="docutils literal notranslate"><span class="pre">dc_*_run</span></code> function sets the module variables that the menu would normally set (for example the corners, increments and radiation in <code class="docutils literal notranslate"><span class="pre">diffuse_mod</span></code>), then calls <code class="docutils literal notranslate"><span class="pre">four_run</span></code>, <code class="docutils literal notranslate"><span class="pre">powder_run</span></code>, <code class="docutils literal notranslate"><span class="pre">pdf_run</span></code> and so on.</p></li>
+<li><p>Results are copied into caller-supplied NumPy buffers (<code class="docutils literal notranslate"><span class="pre">csf</span></code>, <code class="docutils literal notranslate"><span class="pre">dsi</span></code>, powder and PDF arrays), or exposed through a getter that reports their shape.</p></li>
+<li><p>The menu <code class="docutils literal notranslate"><span class="pre">set</span></code> commands contain validation logic. Where it matters, move that logic into small shared routines so both the menu and the shim call them, instead of copying it.</p></li>
+</ul>
+</section>
+<section id="errors">
+<h4>Errors<a class="headerlink" href="#errors" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>Every shim function starts by clearing <code class="docutils literal notranslate"><span class="pre">ier_num</span></code>/<code class="docutils literal notranslate"><span class="pre">ier_typ</span></code> and returns them at the end. The C++ layer turns non-zero values into a Python exception and takes the text from the existing error lists (<code class="docutils literal notranslate"><span class="pre">errlist</span></code>).</p></li>
+<li><p>About 30 <code class="docutils literal notranslate"><span class="pre">STOP</span></code> statements exist, for example in <code class="docutils literal notranslate"><span class="pre">four_strucf_mod.f90</span></code> and the <code class="docutils literal notranslate"><span class="pre">assert*</span></code> helpers in <code class="docutils literal notranslate"><span class="pre">utilities.f90</span></code>. Each one must become an error return. Otherwise a single bad input ends the Python process.</p></li>
+<li><p>Any path that would drop into an interactive prompt on error (as the current <code class="docutils literal notranslate"><span class="pre">discus_py</span></code> <code class="docutils literal notranslate"><span class="pre">command()</span></code> does) must be disabled when called from the API.</p></li>
+</ul>
+</section>
+<section id="output-and-logging">
+<h4>Output and logging<a class="headerlink" href="#output-and-logging" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>Add a global “API mode” flag in <code class="docutils literal notranslate"><span class="pre">prompt_mod</span></code>. When it is set, <code class="docutils literal notranslate"><span class="pre">output_io</span></code> goes to a buffer or <code class="docutils literal notranslate"><span class="pre">/dev/null</span></code>, and selected messages are passed to a C callback that forwards them to Python’s <code class="docutils literal notranslate"><span class="pre">logging</span></code>.</p></li>
+<li><p>This needs no changes to the ~1,250 <code class="docutils literal notranslate"><span class="pre">WRITE</span></code> statements; only the unit they write to changes.</p></li>
+</ul>
+</section>
+<section id="state-and-sessions">
+<h4>State and sessions<a class="headerlink" href="#state-and-sessions" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>One Python process holds one Fortran state. <code class="docutils literal notranslate"><span class="pre">dc_reset()</span></code> calls the existing reset routines (<code class="docutils literal notranslate"><span class="pre">discus_reset_all</span></code>, <code class="docutils literal notranslate"><span class="pre">fourier_reset</span></code>, <code class="docutils literal notranslate"><span class="pre">powder_reset</span></code>, <code class="docutils literal notranslate"><span class="pre">pdf_reset</span></code>) so that each calculation starts clean.</p></li>
+<li><p>A Python <code class="docutils literal notranslate"><span class="pre">Session</span></code> object can run the core in a worker process (multiprocessing or loky). That gives isolation for notebooks running several models and for the web service, without making the Fortran re-entrant.</p></li>
+<li><p>Longer term, the existing <code class="docutils literal notranslate"><span class="pre">cl_cryst</span></code> class (<code class="docutils literal notranslate"><span class="pre">class_crystal.f90</span></code>) is a starting point for passing a crystal as a derived type instead of through <code class="docutils literal notranslate"><span class="pre">crystal_mod</span></code>.</p></li>
+</ul>
+</section>
+</section>
+<section id="target-python-api-sketch">
+<span id="75-target-python-api-sketch"></span><h3>7.5 Target Python API (sketch)<a class="headerlink" href="#target-python-api-sketch" title="Link to this heading">#</a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>import diffuse as dc
+
+cr = dc.io.read_cif(&quot;PbTiO3.cif&quot;)                 # or dc.io.read_stru(&quot;old.stru&quot;)
+sc = cr.expand(supercell=(20, 20, 20))            # space-group expansion + supercell
+
+rng = dc.Random(seed=42)
+sc = dc.defects.replace(sc, &quot;Ti&quot;, &quot;Zr&quot;, fraction=0.1, rng=rng)
+sc = dc.mc.mmc(sc, targets=[dc.mc.Correlation(&quot;Ti&quot;, &quot;Zr&quot;, neighbour=1, value=-0.3)],
+               cycles=50, rng=rng)
+
+f = dc.scattering.single_crystal(sc, radiation=&quot;xray&quot;, wavelength=0.71,
+                                 plane=dc.Plane(corner=(-5,-5,0), right=(5,-5,0),
+                                                top=(-5,5,0), npoints=(401,401)))
+f.intensity.plot()                                # xarray.DataArray with hkl coordinates
+
+p = dc.scattering.powder(sc, qmin=0.5, qmax=25, dq=0.01, method=&quot;debye&quot;)
+g = dc.scattering.pdf(sc, rmax=30, dr=0.01)
+
+fit = dc.refine.differential_evolution(model=my_model, data=obs,
+                                       params={&quot;frac&quot;: (0.0, 0.3)}, workers=8)
+</pre></div>
+</div>
+<p>The results are <code class="docutils literal notranslate"><span class="pre">xarray</span></code> objects with coordinates and metadata, and they can be saved straight to HDF5/NeXus.</p>
+</section>
+<section id="work-packages">
+<span id="76-work-packages"></span><h3>7.6 Work packages<a class="headerlink" href="#work-packages" title="Link to this heading">#</a></h3>
+</section>
+<section id="wp0-regression-corpus">
+<span id="wp0--regression-corpus"></span><h3>WP0 · Regression corpus<a class="headerlink" href="#wp0-regression-corpus" title="Link to this heading">#</a></h3>
+<p><em>Months 0–3 · prerequisite for everything else</em></p>
+<p><strong>Tasks:</strong> Collect 30–60 representative macros (Manual examples, tutorials, real user workflows). Run them with the current release through <code class="docutils literal notranslate"><span class="pre">suite_python</span></code> and save structures, Fourier maps, powder patterns and PDFs as reference HDF5/NumPy files. Set fixed random seeds. Set up pytest and CI (GitHub Actions on Linux and macOS).</p>
+<p><strong>Deliverable:</strong> <code class="docutils literal notranslate"><span class="pre">tests/golden/</span></code> plus a CI job that runs it on every push.</p>
+<p><strong>Done when:</strong> All main command areas (read, symmetry, replace, domain, stack, fourier, powder, pdf, mmc, rmc) are covered by at least one test.</p>
+</section>
+<section id="wp1-build-and-packaging">
+<span id="wp1--build-and-packaging"></span><h3>WP1 · Build and packaging<a class="headerlink" href="#wp1-build-and-packaging" title="Link to this heading">#</a></h3>
+<p><em>Months 1–4</em></p>
+<p><strong>Tasks:</strong> Add <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> with scikit-build-core on top of the existing CMake. Add a <code class="docutils literal notranslate"><span class="pre">DIFFUSE_PYTHON_CORE</span></code> option that builds without X11, PGPLOT, readline or the <code class="docutils literal notranslate"><span class="pre">kuplot</span></code> plotting code. Build wheels with cibuildwheel for Linux (manylinux) and macOS, with FFTW and HDF5 bundled. Look at Windows support later.</p>
+<p><strong>Deliverable:</strong> <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> and <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">diffuse</span></code> both work, and CI builds wheels.</p>
+<p><strong>Done when:</strong> A clean virtual environment can install the wheel and run one smoke test.</p>
+</section>
+<section id="wp2-core-infrastructure">
+<span id="wp2--core-infrastructure"></span><h3>WP2 · Core infrastructure<a class="headerlink" href="#wp2-core-infrastructure" title="Link to this heading">#</a></h3>
+<p><em>Months 2–6</em></p>
+<p><strong>Tasks:</strong> Add the API-mode flag, output redirection and logging callback. Map errors to exceptions. Remove or convert every <code class="docutils literal notranslate"><span class="pre">STOP</span></code>. Add <code class="docutils literal notranslate"><span class="pre">dc_init</span></code> and <code class="docutils literal notranslate"><span class="pre">dc_reset</span></code>. Expose the random seed and state (<code class="docutils literal notranslate"><span class="pre">random_mod</span></code>) so runs are reproducible. Add a <code class="docutils literal notranslate"><span class="pre">legacy.run_macro()</span></code> helper for running old macros during the migration.</p>
+<p><strong>Deliverable:</strong> <code class="docutils literal notranslate"><span class="pre">diffuse._core</span></code> with init, reset, errors, logging and RNG control.</p>
+<p><strong>Done when:</strong> A deliberately bad input raises a Python exception. The process survives, prints nothing to the terminal, and the next call works.</p>
+</section>
+<section id="wp3-crystal-data-model-and-i-o">
+<span id="wp3--crystal-data-model-and-io"></span><h3>WP3 · Crystal data model and I/O<a class="headerlink" href="#wp3-crystal-data-model-and-i-o" title="Link to this heading">#</a></h3>
+<p><em>Months 3–8</em></p>
+<p><strong>Tasks:</strong> Python <code class="docutils literal notranslate"><span class="pre">Crystal</span></code> class (cell, space group, atoms, ADPs, occupancies, properties, molecules). Two-way transfer to and from <code class="docutils literal notranslate"><span class="pre">crystal_mod</span></code>. Readers and writers for CIF (gemmi), DISCUS <code class="docutils literal notranslate"><span class="pre">.stru</span></code>, xyz and HDF5. Space-group expansion through the existing <code class="docutils literal notranslate"><span class="pre">spcgr_*</span></code> routines, cross-checked with spglib.</p>
+<p><strong>Deliverable:</strong> <code class="docutils literal notranslate"><span class="pre">dc.Crystal</span></code>, <code class="docutils literal notranslate"><span class="pre">dc.io</span></code>.</p>
+<p><strong>Done when:</strong> Round-tripping all golden structures (Python → Fortran → Python) gives identical data, and the files written match the legacy <code class="docutils literal notranslate"><span class="pre">save</span></code> output.</p>
+</section>
+<section id="wp4-single-crystal-fourier-first-vertical-slice">
+<span id="wp4--single-crystal-fourier-first-vertical-slice"></span><h3>WP4 · Single-crystal Fourier (first vertical slice)<a class="headerlink" href="#wp4-single-crystal-fourier-first-vertical-slice" title="Link to this heading">#</a></h3>
+<p><em>Months 5–10</em></p>
+<p><strong>Tasks:</strong> Shim over <code class="docutils literal notranslate"><span class="pre">four_run</span></code> and <code class="docutils literal notranslate"><span class="pre">four_strucf</span></code>: radiation, wavelength, corners and increments, form factors, ADPs, lots, Friedel symmetry and output arrays. Results returned as <code class="docutils literal notranslate"><span class="pre">xarray</span></code> with hkl coordinates. Optional builds with OpenMP, CUDA and FINUFFT.</p>
+<p><strong>Deliverable:</strong> <code class="docutils literal notranslate"><span class="pre">dc.scattering.single_crystal()</span></code></p>
+<p><strong>Done when:</strong> Results match the golden data to a set tolerance (for example a relative difference of 1e-10 in double precision), and speed is within 5% of the binary.</p>
+</section>
+<section id="wp5-powder">
+<span id="wp5--powder"></span><h3>WP5 · Powder<a class="headerlink" href="#wp5-powder" title="Link to this heading">#</a></h3>
+<p><em>Months 8–13</em></p>
+<p><strong>Tasks:</strong> Shims over <code class="docutils literal notranslate"><span class="pre">powder_run</span></code>, <code class="docutils literal notranslate"><span class="pre">powder_complete</span></code> and <code class="docutils literal notranslate"><span class="pre">powder_nufft</span></code> (Debye, complete, FFT). Profile functions, preferred orientation, instrumental settings. Output as Q, 2θ and d. Comparison with experimental data in Python.</p>
+<p><strong>Deliverable:</strong> <code class="docutils literal notranslate"><span class="pre">dc.scattering.powder()</span></code></p>
+<p><strong>Done when:</strong> All powder golden tests pass.</p>
+</section>
+<section id="wp6-pdf-3d-pdf-and-patterson">
+<span id="wp6--pdf-3d-pdf-and-patterson"></span><h3>WP6 · PDF, 3D-PDF and Patterson<a class="headerlink" href="#wp6-pdf-3d-pdf-and-patterson" title="Link to this heading">#</a></h3>
+<p><em>Months 10–15</em></p>
+<p><strong>Tasks:</strong> Shims over <code class="docutils literal notranslate"><span class="pre">pdf_setup</span></code>, <code class="docutils literal notranslate"><span class="pre">pdf_run</span></code> and <code class="docutils literal notranslate"><span class="pre">pdf_determine</span></code>, plus the 3D-PDF (<code class="docutils literal notranslate"><span class="pre">discus_3dpdf</span></code>), <code class="docutils literal notranslate"><span class="pre">exp2pdf</span></code> and Patterson routines. Keep the PDF-fitting code paths (<code class="docutils literal notranslate"><span class="pre">pdf_rmc_*</span></code>) for WP8.</p>
+<p><strong>Deliverable:</strong> <code class="docutils literal notranslate"><span class="pre">dc.scattering.pdf()</span></code>, <code class="docutils literal notranslate"><span class="pre">pdf3d()</span></code>, <code class="docutils literal notranslate"><span class="pre">patterson()</span></code>, <code class="docutils literal notranslate"><span class="pre">exp2pdf()</span></code></p>
+<p><strong>Done when:</strong> All PDF golden tests pass.</p>
+</section>
+<section id="wp7-structure-building-and-defects">
+<span id="wp7--structure-building-and-defects"></span><h3>WP7 · Structure building and defects<a class="headerlink" href="#wp7-structure-building-and-defects" title="Link to this heading">#</a></h3>
+<p><em>Months 9–18 · broad, so done in several releases</em></p>
+<p><strong>Tasks:</strong> Python functions over the existing routines for symmetry operations, replace and remove, insert, domains (<code class="docutils literal notranslate"><span class="pre">domain</span></code>), stacking faults (<code class="docutils literal notranslate"><span class="pre">stack</span></code>), surfaces, waves, shear, molecules (molecularize, place molecules, decorate), and connectivity and neighbour analysis (<code class="docutils literal notranslate"><span class="pre">chem</span></code>, <code class="docutils literal notranslate"><span class="pre">conn</span></code>). Priority goes to the commands that users rely on most.</p>
+<p><strong>Deliverable:</strong> <code class="docutils literal notranslate"><span class="pre">dc.defects.*</span></code>, <code class="docutils literal notranslate"><span class="pre">dc.analysis.*</span></code></p>
+<p><strong>Done when:</strong> Each wrapped command has a golden test. Stacking faults and domains are written up as notebook tutorials.</p>
+</section>
+<section id="wp8-monte-carlo-mmc-rmc">
+<span id="wp8--monte-carlo-mmcrmc"></span><h3>WP8 · Monte Carlo (MMC/RMC)<a class="headerlink" href="#wp8-monte-carlo-mmc-rmc" title="Link to this heading">#</a></h3>
+<p><em>Months 14–22 · the most stateful part</em></p>
+<p><strong>Tasks:</strong> Wrap <code class="docutils literal notranslate"><span class="pre">mmc</span></code> (~9k lines) and <code class="docutils literal notranslate"><span class="pre">rmc</span></code>. Express targets (correlations, distances, energies) as Python objects and send them to the existing set-up code. Report progress through a callback so the caller can follow and stop long runs. Later option: Python-defined energy terms through callbacks.</p>
+<p><strong>Deliverable:</strong> <code class="docutils literal notranslate"><span class="pre">dc.mc.mmc()</span></code>, <code class="docutils literal notranslate"><span class="pre">dc.mc.rmc()</span></code></p>
+<p><strong>Done when:</strong> With fixed seeds, results are statistically the same as the golden runs, and runs can be stopped and resumed.</p>
+</section>
+<section id="wp9-refinement-and-plotting-replaced-in-python">
+<span id="wp9--refinement-and-plotting-replaced-in-python"></span><h3>WP9 · Refinement and plotting replaced in Python<a class="headerlink" href="#wp9-refinement-and-plotting-replaced-in-python" title="Link to this heading">#</a></h3>
+<p><em>Months 6–14 · can run alongside WP4–WP7</em></p>
+<p><strong>Tasks:</strong> Least-squares refinement with lmfit (replaces <code class="docutils literal notranslate"><span class="pre">refine</span></code>). Differential evolution (replaces <code class="docutils literal notranslate"><span class="pre">diffev</span></code>), either scipy’s or a ported DE that keeps the current DIFFEV options, with parallel workers through concurrent.futures, mpi4py or Dask. Plot helpers in matplotlib and plotly for 1D, 2D maps and 3D slices (replaces <code class="docutils literal notranslate"><span class="pre">kuplot</span></code> for typical uses). Readers for the formats <code class="docutils literal notranslate"><span class="pre">kuplot</span></code> loads.</p>
+<p><strong>Deliverable:</strong> <code class="docutils literal notranslate"><span class="pre">dc.refine</span></code>, <code class="docutils literal notranslate"><span class="pre">dc.plot</span></code></p>
+<p><strong>Done when:</strong> Two or three published refinement examples are reproduced in notebooks.</p>
+</section>
+<section id="wp10-service-layer-and-web-front-end-first-version">
+<span id="wp10--service-layer-and-web-front-end-first-version"></span><h3>WP10 · Service layer and web front end (first version)<a class="headerlink" href="#wp10-service-layer-and-web-front-end-first-version" title="Link to this heading">#</a></h3>
+<p><em>Months 16–24</em></p>
+<p><strong>Tasks:</strong> A FastAPI service with a job queue (Celery, RQ or Dask) and one worker process per job. Pydantic schemas for model and calculation requests. Results stored as HDF5/Zarr. A first web UI: load a structure, set up a single-crystal or powder calculation, view the results interactively (plotly; three.js for 3D).</p>
+<p><strong>Deliverable:</strong> A deployable container image and a demo UI.</p>
+<p><strong>Done when:</strong> A user can go from a CIF file to a diffuse-scattering map in a browser.</p>
+</section>
+<section id="timeline">
+<span id="77-timeline"></span><h3>7.7 Timeline<a class="headerlink" href="#timeline" title="Link to this heading">#</a></h3>
+<p>Months from the start, assuming about 1.5 full-time developers. Some packages overlap because they can be worked on in parallel.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Work package</p></th>
+<th class="head"><p>Months 0 → 24 (one block = one month)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>WP0 Regression corpus</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">███·····················</span></code> 0–3</p></td>
+</tr>
+<tr class="row-odd"><td><p>WP1 Build and packaging</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">·███····················</span></code> 1–4</p></td>
+</tr>
+<tr class="row-even"><td><p>WP2 Core infrastructure</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">··████··················</span></code> 2–6</p></td>
+</tr>
+<tr class="row-odd"><td><p>WP3 Crystal model and I/O</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">···█████················</span></code> 3–8</p></td>
+</tr>
+<tr class="row-even"><td><p>WP4 Single-crystal Fourier</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">·····█████··············</span></code> 5–10</p></td>
+</tr>
+<tr class="row-odd"><td><p>WP9 Refinement and plotting</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">······████████··········</span></code> 6–14</p></td>
+</tr>
+<tr class="row-even"><td><p>WP5 Powder</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">········█████···········</span></code> 8–13</p></td>
+</tr>
+<tr class="row-odd"><td><p>WP7 Structure building and defects</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">·········█████████······</span></code> 9–18</p></td>
+</tr>
+<tr class="row-even"><td><p>WP6 PDF, 3D-PDF, Patterson</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">··········█████·········</span></code> 10–15</p></td>
+</tr>
+<tr class="row-odd"><td><p>WP8 Monte Carlo</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">··············████████··</span></code> 14–22</p></td>
+</tr>
+<tr class="row-even"><td><p>WP10 Service and web UI</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">················████████</span></code> 16–24</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Milestones:</strong></p>
+<ul class="simple">
+<li><p><strong>M1 (month 6):</strong> installable package, error handling and logging, crystal round trip. Alpha release for internal users.</p></li>
+<li><p><strong>M2 (month 12):</strong> single-crystal Fourier, powder, Python refinement and plotting. First public beta, usable for most diffuse-scattering workflows from notebooks.</p></li>
+<li><p><strong>M3 (month 18):</strong> PDF and the main defect tools. Most of what users do no longer needs macros.</p></li>
+<li><p><strong>M4 (month 24):</strong> Monte Carlo and the first web front end. Python becomes the primary interface; <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> moves to maintenance only.</p></li>
+</ul>
+</section>
+<section id="testing-strategy">
+<span id="78-testing-strategy"></span><h3>7.8 Testing strategy<a class="headerlink" href="#testing-strategy" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Three levels.</strong> (1) Golden tests against the legacy binary. (2) Unit tests for the shims (shapes, errors, reset). (3) Physics checks that don’t depend on legacy output: Bragg positions, Friedel symmetry, the Debye result vs. the Fourier result for the same structure, PDF normalisation, sum rules.</p></li>
+<li><p><strong>Tolerances.</strong> Use tight tolerances for deterministic calculations. Use statistical comparisons (means and spreads over seeds) for MC/RMC.</p></li>
+<li><p><strong>CI matrix.</strong> gfortran on Linux and macOS for every push; ifort/ifx and the CUDA build nightly or on demand.</p></li>
+<li><p><strong>Performance tracking.</strong> Benchmark key kernels (asv or pytest-benchmark) so the wrapper layer never adds noticeable overhead.</p></li>
+</ul>
+</section>
+<section id="parallelism-and-performance">
+<span id="79-parallelism-and-performance"></span><h3>7.9 Parallelism and performance<a class="headerlink" href="#parallelism-and-performance" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>OpenMP</strong> continues to run inside the kernels. The nanobind layer releases the Python GIL during long calls, so notebooks stay responsive and threads can run other work.</p></li>
+<li><p><strong>MPI</strong>, used today by <code class="docutils literal notranslate"><span class="pre">diffev</span></code> and <code class="docutils literal notranslate"><span class="pre">refine</span></code> to run macros in parallel, is replaced by Python process pools (concurrent.futures, Dask, Ray or mpi4py on clusters). Each worker holds its own Fortran state, which fits the global-module design.</p></li>
+<li><p><strong>CUDA and FINUFFT</strong> become optional build variants, for example <code class="docutils literal notranslate"><span class="pre">diffuse[cuda]</span></code>. Python picks the backend at run time and falls back to CPU.</p></li>
+<li><p><strong>Data copies.</strong> Arrays cross the boundary as contiguous NumPy arrays (Fortran order where needed). Large outputs such as 3D Fourier volumes are written straight into buffers that Python allocates, so there is no extra copy.</p></li>
+</ul>
+</section>
+<section id="risks-and-mitigations">
+<span id="710-risks-and-mitigations"></span><h3>7.10 Risks and mitigations<a class="headerlink" href="#risks-and-mitigations" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Risk</p></th>
+<th class="head"><p>Impact</p></th>
+<th class="head"><p>Mitigation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Hidden coupling: kernels depend on module state set by unrelated commands</p></td>
+<td><p>Wrong results that look plausible</p></td>
+<td><p>Golden tests per command. Start each shim call from <code class="docutils literal notranslate"><span class="pre">dc_reset()</span></code> and set every relevant variable explicitly. Write down which module variables each kernel reads.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Validation logic lives only in menu <code class="docutils literal notranslate"><span class="pre">set</span></code> handlers</p></td>
+<td><p>The API accepts invalid input</p></td>
+<td><p>Move validation into shared routines that both the menu and the shim call. Add pydantic validation in Python.</p></td>
+</tr>
+<tr class="row-even"><td><p>Packaging Fortran with HDF5 and FFTW as wheels</p></td>
+<td><p>Installation problems, especially on macOS and Windows</p></td>
+<td><p>cibuildwheel with pinned dependencies. Offer a conda-forge package as well, which is often easier for scientific users.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Development continues in the Fortran code during the migration</p></td>
+<td><p>Merge conflicts, a moving target</p></td>
+<td><p>Keep shims in a separate <code class="docutils literal notranslate"><span class="pre">capi/</span></code> tree. Golden tests catch behaviour changes. Agree that new features are added through the API first.</p></td>
+</tr>
+<tr class="row-even"><td><p>Users depend on macros</p></td>
+<td><p>Slow adoption</p></td>
+<td><p>Keep <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code>. Provide <code class="docutils literal notranslate"><span class="pre">legacy.run_macro()</span></code>. Write side-by-side “macro → Python” guides, and possibly a translator for common commands.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Size of MMC/RMC</p></td>
+<td><p>WP8 overruns</p></td>
+<td><p>Schedule it last, wrap rather than refactor, and limit the first release to the most-used energy terms.</p></td>
+</tr>
+<tr class="row-even"><td><p>Limited developer time and few people with Fortran experience</p></td>
+<td><p>The plan slips</p></td>
+<td><p>Release in milestones so value arrives early. Make the Python layer welcoming to new contributors. The Fortran work is concentrated in the shim and infrastructure packages.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="first-90-days">
+<span id="711-first-90-days"></span><h3>7.11 First 90 days<a class="headerlink" href="#first-90-days" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>[ ] Agree on package name, licence, supported platforms and minimum Python version.</p></li>
+<li><p>[ ] Choose and document 30+ golden macros. Run them with the current release and store the outputs.</p></li>
+<li><p>[ ] Set up pytest and GitHub Actions, run the golden tests through <code class="docutils literal notranslate"><span class="pre">suite_python</span></code>.</p></li>
+<li><p>[ ] Add the <code class="docutils literal notranslate"><span class="pre">DIFFUSE_PYTHON_CORE</span></code> CMake option and cut the <code class="docutils literal notranslate"><span class="pre">discus</span></code> → <code class="docutils literal notranslate"><span class="pre">kuplot</span></code> plotting dependency for that build.</p></li>
+<li><p>[ ] Add <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> (scikit-build-core) and a minimal nanobind module that only calls <code class="docutils literal notranslate"><span class="pre">dc_init</span></code> and returns the version.</p></li>
+<li><p>[ ] Prototype the API-mode output redirect and error-to-exception mapping.</p></li>
+<li><p>[ ] Make an inventory of all <code class="docutils literal notranslate"><span class="pre">STOP</span></code> statements and interactive fallback paths, and a plan to remove each one.</p></li>
+<li><p>[ ] Prototype <code class="docutils literal notranslate"><span class="pre">dc_set_cell</span></code>, <code class="docutils literal notranslate"><span class="pre">dc_set_atoms</span></code> and <code class="docutils literal notranslate"><span class="pre">dc_get_atoms</span></code>, plus a Python <code class="docutils literal notranslate"><span class="pre">Crystal</span></code> that round-trips a golden structure.</p></li>
+<li><p>[ ] Write down which module variables <code class="docutils literal notranslate"><span class="pre">four_run</span></code> reads, as preparation for WP4.</p></li>
+</ul>
+</section>
+<section id="decisions-needed">
+<span id="712-decisions-needed"></span><h3>7.12 Decisions needed<a class="headerlink" href="#decisions-needed" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Binding technology:</strong> <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> + nanobind (recommended: cleaner arrays, exceptions and GIL control) or f2py (already used by <code class="docutils literal notranslate"><span class="pre">suite_python</span></code>, less code at first, weaker for complex interfaces).</p></li>
+<li><p><strong>Distribution:</strong> PyPI wheels, conda-forge, or both.</p></li>
+<li><p><strong>Supported platforms and compilers</strong> for official builds. Is Windows native, or WSL only?</p></li>
+<li><p><strong>Backward-compatibility promise</strong> for macros and file formats, and how long <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> is maintained.</p></li>
+<li><p><strong>Data formats:</strong> NeXus/HDF5 as the standard result format, and which version of the DISCUS structure format to keep.</p></li>
+<li><p><strong>Web goals:</strong> local single-user app, shared group server or public service. This decides how much work goes into authentication, quotas and job management in WP10.</p></li>
+</ul>
+<p>Based on a read-only review of the DiffuseCode repository (version 6.23.01). Line counts are approximate.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../testing.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">DISCUS-suite macro tests</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="WP0_Test_Baseline.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">WP0 – Regression test baseline</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-code-is-today">1. What the code is today</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture">Architecture</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#target-architecture-shared-by-all-options">2. Target architecture (shared by all options)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#high-level-options">3. High-level options</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-wrap-the-current-interpreter-weeks">A. Wrap the current interpreter (weeks)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-fortran-compute-behind-a-clean-python-api-recommended">B. Fortran compute behind a clean Python API — recommended</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-full-rewrite-in-python-years">C. Full rewrite in Python (years)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d-hybrid-that-grows-into-a-rewrite-long-term">D. Hybrid that grows into a rewrite (long term)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#suggested-route-b-then-d">4. Suggested route (B, then D)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#main-risks-and-decisions-to-make-early">5. Main risks and decisions to make early</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#bottom-line">6. Bottom line</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#detailed-plan-for-option-b">7. Detailed plan for option B</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#goals-and-non-goals">7.1 Goals and non-goals</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#guiding-principles">7.2 Guiding principles</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#package-layout">7.3 Package layout</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interface-design">7.4 Interface design</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#the-c-abi-shim">The C-ABI shim</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#calls-into-compute-routines">Calls into compute routines</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#errors">Errors</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#output-and-logging">Output and logging</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#state-and-sessions">State and sessions</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#target-python-api-sketch">7.5 Target Python API (sketch)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#work-packages">7.6 Work packages</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp0-regression-corpus">WP0 · Regression corpus</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp1-build-and-packaging">WP1 · Build and packaging</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp2-core-infrastructure">WP2 · Core infrastructure</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp3-crystal-data-model-and-i-o">WP3 · Crystal data model and I/O</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp4-single-crystal-fourier-first-vertical-slice">WP4 · Single-crystal Fourier (first vertical slice)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp5-powder">WP5 · Powder</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp6-pdf-3d-pdf-and-patterson">WP6 · PDF, 3D-PDF and Patterson</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp7-structure-building-and-defects">WP7 · Structure building and defects</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp8-monte-carlo-mmc-rmc">WP8 · Monte Carlo (MMC/RMC)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp9-refinement-and-plotting-replaced-in-python">WP9 · Refinement and plotting replaced in Python</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wp10-service-layer-and-web-front-end-first-version">WP10 · Service layer and web front end (first version)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#timeline">7.7 Timeline</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-strategy">7.8 Testing strategy</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parallelism-and-performance">7.9 Parallelism and performance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#risks-and-mitigations">7.10 Risks and mitigations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#first-90-days">7.11 First 90 days</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#decisions-needed">7.12 Decisions needed</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/_generated/migration/DiffuseCode_Python_Migration_Plan.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright DiffuseCode developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

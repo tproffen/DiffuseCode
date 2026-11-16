@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>WP0 – Regression test baseline &#8212; DiffuseCode Python</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_generated/migration/WP0_Test_Baseline';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Test coverage gaps – what to add and harden" href="WP0_Test_Coverage_Gaps.html" />
+    <link rel="prev" title="DiffuseCode: moving to a Python framework" href="DiffuseCode_Python_Migration_Plan.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">DiffuseCode Python</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../gallery/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../testing.html">
+    DISCUS-suite macro tests
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="DiffuseCode_Python_Migration_Plan.html">
+    DiffuseCode: moving to a Python framework
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="#" aria-current="page">
+    WP0 – Regression test baseline
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="WP0_Test_Coverage_Gaps.html">
+    Test coverage gaps – what to add and harden
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tproffen/DiffuseCode" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../gallery/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../testing.html">
+    DISCUS-suite macro tests
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="DiffuseCode_Python_Migration_Plan.html">
+    DiffuseCode: moving to a Python framework
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#" aria-current="page">
+    WP0 – Regression test baseline
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="WP0_Test_Coverage_Gaps.html">
+    Test coverage gaps – what to add and harden
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tproffen/DiffuseCode" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">WP0 – Regression test baseline</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="wp0-regression-test-baseline">
+<span id="wp0--regression-test-baseline"></span><h1>WP0 – Regression test baseline<a class="headerlink" href="#wp0-regression-test-baseline" title="Link to this heading">#</a></h1>
+<p>Part of the Python migration plan (<a class="reference internal" href="DiffuseCode_Python_Migration_Plan.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">DiffuseCode_Python_Migration_Plan.md</span></code></span></a>, option B).
+WP0 is the safety net: before any Fortran is wrapped or refactored, we need a test
+suite that runs unattended, reports pass/fail reliably, and stores reference
+(“golden”) results to compare against.</p>
+<p>This document has three parts:</p>
+<ol class="arabic simple">
+<li><p><strong>Where we are</strong> – what the existing <code class="docutils literal notranslate"><span class="pre">tests/</span></code> folder covers and what happened
+when it was run headless on Linux.</p></li>
+<li><p><strong>WP0 work plan</strong> – the tasks to turn it into an automated regression baseline.</p></li>
+<li><p><strong>Progress log</strong> – what has been done so far.</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">mixscat</span></code> is deprecated and is left out of WP0 (and of the migration).</p>
+<hr class="docutils" />
+<section id="where-we-are">
+<span id="1-where-we-are"></span><h2>1. Where we are<a class="headerlink" href="#where-we-are" title="Link to this heading">#</a></h2>
+<section id="what-is-in-tests">
+<span id="11-what-is-in-tests"></span><h3>1.1 What is in <code class="docutils literal notranslate"><span class="pre">tests/</span></code><a class="headerlink" href="#what-is-in-tests" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Folder</p></th>
+<th class="head"><p>Topic</p></th>
+<th class="head text-right"><p><code class="docutils literal notranslate"><span class="pre">.mac</span></code> files</p></th>
+<th class="head text-right"><p>Macros with a self-check</p></th>
+<th class="head"><p>Reference data (<code class="docutils literal notranslate"><span class="pre">RESULTS/</span></code>)</p></th>
+<th class="head"><p>Run by <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>00.Introduction</p></td>
+<td><p>Command-language basics</p></td>
+<td class="text-right"><p>5</p></td>
+<td class="text-right"><p>0</p></td>
+<td><p>–</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>01.Simulation</p></td>
+<td><p>Building structures, symmetry, shear</p></td>
+<td class="text-right"><p>19</p></td>
+<td class="text-right"><p>6</p></td>
+<td><p>–</p></td>
+<td><p>4 tests</p></td>
+</tr>
+<tr class="row-even"><td><p>02.Calculation_Scattering</p></td>
+<td><p>1D/2D Fourier, lots, powder</p></td>
+<td class="text-right"><p>29</p></td>
+<td class="text-right"><p>5</p></td>
+<td><p>yes</p></td>
+<td><p>5 tests</p></td>
+</tr>
+<tr class="row-odd"><td><p>03.Pair_Distribution_Function</p></td>
+<td><p>PDF</p></td>
+<td class="text-right"><p>11</p></td>
+<td class="text-right"><p><strong>0</strong></p></td>
+<td><p>–</p></td>
+<td><p>runs, <strong>no check</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>04.SRO</p></td>
+<td><p>Short-range order via MMC</p></td>
+<td class="text-right"><p>138</p></td>
+<td class="text-right"><p>6</p></td>
+<td><p>yes</p></td>
+<td><p>4 tests (SRO_2 commented out)</p></td>
+</tr>
+<tr class="row-odd"><td><p>05.Stack</p></td>
+<td><p>Stacking faults</p></td>
+<td class="text-right"><p>48</p></td>
+<td class="text-right"><p>4</p></td>
+<td><p>yes</p></td>
+<td><p>4 tests</p></td>
+</tr>
+<tr class="row-even"><td><p>06.Domains</p></td>
+<td><p>Domains</p></td>
+<td class="text-right"><p>32</p></td>
+<td class="text-right"><p>4</p></td>
+<td><p>yes</p></td>
+<td><p>4 tests</p></td>
+</tr>
+<tr class="row-odd"><td><p>07.Refinement</p></td>
+<td><p>DIFFEV/REFINE</p></td>
+<td class="text-right"><p>50</p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>1 test</p></td>
+</tr>
+<tr class="row-even"><td><p>08.Nanoparticle_example</p></td>
+<td><p>Nanoparticles, powder, PDF</p></td>
+<td class="text-right"><p>41</p></td>
+<td class="text-right"><p>3</p></td>
+<td><p>yes</p></td>
+<td><p>2 tests</p></td>
+</tr>
+<tr class="row-odd"><td><p>09.Nanoparticle_refinement</p></td>
+<td><p>MPI refinement</p></td>
+<td class="text-right"><p>364</p></td>
+<td class="text-right"><p>0</p></td>
+<td><p>–</p></td>
+<td><p>1 shell script, <strong>does not run</strong> (see 1.3)</p></td>
+</tr>
+<tr class="row-even"><td><p>11.Properties</p></td>
+<td><p>Atom properties</p></td>
+<td class="text-right"><p>7</p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>–</p></td>
+<td><p>1 test</p></td>
+</tr>
+<tr class="row-odd"><td><p>12.Waves</p></td>
+<td><p>Modulation waves</p></td>
+<td class="text-right"><p>8</p></td>
+<td class="text-right"><p>3</p></td>
+<td><p>yes</p></td>
+<td><p>2 tests</p></td>
+</tr>
+<tr class="row-even"><td><p>13.Analyze</p></td>
+<td><p>Neighbour/bond analysis</p></td>
+<td class="text-right"><p>10</p></td>
+<td class="text-right"><p>1</p></td>
+<td><p>yes</p></td>
+<td><p>1 test</p></td>
+</tr>
+<tr class="row-odd"><td><p>14.Decoration</p></td>
+<td><p>Surface decoration</p></td>
+<td class="text-right"><p>46</p></td>
+<td class="text-right"><p>10</p></td>
+<td><p>–</p></td>
+<td><p>2 tests</p></td>
+</tr>
+<tr class="row-even"><td><p>15.Timing</p></td>
+<td><p>OpenMP benchmarks</p></td>
+<td class="text-right"><p>15</p></td>
+<td class="text-right"><p>0</p></td>
+<td><p>–</p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>How a test works.</strong> <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> changes into each folder, runs a macro with
+parameters, then calls <code class="docutils literal notranslate"><span class="pre">check.mac</span></code>. Each macro sets <code class="docutils literal notranslate"><span class="pre">LTEST_MAC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> if its own
+check passes. A check is either:</p>
+<ul class="simple">
+<li><p>a geometric value (<code class="docutils literal notranslate"><span class="pre">blen</span></code>, <code class="docutils literal notranslate"><span class="pre">bang</span></code>, atom counts), or</p></li>
+<li><p>a KUPLOT comparison against a stored file: <code class="docutils literal notranslate"><span class="pre">load</span></code> the new result and
+<code class="docutils literal notranslate"><span class="pre">RESULTS/&lt;file&gt;</span></code>, then <code class="docutils literal notranslate"><span class="pre">rval</span></code> (R-value) below a threshold, e.g. <code class="docutils literal notranslate"><span class="pre">&lt;</span> <span class="pre">0.001</span></code> for
+Fourier and powder, <code class="docutils literal notranslate"><span class="pre">&lt;</span> <span class="pre">0.25</span></code> for the Monte-Carlo SRO examples.</p></li>
+</ul>
+<p>Total: <strong>30 test invocations</strong>, about 3.5 minutes on 4 cores.</p>
+</section>
+<section id="headless-run-results-2026-11-04">
+<span id="12-headless-run-results-2026-11-04"></span><h3>1.2 Headless run results (2026-11-04)<a class="headerlink" href="#headless-run-results-2026-11-04" title="Link to this heading">#</a></h3>
+<p>Build: Ubuntu 24.04, gfortran 13.3, CMake 3.28, FFTW, HDF5, <code class="docutils literal notranslate"><span class="pre">pgplot5</span></code> from the
+Ubuntu repository, run under <code class="docutils literal notranslate"><span class="pre">xvfb-run</span></code> (virtual X display), no human input.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Run</p></th>
+<th class="head"><p>Result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> as shipped</p></td>
+<td><p>Stopped in 05.Stack after 4 sections: <code class="docutils literal notranslate"><span class="pre">***APPL***</span> <span class="pre">Interactive</span> <span class="pre">plot</span> <span class="pre">for</span> <span class="pre">JMOL</span> <span class="pre">only</span> <span class="pre">(-152)</span></code>. <strong>Process exit code was 0.</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>Each test run in isolation</p></td>
+<td><p>22 PASS, 7 ABORTED (all the same JMOL error), 1 ran without a check</p></td>
+</tr>
+<tr class="row-even"><td><p>With JMOL lines disabled (this branch)</p></td>
+<td><p><strong>All 13 sections SUCCESS, 200 s, exit code 0.</strong> CIF output files are still written; <code class="docutils literal notranslate"><span class="pre">SIMPLE/PLOT/block.cif</span></code> is byte-identical to the committed copy.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>JMOL fix in this branch.</strong> <code class="docutils literal notranslate"><span class="pre">program</span> <span class="pre">jmol</span></code> first runs <code class="docutils literal notranslate"><span class="pre">which</span> <span class="pre">jmol</span></code>. If JMOL is
+not installed it raises error -152, which aborts the whole macro run.
+<code class="docutils literal notranslate"><span class="pre">run</span> <span class="pre">plot:inter</span></code> also raises -152 for anything other than JMOL. In the 9 plot
+macros that <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> reaches, both lines are now commented out and replaced
+with <code class="docutils literal notranslate"><span class="pre">program</span> <span class="pre">cif</span></code> + <code class="docutils literal notranslate"><span class="pre">run</span></code>. These write the same CIF file through the same code
+path (<code class="docutils literal notranslate"><span class="pre">discus_plot.f90:1448</span></code>), just without opening the viewer.</p>
+<p>Files changed:
+<code class="docutils literal notranslate"><span class="pre">05.Stack/STACK/plot.mac</span></code>, <code class="docutils literal notranslate"><span class="pre">05.Stack/STACK_FILE/plot.mac</span></code>,
+<code class="docutils literal notranslate"><span class="pre">06.Domains/CUBE/plot.cif.mac</span></code>, <code class="docutils literal notranslate"><span class="pre">08.Nanoparticle_example/{SIMPLE,ELLIPSOID,Q}/plot.cif.mac</span></code>,
+<code class="docutils literal notranslate"><span class="pre">14.Decoration/Deco_01/plot.mac</span></code>, <code class="docutils literal notranslate"><span class="pre">14.Decoration/Deco_02/plot.mac</span></code>,
+<code class="docutils literal notranslate"><span class="pre">14.Decoration/Deco_02/clean_surface.mac</span></code>.</p>
+<p>Other tutorial macros still call JMOL interactively, but the suite does not run
+them: <code class="docutils literal notranslate"><span class="pre">01.Simulation/plotcif.mac</span></code>, <code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_MOLECULES/plot_jmol.mac</span></code>,
+<code class="docutils literal notranslate"><span class="pre">05.Stack/{STACK_DISTRIBUTION,WURTZITE}</span></code>, <code class="docutils literal notranslate"><span class="pre">06.Domains/Molecules</span></code>,
+<code class="docutils literal notranslate"><span class="pre">08.Nanoparticle_example/COMPLEX/main.mac</span></code>, <code class="docutils literal notranslate"><span class="pre">11.Properties/{prop_ex_2,plot.cif}.mac</span></code>,
+<code class="docutils literal notranslate"><span class="pre">15.Timing/OpenMP/plot.mac</span></code>.</p>
+</section>
+<section id="problems-found">
+<span id="13-problems-found"></span><h3>1.3 Problems found<a class="headerlink" href="#problems-found" title="Link to this heading">#</a></h3>
+<p><strong>Test-harness problems</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Errors are invisible to automation.</strong> A macro error ends <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> with
+exit code 0, and so does a failing check (<code class="docutils literal notranslate"><span class="pre">stop</span></code> in <code class="docutils literal notranslate"><span class="pre">check.mac</span></code>). The only
+pass/fail signal is text on screen (“SUCCESS in …” / “Failure, macro …”).
+With macro echo on, the log also contains the <em>source</em> of both branches of
+every <code class="docutils literal notranslate"><span class="pre">if</span></code>, so grepping for “Failure” finds false hits.</p></li>
+<li><p><strong>One failure hides all later tests.</strong> <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> is a single sequential
+macro, and the first error ends the run.</p></li>
+<li><p><strong>Some sections report SUCCESS without testing anything:</strong></p>
+<ul class="simple">
+<li><p>03.Pair_Distribution_Function – <code class="docutils literal notranslate"><span class="pre">pdf.mac</span></code> runs but has no check.</p></li>
+<li><p>09.Nanoparticle_refinement – <code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">./TEST.sh</span></code> fails with
+<em>Permission denied</em> (no execute bit in git), and needs <code class="docutils literal notranslate"><span class="pre">mpiexec</span></code> and
+<code class="docutils literal notranslate"><span class="pre">DISCUS_NCPU</span></code>. The section still prints SUCCESS.</p></li>
+<li><p>14.Decoration/Deco_01 – <code class="docutils literal notranslate"><span class="pre">all.mac</span></code> has no aggregated check.</p></li>
+</ul>
+</li>
+<li><p><strong>Randomness is not controlled.</strong> The suite has a <code class="docutils literal notranslate"><span class="pre">seed</span></code> command
+(<code class="docutils literal notranslate"><span class="pre">seed</span> <span class="pre">&lt;value&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">seed</span> <span class="pre">&lt;a&gt;,&lt;b&gt;,…,</span> <span class="pre">group:&lt;n&gt;</span></code>, see <code class="docutils literal notranslate"><span class="pre">lib_f90/lib_f90.hlp</span></code>).
+Only 12 macros use it (mostly <code class="docutils literal notranslate"><span class="pre">diffev_best.mac</span></code>), and none of the tests in
+<code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> do. The checks therefore use loose tolerances (SRO
+correlation ±0.08, R &lt; 0.25).
+<strong><code class="docutils literal notranslate"><span class="pre">seed</span></code> does not currently make MMC runs reproducible.</strong> A quick check ran
+<code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_0/sro.0.mac</span> <span class="pre">0.7,1.5</span></code> twice with <code class="docutils literal notranslate"><span class="pre">seed</span> <span class="pre">1234</span></code>, both at the
+suite prompt and directly before <code class="docutils literal notranslate"><span class="pre">mmc</span></code>, with <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS=1</span></code> and 4.
+Every time the two runs gave different MC acceptance counts, and about
+half the lines of <code class="docutils literal notranslate"><span class="pre">example0.stru</span></code> differed. This needs debugging (task
+0.5a) before golden MC data can be exact.</p></li>
+<li><p><strong>Generated output is committed next to inputs.</strong> Example:
+<code class="docutils literal notranslate"><span class="pre">02.Calculation_Scattering/example3.inte</span></code> sits beside
+<code class="docutils literal notranslate"><span class="pre">RESULTS/example3.inte</span></code>. <code class="docutils literal notranslate"><span class="pre">tests/</span></code> is 109 MB / 2,053 files, and it is hard
+to tell inputs, references and leftovers apart.</p></li>
+<li><p><strong>Coverage gaps.</strong> A rough grep finds no use of these DISCUS commands in
+the test macros: <code class="docutils literal notranslate"><span class="pre">anis,</span> <span class="pre">append,</span> <span class="pre">asym,</span> <span class="pre">bragg,</span> <span class="pre">change,</span> <span class="pre">define,</span> <span class="pre">copy,</span> <span class="pre">demolecularize,</span> <span class="pre">interpret,</span> <span class="pre">inverse,</span> <span class="pre">kick,</span> <span class="pre">molecularize,</span> <span class="pre">patterson,</span> <span class="pre">perioditize,</span> <span class="pre">rmc,</span> <span class="pre">spacegroup,</span> <span class="pre">storage,</span> <span class="pre">super,</span> <span class="pre">switch,</span> <span class="pre">wyckoff</span></code>. Some may be
+reached indirectly or under abbreviations; this needs confirming.</p></li>
+</ol>
+<p><strong>Build problems</strong></p>
+<ol class="arabic simple" start="7">
+<li><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_GRAPHICS=OFF</span></code> does not work: <code class="docutils literal notranslate"><span class="pre">suite/prog/CMakeLists.txt:5</span></code>
+always calls <code class="docutils literal notranslate"><span class="pre">find_package(PGPLOT</span> <span class="pre">REQUIRED)</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> assumes PGPLOT’s <code class="docutils literal notranslate"><span class="pre">grfont.dat</span></code> and <code class="docutils literal notranslate"><span class="pre">pgxwin_server</span></code> are in
+<code class="docutils literal notranslate"><span class="pre">PGPLOT_DIR</span></code>. On Debian/Ubuntu they are in <code class="docutils literal notranslate"><span class="pre">/usr/lib/pgplot5</span></code> and
+<code class="docutils literal notranslate"><span class="pre">/usr/bin</span></code>. The binary works fine from the build tree.</p></li>
+<li><p>The build requires an <code class="docutils literal notranslate"><span class="pre">FC</span></code> environment variable even for re-running CMake.</p></li>
+</ol>
+<p><strong>Found while doing 0.2 / 0.3</strong></p>
+<ol class="arabic simple" start="10">
+<li><p><strong>Start-up race (fixed).</strong> On every start <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> pings GitHub
+(<code class="docutils literal notranslate"><span class="pre">check_github</span></code> in <code class="docutils literal notranslate"><span class="pre">lib_f90/appl_unix.f90</span></code>) and wrote the answer to a
+fixed file, <code class="docutils literal notranslate"><span class="pre">/tmp/check_github.txt</span></code>. Two processes starting at the same
+time could delete each other’s file, and one crashed with a Fortran
+runtime error. The file name now includes the process ID, like the other
+temporary files. The ping also means every start tries to reach the
+network; in CI it simply fails quickly.</p></li>
+<li><p><strong>Macros override the thread count.</strong> <code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_1/sro.1.mac</span></code> and
+<code class="docutils literal notranslate"><span class="pre">SRO_3/sro.3.mac</span></code> call <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">parallel,</span> <span class="pre">useomp:use,</span> <span class="pre">nthreads:all</span></code>, which
+overrides <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code>. Next to other tests this over-commits the
+CPUs, and the OpenMP threads slow down by up to ~100× (2.4 s → 130–340 s).
+These tests are tagged <code class="docutils literal notranslate"><span class="pre">exclusive</span></code> and the runner runs them alone.</p></li>
+<li><p><strong>Endless prompt loop.</strong> When <code class="docutils literal notranslate"><span class="pre">check.mac</span></code> calls <code class="docutils literal notranslate"><span class="pre">stop</span></code> (interactive mode)
+and stdin is at end of file, <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> prints <code class="docutils literal notranslate"><span class="pre">suite</span> <span class="pre">&gt;</span></code> prompts
+forever (18 MB of log in 20 s). Batch mode never calls <code class="docutils literal notranslate"><span class="pre">stop</span></code>, and the
+runner’s timeout would catch it, but the input loop should end on EOF.</p></li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="wp0-work-plan">
+<span id="2-wp0-work-plan"></span><h2>2. WP0 work plan<a class="headerlink" href="#wp0-work-plan" title="Link to this heading">#</a></h2>
+<p>Goal: one command (and one CI job) that builds DiffuseCode, runs every test in
+isolation, writes machine-readable results, and <strong>fails</strong> when a test fails.
+It also stores golden numerical outputs that later Python-API tests (WP3–WP8)
+can compare against.</p>
+<section id="proposed-layout">
+<h3>Proposed layout<a class="headerlink" href="#proposed-layout" title="Link to this heading">#</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tests</span><span class="o">/</span>                       <span class="c1"># existing macro tests stay where they are</span>
+  <span class="n">check</span><span class="o">.</span><span class="n">mac</span>                  <span class="c1"># [done] batch mode writes PASS/FAIL to a result file</span>
+  <span class="n">test_all</span><span class="o">.</span><span class="n">mac</span>               <span class="c1"># kept for interactive use (unchanged)</span>
+  <span class="n">manifest</span><span class="o">.</span><span class="n">toml</span>              <span class="c1"># [done] list of tests (TOML: read by Python&#39;s standard library)</span>
+  <span class="n">README</span><span class="o">.</span><span class="n">md</span>                  <span class="c1"># [done] how to run the tests</span>
+  <span class="n">golden</span><span class="o">/</span>                    <span class="c1"># 0.6: [started] reference outputs, one folder per test id</span>
+  <span class="n">python</span><span class="o">/</span>                    <span class="c1"># pytest harness</span>
+    <span class="n">conftest</span><span class="o">.</span><span class="n">py</span>              <span class="c1">#   [done] registers the manifest tags as markers</span>
+    <span class="n">test_legacy_macros</span><span class="o">.</span><span class="n">py</span>    <span class="c1">#   [done] one test per manifest entry + manifest checks</span>
+    <span class="n">compare</span><span class="o">.</span><span class="n">py</span>               <span class="c1">#   [started] R-value, golden .npz read/write (0.6)</span>
+    <span class="n">test_suite_python</span><span class="o">.</span><span class="n">py</span>     <span class="c1">#   [done] in-process Python tests against RESULTS/ and golden/</span>
+<span class="n">tools</span><span class="o">/</span>
+  <span class="n">run_legacy_tests</span><span class="o">.</span><span class="n">py</span>        <span class="c1"># [done] runner -&gt; console table, JUnit XML, JSON</span>
+<span class="o">.</span><span class="n">github</span><span class="o">/</span><span class="n">workflows</span><span class="o">/</span>
+  <span class="n">tests</span><span class="o">.</span><span class="n">yml</span>                  <span class="c1"># [done] 0.9: build + pytest + legacy tests on claude-python-app</span>
+</pre></div>
+</div>
+</section>
+<section id="tasks">
+<h3>Tasks<a class="headerlink" href="#tasks" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>#</p></th>
+<th class="head"><p>Task</p></th>
+<th class="head"><p>Details</p></th>
+<th class="head"><p>Done when</p></th>
+<th class="head"><p>Effort</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0.1</p></td>
+<td><p><strong>Headless run</strong></p></td>
+<td><p>JMOL disabled in the test plot macros <em>(done in this branch)</em>. Run under <code class="docutils literal notranslate"><span class="pre">xvfb-run</span></code> with PGPLOT; later use the no-graphics build once 0.8 is fixed.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> completes unattended</p></td>
+<td><p>done</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.2 ✅</p></td>
+<td><p><strong>Machine-readable results</strong></p></td>
+<td><p>Extend <code class="docutils literal notranslate"><span class="pre">check.mac</span></code> to append <code class="docutils literal notranslate"><span class="pre">&lt;dir&gt;</span> <span class="pre">&lt;macro&gt;</span> <span class="pre">PASS/FAIL</span></code> to <code class="docutils literal notranslate"><span class="pre">test_results.txt</span></code> instead of <code class="docutils literal notranslate"><span class="pre">stop</span></code>-ing. Add a driver that runs each manifest entry in a fresh temp copy (a prototype exists from this analysis) and converts results to JUnit XML. Treat a missing result line as ABORTED.</p></td>
+<td><p>CI shows per-test pass/fail; process exits non-zero on any failure or abort</p></td>
+<td><p>2–3 d</p></td>
+</tr>
+<tr class="row-even"><td><p>0.3 ✅</p></td>
+<td><p><strong>Test manifest</strong></p></td>
+<td><p>Move the list of tests out of <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> into <code class="docutils literal notranslate"><span class="pre">manifest.toml</span></code>: test id, folder, macro, args, expected outputs, comparison type and tolerance, and tags (<code class="docutils literal notranslate"><span class="pre">fast</span></code>, <code class="docutils literal notranslate"><span class="pre">mc</span></code>, <code class="docutils literal notranslate"><span class="pre">mpi</span></code>, <code class="docutils literal notranslate"><span class="pre">slow</span></code>).</p></td>
+<td><p>Harness and <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> cover the same 30 tests</p></td>
+<td><p>1–2 d</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.4</p></td>
+<td><p><strong>Close the silent gaps</strong></p></td>
+<td><p>Add a check to 03 PDF (compare G(r) against a new <code class="docutils literal notranslate"><span class="pre">RESULTS/</span></code> file). Re-enable or remove SRO_2. Add an aggregated check to Deco_01. Make 09 runnable: execute bit + serial variant for CI, MPI variant tagged <code class="docutils literal notranslate"><span class="pre">mpi</span></code>.</p></td>
+<td><p>No section prints SUCCESS without a check</p></td>
+<td><p>2–3 d</p></td>
+</tr>
+<tr class="row-even"><td><p>0.5a</p></td>
+<td><p><strong>Debug <code class="docutils literal notranslate"><span class="pre">seed</span></code></strong></p></td>
+<td><p>Find out why <code class="docutils literal notranslate"><span class="pre">seed</span></code> does not give repeatable MMC results (see 1.3 #4). Candidates: the generator being re-seeded inside <code class="docutils literal notranslate"><span class="pre">mmc</span></code>/<code class="docutils literal notranslate"><span class="pre">read</span></code>/<code class="docutils literal notranslate"><span class="pre">insert</span></code>, per-thread generators, or a seed state that is not fully applied. Add a minimal test: seed → draw N numbers → seed again → same N numbers, then the same through <code class="docutils literal notranslate"><span class="pre">mmc</span> <span class="pre">run</span></code>.</p></td>
+<td><p>Two runs with the same seed give identical <code class="docutils literal notranslate"><span class="pre">sro.0</span></code> output on one build</p></td>
+<td><p>1–3 d</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.5</p></td>
+<td><p><strong>Reproducibility</strong></p></td>
+<td><p>Once 0.5a is fixed, add <code class="docutils literal notranslate"><span class="pre">seed</span></code> to every stochastic test (MC, RMC, DIFFEV, stacking, domains). Record whether a test is bit-reproducible on one platform/thread count, and keep statistical tolerances where it is not (OpenMP order, compiler).</p></td>
+<td><p>Same seed gives the same output on the same build</p></td>
+<td><p>2 d</p></td>
+</tr>
+<tr class="row-even"><td><p>0.6</p></td>
+<td><p><strong>Golden data capture</strong></p></td>
+<td><p>For each test, copy key outputs (intensities, powder, PDF, 3D-PDF, final structure/CIF, histograms) into <code class="docutils literal notranslate"><span class="pre">tests/golden/&lt;id&gt;/</span></code> with a <code class="docutils literal notranslate"><span class="pre">meta.json</span></code> (DiffuseCode version, git commit, compiler, flags, date). Python compares with NumPy (R-value, max-abs, atom-set match) using tolerances from the manifest. Keep the macro self-checks as a second line of defence.</p></td>
+<td><p>Every test has at least one golden numeric output</p></td>
+<td><p>3–4 d</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.7</p></td>
+<td><p><strong>Coverage expansion</strong></p></td>
+<td><p>Confirm the uncovered-command list from 1.3, then add short, deterministic tests for the commands that WP3–WP8 will wrap first: space-group expansion / <code class="docutils literal notranslate"><span class="pre">wyckoff</span></code>, <code class="docutils literal notranslate"><span class="pre">patterson</span></code>, <code class="docutils literal notranslate"><span class="pre">inverse</span></code>, <code class="docutils literal notranslate"><span class="pre">rmc</span></code>, <code class="docutils literal notranslate"><span class="pre">molecularize</span></code>/<code class="docutils literal notranslate"><span class="pre">demolecularize</span></code>, <code class="docutils literal notranslate"><span class="pre">perioditize</span></code>, <code class="docutils literal notranslate"><span class="pre">storage</span></code>/<code class="docutils literal notranslate"><span class="pre">super</span></code>, <code class="docutils literal notranslate"><span class="pre">bragg</span></code>, and kuplot <code class="docutils literal notranslate"><span class="pre">fit</span></code>.</p></td>
+<td><p>All commands planned for WP3–WP8 have at least one test</p></td>
+<td><p>5–8 d</p></td>
+</tr>
+<tr class="row-even"><td><p>0.8</p></td>
+<td><p><strong>Build fixes</strong></p></td>
+<td><p>Make <code class="docutils literal notranslate"><span class="pre">suite/prog/CMakeLists.txt</span></code> honour <code class="docutils literal notranslate"><span class="pre">DIFFUSE_GRAPHICS</span></code>. Make the PGPLOT install paths configurable / optional. Drop the hard <code class="docutils literal notranslate"><span class="pre">FC</span></code> requirement in favour of CMake’s normal compiler detection.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DDIFFUSE_GRAPHICS=OFF</span></code> builds and the suite passes</p></td>
+<td><p>1–2 d</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.9 ✅</p></td>
+<td><p><strong>CI</strong></p></td>
+<td><p>GitHub Actions on <code class="docutils literal notranslate"><span class="pre">ubuntu-24.04</span></code>: apt (gfortran, FFTW, HDF5, readline, PNG, X11, pgplot5, xvfb), build, run <code class="docutils literal notranslate"><span class="pre">tools/run_legacy_tests.py</span> <span class="pre">--tags</span> <span class="pre">fast,mc</span></code>, upload JUnit + logs. Nightly job for <code class="docutils literal notranslate"><span class="pre">slow</span></code>/<code class="docutils literal notranslate"><span class="pre">mpi</span></code>. Add a macOS job once Linux is stable.</p></td>
+<td><p>Red/green status on every push to <code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code></p></td>
+<td><p>1–2 d</p></td>
+</tr>
+<tr class="row-even"><td><p>0.10</p></td>
+<td><p><strong>Repo hygiene</strong></p></td>
+<td><p>Run <code class="docutils literal notranslate"><span class="pre">cleanup.mac</span></code> logic, remove committed generated outputs, add a <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> for them, and keep only inputs + <code class="docutils literal notranslate"><span class="pre">RESULTS/</span></code> + <code class="docutils literal notranslate"><span class="pre">golden/</span></code>. Consider Git LFS for golden files larger than ~1 MB.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span></code> is clean after a test run</p></td>
+<td><p>1 d</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Total: about 4–6 weeks for one developer.</strong> That fits the “months 0–3”
+slot in the plan, with room for coverage work alongside WP1.</p>
+</section>
+<section id="suggested-order">
+<h3>Suggested order<a class="headerlink" href="#suggested-order" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>0.2 + 0.3</strong> – reliable pass/fail first. Everything else depends on it.</p></li>
+<li><p><strong>0.9</strong> – CI right away, so regressions are seen from day one.</p></li>
+<li><p><strong>0.4 + 0.5a + 0.5</strong> – remove false SUCCESS, fix <code class="docutils literal notranslate"><span class="pre">seed</span></code>, and make results reproducible.</p></li>
+<li><p><strong>0.6</strong> – golden data, the input for the Python-API work.</p></li>
+<li><p><strong>0.8 + 0.10</strong> – build and repo clean-up, then turn CI to the no-graphics build.</p></li>
+<li><p><strong>0.7</strong> – coverage growth, continuing in parallel with WP1–WP3.</p></li>
+</ol>
+</section>
+<section id="open-questions-for-the-team">
+<h3>Open questions for the team<a class="headerlink" href="#open-questions-for-the-team" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Is changing <code class="docutils literal notranslate"><span class="pre">check.mac</span></code>’s behaviour (write a result instead of <code class="docutils literal notranslate"><span class="pre">stop</span></code>) OK for
+interactive users of <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code>? An <code class="docutils literal notranslate"><span class="pre">LTEST_BATCH</span></code> variable could switch
+between the two.</p></li>
+<li><p>Which tolerances count as “same physics” for MC-based tests, and who signs
+off on them?</p></li>
+<li><p>Should golden data live in the repo (Git LFS) or in a separate data repository
+or release asset?</p></li>
+<li><p>Is MPI coverage needed in CI, or is a nightly or manual run enough?</p></li>
+</ul>
+</section>
+<section id="reproducing-the-headless-run">
+<h3>Reproducing the headless run<a class="headerlink" href="#reproducing-the-headless-run" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>gfortran<span class="w"> </span>cmake<span class="w"> </span>libfftw3-dev<span class="w"> </span>libhdf5-dev<span class="w"> </span>libreadline-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libpng-dev<span class="w"> </span>libx11-dev<span class="w"> </span>zlib1g-dev<span class="w"> </span>pgplot5<span class="w"> </span>xvfb
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>../DiffuseBuild<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>../DiffuseBuild<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="nv">FC</span><span class="o">=</span><span class="k">$(</span>which<span class="w"> </span>gfortran<span class="k">)</span><span class="w"> </span>cmake<span class="w"> </span>../DiffuseCode<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span>-DPGPLOT_DIR<span class="o">=</span>/usr/lib/pgplot5<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+make<span class="w"> </span>-j<span class="s2">&quot;</span><span class="k">$(</span>nproc<span class="k">)</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p>Unattended, with per-test results (from the <code class="docutils literal notranslate"><span class="pre">DiffuseCode</span></code> folder; the runner
+copies each test, so <code class="docutils literal notranslate"><span class="pre">tests/</span></code> stays clean):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>tools/run_legacy_tests.py<span class="w"> </span>--exe<span class="w"> </span>../DiffuseBuild/suite/prog/discus_suite<span class="w"> </span>-j<span class="w"> </span><span class="m">4</span><span class="w"> </span>--junit<span class="w"> </span>results.xml
+</pre></div>
+</div>
+<p>Or the classic way, on a copy because the macros write output files into
+<code class="docutils literal notranslate"><span class="pre">tests/</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>-r<span class="w"> </span>tests<span class="w"> </span>/tmp/dc_tests<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/tmp/dc_tests<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="nv">PGPLOT_DIR</span><span class="o">=</span>/usr/lib/pgplot5<span class="w"> </span>xvfb-run<span class="w"> </span>-a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$OLDPWD</span><span class="s2">/../DiffuseBuild/suite/prog/discus_suite&quot;</span><span class="w"> </span>-macro<span class="w"> </span>test_all.mac<span class="w"> </span>&lt;<span class="w"> </span>/dev/null
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="progress-log">
+<span id="3-progress-log"></span><h2>3. Progress log<a class="headerlink" href="#progress-log" title="Link to this heading">#</a></h2>
+<section id="runner-batch-mode-and-manifest">
+<span id="02--03--runner-batch-mode-and-manifest"></span><h3>0.2 + 0.3 – runner, batch mode and manifest<a class="headerlink" href="#runner-batch-mode-and-manifest" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/check.mac</span></code> has a batch mode. With <code class="docutils literal notranslate"><span class="pre">LTEST_BATCH</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> it appends
+<code class="docutils literal notranslate"><span class="pre">PASS</span> <span class="pre">&lt;name&gt;</span></code> / <code class="docutils literal notranslate"><span class="pre">FAIL</span> <span class="pre">&lt;name&gt;</span></code> to the file in <code class="docutils literal notranslate"><span class="pre">LTEST_FILE</span></code> and carries on,
+judging each check on its own. Interactive behaviour is unchanged
+(<code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> still passes all 13 sections). <code class="docutils literal notranslate"><span class="pre">check.mac</span></code> declares
+<code class="docutils literal notranslate"><span class="pre">LTEST_BATCH</span></code> itself, so test macros run by hand still work.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/manifest.toml</span></code> lists 33 tests: the 31 macros run by <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code>,
+plus <code class="docutils literal notranslate"><span class="pre">04.sro2</span></code> and <code class="docutils literal notranslate"><span class="pre">09.znse_pdf_mpi</span></code>, which are disabled with a reason.
+<code class="docutils literal notranslate"><span class="pre">--check-test-all</span></code> confirms that it matches <code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code>.
+<code class="docutils literal notranslate"><span class="pre">14.deco01_all</span></code> now counts its 7 internal checks; before, it had no
+overall check.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tools/run_legacy_tests.py</span></code> (standard library only):</p>
+<ul>
+<li><p>Runs each test in a fresh copy, in its own process group, under xvfb when
+there is no display. Runs tests in parallel (<code class="docutils literal notranslate"><span class="pre">-j</span></code>) and runs tests tagged
+<code class="docutils literal notranslate"><span class="pre">exclusive</span></code> alone.</p></li>
+<li><p>Kills the whole process group on timeout, retries on another display if
+Xvfb cannot start, and writes JUnit XML and JSON.</p></li>
+<li><p>Exits with 1 on FAIL, ABORTED or TIMEOUT.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/python/</span></code> gives the same tests as pytest tests, plus the manifest
+checks (which run without a binary).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/README.md</span></code> explains how to run and add tests.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lib_f90/appl_unix.f90</span></code>: fixed the start-up race (finding 10).</p></li>
+</ul>
+<p>Checked:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Run</p></th>
+<th class="head"><p>Result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Full manifest, <code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">4</span></code> (4 cores)</p></td>
+<td><p>30 PASS, 1 RAN (<code class="docutils literal notranslate"><span class="pre">03.pdf</span></code>), 2 SKIPPED; 78 s wall time; repeated 3 times, same result</p></td>
+</tr>
+<tr class="row-odd"><td><p>Full manifest, <code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">1</span></code></p></td>
+<td><p>same result; 210 s</p></td>
+</tr>
+<tr class="row-even"><td><p>Deliberate failures (wrong result, bad parameter, too few checks, 5 s timeout)</p></td>
+<td><p>FAIL, ABORTED (first error line reported), ABORTED, TIMEOUT; exit code 1; no processes left behind</p></td>
+</tr>
+<tr class="row-odd"><td><p>Display already taken</p></td>
+<td><p>retried on another display, PASS</p></td>
+</tr>
+<tr class="row-even"><td><p>Runner and pytest at the same time</p></td>
+<td><p>all pass; no display clashes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_all.mac</span></code> (interactive mode)</p></td>
+<td><p>all 13 sections SUCCESS</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="and-start-of-0-6-ci-and-python-interface-tests">
+<span id="09-and-start-of-06--ci-and-python-interface-tests"></span><h3>0.9 (and start of 0.6) – CI and Python-interface tests<a class="headerlink" href="#and-start-of-0-6-ci-and-python-interface-tests" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Build fix:</strong> <code class="docutils literal notranslate"><span class="pre">python/CMakeLists.txt</span></code> linked <code class="docutils literal notranslate"><span class="pre">experi_all</span></code> after
+<code class="docutils literal notranslate"><span class="pre">discus_all</span></code>. <code class="docutils literal notranslate"><span class="pre">experi_kdo</span></code> calls <code class="docutils literal notranslate"><span class="pre">exp3_pdf</span></code>, so the f2py module built but
+failed on import with <code class="docutils literal notranslate"><span class="pre">undefined</span> <span class="pre">symbol:</span> <span class="pre">__exp3_pdf_menu_MOD_exp3_pdf</span></code>.
+<code class="docutils literal notranslate"><span class="pre">experi_all</span></code> now comes first.</p></li>
+<li><p>A test helper wraps <code class="docutils literal notranslate"><span class="pre">suite_python</span></code> (now <code class="docutils literal notranslate"><span class="pre">diffuse.session()</span></code>, see below). <code class="docutils literal notranslate"><span class="pre">run()</span></code>
+writes a driver macro that <code class="docutils literal notranslate"><span class="pre">cd</span></code>s into the test folder (the suite keeps its
+own working directory, so <code class="docutils literal notranslate"><span class="pre">os.chdir</span></code> is not enough) and sets <code class="docutils literal notranslate"><span class="pre">r[499]</span></code> on
+its last line. A command error ends the whole macro run, so a flag that is
+not set raises <code class="docutils literal notranslate"><span class="pre">MacroError</span></code>. <code class="docutils literal notranslate"><span class="pre">dataset()</span></code> / <code class="docutils literal notranslate"><span class="pre">dataset_2d()</span></code> return KUPLOT
+data sets as NumPy arrays.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/python/test_suite_python.py</span></code>: expressions, error detection, crystal
+build, 1-D Fourier, 2-D Fourier and Debye powder, run in-process. The
+1-D Fourier and powder results are compared with the legacy <code class="docutils literal notranslate"><span class="pre">RESULTS/</span></code>
+files (R &lt; 1e-3; actual about 1e-6) and all three with golden data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/python/compare.py</span></code> and <code class="docutils literal notranslate"><span class="pre">tests/golden/&lt;id&gt;/</span></code> (<code class="docutils literal notranslate"><span class="pre">.npz</span></code> + <code class="docutils literal notranslate"><span class="pre">meta.json</span></code>):
+first golden data for <code class="docutils literal notranslate"><span class="pre">02.1d</span></code>, <code class="docutils literal notranslate"><span class="pre">02.2d</span></code>, <code class="docutils literal notranslate"><span class="pre">02.powder</span></code>. Rewrite with
+<code class="docutils literal notranslate"><span class="pre">DIFFUSE_UPDATE_GOLDEN=1</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.github/workflows/tests.yml</span></code>: Ubuntu 24.04, apt dependencies, build with
+<code class="docutils literal notranslate"><span class="pre">-DDIFFUSE_PYTHON=ON</span></code>, then pytest (<code class="docutils literal notranslate"><span class="pre">DIFFUSE_REQUIRE_PYTHON=1</span></code>, so a broken
+module fails instead of skipping), then the legacy runner with
+<code class="docutils literal notranslate"><span class="pre">--tags</span> <span class="pre">fast,mc</span></code>. JUnit XML and logs are uploaded.</p></li>
+</ul>
+<p>Limits of the f2py module that the tests work around (to fix in WP2):
+<code class="docutils literal notranslate"><span class="pre">execute_macro</span></code> reports errors only as text; <code class="docutils literal notranslate"><span class="pre">set_value</span></code> only works on
+user-defined variables, not <code class="docutils literal notranslate"><span class="pre">r[]</span></code>; data come back as single precision.</p>
+<p>Checked (gfortran 13, 4 cores):</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Run</p></th>
+<th class="head"><p>Result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">tests/python</span></code>, <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code> 1 and 4</p></td>
+<td><p>9 passed (33 legacy macro tests skipped, no <code class="docutils literal notranslate"><span class="pre">DISCUS_SUITE</span></code>), under 1 s</p></td>
+</tr>
+<tr class="row-odd"><td><p>Same build, <code class="docutils literal notranslate"><span class="pre">run_legacy_tests.py</span> <span class="pre">-j</span> <span class="pre">4</span> <span class="pre">--tags</span> <span class="pre">fast,mc</span></code></p></td>
+<td><p>29 PASS, 1 RAN, 2 SKIPPED</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="demo-api-python-diffuse-ahead-of-wp3-wp5">
+<span id="demo-api-pythondiffuse-ahead-of-wp3wp5"></span><h3>Demo API: <code class="docutils literal notranslate"><span class="pre">python/diffuse/</span></code> (ahead of WP3/WP5)<a class="headerlink" href="#demo-api-python-diffuse-ahead-of-wp3-wp5" title="Link to this heading">#</a></h3>
+<p>A first Python package for the demo, built on <code class="docutils literal notranslate"><span class="pre">suite_python</span></code>:
+<code class="docutils literal notranslate"><span class="pre">read_structure()</span></code> (CIF, <code class="docutils literal notranslate"><span class="pre">.cell</span></code>, <code class="docutils literal notranslate"><span class="pre">.stru</span></code>, with supercells), <code class="docutils literal notranslate"><span class="pre">Crystal.atoms()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">powder()</span></code> returning NumPy arrays, <code class="docutils literal notranslate"><span class="pre">PowderPattern.plot()</span></code> with matplotlib,
+and <code class="docutils literal notranslate"><span class="pre">run_macro()</span></code> for everything else. See <code class="docutils literal notranslate"><span class="pre">python/README.md</span></code>.</p>
+<ul class="simple">
+<li><p>The test helper moved into the package (<code class="docutils literal notranslate"><span class="pre">diffuse/_session.py</span></code>), and the
+<code class="docutils literal notranslate"><span class="pre">suite</span></code> fixture now returns <code class="docutils literal notranslate"><span class="pre">diffuse.session()</span></code>. The session also captures
+DISCUS output (stdout/stderr go to a temporary file during each call, with
+<code class="docutils literal notranslate"><span class="pre">GFORTRAN_UNBUFFERED_PRECONNECTED=y</span></code> so nothing is flushed late), and
+<code class="docutils literal notranslate"><span class="pre">MacroError</span></code> carries the <code class="docutils literal notranslate"><span class="pre">***</span></code> error lines.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n[]</span></code> and <code class="docutils literal notranslate"><span class="pre">lat[]</span></code> are only defined inside the <code class="docutils literal notranslate"><span class="pre">discus</span></code> section; the read
+macro copies them to <code class="docutils literal notranslate"><span class="pre">r[490]</span></code>–<code class="docutils literal notranslate"><span class="pre">r[496]</span></code>, which are reserved for the package
+(<code class="docutils literal notranslate"><span class="pre">r[499]</span></code> is the completion flag).</p></li>
+<li><p>Reading a CIF makes DISCUS write a <code class="docutils literal notranslate"><span class="pre">.stru</span></code> file next to the input, so
+inputs are copied to a scratch folder first.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">python/examples/powder_demo.py</span></code>: anatase from <code class="docutils literal notranslate"><span class="pre">anatase.cif</span></code> (COD 1010942),
+X-ray vs neutron and crystal-size broadening, saved as a PNG. Peak positions
+were checked against the allowed I4₁/amd reflections ((101) strongest for
+X-rays at Q = 1.81 Å⁻¹).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/python/test_diffuse_api.py</span></code>: 12 tests (reading, supercells, errors,
+powder grid and (101) position, X-ray/neutron golden data, reloading an
+older <code class="docutils literal notranslate"><span class="pre">Crystal</span></code>, plotting, the demo script). CI installs matplotlib.</p></li>
+</ul>
+<p>Checked: <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">tests/python</span></code> gives 21 passed (33 legacy macro tests skipped
+without <code class="docutils literal notranslate"><span class="pre">DISCUS_SUITE</span></code>), about 2 s, with <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code> 1 and 4.</p>
+</section>
+<section id="flaky-monte-carlo-test-in-ci">
+<h3>Flaky Monte-Carlo test in CI<a class="headerlink" href="#flaky-monte-carlo-test-in-ci" title="Link to this heading">#</a></h3>
+<p>CI run 2 failed on <code class="docutils literal notranslate"><span class="pre">04.sro3</span></code> (FAIL from its own check) with exactly the code
+that passed in run 1; locally it passed 8 times in a row. MMC does not use
+the value set with <code class="docutils literal notranslate"><span class="pre">seed</span></code> (known bug, task 0.5a), so tests tagged <code class="docutils literal notranslate"><span class="pre">mc</span></code> are
+random and checked against statistical limits (R &lt; 0.38, correlations
+within ±0.08), and they can fail by chance.</p>
+<p>Until 0.5a is fixed, <code class="docutils literal notranslate"><span class="pre">run_legacy_tests.py</span> <span class="pre">--retry-mc</span> <span class="pre">N</span></code> re-runs a failed
+<code class="docutils literal notranslate"><span class="pre">mc</span></code> test up to N times. A pass on retry is counted as PASS, with the
+message <code class="docutils literal notranslate"><span class="pre">flaky:</span> <span class="pre">passed</span> <span class="pre">on</span> <span class="pre">retry</span> <span class="pre">k;</span> <span class="pre">first</span> <span class="pre">run</span> <span class="pre">...</span></code> in the summary and the
+JUnit report. A real regression fails every attempt, and the run still
+fails. CI uses <code class="docutils literal notranslate"><span class="pre">--retry-mc</span> <span class="pre">2</span></code>. Once <code class="docutils literal notranslate"><span class="pre">seed</span></code> works, the <code class="docutils literal notranslate"><span class="pre">mc</span></code> tests should get
+fixed seeds and the retry should be removed.</p>
+</section>
+<section id="a-seed-first-half-fixed">
+<span id="05a--seed-first-half-fixed"></span><h3>0.5a – <code class="docutils literal notranslate"><span class="pre">seed</span></code> (first half fixed)<a class="headerlink" href="#a-seed-first-half-fixed" title="Link to this heading">#</a></h3>
+<p><strong>Cause 1 (fixed): <code class="docutils literal notranslate"><span class="pre">seed</span></code> set only part of the generator state.</strong> DISCUS uses
+the Fortran intrinsic <code class="docutils literal notranslate"><span class="pre">random_number</span></code>. gfortran’s state has 8 integers
+(<code class="docutils literal notranslate"><span class="pre">random_seed(size=...)</span></code>). <code class="docutils literal notranslate"><span class="pre">ini_ran_ix</span></code> (<code class="docutils literal notranslate"><span class="pre">lib_f90/random_state_mod.f90</span></code>)
+copied only the values the user gave (<code class="docutils literal notranslate"><span class="pre">seed</span> <span class="pre">1234</span></code> gives one) and left the
+other words at their clock-based values from start-up, so every run was
+different. The remaining words are now derived from the user’s values.</p>
+<p><strong>Cause 2 (open): OpenMP.</strong> With threads, MMC is still not reproducible.
+<code class="docutils literal notranslate"><span class="pre">random_number</span></code> keeps one state per thread, and <code class="docutils literal notranslate"><span class="pre">random_seed(put=...)</span></code> only
+resets the calling thread’s; the worker threads keep their own. The threads
+also change the shared crystal while others evaluate their moves, so the
+result depends on timing. A fix needs per-thread streams seeded from the
+<code class="docutils literal notranslate"><span class="pre">seed</span></code> value, plus a fixed order for applying the moves.</p>
+<p>Checked with <code class="docutils literal notranslate"><span class="pre">04.SRO/SRO_0/sro.0.mac</span> <span class="pre">0.7,1.5</span></code>, <code class="docutils literal notranslate"><span class="pre">seed</span></code> directly before the
+macro, comparing <code class="docutils literal notranslate"><span class="pre">example0.stru</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Same seed twice</p></th>
+<th class="head"><p>Different seed</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>before the fix, <code class="docutils literal notranslate"><span class="pre">useomp:serial</span></code></p></td>
+<td><p>different</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p>after the fix, <code class="docutils literal notranslate"><span class="pre">useomp:serial</span></code></p></td>
+<td><p><strong>identical</strong></p></td>
+<td><p>different</p></td>
+</tr>
+<tr class="row-even"><td><p>after the fix, <code class="docutils literal notranslate"><span class="pre">nthreads:4</span></code></p></td>
+<td><p>different (cause 2)</p></td>
+<td><p>different</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The earlier test (section 1.3, finding 4) used <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS=1</span></code>, but the
+SRO macros call <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">parallel,</span> <span class="pre">nthreads:all</span></code>, which overrides it, so that
+run was threaded. After the fix, <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">tests/python</span></code> and the legacy runner
+(<code class="docutils literal notranslate"><span class="pre">--tags</span> <span class="pre">fast,mc</span></code>) pass as before.</p>
+</section>
+<section id="seeded-monte-carlo-tests">
+<span id="05--seeded-monte-carlo-tests"></span><h3>0.5 – seeded Monte-Carlo tests<a class="headerlink" href="#seeded-monte-carlo-tests" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">run_legacy_tests.py</span></code> now runs every test tagged <code class="docutils literal notranslate"><span class="pre">mc</span></code> with <code class="docutils literal notranslate"><span class="pre">seed</span> <span class="pre">1234</span></code> (option
+<code class="docutils literal notranslate"><span class="pre">--seed</span></code>, or a test’s own <code class="docutils literal notranslate"><span class="pre">seed</span></code> in the manifest) and with
+<code class="docutils literal notranslate"><span class="pre">OMP_THREAD_LIMIT=1</span></code>. The limit also caps <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">parallel,</span> <span class="pre">nthreads:all</span></code> in the
+SRO macros (DISCUS reports “maximum threads 1”). <code class="docutils literal notranslate"><span class="pre">--no-seed</span></code> gives the old
+behaviour. Seeded tests run on one thread, so the <code class="docutils literal notranslate"><span class="pre">exclusive</span></code> tests no longer
+need to run alone.</p>
+<p>Checked by running all 16 enabled <code class="docutils literal notranslate"><span class="pre">mc</span></code> tests twice (<code class="docutils literal notranslate"><span class="pre">--keep</span></code>) and comparing
+every output file: <strong>byte-identical</strong> in both runs, apart from the generated
+driver macro (it contains the work-folder path) and one <code class="docutils literal notranslate"><span class="pre">04.sro3</span></code> run, see
+below. All pass with seed 1234.</p>
+<p><strong>New finding: rare broken Fourier result in <code class="docutils literal notranslate"><span class="pre">04.sro3</span></code>.</strong> In one of the two
+runs, <code class="docutils literal notranslate"><span class="pre">04.sro3</span></code> aborted. Its MC structure (<code class="docutils literal notranslate"><span class="pre">example3.stru</span></code>) was identical
+to the other run’s, but the Fourier step (<code class="docutils literal notranslate"><span class="pre">fourier.mac</span></code>: random <code class="docutils literal notranslate"><span class="pre">lots</span></code>
+plus <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">technique:nufft</span></code>) wrote 1530 <code class="docutils literal notranslate"><span class="pre">Infinity</span></code> values and blocks of zeros
+to <code class="docutils literal notranslate"><span class="pre">example3.inte</span></code>, and NaN to <code class="docutils literal notranslate"><span class="pre">example3.3DPDF</span></code>; <code class="docutils literal notranslate"><span class="pre">kex3.mac</span></code> then failed on
+<code class="docutils literal notranslate"><span class="pre">zmax[3]</span></code>. 14 more seeded runs (6 serial, 8 with 4 at a time) all gave the
+same correct result, so it is rare (1 in about 17 so far). It may also
+explain the original CI failure of <code class="docutils literal notranslate"><span class="pre">04.sro3</span></code> (run 2). Needs its own
+investigation: uninitialised memory or a race in the lots/NUFFT path are
+candidates. Until then, CI keeps <code class="docutils literal notranslate"><span class="pre">--retry-mc</span> <span class="pre">2</span></code>.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="DiffuseCode_Python_Migration_Plan.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">DiffuseCode: moving to a Python framework</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="WP0_Test_Coverage_Gaps.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Test coverage gaps – what to add and harden</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-we-are">1. Where we are</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-in-tests">1.1 What is in <code class="docutils literal notranslate"><span class="pre">tests/</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#headless-run-results-2026-11-04">1.2 Headless run results (2026-11-04)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#problems-found">1.3 Problems found</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wp0-work-plan">2. WP0 work plan</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#proposed-layout">Proposed layout</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tasks">Tasks</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#suggested-order">Suggested order</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#open-questions-for-the-team">Open questions for the team</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducing-the-headless-run">Reproducing the headless run</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#progress-log">3. Progress log</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runner-batch-mode-and-manifest">0.2 + 0.3 – runner, batch mode and manifest</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#and-start-of-0-6-ci-and-python-interface-tests">0.9 (and start of 0.6) – CI and Python-interface tests</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#demo-api-python-diffuse-ahead-of-wp3-wp5">Demo API: <code class="docutils literal notranslate"><span class="pre">python/diffuse/</span></code> (ahead of WP3/WP5)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#flaky-monte-carlo-test-in-ci">Flaky Monte-Carlo test in CI</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-seed-first-half-fixed">0.5a – <code class="docutils literal notranslate"><span class="pre">seed</span></code> (first half fixed)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seeded-monte-carlo-tests">0.5 – seeded Monte-Carlo tests</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/_generated/migration/WP0_Test_Baseline.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright DiffuseCode developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
