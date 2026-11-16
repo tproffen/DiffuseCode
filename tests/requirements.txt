@@ -1,0 +1,4 @@
+# Extra packages for the Python tests (pytest, NumPy and matplotlib come from
+# the system or your environment). gemmi gives independent crystallographic
+# references: space-group operations and International Tables form factors.
+gemmi>=0.6

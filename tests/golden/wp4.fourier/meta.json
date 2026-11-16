@@ -1,0 +1,42 @@
+{
+  "layer_lots_seed4321": {
+    "date": "2026-11-16T18:34:06+00:00",
+    "git_commit": "81ad356099c37d8b45ff632c2dc914011e0523d9",
+    "machine": "x86_64",
+    "numpy": "2.5.3",
+    "platform": "Linux-6.18.44-fc-v470-x86_64-with-glibc2.39",
+    "r_max": 1e-05
+  },
+  "znse_111_moa1_anomalous": {
+    "date": "2026-11-16T18:34:05+00:00",
+    "git_commit": "81ad356099c37d8b45ff632c2dc914011e0523d9",
+    "machine": "x86_64",
+    "numpy": "2.5.3",
+    "platform": "Linux-6.18.44-fc-v470-x86_64-with-glibc2.39",
+    "r_max": 1e-05
+  },
+  "znse_hk0_electron": {
+    "date": "2026-11-16T18:34:05+00:00",
+    "git_commit": "81ad356099c37d8b45ff632c2dc914011e0523d9",
+    "machine": "x86_64",
+    "numpy": "2.5.3",
+    "platform": "Linux-6.18.44-fc-v470-x86_64-with-glibc2.39",
+    "r_max": 1e-05
+  },
+  "znse_hk0_neutron": {
+    "date": "2026-11-16T18:34:05+00:00",
+    "git_commit": "81ad356099c37d8b45ff632c2dc914011e0523d9",
+    "machine": "x86_64",
+    "numpy": "2.5.3",
+    "platform": "Linux-6.18.44-fc-v470-x86_64-with-glibc2.39",
+    "r_max": 1e-05
+  },
+  "znse_hk0_xray": {
+    "date": "2026-11-16T18:34:05+00:00",
+    "git_commit": "81ad356099c37d8b45ff632c2dc914011e0523d9",
+    "machine": "x86_64",
+    "numpy": "2.5.3",
+    "platform": "Linux-6.18.44-fc-v470-x86_64-with-glibc2.39",
+    "r_max": 1e-05
+  }
+}

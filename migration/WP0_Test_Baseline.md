@@ -436,3 +436,61 @@ whole Python process, so after any `diffuse` call, relative paths in the
 user's script pointed somewhere else. `Session.run()` now restores the
 caller's working directory (test `test_working_directory_kept`).
 
+### 0.6 + 0.7 for WP3 and WP4 – structures and single-crystal Fourier
+
+Golden data and coverage for the first two work packages that will be
+rewired, checked against independent references wherever possible (new
+`tests/requirements.txt`: gemmi).
+
+`tests/python/test_wp3_structures.py` (26 tests):
+
+* Space-group expansion of 10 structures (monoclinic C2/c to cubic, origin
+  choice 1, hexagonal, a CIF, one with molecules) agrees site by site with
+  gemmi's symmetry operations; the CIF cell parameters too.
+* Supercells contain every unit-cell site exactly once per cell.
+* `save` → `read stru`, CIF and RMCProfile export → import round trips give
+  the same atoms; DISCUS's CIF read by gemmi gives the same cell; VASP export
+  checked by parsing (metric, counts, coordinates).
+* Known failure (strict xfail): SHELX export/import round trip.
+
+`tests/python/test_wp4_fourier.py` (16 tests):
+
+* fcc extinctions and equal intensities; Debye-Waller factor
+  exp(−B|d*|²/2) to 1e-3; X-ray form factors within 1 % of IT92 (gemmi).
+* Anomalous dispersion: Friedel pairs in ZnSe differ by the ratio the
+  structure factor predicts (0.5 %); centrosymmetric nickel stays symmetric;
+  without dispersion pairs are equal; tabulated `moa1` values (golden).
+* Golden maps for X-rays, neutrons and electrons; `energy` = `wvle`.
+* `lots` with `seed`: repeats exactly with 1 and 4 threads; golden.
+* NUFFT agrees with the standard technique for the 50×50 layer on the
+  `04.sro3` grid; known failure (strict xfail) for small crystals.
+
+**Findings** (details in `WP0_Test_Coverage_Gaps.md`):
+
+1. **NUFFT gives wrong maps for small crystals** on many grids (e.g. Ni
+   4×4×4, hk0 −3…3: R = 1.7), but is exact for others (10×10 cells, the
+   50×50 layer, a 9×9 grid over 0…4). The default technique is unaffected.
+   Probably related to the rare Infinity/NaN map in `04.sro3`, which uses
+   NUFFT. Needs fixing before WP4 wraps the technique option.
+2. **SHELX export** writes every atom of the cell together with the
+   space-group symmetry (and occupancy 0.5): re-reading CuO gives 32 atoms
+   instead of 8.
+3. **`disp on` does not switch on anomalous dispersion**; only `disp anom`
+   does. Any macro using `disp on` silently gets no dispersion.
+4. **Fractions in the legacy atom format are silently misread.** `.cell`
+   files have two atom formats. The comma format with a column header
+   (`atoms x, y, z, Biso` / `co 1./3., 2./3., 0.0, 1.0`) runs the values
+   through the interpreter, so `1./3.` works. The legacy format (bare
+   `atoms`, values separated by blanks) uses a list-directed read, which
+   stops at `/`: `1./3.` becomes 1., without a warning. Mixing the two (bare
+   `atoms` with commas, or a header with blanks) gives an error.
+   `01.Simulation/calculate.cell` uses the legacy format and gets Co at
+   (0,0,0) instead of (1/3,2/3,0).
+5. **`export.mac`**: its failures are mostly outdated reference files and
+   typos; two checks pass falsely because `compare_files.mac` treats a
+   missing file as "no differences".
+6. `Crystal.atoms()` (Python) failed on structures with molecules; fixed.
+
+Checked: `pytest tests/python` 80 passed, 2 known failures, the same with
+`OMP_NUM_THREADS` 1 and 4.
+

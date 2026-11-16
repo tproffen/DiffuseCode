@@ -48,6 +48,14 @@ jobs:
       - name: Build
         run: cmake --build build -j "$(nproc)"
 
+      - name: Python environment
+        # --system-site-packages: use the apt NumPy/matplotlib/pytest that the
+        # compiled module was built against; add gemmi (test references) and
+        # the docs tools.
+        run: |
+          python3 -m venv --system-site-packages .venv
+          .venv/bin/pip install --quiet -r tests/requirements.txt -r docs/requirements.txt
+
       - name: Python tests (pytest)
         env:
           DIFFUSE_PYTHON_PATH: ${{ github.workspace }}/build/python
@@ -55,7 +63,7 @@ jobs:
           MPLBACKEND: Agg
         # DISCUS_SUITE is not set here, so the legacy macro tests inside
         # pytest are skipped; the next step runs them in parallel.
-        run: python3 -m pytest tests/python -v --junitxml=pytest-results.xml
+        run: .venv/bin/python -m pytest tests/python -v -rxs --junitxml=pytest-results.xml
 
       - name: Legacy macro tests
         # Tests tagged mc run with "seed 1234" on one thread (repeatable). A
@@ -73,12 +81,7 @@ jobs:
           DIFFUSE_PYTHON_PATH: ${{ github.workspace }}/build/python
           MPLBACKEND: Agg
         # Warnings are errors, so broken docstrings or links fail the build.
-        # --system-site-packages: use the apt NumPy/matplotlib that the
-        # compiled module was built against.
-        run: |
-          python3 -m venv --system-site-packages .venv-docs
-          .venv-docs/bin/pip install --quiet -r docs/requirements.txt
-          .venv-docs/bin/python -m sphinx -W --keep-going -b html docs docs/_build/html
+        run: .venv/bin/python -m sphinx -W --keep-going -b html docs docs/_build/html
 
       - name: Upload documentation
         if: success() || failure()

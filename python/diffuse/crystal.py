@@ -78,10 +78,7 @@ class Crystal:
             s.run(f"discus\n  save\n    outfile {out.name}\n    write all\n    run\n  exit\nexit",
                   cwd=s.workdir)
             lines = out.read_text().splitlines()
-            start = next(i for i, line in enumerate(lines) if line.split()[:1] == ["atoms"]) + 1
-            rows = [line.replace(",", " ").split() for line in lines[start:] if line.strip()]
-            names = np.array([r[0] for r in rows])
-            xyz = np.array([[float(v) for v in r[1:4]] for r in rows])
+            names, xyz = _parse_stru_atoms(lines)
             if len(names) != self.natoms:
                 raise DiffuseError(f"saved structure has {len(names)} atoms, expected {self.natoms}")
             self._atoms = (names, xyz)
@@ -95,6 +92,27 @@ class Crystal:
         cell = ", ".join(f"{v:g}" for v in self.lattice)
         sc = f", supercell={self.supercell}" if self.supercell else ""
         return f"Crystal('{self.path.name}'{sc}, natoms={self.natoms}, lattice=({cell}))"
+
+
+def _parse_stru_atoms(lines: list[str]) -> tuple[np.ndarray, np.ndarray]:
+    """Atom names and coordinates from the atom section of a saved .stru file.
+
+    The section can contain ``molecule ...`` blocks between the atom lines;
+    an atom line is a name followed by three numbers.
+    """
+    start = next(i for i, line in enumerate(lines) if line.split()[:1] == ["atoms"]) + 1
+    names, xyz = [], []
+    for line in lines[start:]:
+        words = line.replace(",", " ").split()
+        if len(words) < 4 or words[0].lower() == "molecule":
+            continue
+        try:
+            coords = [float(v) for v in words[1:4]]
+        except ValueError:
+            continue
+        names.append(words[0])
+        xyz.append(coords)
+    return np.array(names), np.array(xyz, dtype=float).reshape(-1, 3)
 
 
 def read_structure(path: str | os.PathLike,
