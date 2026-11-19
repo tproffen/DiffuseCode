@@ -3,7 +3,7 @@
 Both are checked against independent references where they exist:
 
 * PDF: the legacy reference files in tests/03.Pair_Distribution_Function
-  (*.grcalc, made by pdf.mac from water_hex.cell);
+  (RESULTS/*.grcalc, made by pdf.mac from water_hex.cell);
 * Fourier: tests/02.Calculation_Scattering/RESULTS/1d.inte and the golden
   2-D map of test_suite_python.py (02.2d).
 
@@ -42,7 +42,7 @@ def test_pdf_matches_legacy_reference(dc, kwargs, rmax, dr, reference):
     """Same settings as tests/03.Pair_Distribution_Function/pdf.mac."""
     cr = dc.read_structure(PDF_DIR / "water_hex.cell")
     g = dc.pdf(cr, rmax=rmax, dr=dr, **kwargs)
-    ref = load_columns(PDF_DIR / reference)
+    ref = load_columns(PDF_DIR / "RESULTS" / reference)
     np.testing.assert_allclose(g.r, ref[:, 0], atol=1e-6)
     assert rvalue(ref[:, 1], g.G) < 1e-6
 
