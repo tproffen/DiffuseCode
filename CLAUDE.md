@@ -21,15 +21,16 @@ targets `claude-python-app`.
 ## Build and test
 
 ```bash
-FC=gfortran CC=gcc CXX=g++ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-    -DDIFFUSE_PYTHON=ON -DPGPLOT_DIR=/usr/lib/pgplot5
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDIFFUSE_PYTHON=ON
+# add -DDIFFUSE_GRAPHICS=OFF for a build without PGPLOT/X11 (what the Python
+# package will use; CI tests both)
 cmake --build build -j
 pip install -r tests/requirements.txt          # gemmi
 DIFFUSE_PYTHON_PATH=build/python python3 -m pytest tests/python
 python3 tools/run_legacy_tests.py --exe build/suite/prog/discus_suite -j 4 --tags fast,mc
 ```
 
-CMake needs `FC` set. Keep build trees outside `tests/`.
+CMake finds the compilers itself (`FC` is optional). Keep build trees outside `tests/`.
 
 ## Documentation
 

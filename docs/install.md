@@ -10,18 +10,24 @@ On Debian or Ubuntu, install the build dependencies:
 
 ```bash
 sudo apt-get install -y gfortran cmake libfftw3-dev libhdf5-dev libreadline-dev \
-    libpng-dev libx11-dev zlib1g-dev pgplot5 python3-dev python3-numpy python3-matplotlib
+    zlib1g-dev python3-dev python3-numpy python3-matplotlib
 ```
+
+The Python interface needs no graphics libraries: `-DDIFFUSE_GRAPHICS=OFF`
+below builds without PGPLOT and X11. For the classic `discus_suite` with
+KUPLOT plots, leave that option out and also install `libpng-dev libx11-dev
+pgplot5`.
 
 Then, from the repository root:
 
 ```bash
-FC=gfortran CC=gcc CXX=g++ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-    -DDIFFUSE_PYTHON=ON -DPGPLOT_DIR=/usr/lib/pgplot5
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDIFFUSE_PYTHON=ON -DDIFFUSE_GRAPHICS=OFF
 cmake --build build -j
 ```
 
 This builds `discus_suite` and the Python module `build/python/suite_python*.so`.
+CMake finds the Fortran compiler itself; set `FC` (or
+`-DCMAKE_Fortran_COMPILER=...`) only to pick a different one.
 
 ## Use
 

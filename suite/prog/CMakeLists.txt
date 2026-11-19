@@ -2,7 +2,9 @@
 
 find_package(MPI)
 find_package(NEXUS)
-find_package(PGPLOT REQUIRED)
+if (DIFFUSE_GRAPHICS)
+  find_package(PGPLOT REQUIRED)
+endif (DIFFUSE_GRAPHICS)
 #find_package(FINUFFT REQUIRED)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/finufft)
@@ -30,7 +32,9 @@ link_directories(${DIFFUSE_BINARY_DIR}/diffev/prog)
 link_directories(${DIFFUSE_BINARY_DIR}/refine/prog)
 link_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 #link_directories(${PGPLOT_LIBRARIES})
-link_directories(${PGPLOT_DIR})
+if (DIFFUSE_GRAPHICS)
+  link_directories(${PGPLOT_DIR})
+endif (DIFFUSE_GRAPHICS)
 #link_directories(${FINUFFT_DIR})
 
 set (SOURCE_MAIN suite.f90)
@@ -40,7 +44,7 @@ set (SOURCES_ALL suite_setup_mod.f90 suite_branch.f90 suite_loop.f90
         suite_parallel.f90 suite_upd_par.f90 suite_top.f90 )
 #set( SOURCES_LOCAL suite_out_file.f90 suite_pdf_file.f90 suite_powder_file.f90)
 
-set (LIBS diffev_all refine_all experi_all discus_all kuplot_all lib_f90 lib_f90c finufft_lib ${DIFFUSE_LIBS} ${PGPLOT_PGPLOT_LIBRARY} ${X11_X11_LIB} ${PNG_LIBRARY} )
+set (LIBS diffev_all refine_all experi_all discus_all kuplot_all lib_f90 lib_f90c finufft_lib ${DIFFUSE_LIBS} )
 
 if( DISCUS_OMP)
   message (status " building SUITE with openmp")
@@ -57,8 +61,12 @@ if( DISCUS_OMP)
 else(DISCUS_OMP)
   message (status " building SUITE without openmp")
 endif(DISCUS_OMP)
-message (status " PGPLOT DIR      " ${PGPLOT_DIR} )
-message (status " PGPLOT LIBRARY  " ${PGPLOT_LIBRARIES} )
+if (DIFFUSE_GRAPHICS)
+  message (status " PGPLOT DIR      " ${PGPLOT_DIR} )
+  message (status " PGPLOT LIBRARY  " ${PGPLOT_LIBRARIES} )
+else (DIFFUSE_GRAPHICS)
+  message (status " building SUITE without graphics (no PGPLOT, X11, PNG)")
+endif (DIFFUSE_GRAPHICS)
 #message (status " FINUFFT DIR     " ${FINUFFT_DIR} )
 #message (status " FINUFFT LIBRARY " ${FINUFFT_LIB} )
 message (status " ALL     LIBRARY " ${LIBS} )
@@ -88,7 +96,6 @@ else (NEXUS_FOUND)
 
 endif (NEXUS_FOUND)
 
-set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 
 # Get the correct PGPLOT libraries
 
@@ -99,9 +106,12 @@ set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 ##64##   set (PGSERVER ${PGPLOT_DIR}/GrWnd.exe)
 
 ##64## else (WIN32 OR CYGWIN)
-  set (LIBS_GRAPHIC ${X11_X11_LIB} ${PGPLOT_PGPLOT_LIBRARY})
+if (DIFFUSE_GRAPHICS)
+  set (LIBS_GRAPHIC ${X11_X11_LIB} ${PGPLOT_PGPLOT_LIBRARY} ${PNG_LIBRARY})
+else (DIFFUSE_GRAPHICS)
+  set (LIBS_GRAPHIC )
+endif (DIFFUSE_GRAPHICS)
 #  set (SOURCES_ALL ${SOURCES_ALL} init_x11.f90)
-  set (PGSERVER ${PGPLOT_DIR}/pgxwin_server)
 ##64## endif (WIN32 OR CYGWIN)
 
 

@@ -186,7 +186,7 @@ tools/
 | 0.5 | **Reproducibility** | Once 0.5a is fixed, add `seed` to every stochastic test (MC, RMC, DIFFEV, stacking, domains). Record whether a test is bit-reproducible on one platform/thread count, and keep statistical tolerances where it is not (OpenMP order, compiler). | Same seed gives the same output on the same build | 2 d |
 | 0.6 | **Golden data capture** | For each test, copy key outputs (intensities, powder, PDF, 3D-PDF, final structure/CIF, histograms) into `tests/golden/<id>/` with a `meta.json` (DiffuseCode version, git commit, compiler, flags, date). Python compares with NumPy (R-value, max-abs, atom-set match) using tolerances from the manifest. Keep the macro self-checks as a second line of defence. | Every test has at least one golden numeric output | 3–4 d |
 | 0.7 | **Coverage expansion** | Confirm the uncovered-command list from 1.3, then add short, deterministic tests for the commands that WP3–WP8 will wrap first: space-group expansion / `wyckoff`, `patterson`, `inverse`, `rmc`, `molecularize`/`demolecularize`, `perioditize`, `storage`/`super`, `bragg`, and kuplot `fit`. | All commands planned for WP3–WP8 have at least one test | 5–8 d |
-| 0.8 | **Build fixes** | Make `suite/prog/CMakeLists.txt` honour `DIFFUSE_GRAPHICS`. Make the PGPLOT install paths configurable / optional. Drop the hard `FC` requirement in favour of CMake's normal compiler detection. | `cmake -DDIFFUSE_GRAPHICS=OFF` builds and the suite passes | 1–2 d |
+| 0.8 ✅ | **Build fixes** | Make `suite/prog/CMakeLists.txt` honour `DIFFUSE_GRAPHICS`. Make the PGPLOT install paths configurable / optional. Drop the hard `FC` requirement in favour of CMake's normal compiler detection. | `cmake -DDIFFUSE_GRAPHICS=OFF` builds and the suite passes | 1–2 d |
 | 0.9 ✅ | **CI** | GitHub Actions on `ubuntu-24.04`: apt (gfortran, FFTW, HDF5, readline, PNG, X11, pgplot5, xvfb), build, run `tools/run_legacy_tests.py --tags fast,mc`, upload JUnit + logs. Nightly job for `slow`/`mpi`. Add a macOS job once Linux is stable. | Red/green status on every push to `claude-python-app` | 1–2 d |
 | 0.10 | **Repo hygiene** | Run `cleanup.mac` logic, remove committed generated outputs, add a `.gitignore` for them, and keep only inputs + `RESULTS/` + `golden/`. Consider Git LFS for golden files larger than ~1 MB. | `git status` is clean after a test run | 1 d |
 
@@ -493,4 +493,47 @@ rewired, checked against independent references wherever possible (new
 
 Checked: `pytest tests/python` 80 passed, 2 known failures, the same with
 `OMP_NUM_THREADS` 1 and 4.
+
+### 0.8 – build fixes
+
+* **`DIFFUSE_GRAPHICS=OFF` builds without PGPLOT and X11** (finding 7).
+  `suite/prog/CMakeLists.txt` looked for PGPLOT unconditionally and linked
+  PGPLOT, X11 and PNG; `python/CMakeLists.txt` linked them into the Python
+  module too. Both now do so only with graphics; KUPLOT already had
+  `*_nographic.f90` replacements. `ldd` of `discus_suite` and
+  `suite_python*.so` shows no PGPLOT, X11 or PNG.
+* **`FC` is no longer required** (finding 9). CMake picks the Fortran
+  compiler itself (`-DCMAKE_Fortran_COMPILER`, else `FC`, else the first one
+  found). The old `set(CMAKE_Fortran_COMPILER $ENV{FC})` after
+  `enable_language` had no effect anyway.
+* **PGPLOT install paths** (finding 8). `make install` looks for
+  `grfont.dat` and `pgxwin_server` in `PGPLOT_DIR` and the usual system
+  places (Debian/Ubuntu: `/usr/lib/pgplot5`, `/usr/bin`), skips a missing
+  file with a warning, and installs nothing PGPLOT-related without graphics.
+  `-DPGPLOT_DIR` is no longer needed on Ubuntu.
+* **CI** has a second job, `python-nographics`: no PGPLOT, X11 or Xvfb
+  packages, `DIFFUSE_GRAPHICS=OFF`, an `ldd` check, pytest and the docs. The
+  `linux` job keeps the graphics build for the legacy macro tests, now
+  without `FC`, `CC`, `CXX` or `PGPLOT_DIR`.
+
+Checked locally (Ubuntu 24.04, gfortran 13):
+
+| Build | Result |
+|---|---|
+| graphics OFF, no `FC` | builds; pytest 81 passed, 2 known failures; legacy tests (`--xvfb off`) 28 PASS, 1 RAN, 2 SKIPPED, 1 ABORTED (`04.sro3`, see below) |
+| graphics ON, no `FC`, no `PGPLOT_DIR` | configures and builds; `make install` installs `grfont.dat` and `pgxwin_server` from the system locations |
+| graphics OFF, `make install` | installs `discus_suite`, no PGPLOT files, no errors |
+
+**`04.sro3` broken Fourier result, now reproducible.** On this machine,
+`tools/run_legacy_tests.py --id 04.sro3` (seed 1234, one thread) aborts on
+every run, on both the graphics and the no-graphics build:
+`example3.inte` gets ~1500 `Infinity` values and `example3.3DPDF` is all NaN.
+Run by hand with the same seed the MC ends in a different structure and the
+Fourier is fine; reading the runner's final structure from `example3.stru`
+and repeating only the Fourier (NUFFT or standard, with or without lots)
+is also fine. So the trigger is state that the MMC run leaves in memory,
+not the structure itself; uninitialised memory is the likely cause (the
+result depends on the machine: CI passes). It is unrelated to graphics.
+This is the case to debug, with a debug build (`-DDEBUG=ON`,
+`-fcheck=all`).
 

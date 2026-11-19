@@ -42,8 +42,9 @@ Useful options:
 | `--list` | show what would run |
 | `--check-test-all` | check that `manifest.toml` and `test_all.mac` list the same macros |
 
-Without an X display it runs each test under `xvfb-run` (KUPLOT needs one).
-On Debian/Ubuntu install `xvfb` and `pgplot5`.
+With a graphics build and no X display it runs each test under `xvfb-run`
+(KUPLOT needs one); on Debian/Ubuntu install `xvfb` and `pgplot5`. A build
+with `-DDIFFUSE_GRAPHICS=OFF` needs neither: use `--xvfb off`.
 
 Results of a run with `-j 4` on 4 cores: 30 PASS, 1 RAN (`03.pdf`, no check
 yet), 2 SKIPPED (`04.sro2`, `09.znse_pdf_mpi`), about 80 s wall time.
