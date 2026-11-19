@@ -181,14 +181,14 @@ tools/
 | 0.1 | **Headless run** | JMOL disabled in the test plot macros *(done in this branch)*. Run under `xvfb-run` with PGPLOT; later use the no-graphics build once 0.8 is fixed. | `test_all.mac` completes unattended | done |
 | 0.2 ✅ | **Machine-readable results** | Extend `check.mac` to append `<dir> <macro> PASS/FAIL` to `test_results.txt` instead of `stop`-ing. Add a driver that runs each manifest entry in a fresh temp copy (a prototype exists from this analysis) and converts results to JUnit XML. Treat a missing result line as ABORTED. | CI shows per-test pass/fail; process exits non-zero on any failure or abort | 2–3 d |
 | 0.3 ✅ | **Test manifest** | Move the list of tests out of `test_all.mac` into `manifest.toml`: test id, folder, macro, args, expected outputs, comparison type and tolerance, and tags (`fast`, `mc`, `mpi`, `slow`). | Harness and `test_all.mac` cover the same 30 tests | 1–2 d |
-| 0.4 | **Close the silent gaps** | Add a check to 03 PDF (compare G(r) against a new `RESULTS/` file). Re-enable or remove SRO_2. Add an aggregated check to Deco_01. Make 09 runnable: execute bit + serial variant for CI, MPI variant tagged `mpi`. | No section prints SUCCESS without a check | 2–3 d |
+| 0.4 ✅ | **Close the silent gaps** | Add a check to 03 PDF (compare G(r) against a new `RESULTS/` file). Re-enable or remove SRO_2. Add an aggregated check to Deco_01. Make 09 runnable: execute bit + serial variant for CI, MPI variant tagged `mpi`. | No section prints SUCCESS without a check | 2–3 d |
 | 0.5a | **Debug `seed`** | Find out why `seed` does not give repeatable MMC results (see 1.3 #4). Candidates: the generator being re-seeded inside `mmc`/`read`/`insert`, per-thread generators, or a seed state that is not fully applied. Add a minimal test: seed → draw N numbers → seed again → same N numbers, then the same through `mmc run`. | Two runs with the same seed give identical `sro.0` output on one build | 1–3 d |
 | 0.5 | **Reproducibility** | Once 0.5a is fixed, add `seed` to every stochastic test (MC, RMC, DIFFEV, stacking, domains). Record whether a test is bit-reproducible on one platform/thread count, and keep statistical tolerances where it is not (OpenMP order, compiler). | Same seed gives the same output on the same build | 2 d |
 | 0.6 | **Golden data capture** | For each test, copy key outputs (intensities, powder, PDF, 3D-PDF, final structure/CIF, histograms) into `tests/golden/<id>/` with a `meta.json` (DiffuseCode version, git commit, compiler, flags, date). Python compares with NumPy (R-value, max-abs, atom-set match) using tolerances from the manifest. Keep the macro self-checks as a second line of defence. | Every test has at least one golden numeric output | 3–4 d |
 | 0.7 | **Coverage expansion** | Confirm the uncovered-command list from 1.3, then add short, deterministic tests for the commands that WP3–WP8 will wrap first: space-group expansion / `wyckoff`, `patterson`, `inverse`, `rmc`, `molecularize`/`demolecularize`, `perioditize`, `storage`/`super`, `bragg`, and kuplot `fit`. | All commands planned for WP3–WP8 have at least one test | 5–8 d |
 | 0.8 ✅ | **Build fixes** | Make `suite/prog/CMakeLists.txt` honour `DIFFUSE_GRAPHICS`. Make the PGPLOT install paths configurable / optional. Drop the hard `FC` requirement in favour of CMake's normal compiler detection. | `cmake -DDIFFUSE_GRAPHICS=OFF` builds and the suite passes | 1–2 d |
 | 0.9 ✅ | **CI** | GitHub Actions on `ubuntu-24.04`: apt (gfortran, FFTW, HDF5, readline, PNG, X11, pgplot5, xvfb), build, run `tools/run_legacy_tests.py --tags fast,mc`, upload JUnit + logs. Nightly job for `slow`/`mpi`. Add a macOS job once Linux is stable. | Red/green status on every push to `claude-python-app` | 1–2 d |
-| 0.10 | **Repo hygiene** | Run `cleanup.mac` logic, remove committed generated outputs, add a `.gitignore` for them, and keep only inputs + `RESULTS/` + `golden/`. Consider Git LFS for golden files larger than ~1 MB. | `git status` is clean after a test run | 1 d |
+| 0.10 ✅ | **Repo hygiene** | Run `cleanup.mac` logic, remove committed generated outputs, add a `.gitignore` for them, and keep only inputs + `RESULTS/` + `golden/`. Consider Git LFS for golden files larger than ~1 MB. | `git status` is clean after a test run | 1 d |
 
 **Total: about 4–6 weeks for one developer.** That fits the "months 0–3"
 slot in the plan, with room for coverage work alongside WP1.
@@ -536,4 +536,42 @@ not the structure itself; uninitialised memory is the likely cause (the
 result depends on the machine: CI passes). It is unrelated to graphics.
 This is the case to debug, with a debug build (`-DDEBUG=ON`,
 `-fcheck=all`).
+
+### 0.4 – no more silent sections
+
+* **03 PDF** now checks its results. The 9 PDFs `pdf.mac` writes are
+  compared with references in `03.Pair_Distribution_Function/RESULTS/`
+  (the formerly committed `.grcalc` files, which a fresh run reproduces to
+  R ≤ 2e-9) by `check_pdf.mac` (R < 1e-6). An altered reference gives
+  FAIL. `test_all.mac` calls `check.mac` after it.
+* **09** has a serial variant: `09.znse_pdf_serial` runs the ZnSe DIFFEV
+  refinement without MPI (`test_serial.mac`, 4 generations, ~3 min, tag
+  `slow`) and checks that the best R-value is in (0, 1) and does not get
+  worse (0.321 → 0.251). The `.sh` files have their execute bit, so
+  `test_all.mac`'s MPI variant (`TEST.sh`) runs where `mpiexec` exists.
+* **SRO_2** stays disabled, now with the measured reason: with seed 1234 the
+  MMC reaches C100 = 0.84 and C010 = −0.85 for targets ±0.70, and the check
+  allows 0.10 (the R-value conditions pass). Needs a decision: tolerance,
+  MC settings, or remove the test.
+* Deco_01 already counts its 7 checks (0.2/0.3).
+* DISCUS quirk: `echo` supports `%f` but not `%e`; `"%12.4e"` fails with
+  the misleading "Missing ' while comparing stings".
+
+### 0.10 – generated files out of git
+
+A full run of all tests except MPI (with `--keep`) writes 827 files; **816 of
+them were committed** (57.8 MB of the 110 MB in `tests/`): 600 stacking
+outputs in `05.Stack/STACK_GROWTH/INDI`, DIFFEV generations, plot CIFs,
+intermediate structures, intensity files. None are under `RESULTS/` or
+`golden/`.
+
+* The 816 files are removed from git. A copy of `tests/` without them gives
+  the same result as before (31 PASS; `04.sro3` aborts as described above).
+* `tests/.gitignore` lists them, generated from that run: 16 folders that
+  hold only generated files (each kept in git by an empty `.gitkeep`, since
+  the macros write into them and cannot create folders) and 95 single files
+  next to inputs; plus the PDFs that `pdf.mac` writes next to `RESULTS/`, and
+  `fort.*` (output to an unopened Fortran unit, from leftover debug writes).
+* Checked: copying every file the test run wrote back into the tree leaves
+  `git status` clean.
 

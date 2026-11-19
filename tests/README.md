@@ -131,6 +131,10 @@ pytest tests, then the legacy tests tagged `fast` and `mc`, on every push to
 3. Add a `[[test]]` entry to `manifest.toml`.
 4. Run `python3 tools/run_legacy_tests.py --check-test-all` and the test itself
    with `--id`.
+5. Keep generated files out of git: references go into `RESULTS/` (or
+   `tests/golden/` for the Python tests); everything the macro writes
+   besides that belongs in `tests/.gitignore`. After running the test,
+   `git status` should show only the files you meant to add.
 
 Plot macros must not need an interactive viewer: use `program cif` and a
 plain `run` instead of `program jmol` and `run plot:inter`.
