@@ -1,0 +1,21 @@
+#
+#  check_pdf.mac  <name>
+#
+################################################################################
+#
+#  Test helper (KUPLOT section): compare <name>.grcalc, just written by
+#  pdf.mac, with the reference RESULTS/<name>.grcalc. Sets LTEST_MAC = FALSE
+#  if the R-value is 1e-6 or larger. pdf.mac sets LTEST_MAC = TRUE first.
+#
+################################################################################
+#
+rese
+load xy, $1.grcalc
+load xy, RESULTS/$1.grcalc
+rval 1, 2, one
+r[0] = res[1]
+echo " PDF check  R-value against RESULTS  %14.9f", r[0]
+# (echo knows %f but not %e: "%12.4e" fails with "Missing ' while comparing")
+if(abs(r[0]) >= 1.0E-6) then
+  LTEST_MAC = FALSE
+endif

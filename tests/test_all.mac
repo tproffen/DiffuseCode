@@ -80,6 +80,7 @@ system ls *.mac
 wait return
 #
 @pdf.mac 
+@../check.mac pdf.mac
 echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 echo
 echo SUCCESS in 03.Pair_Distribution_Function

@@ -93,9 +93,8 @@ tags  = ["fast"]
 id    = "03.pdf"
 dir   = "03.Pair_Distribution_Function"
 macro = "pdf.mac"
-check = "none"
-tags  = ["fast", "nocheck"]
-# No self-check yet (WP0 task 0.4): the test passes if the macro finishes.
+tags  = ["fast"]
+# Compares all 9 PDFs with RESULTS/*.grcalc (check_pdf.mac).
 
 # --------------------------------------------------------------------- 04 SRO
 [[test]]
@@ -120,7 +119,7 @@ args        = "0.7,-0.7,1.5"
 tags        = ["mc"]
 in_test_all = false
 enabled     = false
-skip_reason = "Commented out in test_all.mac (#QQQ); re-enable or remove in WP0 task 0.4"
+skip_reason = "Fails reproducibly (seed 1234): MMC reaches C100 = 0.84 and C010 = -0.85 for targets +-0.70; the check allows 0.10. Needs a decision: tolerance, MC settings, or remove (WP0 log, 0.4)"
 
 [[test]]
 id    = "04.sro3"
@@ -220,7 +219,17 @@ check       = "none"
 tags        = ["slow", "mpi", "mc", "nocheck"]
 in_test_all = false   # test_all.mac reaches it via "system ./TEST.sh" (mpiexec ... -macro refine.mac)
 enabled     = false
-skip_reason = "Needs mpiexec and DISCUS_NCPU; test_all.mac calls ./TEST.sh, which has no execute bit. WP0 task 0.4"
+skip_reason = "MPI variant: test_all.mac runs ./TEST.sh (mpiexec, DISCUS_NCPU). The runner covers the same refinement serially in 09.znse_pdf_serial"
+
+[[test]]
+id          = "09.znse_pdf_serial"
+dir         = "09.Nanoparticle_refinement/ZNSE_PDF_suite_mpi"
+macro       = "test_serial.mac"
+tags        = ["slow", "mc"]
+in_test_all = false   # test_all.mac runs the MPI variant (TEST.sh)
+timeout     = 900
+# Same DIFFEV refinement as refine.mac without MPI, 4 generations (~3 min);
+# checks that the best R-value is in (0, 1) and does not get worse.
 
 # --------------------------------------------------------------- 11 Properties
 [[test]]

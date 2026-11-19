@@ -241,6 +241,21 @@ branch kuplot
    wait return
    nfra 1
 exit
-
+#
+# Test for Success: every PDF written above must match its reference in
+# RESULTS/ (written by this macro with DiscusSuite 6.23).
+#
+branch kuplot
+LTEST_MAC = TRUE
+@check_pdf.mac no_corr
+@check_pdf.mac thermal
+@check_pdf.mac thermal_linear
+@check_pdf.mac thermal_qmax30
+@check_pdf.mac thermal_qmax15
+@check_pdf.mac thermal_nodamp
+@check_pdf.mac thermal_damp_020
+@check_pdf.mac thermal_broad_002
+@check_pdf.mac thermal_broad_damp
+exit
 #
 exit                     ! Back to suite
