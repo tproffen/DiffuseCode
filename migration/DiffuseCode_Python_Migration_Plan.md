@@ -338,6 +338,8 @@ Also make **readline optional** for the Python build: it is only used by the int
 
 **Deliverable:** `dc.Crystal`, `dc.io`.
 
+**Planned: ASE bridge.** `Crystal.to_ase()` (and `from_ase`) converting to and from an `ase.Atoms` object (cell from `Crystal.lattice_vectors()`, positions from `Crystal.cartesian()`, element symbols from the DISCUS atom names). Opens the ASE ecosystem: its file formats, analysis tools, calculators and viewers (nglview, x3d), without the package maintaining them. ASE as an optional dependency. Noted Nov 2026 with the py3Dmol viewer (`Crystal.view()`); about half a day.
+
 **Done when:** Round-tripping all golden structures (Python → Fortran → Python) gives identical data, and the files written match the legacy `save` output.
 
 ### WP4 · Single-crystal Fourier (first vertical slice)

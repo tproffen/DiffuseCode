@@ -88,10 +88,176 @@ class Crystal:
         """Fractional coordinates, shape (natoms, 3). See :meth:`atoms`."""
         return self.atoms()[1]
 
+    def lattice_vectors(self) -> np.ndarray:
+        """The unit-cell vectors a, b, c as rows, in Å, shape (3, 3).
+
+        Standard orientation: a along x, b in the xy plane, c completing a
+        right-handed set.
+        """
+        a, b, c, al, be, ga = self.lattice
+        ca, cb, cg = np.cos(np.radians([al, be, ga]))
+        sg = np.sin(np.radians(ga))
+        cx = c * cb
+        cy = c * (ca - cb * cg) / sg
+        cz = np.sqrt(max(c * c - cx * cx - cy * cy, 0.0))
+        return np.array([[a, 0.0, 0.0], [b * cg, b * sg, 0.0], [cx, cy, cz]])
+
+    def cartesian(self) -> np.ndarray:
+        """Atom positions in Å, shape (natoms, 3), in the orientation of
+        :meth:`lattice_vectors`."""
+        return self.positions() @ self.lattice_vectors()
+
+    def view(self, style: str = "ball", *, scale: float = 1.0, cell: str | None = "crystal",
+             show=None, colors: dict | None = None, width: int = 640, height: int = 480,
+             background: str = "white"):
+        """Show the structure in 3D in a Jupyter notebook (py3Dmol).
+
+        Rotate with the left mouse button, zoom with the wheel, move with the
+        right button (or Ctrl + left). Uses ``py3Dmol`` (3Dmol.js), which
+        is installed with the package.
+
+        Parameters
+        ----------
+        style : {"ball", "spacefill", "stick", "ballstick"}
+            Small spheres (default), touching spheres, or bonds; bonds are
+            drawn between atoms closer than the sum of their covalent radii.
+        scale : float
+            Size factor for the spheres and sticks, e.g. 3 for a sparse
+            model structure whose atoms are far apart.
+        cell : {"crystal", "unit"} or None
+            Draw the edges of the whole crystal (all unit cells), of one
+            unit cell, or nothing.
+        show : str or sequence of str, optional
+            Only these atom types (DISCUS names such as ``"CU"``), for
+            example to see how one kind of atom is ordered.
+        colors : dict, optional
+            Colours for atom types, e.g. ``{"CU": "orange", "AU": "gold"}``.
+            Other atoms are coloured by element (Jmol colours).
+        width, height : int
+            Size in pixels.
+        background : str
+            Background colour.
+
+        Returns
+        -------
+        StructureView
+            Displayed when it is the last expression in a notebook cell
+            (or call ``.show()``). ``.write_html("file.html")`` saves a page
+            that shows the structure in any browser. The py3Dmol view is
+            ``.viewer``; other py3Dmol methods (``addLabel``, ``setView`` ...)
+            can be called on the StructureView directly, then ``.show()``.
+
+        Notes
+        -----
+        Fine for tens of thousands of atoms with ``"ball"``; bonds
+        (``"stick"``, ``"ballstick"``) get slow for large crystals.
+        """
+        try:
+            import py3Dmol
+        except ImportError:
+            raise ImportError("Crystal.view() needs py3Dmol, which is installed with "
+                              "the diffuse package: pip install py3Dmol") from None
+        if style not in _VIEW_STYLES:
+            raise ValueError(f"style must be one of {sorted(_VIEW_STYLES)}, not {style!r}")
+        if not scale > 0:
+            raise ValueError("scale must be positive")
+        look = {kind: {k: v * scale for k, v in spec.items()}
+                for kind, spec in _VIEW_STYLES[style].items()}
+        if cell not in ("crystal", "unit", None):
+            raise ValueError(f"cell must be 'crystal', 'unit' or None, not {cell!r}")
+        names, frac = self.atoms()
+        keep = np.ones(len(names), bool)
+        if show is not None:
+            wanted = {show.upper()} if isinstance(show, str) else {s.upper() for s in show}
+            unknown = wanted - set(names)
+            if unknown:
+                raise ValueError(f"no atoms of type {sorted(unknown)}; the crystal has {sorted(set(names))}")
+            keep = np.isin(names, list(wanted))
+        names = names[keep]
+        xyz = frac[keep] @ self.lattice_vectors()
+
+        model = [str(len(names)), self.path.name]
+        model += [f"{_element(n)} {x:.5f} {y:.5f} {z:.5f}" for n, (x, y, z) in zip(names, xyz)]
+        v = py3Dmol.view(width=width, height=height)
+        v.addModel("\n".join(model) + "\n", "xyz")
+        v.setStyle({}, look)
+        for name, color in (colors or {}).items():
+            index = np.nonzero(names == name.upper())[0]
+            if len(index):
+                spec = {k: dict(s, color=color) for k, s in look.items()}
+                v.setStyle({"index": index.tolist()}, spec)
+        if cell is not None:
+            if cell == "unit":
+                lo, n = np.zeros(3), np.ones(3)
+            else:          # all unit cells: from floor(min) to floor(max) + 1
+                lo = np.floor(frac.min(axis=0) + 1e-6)
+                n = np.floor(frac.max(axis=0) + 1e-6) + 1 - lo
+            for start, end in _box_edges(lo, n):
+                p, q = start @ self.lattice_vectors(), end @ self.lattice_vectors()
+                v.addLine({"start": dict(zip("xyz", map(float, p))),
+                           "end": dict(zip("xyz", map(float, q))),
+                           "color": "black", "dashed": False})
+        v.setBackgroundColor(background)
+        v.zoomTo()
+        return StructureView(v)
+
+
+class StructureView:
+    """A 3D view of a crystal, from :meth:`Crystal.view`.
+
+    Wraps a ``py3Dmol.view`` (in ``viewer``) so that a notebook shows the
+    view and nothing else; any other py3Dmol method is passed on to it.
+    """
+
+    def __init__(self, viewer):
+        self.viewer = viewer
+
+    def show(self):
+        """Display the view (in a notebook)."""
+        self.viewer.show()
+
+    def write_html(self, path=None, fullpage: bool = True):
+        """Save the view as a web page (or return the HTML if ``path`` is
+        None). The page loads 3Dmol.js from the internet when opened."""
+        return self.viewer.write_html(path, fullpage=fullpage)
+
+    def _ipython_display_(self):
+        self.viewer.show()
+
+    def __getattr__(self, name):
+        return getattr(self.viewer, name)
+
     def __repr__(self) -> str:
         cell = ", ".join(f"{v:g}" for v in self.lattice)
         sc = f", supercell={self.supercell}" if self.supercell else ""
         return f"Crystal('{self.path.name}'{sc}, natoms={self.natoms}, lattice=({cell}))"
+
+
+_VIEW_STYLES = {
+    "ball": {"sphere": {"scale": 0.3}},
+    "spacefill": {"sphere": {"scale": 1.0}},
+    "stick": {"stick": {"radius": 0.15}},
+    "ballstick": {"sphere": {"scale": 0.25}, "stick": {"radius": 0.12}},
+}
+
+
+def _element(name: str) -> str:
+    """Element symbol from a DISCUS atom name: 'TI4+' -> 'Ti', 'O2-' -> 'O'."""
+    letters = ""
+    for ch in name:
+        if not ch.isalpha():
+            break
+        letters += ch
+    letters = letters[:2] or "X"
+    return letters[0].upper() + letters[1:].lower()
+
+
+def _box_edges(lo, n):
+    """The 12 edges of the box lo .. lo + n, in fractional coordinates."""
+    corners = [lo + n * np.array(c) for c in np.ndindex(2, 2, 2)]
+    return [(corners[i], corners[j]) for i in range(8) for j in range(i + 1, 8)
+            if np.count_nonzero(np.array(np.unravel_index(i, (2, 2, 2)))
+                                != np.array(np.unravel_index(j, (2, 2, 2)))) == 1]
 
 
 def _parse_stru_atoms(lines: list[str]) -> tuple[np.ndarray, np.ndarray]:

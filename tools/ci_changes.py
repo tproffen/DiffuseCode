@@ -20,7 +20,13 @@ What is compared:
                                 with claude-python-app (so later pushes
                                 keep running what earlier ones needed)
   push to claude-python-app     the push itself (merges: the merged PR)
-  pull_request (opened), schedule, workflow_dispatch: everything runs
+  pull_request (opened)         if the branch already contains the latest
+                                claude-python-app, nothing runs: the push
+                                runs tested exactly this code. Otherwise
+                                the PR's changes, filtered as for a push,
+                                tested on the merge result (catches clashes
+                                with what was merged since the branch began)
+  schedule, workflow_dispatch   everything runs
 
 Outputs (GITHUB_OUTPUT): build, legacy, conda, docs ("true"/"false") and
 package_os, the JSON list of Ubuntu versions for the python-package job.
@@ -89,35 +95,51 @@ def git(*args: str) -> str:
                           text=True).stdout
 
 
-def changed_files() -> list[str] | None:
+def is_ancestor(older: str, newer: str) -> bool:
+    return subprocess.run(["git", "merge-base", "--is-ancestor", older, newer],
+                          capture_output=True).returncode == 0
+
+
+def changed_files() -> tuple[list[str] | None, str]:
+    """The changed files (None: run everything) and a note on why."""
     event = os.environ.get("GITHUB_EVENT_NAME", "")
     ref = os.environ.get("GITHUB_REF_NAME", "")
-    if event != "push":
-        return None
     try:
+        if event == "pull_request":
+            base, head = os.environ.get("PR_BASE_SHA", ""), os.environ.get("PR_HEAD_SHA", "")
+            if not base or not head:
+                return None, "pull request without base/head commits"
+            if is_ancestor(base, head):
+                return [], (f"The branch already contains {BASE_BRANCH} ({base[:7]}): its "
+                            "push runs tested this exact code, so nothing runs here.")
+            files = [f for f in git("diff", "--name-only", f"{base}...{head}").splitlines() if f]
+            return files, (f"{BASE_BRANCH} moved on since the branch began: testing the "
+                           "merge result, for the jobs the PR's changes need.")
+        if event != "push":
+            return None, f"{event or 'local'}: everything runs"
         if ref == BASE_BRANCH:
             base = os.environ.get("BEFORE", "")
             if not base or set(base) == {"0"}:
-                return None
+                return None, "new branch: everything runs"
         else:
             base = git("merge-base", f"origin/{BASE_BRANCH}", "HEAD").strip()
-        return [f for f in git("diff", "--name-only", base, "HEAD").splitlines() if f]
+        return [f for f in git("diff", "--name-only", base, "HEAD").splitlines() if f], ""
     except subprocess.CalledProcessError as exc:   # unknown base: run everything
-        print(f"git failed ({exc.stderr.strip()}); running everything", file=sys.stderr)
-        return None
+        return None, f"git failed ({exc.stderr.strip()}); everything runs"
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--files", nargs="*", help="classify these paths instead of using git")
     args = ap.parse_args()
-    files = args.files if args.files is not None else changed_files()
+    files, note = (args.files, "") if args.files is not None else changed_files()
     out = decide(files)
 
+    report = [note] if note else []
     if files is None:
-        report = ["Running everything (" + os.environ.get("GITHUB_EVENT_NAME", "local") + ")."]
+        report.append("Running everything.")
     else:
-        report = [f"{len(files)} changed file(s):"]
+        report.append(f"{len(files)} changed file(s):")
         for f in files[:200]:
             report.append(f"  {group(f):9}  {f}")
     report += [f"{k} = {v}" for k, v in out.items()]
