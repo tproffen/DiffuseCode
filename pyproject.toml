@@ -22,7 +22,7 @@ dependencies = ["numpy"]
 
 [project.optional-dependencies]
 plot = ["matplotlib"]
-test = ["pytest", "matplotlib", "gemmi>=0.6"]
+test = ["pytest", "matplotlib", "gemmi>=0.6", "tomli; python_version < '3.11'"]
 docs = ["sphinx>=7.2", "myst-parser>=2.0", "pydata-sphinx-theme>=0.15", "sphinx-gallery>=0.15", "matplotlib"]
 
 [project.urls]
