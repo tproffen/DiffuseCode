@@ -308,7 +308,15 @@ The results are `xarray` objects with coordinates and metadata, and they can be 
 3. **A conda-forge package**, which can also ship `discus_suite` (see the distribution decision in 7.12).
 4. **Document the other routes:** HPC environment modules (`module load gcc hdf5 fftw cmake`) or Spack, which builds the dependencies in the user's home directory; and a container image (Apptainer/Singularity on clusters, rootless Podman on desktops) for courses and workshops. Building FFTW and HDF5 from source into `~/.local` works but is not a route to recommend.
 
+**Progress (Nov 2026):** `pip install .` works (`pyproject.toml` with scikit-build-core, graphics off, the module installed inside the `diffuse` package); `environment.yml` gives a conda-forge-only environment; CI builds and tests the installed package on Ubuntu 24.04, on Ubuntu 22.04 with Python 3.10 (WSL2) and in conda; `docs/install.md` covers all three routes. Still open: wheels (cibuildwheel, portable compiler flags instead of `-march=native`, bundled FFTW/HDF5), Ninja support (the libraries need `target_link_libraries` instead of `add_dependencies` for Fortran modules), optional readline, and the package name.
+
 Also make **readline optional** for the Python build: it is only used by the interactive `discus_suite` prompt, but CMake currently requires it for every build.
+
+**WSL2 is a target platform from the start** (the main development environment). WSL2 runs a real Linux kernel, so Linux wheels, conda for Linux and the CMake build work unchanged; what matters is testing the configuration found there:
+
+- CI also runs on **Ubuntu 22.04 with Python 3.10** (the WSL2 default), next to the 24.04 jobs.
+- All instructions install into a **virtual environment** (`python3 -m venv`), so a NumPy installed with pip does not mix with Ubuntu's (the cause of the f2py `StopIteration` build failure, fixed in `cmake/FindF2PY.cmake`).
+- The install docs get a **WSL2 section**: build in the Linux file system (`~/...`), not under `/mnt/c`, which is much slower; no display needed with `-DDIFFUSE_GRAPHICS=OFF`; how wheels and conda fit in.
 
 ### WP2 · Core infrastructure
 
@@ -467,7 +475,7 @@ Months from the start, assuming about 1.5 full-time developers. Some packages ov
 
 - **Binding technology:** `bind(C)` + nanobind (recommended: cleaner arrays, exceptions and GIL control) or f2py (already used by `suite_python`, less code at first, weaker for complex interfaces).
 - **Distribution:** PyPI wheels, conda-forge, or both. Users without admin rights need at least one of them; until then, a conda environment for building from source (WP1).
-- **Supported platforms and compilers** for official builds. Is Windows native, or WSL only?
+- **Supported platforms and compilers** for official builds. Is Windows native, or WSL only? (WSL2 with Ubuntu is supported from WP1 on.)
 - **Backward-compatibility promise** for macros and file formats, and how long `discus_suite` is maintained.
 - **Data formats:** NeXus/HDF5 as the standard result format, and which version of the DISCUS structure format to keep.
 - **Web goals:** local single-user app, shared group server or public service. This decides how much work goes into authentication, quotas and job management in WP10.

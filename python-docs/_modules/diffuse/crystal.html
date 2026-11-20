@@ -28,7 +28,7 @@
   <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -435,30 +435,30 @@
                 <article class="bd-article">
                   
   <h1>Source code for diffuse.crystal</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Reading structures into DISCUS.&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""Reading structures into DISCUS."""</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">._session</span> <span class="kn">import</span> <span class="n">DiffuseError</span><span class="p">,</span> <span class="n">session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._session</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiffuseError</span><span class="p">,</span> <span class="n">session</span>
 
 <span class="c1"># Files that DISCUS reads as an asymmetric unit (then applies the space</span>
 <span class="c1"># group and builds the supercell) and files it reads as a whole crystal.</span>
-<span class="n">_CELL_SUFFIXES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;.cell&quot;</span><span class="p">,</span> <span class="s2">&quot;.cif&quot;</span><span class="p">}</span>
-<span class="n">_STRU_SUFFIXES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;.stru&quot;</span><span class="p">}</span>
+<span class="n">_CELL_SUFFIXES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">".cell"</span><span class="p">,</span> <span class="s2">".cif"</span><span class="p">}</span>
+<span class="n">_STRU_SUFFIXES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">".stru"</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="Crystal">
 <a class="viewcode-back" href="../../api.html#diffuse.Crystal">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Crystal</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A structure loaded into DISCUS. Create it with :func:`read_structure`.</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Crystal</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A structure loaded into DISCUS. Create it with :func:`read_structure`.</span>
 
 <span class="sd">    DISCUS holds one structure at a time. A ``Crystal`` remembers how it was</span>
 <span class="sd">    made, so a calculation on an older ``Crystal`` reads it in again first.</span>
@@ -474,7 +474,7 @@
 <span class="sd">        Number of atoms in the whole crystal.</span>
 <span class="sd">    lattice : tuple of float</span>
 <span class="sd">        ``(a, b, c, alpha, beta, gamma)`` in Å and degrees.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">path</span><span class="p">:</span> <span class="n">Path</span>
     <span class="n">supercell</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
@@ -483,26 +483,26 @@
     <span class="n">_atoms</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">a</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lattice parameter a in Å.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">a</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Lattice parameter a in Å."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">volume</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Volume of one unit cell in Å^3.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">volume</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Volume of one unit cell in Å^3."""</span>
         <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">al</span><span class="p">,</span> <span class="n">be</span><span class="p">,</span> <span class="n">ga</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span>
         <span class="n">ca</span><span class="p">,</span> <span class="n">cb</span><span class="p">,</span> <span class="n">cg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">([</span><span class="n">al</span><span class="p">,</span> <span class="n">be</span><span class="p">,</span> <span class="n">ga</span><span class="p">]))</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">b</span> <span class="o">*</span> <span class="n">c</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ca</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">cb</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">cg</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ca</span> <span class="o">*</span> <span class="n">cb</span> <span class="o">*</span> <span class="n">cg</span><span class="p">))</span>
 
 <div class="viewcode-block" id="Crystal.atoms">
 <a class="viewcode-back" href="../../api.html#diffuse.Crystal.atoms">[docs]</a>
-    <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Atom names and fractional coordinates.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Atom names and fractional coordinates.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        names : numpy.ndarray of str, shape (natoms,)</span>
-<span class="sd">            Atom names as DISCUS uses them, for example ``&quot;TI4+&quot;``.</span>
+<span class="sd">            Atom names as DISCUS uses them, for example ``"TI4+"``.</span>
 <span class="sd">        xyz : numpy.ndarray of float, shape (natoms, 3)</span>
 <span class="sd">            Fractional coordinates in units of the unit cell.</span>
 
@@ -510,47 +510,47 @@
 <span class="sd">        -----</span>
 <span class="sd">        DISCUS saves the crystal to a ``.stru`` file, which is read back.</span>
 <span class="sd">        The result is cached on the ``Crystal``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">_ensure_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">session</span><span class="p">()</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">workdir</span> <span class="o">/</span> <span class="s2">&quot;atoms.stru&quot;</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">workdir</span> <span class="o">/</span> <span class="s2">"atoms.stru"</span>
             <span class="n">out</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;discus</span><span class="se">\n</span><span class="s2">  save</span><span class="se">\n</span><span class="s2">    outfile </span><span class="si">{</span><span class="n">out</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s2">    write all</span><span class="se">\n</span><span class="s2">    run</span><span class="se">\n</span><span class="s2">  exit</span><span class="se">\n</span><span class="s2">exit&quot;</span><span class="p">,</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">"discus</span><span class="se">\n</span><span class="s2">  save</span><span class="se">\n</span><span class="s2">    outfile </span><span class="si">{</span><span class="n">out</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s2">    write all</span><span class="se">\n</span><span class="s2">    run</span><span class="se">\n</span><span class="s2">  exit</span><span class="se">\n</span><span class="s2">exit"</span><span class="p">,</span>
                   <span class="n">cwd</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
             <span class="n">lines</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
             <span class="n">names</span><span class="p">,</span> <span class="n">xyz</span> <span class="o">=</span> <span class="n">_parse_stru_atoms</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">natoms</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">DiffuseError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;saved structure has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2"> atoms, expected </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">natoms</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">DiffuseError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"saved structure has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2"> atoms, expected </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">natoms</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span> <span class="o">=</span> <span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">xyz</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span></div>
 
 
 <div class="viewcode-block" id="Crystal.positions">
 <a class="viewcode-back" href="../../api.html#diffuse.Crystal.positions">[docs]</a>
-    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fractional coordinates, shape (natoms, 3). See :meth:`atoms`.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Fractional coordinates, shape (natoms, 3). See :meth:`atoms`."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">cell</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="p">)</span>
-        <span class="n">sc</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;, supercell=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">supercell</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">supercell</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Crystal(&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;</span><span class="si">{</span><span class="n">sc</span><span class="si">}</span><span class="s2">, natoms=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">natoms</span><span class="si">}</span><span class="s2">, lattice=(</span><span class="si">{</span><span class="n">cell</span><span class="si">}</span><span class="s2">))&quot;</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="p">)</span>
+        <span class="n">sc</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">", supercell=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">supercell</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">supercell</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"Crystal('</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">'</span><span class="si">{</span><span class="n">sc</span><span class="si">}</span><span class="s2">, natoms=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">natoms</span><span class="si">}</span><span class="s2">, lattice=(</span><span class="si">{</span><span class="n">cell</span><span class="si">}</span><span class="s2">))"</span></div>
 
 
 
-<span class="k">def</span> <span class="nf">_parse_stru_atoms</span><span class="p">(</span><span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Atom names and coordinates from the atom section of a saved .stru file.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_stru_atoms</span><span class="p">(</span><span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Atom names and coordinates from the atom section of a saved .stru file.</span>
 
 <span class="sd">    The section can contain ``molecule ...`` blocks between the atom lines;</span>
 <span class="sd">    an atom line is a name followed by three numbers.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">start</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[:</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="sd">    """</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[:</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="s2">"atoms"</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">names</span><span class="p">,</span> <span class="n">xyz</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">start</span><span class="p">:]:</span>
-        <span class="n">words</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="ow">or</span> <span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;molecule&quot;</span><span class="p">:</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">" "</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="ow">or</span> <span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"molecule"</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">words</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span>
@@ -563,9 +563,9 @@
 
 <div class="viewcode-block" id="read_structure">
 <a class="viewcode-back" href="../../api.html#diffuse.read_structure">[docs]</a>
-<span class="k">def</span> <span class="nf">read_structure</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_structure</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
                    <span class="n">supercell</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Crystal</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a structure file into DISCUS.</span>
+<span class="w">    </span><span class="sd">"""Read a structure file into DISCUS.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -594,42 +594,42 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import diffuse as dc</span>
-<span class="sd">    &gt;&gt;&gt; cr = dc.read_structure(&quot;anatase.cif&quot;, supercell=(10, 10, 4))  # doctest: +SKIP</span>
+<span class="sd">    &gt;&gt;&gt; cr = dc.read_structure("anatase.cif", supercell=(10, 10, 4))  # doctest: +SKIP</span>
 <span class="sd">    &gt;&gt;&gt; cr.natoms  # doctest: +SKIP</span>
 <span class="sd">    4800</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">suffix</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_CELL_SUFFIXES</span> <span class="o">|</span> <span class="n">_STRU_SUFFIXES</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">DiffuseError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unsupported structure file &#39;</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
-                           <span class="sa">f</span><span class="s2">&quot;(use </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_CELL_SUFFIXES</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">_STRU_SUFFIXES</span><span class="p">))</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">DiffuseError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unsupported structure file '</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">' "</span>
+                           <span class="sa">f</span><span class="s2">"(use </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_CELL_SUFFIXES</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">_STRU_SUFFIXES</span><span class="p">))</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">supercell</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
         <span class="n">supercell</span> <span class="o">=</span> <span class="p">(</span><span class="n">supercell</span><span class="p">,)</span> <span class="o">*</span> <span class="mi">3</span>
     <span class="k">if</span> <span class="n">supercell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">supercell</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">supercell</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">min</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;supercell must be three positive integers, not </span><span class="si">{</span><span class="n">supercell</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"supercell must be three positive integers, not </span><span class="si">{</span><span class="n">supercell</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="n">_STRU_SUFFIXES</span> <span class="ow">and</span> <span class="n">supercell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;stru </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"stru </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="n">supercell</span> <span class="ow">or</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;cell </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">nx</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">ny</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">nz</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"cell </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">nx</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">ny</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">nz</span><span class="si">}</span><span class="s2">"</span>
 
     <span class="c1"># DISCUS may write files next to the input (a CIF is converted to .stru</span>
-    <span class="c1"># first), so read a copy in the session&#39;s scratch folder.</span>
+    <span class="c1"># first), so read a copy in the session's scratch folder.</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">session</span><span class="p">()</span>
-    <span class="n">inputs</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">workdir</span> <span class="o">/</span> <span class="s2">&quot;input&quot;</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">workdir</span> <span class="o">/</span> <span class="s2">"input"</span>
     <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">inputs</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
-    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">inputs</span> <span class="o">/</span> <span class="p">(</span><span class="s2">&quot;structure&quot;</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">))</span>
-    <span class="n">command</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;structure&quot;</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">inputs</span> <span class="o">/</span> <span class="p">(</span><span class="s2">"structure"</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">))</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">"structure"</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># n[] and lat[] exist only inside the discus section: copy them to the</span>
     <span class="c1"># r[] entries reserved for this package (r[490] ... r[498]).</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""</span>
 <span class="s2">discus</span>
 <span class="s2">  read</span>
 <span class="s2">    </span><span class="si">{</span><span class="n">command</span><span class="si">}</span>
@@ -641,27 +641,27 @@
 <span class="s2">  r[495] = lat[5]</span>
 <span class="s2">  r[496] = lat[6]</span>
 <span class="s2">exit</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">inputs</span><span class="p">)</span>
+<span class="s2">"""</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">inputs</span><span class="p">)</span>
     <span class="n">crystal</span> <span class="o">=</span> <span class="n">Crystal</span><span class="p">(</span>
         <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
         <span class="n">supercell</span><span class="o">=</span><span class="n">supercell</span><span class="p">,</span>
-        <span class="n">natoms</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;r[490]&quot;</span><span class="p">)),</span>
-        <span class="n">lattice</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;r[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">491</span><span class="p">,</span> <span class="mi">497</span><span class="p">)),</span>
+        <span class="n">natoms</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">"r[490]"</span><span class="p">)),</span>
+        <span class="n">lattice</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="sa">f</span><span class="s2">"r[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">491</span><span class="p">,</span> <span class="mi">497</span><span class="p">)),</span>
     <span class="p">)</span>
     <span class="n">s</span><span class="o">.</span><span class="n">current_crystal</span> <span class="o">=</span> <span class="n">crystal</span>
     <span class="k">return</span> <span class="n">crystal</span></div>
 
 
 
-<span class="k">def</span> <span class="nf">_ensure_loaded</span><span class="p">(</span><span class="n">crystal</span><span class="p">:</span> <span class="n">Crystal</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make ``crystal`` the structure DISCUS holds, reading it again if needed.&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_ensure_loaded</span><span class="p">(</span><span class="n">crystal</span><span class="p">:</span> <span class="n">Crystal</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Make ``crystal`` the structure DISCUS holds, reading it again if needed."""</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">session</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">current_crystal</span> <span class="ow">is</span> <span class="n">crystal</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="n">fresh</span> <span class="o">=</span> <span class="n">read_structure</span><span class="p">(</span><span class="n">crystal</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">crystal</span><span class="o">.</span><span class="n">supercell</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">fresh</span><span class="o">.</span><span class="n">natoms</span> <span class="o">!=</span> <span class="n">crystal</span><span class="o">.</span><span class="n">natoms</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">DiffuseError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">crystal</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> now gives </span><span class="si">{</span><span class="n">fresh</span><span class="o">.</span><span class="n">natoms</span><span class="si">}</span><span class="s2"> atoms, &quot;</span>
-                           <span class="sa">f</span><span class="s2">&quot;not </span><span class="si">{</span><span class="n">crystal</span><span class="o">.</span><span class="n">natoms</span><span class="si">}</span><span class="s2">; has the file changed?&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">DiffuseError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">crystal</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> now gives </span><span class="si">{</span><span class="n">fresh</span><span class="o">.</span><span class="n">natoms</span><span class="si">}</span><span class="s2"> atoms, "</span>
+                           <span class="sa">f</span><span class="s2">"not </span><span class="si">{</span><span class="n">crystal</span><span class="o">.</span><span class="n">natoms</span><span class="si">}</span><span class="s2">; has the file changed?"</span><span class="p">)</span>
     <span class="n">s</span><span class="o">.</span><span class="n">current_crystal</span> <span class="o">=</span> <span class="n">crystal</span>
 </pre></div>
 

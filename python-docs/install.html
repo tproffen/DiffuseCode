@@ -29,7 +29,7 @@
   <link href="_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 <link href="_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -452,48 +452,94 @@
                   
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h1>
-<p>There is no <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> yet (that comes with the packaging work, WP1 in
-the migration plan). For now, build DiffuseCode with its Python module and
-point Python at the build.</p>
-<section id="build">
-<h2>Build<a class="headerlink" href="#build" title="Link to this heading">#</a></h2>
-<p>On Debian or Ubuntu, install the build dependencies:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>gfortran<span class="w"> </span>cmake<span class="w"> </span>libfftw3-dev<span class="w"> </span>libhdf5-dev<span class="w"> </span>libreadline-dev<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>zlib1g-dev<span class="w"> </span>python3-dev<span class="w"> </span>python3-numpy<span class="w"> </span>python3-matplotlib
+<p>There are no ready-made packages yet (wheels and a conda-forge package come
+later in WP1). You build the package from the DiffuseCode sources with
+<code class="docutils literal notranslate"><span class="pre">pip</span></code>, which compiles DISCUS on the way. That needs a Fortran compiler, CMake,
+FFTW, HDF5 (with its Fortran interface) and readline. Two ways to get them:</p>
+<ul class="simple">
+<li><p><strong>System packages</strong> (needs admin rights): see below.</p></li>
+<li><p><strong>Conda</strong> (no admin rights): see <a class="reference internal" href="#without-admin-rights-conda">Without admin rights</a>.</p></li>
+</ul>
+<p>Graphics libraries (PGPLOT, X11) are not needed: the Python package is built
+without them.</p>
+<section id="with-system-packages-debian-ubuntu-wsl2">
+<h2>With system packages (Debian, Ubuntu, WSL2)<a class="headerlink" href="#with-system-packages-debian-ubuntu-wsl2" title="Link to this heading">#</a></h2>
+<p>Install the build tools and libraries:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>gfortran<span class="w"> </span>cmake<span class="w"> </span>make<span class="w"> </span>libfftw3-dev<span class="w"> </span>libhdf5-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libreadline-dev<span class="w"> </span>zlib1g-dev<span class="w"> </span>python3-dev<span class="w"> </span>python3-venv
 </pre></div>
 </div>
-<p>The Python interface needs no graphics libraries: <code class="docutils literal notranslate"><span class="pre">-DDIFFUSE_GRAPHICS=OFF</span></code>
-below builds without PGPLOT and X11. For the classic <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> with
-KUPLOT plots, leave that option out and also install <code class="docutils literal notranslate"><span class="pre">libpng-dev</span> <span class="pre">libx11-dev</span> <span class="pre">pgplot5</span></code>.</p>
-<p>Then, from the repository root:</p>
+<p>Then, in the DiffuseCode folder, create a virtual environment and install the
+package into it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">".[plot]"</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">.[plot]</span></code> also installs matplotlib; use <code class="docutils literal notranslate"><span class="pre">.[test]</span></code> for what the tests need,
+<code class="docutils literal notranslate"><span class="pre">.[docs]</span></code> for the documentation tools. The build takes a few minutes. Set
+<code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_PARALLEL_LEVEL</span></code> to the number of CPU cores to make it faster,
+for example <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_PARALLEL_LEVEL=4</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&quot;.[plot]&quot;</span></code>.</p>
+<p>Check that it works:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>python/examples/powder_demo.py
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Always install into a virtual environment (or a conda environment). A NumPy
+installed with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--user</span></code> next to the system’s NumPy is what broke
+the f2py step on Ubuntu 22.04 before.</p>
+</div>
+</section>
+<section id="wsl2">
+<h2>WSL2<a class="headerlink" href="#wsl2" title="Link to this heading">#</a></h2>
+<p>WSL2 (Windows Subsystem for Linux) runs a real Linux, so the instructions
+above work unchanged in its Ubuntu. Ubuntu 22.04 with Python 3.10 is tested
+in CI. Three tips:</p>
+<ul class="simple">
+<li><p><strong>Work in the Linux file system</strong> (<code class="docutils literal notranslate"><span class="pre">~/...</span></code>), not under <code class="docutils literal notranslate"><span class="pre">/mnt/c/...</span></code>: files
+on the Windows side are much slower to read and write from Linux, and the
+build reads and writes many files.</p></li>
+<li><p><strong>No display is needed.</strong> The package has no graphics; matplotlib plots go
+to files, or to a window if your WSL2 has WSLg (Windows 11).</p></li>
+<li><p><strong>Jupyter:</strong> run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">jupyterlab</span></code> in the virtual environment and
+start <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">lab</span></code>; open the link it prints in your Windows browser.</p></li>
+</ul>
+</section>
+<section id="without-admin-rights-conda">
+<h2>Without admin rights (conda)<a class="headerlink" href="#without-admin-rights-conda" title="Link to this heading">#</a></h2>
+<p>Everything, including the compilers, can come from
+<a class="reference external" href="https://conda-forge.org">conda-forge</a>. Install
+<a class="reference external" href="https://github.com/conda-forge/miniforge">Miniforge</a> into your home folder
+(no admin rights needed), then, in the DiffuseCode folder:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>environment.yml
+conda<span class="w"> </span>activate<span class="w"> </span>diffuse
+pip<span class="w"> </span>install<span class="w"> </span>--no-build-isolation<span class="w"> </span>.
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">--no-build-isolation</span></code> makes pip build with the compilers and libraries of
+the conda environment. This works on Linux and on HPC clusters; it is tested
+in CI.</p>
+<p>On a cluster you can also use its environment modules instead (for example
+<code class="docutils literal notranslate"><span class="pre">module</span> <span class="pre">load</span> <span class="pre">gcc</span> <span class="pre">cmake</span> <span class="pre">hdf5</span> <span class="pre">fftw</span></code>), then follow the system-package route from
+<code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span></code> on.</p>
+</section>
+<section id="for-development-a-cmake-build-folder">
+<h2>For development: a CMake build folder<a class="headerlink" href="#for-development-a-cmake-build-folder" title="Link to this heading">#</a></h2>
+<p>To work on DiffuseCode itself, build with CMake directly and point Python at
+the build folder and the source:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span>-DDIFFUSE_PYTHON<span class="o">=</span>ON<span class="w"> </span>-DDIFFUSE_GRAPHICS<span class="o">=</span>OFF
 cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>-j
-</pre></div>
-</div>
-<p>This builds <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> and the Python module <code class="docutils literal notranslate"><span class="pre">build/python/suite_python*.so</span></code>.
-CMake finds the Fortran compiler itself; set <code class="docutils literal notranslate"><span class="pre">FC</span></code> (or
-<code class="docutils literal notranslate"><span class="pre">-DCMAKE_Fortran_COMPILER=...</span></code>) only to pick a different one.</p>
-</section>
-<section id="use">
-<h2>Use<a class="headerlink" href="#use" title="Link to this heading">#</a></h2>
-<p>Two settings tell Python where things are:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_PYTHON_PATH</span></code>: the folder with the compiled module (<code class="docutils literal notranslate"><span class="pre">build/python</span></code>).</p></li>
-<li><p>the <code class="docutils literal notranslate"><span class="pre">python/</span></code> folder of the repository on the Python path, for the
-<code class="docutils literal notranslate"><span class="pre">diffuse</span></code> package.</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DIFFUSE_PYTHON_PATH</span><span class="o">=</span><span class="nv">$PWD</span>/build/python
+<span class="nb">export</span><span class="w"> </span><span class="nv">DIFFUSE_PYTHON_PATH</span><span class="o">=</span><span class="nv">$PWD</span>/build/python
 <span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PWD</span>/python
-python3<span class="w"> </span>python/examples/powder_demo.py
 </pre></div>
 </div>
-<p>In a Jupyter notebook, set them before <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">diffuse</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;DIFFUSE_PYTHON_PATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/path/to/DiffuseCode/build/python&quot;</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;/path/to/DiffuseCode/python&quot;</span><span class="p">)</span>
-<span class="kn">import</span> <span class="nn">diffuse</span> <span class="k">as</span> <span class="nn">dc</span>
-</pre></div>
-</div>
+<p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_PYTHON_PATH</span></code> takes precedence over an installed package, so the
+tests (<code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">tests/python</span></code>) and the documentation then use the build folder
+and the source in <code class="docutils literal notranslate"><span class="pre">python/</span></code>. Leave out <code class="docutils literal notranslate"><span class="pre">-DDIFFUSE_GRAPHICS=OFF</span></code>, and install
+<code class="docutils literal notranslate"><span class="pre">libpng-dev</span> <span class="pre">libx11-dev</span> <span class="pre">pgplot5</span></code>, for the classic <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> with KUPLOT
+plots.</p>
 </section>
 <section id="how-it-works-and-its-limits">
 <h2>How it works, and its limits<a class="headerlink" href="#how-it-works-and-its-limits" title="Link to this heading">#</a></h2>
@@ -561,8 +607,10 @@ own error lines.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build">Build</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use">Use</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#with-system-packages-debian-ubuntu-wsl2">With system packages (Debian, Ubuntu, WSL2)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wsl2">WSL2</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#without-admin-rights-conda">Without admin rights (conda)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#for-development-a-cmake-build-folder">For development: a CMake build folder</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-it-works-and-its-limits">How it works, and its limits</a></li>
 </ul>
   </nav></div>

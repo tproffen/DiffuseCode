@@ -29,7 +29,7 @@
   <link href="_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 <link href="_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -483,8 +483,8 @@ file is read as it is.</p></li>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">diffuse</span> <span class="k">as</span> <span class="nn">dc</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cr</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">read_structure</span><span class="p">(</span><span class="s2">&quot;anatase.cif&quot;</span><span class="p">,</span> <span class="n">supercell</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">diffuse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cr</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">read_structure</span><span class="p">(</span><span class="s2">"anatase.cif"</span><span class="p">,</span> <span class="n">supercell</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cr</span><span class="o">.</span><span class="n">natoms</span>
 <span class="go">4800</span>
 </pre></div>
@@ -637,7 +637,7 @@ grid, for periodic crystals.</p></li>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">powder</span><span class="p">(</span><span class="n">cr</span><span class="p">,</span> <span class="n">qmin</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">qmax</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dq</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="n">radiation</span><span class="o">=</span><span class="s2">&quot;neutron&quot;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">powder</span><span class="p">(</span><span class="n">cr</span><span class="p">,</span> <span class="n">qmin</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">qmax</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dq</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="n">radiation</span><span class="o">=</span><span class="s2">"neutron"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>

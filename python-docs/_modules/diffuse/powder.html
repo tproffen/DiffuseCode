@@ -28,7 +28,7 @@
   <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -435,26 +435,26 @@
                 <article class="bd-article">
                   
   <h1>Source code for diffuse.powder</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Powder diffraction patterns.&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""Powder diffraction patterns."""</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">._session</span> <span class="kn">import</span> <span class="n">session</span>
-<span class="kn">from</span> <span class="nn">.crystal</span> <span class="kn">import</span> <span class="n">Crystal</span><span class="p">,</span> <span class="n">_ensure_loaded</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._session</span><span class="w"> </span><span class="kn">import</span> <span class="n">session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.crystal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Crystal</span><span class="p">,</span> <span class="n">_ensure_loaded</span>
 
-<span class="n">_RADIATION</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;xray&quot;</span><span class="p">:</span> <span class="s2">&quot;xray&quot;</span><span class="p">,</span> <span class="s2">&quot;x-ray&quot;</span><span class="p">:</span> <span class="s2">&quot;xray&quot;</span><span class="p">,</span> <span class="s2">&quot;neutron&quot;</span><span class="p">:</span> <span class="s2">&quot;neutron&quot;</span><span class="p">,</span> <span class="s2">&quot;electron&quot;</span><span class="p">:</span> <span class="s2">&quot;electron&quot;</span><span class="p">}</span>
-<span class="n">_METHOD</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;debye&quot;</span><span class="p">:</span> <span class="s2">&quot;debye&quot;</span><span class="p">,</span> <span class="s2">&quot;complete&quot;</span><span class="p">:</span> <span class="s2">&quot;compl&quot;</span><span class="p">}</span>
+<span class="n">_RADIATION</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"xray"</span><span class="p">:</span> <span class="s2">"xray"</span><span class="p">,</span> <span class="s2">"x-ray"</span><span class="p">:</span> <span class="s2">"xray"</span><span class="p">,</span> <span class="s2">"neutron"</span><span class="p">:</span> <span class="s2">"neutron"</span><span class="p">,</span> <span class="s2">"electron"</span><span class="p">:</span> <span class="s2">"electron"</span><span class="p">}</span>
+<span class="n">_METHOD</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"debye"</span><span class="p">:</span> <span class="s2">"debye"</span><span class="p">,</span> <span class="s2">"complete"</span><span class="p">:</span> <span class="s2">"compl"</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="PowderPattern">
 <a class="viewcode-back" href="../../api.html#diffuse.PowderPattern">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">PowderPattern</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A calculated powder pattern on an evenly spaced Q grid. See :func:`powder`.</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PowderPattern</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A calculated powder pattern on an evenly spaced Q grid. See :func:`powder`.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -466,7 +466,7 @@
 <span class="sd">        The arguments the pattern was calculated with.</span>
 <span class="sd">    crystal : Crystal or None</span>
 <span class="sd">        The structure it was calculated for.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">q</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>                   <span class="c1"># Å^-1</span>
     <span class="n">intensity</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
@@ -475,28 +475,28 @@
 
 <div class="viewcode-block" id="PowderPattern.two_theta">
 <a class="viewcode-back" href="../../api.html#diffuse.PowderPattern.two_theta">[docs]</a>
-    <span class="k">def</span> <span class="nf">two_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavelength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Scattering angle 2θ in degrees.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">two_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavelength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Scattering angle 2θ in degrees.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wavelength : float, optional</span>
 <span class="sd">            Wavelength in Å. Default: the one the pattern was calculated with.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">lam</span> <span class="o">=</span> <span class="n">wavelength</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;wavelength&quot;</span><span class="p">]</span>
+<span class="sd">        """</span>
+        <span class="n">lam</span> <span class="o">=</span> <span class="n">wavelength</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s2">"wavelength"</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">*</span> <span class="n">lam</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span></div>
 
 
 <div class="viewcode-block" id="PowderPattern.plot">
 <a class="viewcode-back" href="../../api.html#diffuse.PowderPattern.plot">[docs]</a>
-    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the pattern with matplotlib.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"q"</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Plot the pattern with matplotlib.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        ax : matplotlib.axes.Axes, optional</span>
 <span class="sd">            Axes to draw into. Default: a new figure.</span>
-<span class="sd">        x : {&quot;q&quot;, &quot;tth&quot;}</span>
+<span class="sd">        x : {"q", "tth"}</span>
 <span class="sd">            Plot against Q or against 2θ.</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Passed on to :meth:`matplotlib.axes.Axes.plot`.</span>
@@ -504,22 +504,22 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        matplotlib.axes.Axes</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="sd">        """</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
         <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;q&quot;</span><span class="p">:</span>
-            <span class="n">xs</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$Q$ (Å$^{-1}$)&quot;</span>
-        <span class="k">elif</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;tth&quot;</span><span class="p">:</span>
-            <span class="n">xs</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">two_theta</span><span class="p">(),</span> <span class="sa">r</span><span class="s2">&quot;$2\theta$ (°)&quot;</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;,  λ = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;wavelength&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> Å&quot;</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">"q"</span><span class="p">:</span>
+            <span class="n">xs</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="sa">r</span><span class="s2">"$Q$ (Å$^{-1}$)"</span>
+        <span class="k">elif</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">"tth"</span><span class="p">:</span>
+            <span class="n">xs</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">two_theta</span><span class="p">(),</span> <span class="sa">r</span><span class="s2">"$2\theta$ (°)"</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">",  λ = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">'wavelength'</span><span class="p">]</span><span class="si">}</span><span class="s2"> Å"</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;x must be &#39;q&#39; or &#39;tth&#39;&quot;</span><span class="p">)</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">crystal</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"x must be 'q' or 'tth'"</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"lw"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"label"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">crystal</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">intensity</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Intensity (arb. units)&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Intensity (arb. units)"</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">ax</span></div>
 </div>
@@ -528,10 +528,10 @@
 
 <div class="viewcode-block" id="powder">
 <a class="viewcode-back" href="../../api.html#diffuse.powder">[docs]</a>
-<span class="k">def</span> <span class="nf">powder</span><span class="p">(</span><span class="n">crystal</span><span class="p">:</span> <span class="n">Crystal</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">qmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">qmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">dq</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.005</span><span class="p">,</span>
-           <span class="n">radiation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;xray&quot;</span><span class="p">,</span> <span class="n">wavelength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;debye&quot;</span><span class="p">,</span>
-           <span class="n">temperature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">lp_correction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PowderPattern</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the powder pattern of a crystal with DISCUS.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">powder</span><span class="p">(</span><span class="n">crystal</span><span class="p">:</span> <span class="n">Crystal</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">qmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">qmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">dq</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.005</span><span class="p">,</span>
+           <span class="n">radiation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"xray"</span><span class="p">,</span> <span class="n">wavelength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"debye"</span><span class="p">,</span>
+           <span class="n">temperature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">lp_correction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"none"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PowderPattern</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Calculate the powder pattern of a crystal with DISCUS.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -539,18 +539,18 @@
 <span class="sd">        The structure, from :func:`read_structure`.</span>
 <span class="sd">    qmin, qmax, dq : float</span>
 <span class="sd">        Q range and step in Å⁻¹.</span>
-<span class="sd">    radiation : {&quot;xray&quot;, &quot;neutron&quot;, &quot;electron&quot;}</span>
+<span class="sd">    radiation : {"xray", "neutron", "electron"}</span>
 <span class="sd">        Radiation type; selects the atomic form factors or scattering lengths.</span>
 <span class="sd">    wavelength : float</span>
 <span class="sd">        Wavelength in Å, used for the Lorentz-polarisation factor and for</span>
 <span class="sd">        :meth:`PowderPattern.two_theta`.</span>
-<span class="sd">    method : {&quot;debye&quot;, &quot;complete&quot;}</span>
-<span class="sd">        ``&quot;debye&quot;``: Debye equation, for any structure, including finite</span>
-<span class="sd">        particles. ``&quot;complete&quot;``: Fourier transform on a reciprocal-space</span>
+<span class="sd">    method : {"debye", "complete"}</span>
+<span class="sd">        ``"debye"``: Debye equation, for any structure, including finite</span>
+<span class="sd">        particles. ``"complete"``: Fourier transform on a reciprocal-space</span>
 <span class="sd">        grid, for periodic crystals.</span>
 <span class="sd">    temperature : bool</span>
 <span class="sd">        Apply the atomic displacement parameters.</span>
-<span class="sd">    lp_correction : {&quot;none&quot;, &quot;bragg&quot;, &quot;neutron&quot;}</span>
+<span class="sd">    lp_correction : {"none", "bragg", "neutron"}</span>
 <span class="sd">        Lorentz-polarisation correction.</span>
 
 <span class="sd">    Returns</span>
@@ -566,23 +566,23 @@
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; p = dc.powder(cr, qmin=0.5, qmax=10, dq=0.005, radiation=&quot;neutron&quot;)  # doctest: +SKIP</span>
+<span class="sd">    &gt;&gt;&gt; p = dc.powder(cr, qmin=0.5, qmax=10, dq=0.005, radiation="neutron")  # doctest: +SKIP</span>
 <span class="sd">    &gt;&gt;&gt; p.plot()  # doctest: +SKIP</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">rad</span> <span class="o">=</span> <span class="n">_RADIATION</span><span class="p">[</span><span class="n">radiation</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
         <span class="n">calc</span> <span class="o">=</span> <span class="n">_METHOD</span><span class="p">[</span><span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
     <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown option </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">; radiation: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">_RADIATION</span><span class="p">))</span><span class="si">}</span><span class="s2">, &quot;</span>
-                         <span class="sa">f</span><span class="s2">&quot;method: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_METHOD</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown option </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">; radiation: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">_RADIATION</span><span class="p">))</span><span class="si">}</span><span class="s2">, "</span>
+                         <span class="sa">f</span><span class="s2">"method: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_METHOD</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">qmin</span> <span class="o">&lt;</span> <span class="n">qmax</span> <span class="ow">or</span> <span class="n">dq</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;need 0 &lt; qmin &lt; qmax and dq &gt; 0&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"need 0 &lt; qmin &lt; qmax and dq &gt; 0"</span><span class="p">)</span>
 
     <span class="n">_ensure_loaded</span><span class="p">(</span><span class="n">crystal</span><span class="p">)</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">session</span><span class="p">()</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">workdir</span> <span class="o">/</span> <span class="s2">&quot;powder.dat&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">workdir</span> <span class="o">/</span> <span class="s2">"powder.dat"</span>
     <span class="n">out</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""</span>
 <span class="s2">discus</span>
 <span class="s2">  powder</span>
 <span class="s2">    reset</span>
@@ -595,7 +595,7 @@
 <span class="s2">    set qmax, </span><span class="si">{</span><span class="n">qmax</span><span class="si">}</span>
 <span class="s2">    set dq, </span><span class="si">{</span><span class="n">dq</span><span class="si">}</span>
 <span class="s2">    set profile, off</span>
-<span class="s2">    set temp, </span><span class="si">{</span><span class="s2">&quot;use&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">temperature</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;ignore&quot;</span><span class="si">}</span>
+<span class="s2">    set temp, </span><span class="si">{</span><span class="s2">"use"</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">temperature</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">"ignore"</span><span class="si">}</span>
 <span class="s2">    set wvle, </span><span class="si">{</span><span class="n">wavelength</span><span class="si">}</span>
 <span class="s2">    set four, four</span>
 <span class="s2">    set lpcor, </span><span class="si">{</span><span class="n">lp_correction</span><span class="si">}</span>
@@ -608,8 +608,8 @@
 <span class="s2">    run</span>
 <span class="s2">  exit</span>
 <span class="s2">exit</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">comments</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="s2">"""</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">comments</span><span class="o">=</span><span class="s2">"#"</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">settings</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">qmin</span><span class="o">=</span><span class="n">qmin</span><span class="p">,</span> <span class="n">qmax</span><span class="o">=</span><span class="n">qmax</span><span class="p">,</span> <span class="n">dq</span><span class="o">=</span><span class="n">dq</span><span class="p">,</span> <span class="n">radiation</span><span class="o">=</span><span class="n">rad</span><span class="p">,</span> <span class="n">wavelength</span><span class="o">=</span><span class="n">wavelength</span><span class="p">,</span>
                     <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span> <span class="n">lp_correction</span><span class="o">=</span><span class="n">lp_correction</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">PowderPattern</span><span class="p">(</span><span class="n">q</span><span class="o">=</span><span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">intensity</span><span class="o">=</span><span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span> <span class="n">crystal</span><span class="o">=</span><span class="n">crystal</span><span class="p">)</span></div>

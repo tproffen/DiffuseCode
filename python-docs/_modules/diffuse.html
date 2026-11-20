@@ -28,7 +28,7 @@
   <link href="../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -432,37 +432,37 @@
                 <article class="bd-article">
                   
   <h1>Source code for diffuse</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;DiffuseCode from Python (early demo API).</span>
+<span></span><span class="sd">"""DiffuseCode from Python (early demo API).</span>
 
 <span class="sd">    import diffuse as dc</span>
 
-<span class="sd">    cr = dc.read_structure(&quot;anatase.cif&quot;, supercell=(6, 6, 3))</span>
-<span class="sd">    p = dc.powder(cr, qmin=0.5, qmax=10, dq=0.005, radiation=&quot;xray&quot;)</span>
+<span class="sd">    cr = dc.read_structure("anatase.cif", supercell=(6, 6, 3))</span>
+<span class="sd">    p = dc.powder(cr, qmin=0.5, qmax=10, dq=0.005, radiation="xray")</span>
 <span class="sd">    p.plot()</span>
 
 <span class="sd">This first version drives DISCUS through the f2py module ``suite_python``</span>
 <span class="sd">(build with ``-DDIFFUSE_PYTHON=ON`` and set ``DIFFUSE_PYTHON_PATH`` to</span>
 <span class="sd">``&lt;build&gt;/python``). DISCUS holds one structure at a time, in this process.</span>
 <span class="sd">See migration/DiffuseCode_Python_Migration_Plan.md for where this is going.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
-<span class="kn">from</span> <span class="nn">._session</span> <span class="kn">import</span> <span class="n">DiffuseError</span><span class="p">,</span> <span class="n">MacroError</span><span class="p">,</span> <span class="n">Session</span><span class="p">,</span> <span class="n">session</span>
-<span class="kn">from</span> <span class="nn">.crystal</span> <span class="kn">import</span> <span class="n">Crystal</span><span class="p">,</span> <span class="n">read_structure</span>
-<span class="kn">from</span> <span class="nn">.fourier</span> <span class="kn">import</span> <span class="n">FourierMap</span><span class="p">,</span> <span class="n">fourier</span>
-<span class="kn">from</span> <span class="nn">.pdf</span> <span class="kn">import</span> <span class="n">PDFPattern</span><span class="p">,</span> <span class="n">pdf</span>
-<span class="kn">from</span> <span class="nn">.powder</span> <span class="kn">import</span> <span class="n">PowderPattern</span><span class="p">,</span> <span class="n">powder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._session</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiffuseError</span><span class="p">,</span> <span class="n">MacroError</span><span class="p">,</span> <span class="n">Session</span><span class="p">,</span> <span class="n">session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.crystal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Crystal</span><span class="p">,</span> <span class="n">read_structure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.fourier</span><span class="w"> </span><span class="kn">import</span> <span class="n">FourierMap</span><span class="p">,</span> <span class="n">fourier</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.pdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDFPattern</span><span class="p">,</span> <span class="n">pdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.powder</span><span class="w"> </span><span class="kn">import</span> <span class="n">PowderPattern</span><span class="p">,</span> <span class="n">powder</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;Crystal&quot;</span><span class="p">,</span> <span class="s2">&quot;DiffuseError&quot;</span><span class="p">,</span> <span class="s2">&quot;FourierMap&quot;</span><span class="p">,</span> <span class="s2">&quot;MacroError&quot;</span><span class="p">,</span> <span class="s2">&quot;PDFPattern&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;PowderPattern&quot;</span><span class="p">,</span> <span class="s2">&quot;Session&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fourier&quot;</span><span class="p">,</span> <span class="s2">&quot;pdf&quot;</span><span class="p">,</span> <span class="s2">&quot;powder&quot;</span><span class="p">,</span> <span class="s2">&quot;read_structure&quot;</span><span class="p">,</span> <span class="s2">&quot;run_macro&quot;</span><span class="p">,</span> <span class="s2">&quot;session&quot;</span><span class="p">,</span>
+    <span class="s2">"Crystal"</span><span class="p">,</span> <span class="s2">"DiffuseError"</span><span class="p">,</span> <span class="s2">"FourierMap"</span><span class="p">,</span> <span class="s2">"MacroError"</span><span class="p">,</span> <span class="s2">"PDFPattern"</span><span class="p">,</span>
+    <span class="s2">"PowderPattern"</span><span class="p">,</span> <span class="s2">"Session"</span><span class="p">,</span>
+    <span class="s2">"fourier"</span><span class="p">,</span> <span class="s2">"pdf"</span><span class="p">,</span> <span class="s2">"powder"</span><span class="p">,</span> <span class="s2">"read_structure"</span><span class="p">,</span> <span class="s2">"run_macro"</span><span class="p">,</span> <span class="s2">"session"</span><span class="p">,</span>
 <span class="p">]</span>
 
 
 <div class="viewcode-block" id="run_macro">
 <a class="viewcode-back" href="../api.html#diffuse.run_macro">[docs]</a>
-<span class="k">def</span> <span class="nf">run_macro</span><span class="p">(</span><span class="n">commands</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run DISCUS macro text (escape hatch for commands not wrapped yet).&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_macro</span><span class="p">(</span><span class="n">commands</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Run DISCUS macro text (escape hatch for commands not wrapped yet)."""</span>
     <span class="k">return</span> <span class="n">session</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="n">cwd</span><span class="p">)</span></div>
 
 </pre></div>

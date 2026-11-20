@@ -29,7 +29,7 @@
   <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -744,7 +744,7 @@
   implicit none
 contains
   integer(c_int) function dc_set_atoms(n, pos, iscat, prop, surf) &amp;
-       bind(C, name=&quot;dc_set_atoms&quot;)
+       bind(C, name="dc_set_atoms")
     integer(c_int), value         :: n
     real(c_double), intent(in)    :: pos(3, n)     ! fractional coordinates
     integer(c_int), intent(in)    :: iscat(n), prop(n), surf(n)
@@ -798,24 +798,24 @@ end module
 <span id="75-target-python-api-sketch"></span><h3>7.5 Target Python API (sketch)<a class="headerlink" href="#target-python-api-sketch" title="Link to this heading">#</a></h3>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>import diffuse as dc
 
-cr = dc.io.read_cif(&quot;PbTiO3.cif&quot;)                 # or dc.io.read_stru(&quot;old.stru&quot;)
+cr = dc.io.read_cif("PbTiO3.cif")                 # or dc.io.read_stru("old.stru")
 sc = cr.expand(supercell=(20, 20, 20))            # space-group expansion + supercell
 
 rng = dc.Random(seed=42)
-sc = dc.defects.replace(sc, &quot;Ti&quot;, &quot;Zr&quot;, fraction=0.1, rng=rng)
-sc = dc.mc.mmc(sc, targets=[dc.mc.Correlation(&quot;Ti&quot;, &quot;Zr&quot;, neighbour=1, value=-0.3)],
+sc = dc.defects.replace(sc, "Ti", "Zr", fraction=0.1, rng=rng)
+sc = dc.mc.mmc(sc, targets=[dc.mc.Correlation("Ti", "Zr", neighbour=1, value=-0.3)],
                cycles=50, rng=rng)
 
-f = dc.scattering.single_crystal(sc, radiation=&quot;xray&quot;, wavelength=0.71,
+f = dc.scattering.single_crystal(sc, radiation="xray", wavelength=0.71,
                                  plane=dc.Plane(corner=(-5,-5,0), right=(5,-5,0),
                                                 top=(-5,5,0), npoints=(401,401)))
 f.intensity.plot()                                # xarray.DataArray with hkl coordinates
 
-p = dc.scattering.powder(sc, qmin=0.5, qmax=25, dq=0.01, method=&quot;debye&quot;)
+p = dc.scattering.powder(sc, qmin=0.5, qmax=25, dq=0.01, method="debye")
 g = dc.scattering.pdf(sc, rmax=30, dr=0.01)
 
 fit = dc.refine.differential_evolution(model=my_model, data=obs,
-                                       params={&quot;frac&quot;: (0.0, 0.3)}, workers=8)
+                                       params={"frac": (0.0, 0.3)}, workers=8)
 </pre></div>
 </div>
 <p>The results are <code class="docutils literal notranslate"><span class="pre">xarray</span></code> objects with coordinates and metadata, and they can be saved straight to HDF5/NeXus.</p>
@@ -843,7 +843,14 @@ fit = dc.refine.differential_evolution(model=my_model, data=obs,
 <li><p><strong>A conda-forge package</strong>, which can also ship <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> (see the distribution decision in 7.12).</p></li>
 <li><p><strong>Document the other routes:</strong> HPC environment modules (<code class="docutils literal notranslate"><span class="pre">module</span> <span class="pre">load</span> <span class="pre">gcc</span> <span class="pre">hdf5</span> <span class="pre">fftw</span> <span class="pre">cmake</span></code>) or Spack, which builds the dependencies in the user’s home directory; and a container image (Apptainer/Singularity on clusters, rootless Podman on desktops) for courses and workshops. Building FFTW and HDF5 from source into <code class="docutils literal notranslate"><span class="pre">~/.local</span></code> works but is not a route to recommend.</p></li>
 </ol>
+<p><strong>Progress (Nov 2026):</strong> <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> works (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> with scikit-build-core, graphics off, the module installed inside the <code class="docutils literal notranslate"><span class="pre">diffuse</span></code> package); <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> gives a conda-forge-only environment; CI builds and tests the installed package on Ubuntu 24.04, on Ubuntu 22.04 with Python 3.10 (WSL2) and in conda; <code class="docutils literal notranslate"><span class="pre">docs/install.md</span></code> covers all three routes. Still open: wheels (cibuildwheel, portable compiler flags instead of <code class="docutils literal notranslate"><span class="pre">-march=native</span></code>, bundled FFTW/HDF5), Ninja support (the libraries need <code class="docutils literal notranslate"><span class="pre">target_link_libraries</span></code> instead of <code class="docutils literal notranslate"><span class="pre">add_dependencies</span></code> for Fortran modules), optional readline, and the package name.</p>
 <p>Also make <strong>readline optional</strong> for the Python build: it is only used by the interactive <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> prompt, but CMake currently requires it for every build.</p>
+<p><strong>WSL2 is a target platform from the start</strong> (the main development environment). WSL2 runs a real Linux kernel, so Linux wheels, conda for Linux and the CMake build work unchanged; what matters is testing the configuration found there:</p>
+<ul class="simple">
+<li><p>CI also runs on <strong>Ubuntu 22.04 with Python 3.10</strong> (the WSL2 default), next to the 24.04 jobs.</p></li>
+<li><p>All instructions install into a <strong>virtual environment</strong> (<code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span></code>), so a NumPy installed with pip does not mix with Ubuntu’s (the cause of the f2py <code class="docutils literal notranslate"><span class="pre">StopIteration</span></code> build failure, fixed in <code class="docutils literal notranslate"><span class="pre">cmake/FindF2PY.cmake</span></code>).</p></li>
+<li><p>The install docs get a <strong>WSL2 section</strong>: build in the Linux file system (<code class="docutils literal notranslate"><span class="pre">~/...</span></code>), not under <code class="docutils literal notranslate"><span class="pre">/mnt/c</span></code>, which is much slower; no display needed with <code class="docutils literal notranslate"><span class="pre">-DDIFFUSE_GRAPHICS=OFF</span></code>; how wheels and conda fit in.</p></li>
+</ul>
 </section>
 <section id="wp2-core-infrastructure">
 <span id="wp2--core-infrastructure"></span><h3>WP2 · Core infrastructure<a class="headerlink" href="#wp2-core-infrastructure" title="Link to this heading">#</a></h3>
@@ -1041,7 +1048,7 @@ fit = dc.refine.differential_evolution(model=my_model, data=obs,
 <ul class="simple">
 <li><p><strong>Binding technology:</strong> <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> + nanobind (recommended: cleaner arrays, exceptions and GIL control) or f2py (already used by <code class="docutils literal notranslate"><span class="pre">suite_python</span></code>, less code at first, weaker for complex interfaces).</p></li>
 <li><p><strong>Distribution:</strong> PyPI wheels, conda-forge, or both. Users without admin rights need at least one of them; until then, a conda environment for building from source (WP1).</p></li>
-<li><p><strong>Supported platforms and compilers</strong> for official builds. Is Windows native, or WSL only?</p></li>
+<li><p><strong>Supported platforms and compilers</strong> for official builds. Is Windows native, or WSL only? (WSL2 with Ubuntu is supported from WP1 on.)</p></li>
 <li><p><strong>Backward-compatibility promise</strong> for macros and file formats, and how long <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> is maintained.</p></li>
 <li><p><strong>Data formats:</strong> NeXus/HDF5 as the standard result format, and which version of the DISCUS structure format to keep.</p></li>
 <li><p><strong>Web goals:</strong> local single-user app, shared group server or public service. This decides how much work goes into authentication, quotas and job management in WP10.</p></li>

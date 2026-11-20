@@ -29,7 +29,7 @@
   <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -720,7 +720,7 @@ can compare against.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tests</span><span class="o">/</span>                       <span class="c1"># existing macro tests stay where they are</span>
   <span class="n">check</span><span class="o">.</span><span class="n">mac</span>                  <span class="c1"># [done] batch mode writes PASS/FAIL to a result file</span>
   <span class="n">test_all</span><span class="o">.</span><span class="n">mac</span>               <span class="c1"># kept for interactive use (unchanged)</span>
-  <span class="n">manifest</span><span class="o">.</span><span class="n">toml</span>              <span class="c1"># [done] list of tests (TOML: read by Python&#39;s standard library)</span>
+  <span class="n">manifest</span><span class="o">.</span><span class="n">toml</span>              <span class="c1"># [done] list of tests (TOML: read by Python's standard library)</span>
   <span class="n">README</span><span class="o">.</span><span class="n">md</span>                  <span class="c1"># [done] how to run the tests</span>
   <span class="n">golden</span><span class="o">/</span>                    <span class="c1"># 0.6: [started] reference outputs, one folder per test id</span>
   <span class="n">python</span><span class="o">/</span>                    <span class="c1"># pytest harness</span>
@@ -851,7 +851,7 @@ or release asset?</p></li>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>../DiffuseBuild<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>../DiffuseBuild<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
 <span class="nv">FC</span><span class="o">=</span><span class="k">$(</span>which<span class="w"> </span>gfortran<span class="k">)</span><span class="w"> </span>cmake<span class="w"> </span>../DiffuseCode<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span>-DPGPLOT_DIR<span class="o">=</span>/usr/lib/pgplot5<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-make<span class="w"> </span>-j<span class="s2">&quot;</span><span class="k">$(</span>nproc<span class="k">)</span><span class="s2">&quot;</span>
+make<span class="w"> </span>-j<span class="s2">"</span><span class="k">$(</span>nproc<span class="k">)</span><span class="s2">"</span>
 </pre></div>
 </div>
 <p>Unattended, with per-test results (from the <code class="docutils literal notranslate"><span class="pre">DiffuseCode</span></code> folder; the runner
@@ -862,7 +862,7 @@ copies each test, so <code class="docutils literal notranslate"><span class="pre
 <p>Or the classic way, on a copy because the macros write output files into
 <code class="docutils literal notranslate"><span class="pre">tests/</span></code>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>-r<span class="w"> </span>tests<span class="w"> </span>/tmp/dc_tests<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/tmp/dc_tests<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-<span class="nv">PGPLOT_DIR</span><span class="o">=</span>/usr/lib/pgplot5<span class="w"> </span>xvfb-run<span class="w"> </span>-a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$OLDPWD</span><span class="s2">/../DiffuseBuild/suite/prog/discus_suite&quot;</span><span class="w"> </span>-macro<span class="w"> </span>test_all.mac<span class="w"> </span>&lt;<span class="w"> </span>/dev/null
+<span class="nv">PGPLOT_DIR</span><span class="o">=</span>/usr/lib/pgplot5<span class="w"> </span>xvfb-run<span class="w"> </span>-a<span class="w"> </span><span class="s2">"</span><span class="nv">$OLDPWD</span><span class="s2">/../DiffuseBuild/suite/prog/discus_suite"</span><span class="w"> </span>-macro<span class="w"> </span>test_all.mac<span class="w"> </span>&lt;<span class="w"> </span>/dev/null
 </pre></div>
 </div>
 </section>

@@ -28,7 +28,7 @@
   <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -435,26 +435,26 @@
                 <article class="bd-article">
                   
   <h1>Source code for diffuse.fourier</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Single-crystal diffraction: intensities on a line or plane in reciprocal space.&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""Single-crystal diffraction: intensities on a line or plane in reciprocal space."""</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">._session</span> <span class="kn">import</span> <span class="n">session</span>
-<span class="kn">from</span> <span class="nn">.crystal</span> <span class="kn">import</span> <span class="n">Crystal</span><span class="p">,</span> <span class="n">_ensure_loaded</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._session</span><span class="w"> </span><span class="kn">import</span> <span class="n">session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.crystal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Crystal</span><span class="p">,</span> <span class="n">_ensure_loaded</span>
 
-<span class="n">_RADIATION</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;xray&quot;</span><span class="p">:</span> <span class="s2">&quot;xray&quot;</span><span class="p">,</span> <span class="s2">&quot;x-ray&quot;</span><span class="p">:</span> <span class="s2">&quot;xray&quot;</span><span class="p">,</span> <span class="s2">&quot;neutron&quot;</span><span class="p">:</span> <span class="s2">&quot;neutron&quot;</span><span class="p">,</span> <span class="s2">&quot;electron&quot;</span><span class="p">:</span> <span class="s2">&quot;electron&quot;</span><span class="p">}</span>
-<span class="n">_HKL</span> <span class="o">=</span> <span class="s2">&quot;hkl&quot;</span>
+<span class="n">_RADIATION</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"xray"</span><span class="p">:</span> <span class="s2">"xray"</span><span class="p">,</span> <span class="s2">"x-ray"</span><span class="p">:</span> <span class="s2">"xray"</span><span class="p">,</span> <span class="s2">"neutron"</span><span class="p">:</span> <span class="s2">"neutron"</span><span class="p">,</span> <span class="s2">"electron"</span><span class="p">:</span> <span class="s2">"electron"</span><span class="p">}</span>
+<span class="n">_HKL</span> <span class="o">=</span> <span class="s2">"hkl"</span>
 
 
 <div class="viewcode-block" id="FourierMap">
 <a class="viewcode-back" href="../../api.html#diffuse.FourierMap">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">FourierMap</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Intensities on a line or plane in reciprocal space. See :func:`fourier`.</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FourierMap</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Intensities on a line or plane in reciprocal space. See :func:`fourier`.</span>
 
 <span class="sd">    The points are ``ll + i/(na-1) * (lr - ll) + j/(no-1) * (ul - ll)`` for</span>
 <span class="sd">    ``i &lt; na`` along the abscissa and ``j &lt; no`` along the ordinate.</span>
@@ -475,7 +475,7 @@
 <span class="sd">        The arguments the map was calculated with.</span>
 <span class="sd">    crystal : Crystal or None</span>
 <span class="sd">        The structure it was calculated for.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">intensity</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
     <span class="n">ll</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
@@ -489,20 +489,20 @@
     <span class="n">crystal</span><span class="p">:</span> <span class="n">Crystal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">is_line</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;True for a 1-D line, False for a 2-D plane.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_line</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""True for a 1-D line, False for a 2-D plane."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">intensity</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
 
 <div class="viewcode-block" id="FourierMap.hkl">
 <a class="viewcode-back" href="../../api.html#diffuse.FourierMap.hkl">[docs]</a>
-    <span class="k">def</span> <span class="nf">hkl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reciprocal-space coordinates (h, k, l) of every point.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hkl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Reciprocal-space coordinates (h, k, l) of every point.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        numpy.ndarray</span>
 <span class="sd">            Shape ``(na, 3)`` for a line, ``(na, no, 3)`` for a plane.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">na</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">intensity</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">na</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_line</span><span class="p">:</span>
@@ -515,9 +515,9 @@
 
 <div class="viewcode-block" id="FourierMap.plot">
 <a class="viewcode-back" href="../../api.html#diffuse.FourierMap.plot">[docs]</a>
-    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dynamic_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e5</span><span class="p">,</span>
-             <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;viridis&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the map (image) or line with matplotlib.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dynamic_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e5</span><span class="p">,</span>
+             <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"viridis"</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Plot the map (image) or line with matplotlib.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -538,20 +538,20 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        matplotlib.axes.Axes</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">LogNorm</span>
+<span class="sd">        """</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogNorm</span>
 
         <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_line</span> <span class="k">else</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_line</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"lw"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">intensity</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_label</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Intensity (arb. units)&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Intensity (arb. units)"</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
                 <span class="n">top</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intensity</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">top</span> <span class="o">/</span> <span class="n">dynamic_range</span><span class="p">,</span> <span class="n">top</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">ax</span>
@@ -559,20 +559,20 @@
         <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
             <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_less_equal</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="n">top</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;norm&quot;</span><span class="p">,</span> <span class="n">LogNorm</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">top</span> <span class="o">/</span> <span class="n">dynamic_range</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">top</span><span class="p">))</span>
-        <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"norm"</span><span class="p">,</span> <span class="n">LogNorm</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">top</span> <span class="o">/</span> <span class="n">dynamic_range</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">top</span><span class="p">))</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">"lower"</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">,</span>
                        <span class="n">extent</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_label</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_label</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Intensity&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Intensity"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ax</span></div>
 </div>
 
 
 
-<span class="k">def</span> <span class="nf">_axis_index</span><span class="p">(</span><span class="n">vector</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">taken</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Miller index (0=h, 1=k, 2=l) that changes most along ``vector``.&quot;&quot;&quot;</span>
-    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vector</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;stable&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_axis_index</span><span class="p">(</span><span class="n">vector</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">taken</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Miller index (0=h, 1=k, 2=l) that changes most along ``vector``."""</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vector</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"stable"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">taken</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
@@ -581,10 +581,10 @@
 
 <div class="viewcode-block" id="fourier">
 <a class="viewcode-back" href="../../api.html#diffuse.fourier">[docs]</a>
-<span class="k">def</span> <span class="nf">fourier</span><span class="p">(</span><span class="n">crystal</span><span class="p">:</span> <span class="n">Crystal</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ll</span><span class="p">,</span> <span class="n">lr</span><span class="p">,</span> <span class="n">ul</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">npoints</span><span class="o">=</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span> <span class="mi">201</span><span class="p">),</span>
-            <span class="n">radiation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;xray&quot;</span><span class="p">,</span> <span class="n">wavelength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fourier</span><span class="p">(</span><span class="n">crystal</span><span class="p">:</span> <span class="n">Crystal</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ll</span><span class="p">,</span> <span class="n">lr</span><span class="p">,</span> <span class="n">ul</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">npoints</span><span class="o">=</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span> <span class="mi">201</span><span class="p">),</span>
+            <span class="n">radiation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"xray"</span><span class="p">,</span> <span class="n">wavelength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">temperature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">subtract_average</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FourierMap</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate single-crystal intensities on a line or plane with DISCUS.</span>
+<span class="w">    </span><span class="sd">"""Calculate single-crystal intensities on a line or plane with DISCUS.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -599,14 +599,14 @@
 <span class="sd">    npoints : int or (int, int)</span>
 <span class="sd">        Number of points along the abscissa and the ordinate (a plain int</span>
 <span class="sd">        for a line, or the same along both axes of a plane).</span>
-<span class="sd">    radiation : {&quot;xray&quot;, &quot;neutron&quot;, &quot;electron&quot;}</span>
+<span class="sd">    radiation : {"xray", "neutron", "electron"}</span>
 <span class="sd">        Radiation type; selects the atomic form factors or scattering lengths.</span>
 <span class="sd">    wavelength : float, optional</span>
-<span class="sd">        Wavelength in Å. Default: DISCUS&#39;s current setting.</span>
+<span class="sd">        Wavelength in Å. Default: DISCUS's current setting.</span>
 <span class="sd">    temperature : bool</span>
 <span class="sd">        Apply the atomic displacement parameters.</span>
 <span class="sd">    subtract_average : float</span>
-<span class="sd">        Percentage (0–100) of the average structure&#39;s scattering to subtract.</span>
+<span class="sd">        Percentage (0–100) of the average structure's scattering to subtract.</span>
 <span class="sd">        100 removes the Bragg peaks of the average structure and leaves the</span>
 <span class="sd">        diffuse scattering of a disordered crystal.</span>
 
@@ -628,40 +628,40 @@
 <span class="sd">    &gt;&gt;&gt; f = dc.fourier(cr, ll=(-3, -3, 0), lr=(3, -3, 0), ul=(-3, 3, 0),</span>
 <span class="sd">    ...                npoints=(301, 301))  # doctest: +SKIP</span>
 <span class="sd">    &gt;&gt;&gt; f.plot(log=True)  # doctest: +SKIP</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">rad</span> <span class="o">=</span> <span class="n">_RADIATION</span><span class="p">[</span><span class="n">radiation</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown radiation &#39;</span><span class="si">{</span><span class="n">radiation</span><span class="si">}</span><span class="s2">&#39;; use </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">_RADIATION</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown radiation '</span><span class="si">{</span><span class="n">radiation</span><span class="si">}</span><span class="s2">'; use </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">_RADIATION</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
     <span class="n">ll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">lr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">line</span> <span class="o">=</span> <span class="n">ul</span> <span class="ow">is</span> <span class="kc">None</span>
     <span class="n">ul</span> <span class="o">=</span> <span class="n">ll</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="n">line</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ul</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ll</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)</span> <span class="ow">or</span> <span class="n">lr</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)</span> <span class="ow">or</span> <span class="n">ul</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ll, lr and ul must each be three numbers (h, k, l)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"ll, lr and ul must each be three numbers (h, k, l)"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">lr</span><span class="p">,</span> <span class="n">ll</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">line</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">ul</span><span class="p">,</span> <span class="n">ll</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;lr (and ul for a plane) must differ from ll&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"lr (and ul for a plane) must differ from ll"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
         <span class="n">na</span><span class="p">,</span> <span class="n">no</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">npoints</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">npoints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">npoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">na</span><span class="p">,</span> <span class="n">no</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">npoints</span><span class="p">),)</span> <span class="o">*</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">npoints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">npoints</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">na</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">line</span> <span class="ow">and</span> <span class="n">no</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;need at least 2 points along each axis&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"need at least 2 points along each axis"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">subtract_average</span> <span class="o">&lt;=</span> <span class="mf">100.0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;subtract_average is a percentage, 0 to 100&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"subtract_average is a percentage, 0 to 100"</span><span class="p">)</span>
 
     <span class="n">ia</span> <span class="o">=</span> <span class="n">_axis_index</span><span class="p">(</span><span class="n">lr</span> <span class="o">-</span> <span class="n">ll</span><span class="p">)</span>
     <span class="n">io</span> <span class="o">=</span> <span class="n">_axis_index</span><span class="p">(</span><span class="n">ul</span> <span class="o">-</span> <span class="n">ll</span><span class="p">,</span> <span class="n">taken</span><span class="o">=</span><span class="n">ia</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span> <span class="k">else</span> <span class="p">(</span><span class="n">ia</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>
 
-    <span class="k">def</span> <span class="nf">vec</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vec</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">v</span><span class="p">)</span>
 
     <span class="n">_ensure_loaded</span><span class="p">(</span><span class="n">crystal</span><span class="p">)</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">session</span><span class="p">()</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">workdir</span> <span class="o">/</span> <span class="s2">&quot;fourier.inte&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">workdir</span> <span class="o">/</span> <span class="s2">"fourier.inte"</span>
     <span class="n">out</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">wvle</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">    wvle </span><span class="si">{</span><span class="n">wavelength</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">wavelength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+    <span class="n">wvle</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">    wvle </span><span class="si">{</span><span class="n">wavelength</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">wavelength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""</span>
 <span class="s2">discus</span>
 <span class="s2">  fourier</span>
 <span class="s2">    reset</span>
@@ -673,7 +673,7 @@
 <span class="s2">    no </span><span class="si">{</span><span class="n">no</span><span class="si">}</span>
 <span class="s2">    abs </span><span class="si">{</span><span class="n">_HKL</span><span class="p">[</span><span class="n">ia</span><span class="p">]</span><span class="si">}</span>
 <span class="s2">    ord </span><span class="si">{</span><span class="n">_HKL</span><span class="p">[</span><span class="n">io</span><span class="p">]</span><span class="si">}</span>
-<span class="s2">    temp </span><span class="si">{</span><span class="s2">&quot;use&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">temperature</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;ign&quot;</span><span class="si">}</span>
+<span class="s2">    temp </span><span class="si">{</span><span class="s2">"use"</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">temperature</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">"ign"</span><span class="si">}</span>
 <span class="s2">    disp off</span><span class="si">{</span><span class="n">wvle</span><span class="si">}</span>
 <span class="s2">    set aver, </span><span class="si">{</span><span class="n">subtract_average</span><span class="si">}</span>
 <span class="s2">    lots off</span>
@@ -688,9 +688,9 @@
 <span class="s2">exit</span>
 <span class="s2">kuplot</span>
 <span class="s2">  rese</span>
-<span class="s2">  load </span><span class="si">{</span><span class="s2">&quot;xy&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">line</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;ni&quot;</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">out</span><span class="o">.</span><span class="n">name</span><span class="si">}</span>
+<span class="s2">  load </span><span class="si">{</span><span class="s2">"xy"</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">line</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">"ni"</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">out</span><span class="o">.</span><span class="n">name</span><span class="si">}</span>
 <span class="s2">exit</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+<span class="s2">"""</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">inte</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -704,7 +704,7 @@
                     <span class="n">subtract_average</span><span class="o">=</span><span class="n">subtract_average</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">FourierMap</span><span class="p">(</span><span class="n">intensity</span><span class="o">=</span><span class="n">intensity</span><span class="p">,</span> <span class="n">ll</span><span class="o">=</span><span class="n">ll</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span> <span class="n">ul</span><span class="o">=</span><span class="n">ul</span><span class="p">,</span>
                       <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-                      <span class="n">x_label</span><span class="o">=</span><span class="n">_HKL</span><span class="p">[</span><span class="n">ia</span><span class="p">],</span> <span class="n">y_label</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">line</span> <span class="k">else</span> <span class="n">_HKL</span><span class="p">[</span><span class="n">io</span><span class="p">],</span>
+                      <span class="n">x_label</span><span class="o">=</span><span class="n">_HKL</span><span class="p">[</span><span class="n">ia</span><span class="p">],</span> <span class="n">y_label</span><span class="o">=</span><span class="s2">""</span> <span class="k">if</span> <span class="n">line</span> <span class="k">else</span> <span class="n">_HKL</span><span class="p">[</span><span class="n">io</span><span class="p">],</span>
                       <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span> <span class="n">crystal</span><span class="o">=</span><span class="n">crystal</span><span class="p">)</span></div>
 
 </pre></div>

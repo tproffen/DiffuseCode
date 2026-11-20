@@ -29,7 +29,7 @@
   <link href="_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 <link href="_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -421,10 +421,10 @@ commands so far, and the API may still change. It is built from the
 <p>The <code class="docutils literal notranslate"><span class="pre">diffuse</span></code> package runs <a class="reference external" href="https://github.com/tproffen/DiffuseCode">DISCUS</a>
 from Python. You read a structure, run a calculation, and get the results back
 as NumPy arrays, ready for matplotlib, SciPy or your own analysis.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">diffuse</span> <span class="k">as</span> <span class="nn">dc</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">diffuse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dc</span>
 
-<span class="n">cr</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">read_structure</span><span class="p">(</span><span class="s2">&quot;anatase.cif&quot;</span><span class="p">,</span> <span class="n">supercell</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">p</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">powder</span><span class="p">(</span><span class="n">cr</span><span class="p">,</span> <span class="n">qmin</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">qmax</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dq</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="n">radiation</span><span class="o">=</span><span class="s2">&quot;xray&quot;</span><span class="p">)</span>
+<span class="n">cr</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">read_structure</span><span class="p">(</span><span class="s2">"anatase.cif"</span><span class="p">,</span> <span class="n">supercell</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">powder</span><span class="p">(</span><span class="n">cr</span><span class="p">,</span> <span class="n">qmin</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">qmax</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dq</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="n">radiation</span><span class="o">=</span><span class="s2">"xray"</span><span class="p">)</span>
 <span class="n">p</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 
 <span class="n">f</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">fourier</span><span class="p">(</span><span class="n">cr</span><span class="p">,</span> <span class="n">ll</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">lr</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">ul</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>   <span class="c1"># hk0 plane</span>
@@ -435,8 +435,10 @@ as NumPy arrays, ready for matplotlib, SciPy or your own analysis.</p>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Using it</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="install.html#build">Build</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#use">Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#with-system-packages-debian-ubuntu-wsl2">With system packages (Debian, Ubuntu, WSL2)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#wsl2">WSL2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#without-admin-rights-conda">Without admin rights (conda)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#for-development-a-cmake-build-folder">For development: a CMake build folder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install.html#how-it-works-and-its-limits">How it works, and its limits</a></li>
 </ul>
 </li>
