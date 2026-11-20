@@ -10,3 +10,6 @@ python/.ipynb_checkpoints/
 private.f90
 __pycache__/
 .pytest_cache/
+
+# pip install . (scikit-build-core build folder)
+/build/

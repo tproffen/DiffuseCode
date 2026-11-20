@@ -58,16 +58,30 @@ class MacroError(DiffuseError):
 
 
 def _import_suite_python():
+    """The compiled DISCUS module.
+
+    $DIFFUSE_PYTHON_PATH (a build folder's python/) wins, for development
+    builds; otherwise the copy that "pip install" put inside this package;
+    otherwise any "suite_python" on the import path.
+    """
     path = os.environ.get("DIFFUSE_PYTHON_PATH")
-    if path and path not in sys.path:
-        sys.path.insert(0, path)
-    try:
-        return importlib.import_module("suite_python").suite
-    except ImportError as exc:
-        raise ImportError(
-            "The DISCUS Python module 'suite_python' was not found. Build "
-            "DiffuseCode with -DDIFFUSE_PYTHON=ON and set "
-            "DIFFUSE_PYTHON_PATH=<build>/python.") from exc
+    if path:
+        if path not in sys.path:
+            sys.path.insert(0, path)
+        candidates = ["suite_python"]
+    else:
+        candidates = [f"{__package__}.suite_python", "suite_python"]
+    error = None
+    for name in candidates:
+        try:
+            return importlib.import_module(name).suite
+        except ImportError as exc:
+            error = exc
+    raise ImportError(
+        "The DISCUS Python module 'suite_python' was not found. Install the "
+        "package with 'pip install .' (from the DiffuseCode folder), or build "
+        "DiffuseCode with -DDIFFUSE_PYTHON=ON and set "
+        "DIFFUSE_PYTHON_PATH=<build>/python.") from error
 
 
 class _Capture:

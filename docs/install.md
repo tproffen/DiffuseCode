@@ -1,56 +1,104 @@
 # Installation
 
-There is no `pip install` yet (that comes with the packaging work, WP1 in
-the migration plan). For now, build DiffuseCode with its Python module and
-point Python at the build.
+There are no ready-made packages yet (wheels and a conda-forge package come
+later in WP1). You build the package from the DiffuseCode sources with
+`pip`, which compiles DISCUS on the way. That needs a Fortran compiler, CMake,
+FFTW, HDF5 (with its Fortran interface) and readline. Two ways to get them:
 
-## Build
+* **System packages** (needs admin rights): see below.
+* **Conda** (no admin rights): see [Without admin rights](#without-admin-rights-conda).
 
-On Debian or Ubuntu, install the build dependencies:
+Graphics libraries (PGPLOT, X11) are not needed: the Python package is built
+without them.
+
+## With system packages (Debian, Ubuntu, WSL2)
+
+Install the build tools and libraries:
 
 ```bash
-sudo apt-get install -y gfortran cmake libfftw3-dev libhdf5-dev libreadline-dev \
-    zlib1g-dev python3-dev python3-numpy python3-matplotlib
+sudo apt-get install -y gfortran cmake make libfftw3-dev libhdf5-dev \
+    libreadline-dev zlib1g-dev python3-dev python3-venv
 ```
 
-The Python interface needs no graphics libraries: `-DDIFFUSE_GRAPHICS=OFF`
-below builds without PGPLOT and X11. For the classic `discus_suite` with
-KUPLOT plots, leave that option out and also install `libpng-dev libx11-dev
-pgplot5`.
+Then, in the DiffuseCode folder, create a virtual environment and install the
+package into it:
 
-Then, from the repository root:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install ".[plot]"
+```
+
+`.[plot]` also installs matplotlib; use `.[test]` for what the tests need,
+`.[docs]` for the documentation tools. The build takes a few minutes. Set
+`CMAKE_BUILD_PARALLEL_LEVEL` to the number of CPU cores to make it faster,
+for example `CMAKE_BUILD_PARALLEL_LEVEL=4 pip install ".[plot]"`.
+
+Check that it works:
+
+```bash
+python python/examples/powder_demo.py
+```
+
+```{note}
+Always install into a virtual environment (or a conda environment). A NumPy
+installed with `pip install --user` next to the system's NumPy is what broke
+the f2py step on Ubuntu 22.04 before.
+```
+
+## WSL2
+
+WSL2 (Windows Subsystem for Linux) runs a real Linux, so the instructions
+above work unchanged in its Ubuntu. Ubuntu 22.04 with Python 3.10 is tested
+in CI. Three tips:
+
+* **Work in the Linux file system** (`~/...`), not under `/mnt/c/...`: files
+  on the Windows side are much slower to read and write from Linux, and the
+  build reads and writes many files.
+* **No display is needed.** The package has no graphics; matplotlib plots go
+  to files, or to a window if your WSL2 has WSLg (Windows 11).
+* **Jupyter:** run `pip install jupyterlab` in the virtual environment and
+  start `jupyter lab`; open the link it prints in your Windows browser.
+
+## Without admin rights (conda)
+
+Everything, including the compilers, can come from
+[conda-forge](https://conda-forge.org). Install
+[Miniforge](https://github.com/conda-forge/miniforge) into your home folder
+(no admin rights needed), then, in the DiffuseCode folder:
+
+```bash
+conda env create -f environment.yml
+conda activate diffuse
+pip install --no-build-isolation .
+```
+
+`--no-build-isolation` makes pip build with the compilers and libraries of
+the conda environment. This works on Linux and on HPC clusters; it is tested
+in CI.
+
+On a cluster you can also use its environment modules instead (for example
+`module load gcc cmake hdf5 fftw`), then follow the system-package route from
+`python3 -m venv` on.
+
+## For development: a CMake build folder
+
+To work on DiffuseCode itself, build with CMake directly and point Python at
+the build folder and the source:
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDIFFUSE_PYTHON=ON -DDIFFUSE_GRAPHICS=OFF
 cmake --build build -j
-```
-
-This builds `discus_suite` and the Python module `build/python/suite_python*.so`.
-CMake finds the Fortran compiler itself; set `FC` (or
-`-DCMAKE_Fortran_COMPILER=...`) only to pick a different one.
-
-## Use
-
-Two settings tell Python where things are:
-
-* `DIFFUSE_PYTHON_PATH`: the folder with the compiled module (`build/python`).
-* the `python/` folder of the repository on the Python path, for the
-  `diffuse` package.
-
-```bash
 export DIFFUSE_PYTHON_PATH=$PWD/build/python
 export PYTHONPATH=$PWD/python
-python3 python/examples/powder_demo.py
 ```
 
-In a Jupyter notebook, set them before `import diffuse`:
-
-```python
-import os, sys
-os.environ["DIFFUSE_PYTHON_PATH"] = "/path/to/DiffuseCode/build/python"
-sys.path.insert(0, "/path/to/DiffuseCode/python")
-import diffuse as dc
-```
+`DIFFUSE_PYTHON_PATH` takes precedence over an installed package, so the
+tests (`pytest tests/python`) and the documentation then use the build folder
+and the source in `python/`. Leave out `-DDIFFUSE_GRAPHICS=OFF`, and install
+`libpng-dev libx11-dev pgplot5`, for the classic `discus_suite` with KUPLOT
+plots.
 
 ## How it works, and its limits
 

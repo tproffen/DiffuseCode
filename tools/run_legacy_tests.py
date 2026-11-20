@@ -24,7 +24,8 @@ the old behaviour: unseeded, with the macro's own thread settings.
 
 Exit code: 0 if no test is FAIL, ABORTED or TIMEOUT, else 1. 2 = usage error.
 
-Only the Python standard library is used (Python >= 3.11 for tomllib).
+Only the Python standard library is used (tomllib, Python >= 3.11); on
+Python 3.10 the same parser comes from the "tomli" package.
 
 Examples
   tools/run_legacy_tests.py --exe ../DiffuseBuild/suite/prog/discus_suite
@@ -50,7 +51,10 @@ import subprocess
 import sys
 import tempfile
 import time
-import tomllib
+try:
+    import tomllib                     # Python >= 3.11
+except ModuleNotFoundError:            # Python 3.10 (Ubuntu 22.04, WSL2)
+    import tomli as tomllib
 import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass, field
 from pathlib import Path

@@ -1,0 +1,46 @@
+# Python package "diffuse": DISCUS from Python (WP1 of the migration plan).
+#
+#   python3 -m venv .venv && . .venv/bin/activate
+#   pip install .                # builds DiffuseCode without graphics
+#   pip install .[test]          # plus what the tests need
+#
+# Needs a Fortran compiler, CMake, FFTW, HDF5 (with Fortran) and readline;
+# see docs/install.md (system packages or conda, also without admin rights).
+
+[build-system]
+requires = ["scikit-build-core>=0.10", "numpy"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "diffuse"                 # working name; the final name is still to be decided (plan 7.11)
+version = "0.1.0.dev0"
+description = "DISCUS diffuse-scattering simulations from Python (early preview)"
+readme = "python/README.md"
+license = { file = "License.txt" }
+requires-python = ">=3.10"
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+plot = ["matplotlib"]
+test = ["pytest", "matplotlib", "gemmi>=0.6", "tomli; python_version < '3.11'"]
+docs = ["sphinx>=7.2", "myst-parser>=2.0", "pydata-sphinx-theme>=0.15", "sphinx-gallery>=0.15", "matplotlib"]
+
+[project.urls]
+Source = "https://github.com/tproffen/DiffuseCode"
+Documentation = "https://tproffen.github.io/DiffuseCode/python-docs/"
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.version = ">=3.15"                 # CMakeLists.txt still says 3.12
+build-dir = "build/{wheel_tag}"          # reused between "pip install" runs
+cmake.build-type = "Release"
+# Makefiles, not Ninja: the libraries declare their Fortran-module order only
+# with add_dependencies, which Ninja does not use across targets.
+cmake.args = ["-G", "Unix Makefiles"]
+install.components = ["python"]          # only the module, not discus_suite
+wheel.packages = ["python/diffuse"]
+sdist.exclude = ["tests/", "Manual/", "build/", "docs/_build/", "*.zip"]
+
+[tool.scikit-build.cmake.define]
+DIFFUSE_PYTHON = "ON"
+DIFFUSE_GRAPHICS = "OFF"

@@ -5,6 +5,6 @@
     "machine": "x86_64",
     "numpy": "2.5.3",
     "platform": "Linux-6.18.44-fc-v470-x86_64-with-glibc2.39",
-    "r_max": 1e-05
+    "r_max": 0.002
   }
 }

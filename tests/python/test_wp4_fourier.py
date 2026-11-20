@@ -239,4 +239,6 @@ def test_lots_with_seed_repeat_exactly(dc):
 
 def test_lots_golden(dc):
     h, k, z = lots_map(dc, 4321)
-    check_golden("wp4.fourier", "layer_lots_seed4321", r_max=1e-5, h=h, k=k, intensity=z)
+    # Differs between compilers/CPUs by R ~ 4e-4 (gfortran 11 vs 13 with
+    # -ffast-math -march=native); same build: identical (test above).
+    check_golden("wp4.fourier", "layer_lots_seed4321", r_max=2e-3, h=h, k=k, intensity=z)

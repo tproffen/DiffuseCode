@@ -2,9 +2,12 @@
 #
 #   linux              full build with graphics (PGPLOT, X11):
 #                      legacy macro tests (tools/run_legacy_tests.py) + pytest
-#   python-nographics  DIFFUSE_GRAPHICS=OFF without PGPLOT/X11 installed (the
-#                      set-up of the future Python package): pytest + Sphinx
-#                      docs, uploaded as the "docs-html" artifact
+#   python-package     "pip install ." in a virtual environment, without
+#                      PGPLOT/X11, on Ubuntu 24.04 and 22.04 (Python 3.10, the
+#                      WSL2 default): pytest; Sphinx docs (24.04), uploaded
+#                      as the "docs-html" artifact
+#   conda              environment.yml (conda-forge only, no admin rights):
+#                      pip install . and pytest
 #   publish-docs       pushes to claude-python-app only: docs to gh-pages
 #
 # Development happens on claude-python-app until the first release of the
@@ -83,60 +86,61 @@ jobs:
             legacy-work/**/*.log
           if-no-files-found: ignore
 
-  # The Python package needs no graphics: build without PGPLOT and X11
-  # (neither is installed here), check nothing links them, run the Python
-  # tests and build the docs.
-  python-nographics:
-    runs-on: ubuntu-24.04
+  # The Python package as users install it: a virtual environment and
+  # "pip install .", without graphics (no PGPLOT, X11 or Xvfb installed).
+  # Ubuntu 22.04 with Python 3.10 is the WSL2 default (the main development
+  # environment); 24.04 builds the docs that get published.
+  python-package:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 45
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies (no PGPLOT, X11 or Xvfb)
+      - name: Install build dependencies (no PGPLOT, X11 or Xvfb)
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             gfortran cmake make libfftw3-dev libhdf5-dev libreadline-dev zlib1g-dev \
-            python3-dev python3-numpy python3-pytest python3-matplotlib python3-venv
+            python3-dev python3-venv
 
-      - name: Configure (DIFFUSE_GRAPHICS=OFF)
+      - name: pip install .[test,docs] into a virtual environment
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDIFFUSE_GRAPHICS=OFF \
-                -DDIFFUSE_PYTHON=ON -DPYTHON_EXECUTABLE=/usr/bin/python3 -Wno-dev
-
-      - name: Build
-        run: cmake --build build -j "$(nproc)"
+          python3 -m venv .venv
+          .venv/bin/python --version
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install ".[test,docs]"
 
       - name: Check that nothing links PGPLOT, X11 or PNG
         run: |
-          for f in build/suite/prog/discus_suite build/python/suite_python*.so; do
+          so=$(.venv/bin/python -c "import diffuse, pathlib; print(next(pathlib.Path(diffuse.__file__).parent.glob('suite_python*.so')))")
+          for f in "$so" build/*/suite/prog/discus_suite; do
+            echo "$f"
             if ldd "$f" | grep -i -E 'pgplot|libx11|libpng'; then
               echo "::error::$f links graphics libraries"; exit 1
             fi
           done
 
-      - name: Python environment
-        run: |
-          python3 -m venv --system-site-packages .venv
-          .venv/bin/pip install --quiet -r tests/requirements.txt -r docs/requirements.txt
-
-      - name: Python tests (pytest)
+      - name: Python tests (pytest, installed package)
         env:
-          DIFFUSE_PYTHON_PATH: ${{ github.workspace }}/build/python
           DIFFUSE_REQUIRE_PYTHON: "1"
           MPLBACKEND: Agg
-        run: .venv/bin/python -m pytest tests/python -v -rxs --junitxml=pytest-nographics.xml
+        run: .venv/bin/python -m pytest tests/python -v -rxs --junitxml=pytest-${{ matrix.os }}.xml
 
       - name: Documentation
-        if: success() || failure()
+        if: matrix.os == 'ubuntu-24.04' && (success() || failure())
         env:
-          DIFFUSE_PYTHON_PATH: ${{ github.workspace }}/build/python
           MPLBACKEND: Agg
         # Warnings are errors, so broken docstrings or links fail the build.
         run: .venv/bin/python -m sphinx -W --keep-going -b html docs docs/_build/html
 
       - name: Upload documentation
-        if: success() || failure()
+        if: matrix.os == 'ubuntu-24.04' && (success() || failure())
         uses: actions/upload-artifact@v4
         with:
           name: docs-html
@@ -147,16 +151,46 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-nographics
-          path: pytest-nographics.xml
+          name: test-results-${{ matrix.os }}
+          path: pytest-${{ matrix.os }}.xml
           if-no-files-found: ignore
+
+  # Users without admin rights: everything from conda-forge (environment.yml),
+  # including the compilers; no system packages.
+  conda:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash -el {0}          # activates the conda environment
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: environment.yml
+          activate-environment: diffuse
+
+      - name: pip install . (inside the conda environment)
+        run: |
+          conda list | grep -E "^(python|numpy|hdf5|fftw|gfortran|cmake) " || true
+          pip install --no-build-isolation .
+
+      - name: Python tests (pytest, installed package)
+        env:
+          DIFFUSE_REQUIRE_PYTHON: "1"
+          MPLBACKEND: Agg
+        run: python -m pytest tests/python -v -rxs
 
   # Publish the docs to https://tproffen.github.io/DiffuseCode/python-docs/
   # The gh-pages branch is the DISCUS homepage: tools/publish_docs.sh only
   # replaces python-docs/ (plus an empty .nojekyll at the root) and refuses
   # to publish if anything else would change.
   publish-docs:
-    needs: [linux, python-nographics]
+    needs: [linux, python-package]
     if: github.event_name == 'push' && github.ref == 'refs/heads/claude-python-app'
     runs-on: ubuntu-24.04
     timeout-minutes: 10

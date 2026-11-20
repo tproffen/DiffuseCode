@@ -2,3 +2,4 @@
 # the system or your environment). gemmi gives independent crystallographic
 # references: space-group operations and International Tables form factors.
 gemmi>=0.6
+tomli; python_version < "3.11"   # reads tests/manifest.toml on Python 3.10

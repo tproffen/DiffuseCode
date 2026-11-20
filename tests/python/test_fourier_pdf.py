@@ -152,7 +152,11 @@ def test_fourier_subtract_average_leaves_diffuse(dc):
     diffuse = dc.fourier(cr, subtract_average=100, **plane)
     assert diffuse.intensity.max() < 0.01 * total.intensity.max()
     assert diffuse.intensity.mean() > 0
-    check_golden("api.fourier_cuau", "diffuse_hk0", r_max=1e-5,
+    # The diffuse map is what is left after subtracting the average structure
+    # (~0.15 % of the total), so build differences are magnified: gfortran 11
+    # vs 13 with -ffast-math -march=native gives R ~ 4e-4. The physics checks
+    # above hold on every build.
+    check_golden("api.fourier_cuau", "diffuse_hk0", r_max=2e-3,
                  h=diffuse.x, k=diffuse.y, intensity=diffuse.intensity)
 
 

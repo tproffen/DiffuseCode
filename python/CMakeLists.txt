@@ -1,4 +1,20 @@
-find_package(PythonExtensions REQUIRED)
+# Use the interpreter found by the top-level find_package(Python3) for the
+# older Find modules below, so that NumPy headers and f2py come from the same
+# Python (under pip/scikit-build-core: the isolated build environment).
+if (Python3_EXECUTABLE AND NOT PYTHON_EXECUTABLE)
+  set(PYTHON_EXECUTABLE "${Python3_EXECUTABLE}")
+endif ()
+# The suffix of Python extension modules (".cpython-312-x86_64-linux-gnu.so")
+# and the include folder. These came from FindPythonExtensions, which needs
+# distutils (removed in Python 3.12); sysconfig and FindPython3 give the same.
+execute_process(
+  COMMAND "${PYTHON_EXECUTABLE}" -c "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))"
+  OUTPUT_VARIABLE PYTHON_EXTENSION_MODULE_SUFFIX
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+if (NOT PYTHON_EXTENSION_MODULE_SUFFIX)
+  message(FATAL_ERROR "Could not get the extension suffix from ${PYTHON_EXECUTABLE}")
+endif ()
+set(PYTHON_INCLUDE_DIRS ${Python3_INCLUDE_DIRS})
 find_package(NumPy)
 find_package(MPI)
 find_package(F2PY REQUIRED)
@@ -70,5 +86,11 @@ if (UNIX)
   endif()
 endif()
 
-install(TARGETS ${generated_module_file} DESTINATION lib)
+# pip install (scikit-build-core sets SKBUILD): put the module inside the
+# diffuse package. A plain CMake install keeps the old place, lib/.
+if (SKBUILD)
+  install(TARGETS ${generated_module_file} DESTINATION diffuse COMPONENT python)
+else ()
+  install(TARGETS ${generated_module_file} DESTINATION lib COMPONENT python)
+endif ()
 

@@ -1,6 +1,11 @@
 """Sphinx configuration for the DiffuseCode Python documentation.
 
-Build (from the repository root):
+Build (from the repository root), with the package installed:
+
+    pip install .[docs]
+    python3 -m sphinx -W -b html docs docs/_build/html
+
+or against a CMake build folder:
 
     pip install -r docs/requirements.txt
     DIFFUSE_PYTHON_PATH=build/python python3 -m sphinx -W -b html docs docs/_build/html
@@ -18,7 +23,13 @@ from pathlib import Path
 
 DOCS = Path(__file__).resolve().parent
 REPO = DOCS.parent
-sys.path.insert(0, str(REPO / "python"))
+# Document (and run the gallery with) the source in python/ when building
+# against a CMake build folder (DIFFUSE_PYTHON_PATH) or when diffuse is not
+# installed; otherwise the installed package ("pip install .").
+import importlib.util  # noqa: E402
+
+if os.environ.get("DIFFUSE_PYTHON_PATH") or importlib.util.find_spec("diffuse") is None:
+    sys.path.insert(0, str(REPO / "python"))
 
 project = "DiffuseCode Python"
 author = "The DiffuseCode developers"
