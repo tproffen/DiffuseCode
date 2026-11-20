@@ -165,6 +165,13 @@
                 <ul id="pst-nav-more-links" class="dropdown-menu">
                     
 <li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="standalone.html">
+    The standalone program (discus_suite)
+  </a>
+</li>
+
+
+<li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="_generated/testing.html">
     DISCUS-suite macro tests
   </a>
@@ -313,6 +320,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="api.html">
     API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="standalone.html">
+    The standalone program (discus_suite)
   </a>
 </li>
 
@@ -552,6 +566,7 @@ cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"
 <span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PWD</span>/python
 </pre></div>
 </div>
+<p>The classic program without Python is described in <a class="reference internal" href="standalone.html"><span class="doc">The standalone program (discus_suite)</span></a>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_PYTHON_PATH</span></code> takes precedence over an installed package, so the
 tests (<code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">tests/python</span></code>) and the documentation then use the build folder
 and the source in <code class="docutils literal notranslate"><span class="pre">python/</span></code>. Leave out <code class="docutils literal notranslate"><span class="pre">-DDIFFUSE_GRAPHICS=OFF</span></code>, and install
