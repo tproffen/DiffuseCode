@@ -32,7 +32,7 @@ python3 -m venv .venv && source .venv/bin/activate
 ```
 
 ```bash
-pip install ".[plot]"
+pip install .
 ```
 
 This compiles DISCUS without graphics (no PGPLOT or X11) and installs the
