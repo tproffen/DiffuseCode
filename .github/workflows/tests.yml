@@ -17,9 +17,12 @@
 #   push to claude/**            only what the branch's changes need,
 #                                compared with claude-python-app
 #   push to claude-python-app    only what the push (the merged PR) needs
-#   PR opened or reopened,       everything, once: the full check before
-#   weekly, manual run           merging. Later pushes to the PR branch
-#                                run as pushes (no second run per push).
+#   PR opened or reopened        nothing, if the branch already contains the
+#                                latest claude-python-app (the push runs
+#                                tested this code); otherwise the PR's
+#                                changes on the merge result. Later pushes
+#                                to the PR branch run as pushes only.
+#   weekly, manual run           everything
 # Text only (migration/, *.md outside docs/): nothing. docs/: the docs.
 # Python package: pytest (graphics build, Ubuntu 24.04 and 22.04) and docs.
 # Fortran, legacy tests: build, legacy tests, pytest on 22.04 (WSL2).
@@ -60,6 +63,8 @@ jobs:
       - id: decide
         env:
           BEFORE: ${{ github.event.before }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: python3 tools/ci_changes.py
 
   linux:
