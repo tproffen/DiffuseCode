@@ -20,6 +20,10 @@ targets `claude-python-app`.
 
 ## Build and test
 
+Users: `pip install .` in a virtual environment (pyproject.toml,
+scikit-build-core, graphics off); `environment.yml` for conda (no admin
+rights). See `docs/install.md`. Development with a CMake build folder:
+
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDIFFUSE_PYTHON=ON
 # add -DDIFFUSE_GRAPHICS=OFF for a build without PGPLOT/X11 (what the Python

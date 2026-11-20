@@ -308,6 +308,8 @@ The results are `xarray` objects with coordinates and metadata, and they can be 
 3. **A conda-forge package**, which can also ship `discus_suite` (see the distribution decision in 7.12).
 4. **Document the other routes:** HPC environment modules (`module load gcc hdf5 fftw cmake`) or Spack, which builds the dependencies in the user's home directory; and a container image (Apptainer/Singularity on clusters, rootless Podman on desktops) for courses and workshops. Building FFTW and HDF5 from source into `~/.local` works but is not a route to recommend.
 
+**Progress (Nov 2026):** `pip install .` works (`pyproject.toml` with scikit-build-core, graphics off, the module installed inside the `diffuse` package); `environment.yml` gives a conda-forge-only environment; CI builds and tests the installed package on Ubuntu 24.04, on Ubuntu 22.04 with Python 3.10 (WSL2) and in conda; `docs/install.md` covers all three routes. Still open: wheels (cibuildwheel, portable compiler flags instead of `-march=native`, bundled FFTW/HDF5), Ninja support (the libraries need `target_link_libraries` instead of `add_dependencies` for Fortran modules), optional readline, and the package name.
+
 Also make **readline optional** for the Python build: it is only used by the interactive `discus_suite` prompt, but CMake currently requires it for every build.
 
 **WSL2 is a target platform from the start** (the main development environment). WSL2 runs a real Linux kernel, so Linux wheels, conda for Linux and the CMake build work unchanged; what matters is testing the configuration found there:

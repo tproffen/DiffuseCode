@@ -21,39 +21,35 @@ p.plot()             # matplotlib; p.plot(x="tth") for 2-theta
 The documentation (installation, API reference and an example gallery with
 plots) is built from `docs/`; see "Documentation" below.
 
-## Running the demo
+## Installing and running the demo
 
-Build DiffuseCode with the Python module (from the repository root). The
-Python interface needs no graphics, so this builds without PGPLOT and X11
-(see `docs/install.md` for the packages):
+From the DiffuseCode folder, in a virtual environment (`docs/install.md` has
+the system packages to install first, the conda route for users without
+admin rights, and notes for WSL2):
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDIFFUSE_PYTHON=ON -DDIFFUSE_GRAPHICS=OFF
+python3 -m venv .venv && source .venv/bin/activate
 ```
 
 ```bash
-cmake --build build -j
+pip install ".[plot]"
 ```
 
-Then run the demo (needs NumPy and matplotlib):
+This compiles DISCUS without graphics (no PGPLOT or X11) and installs the
+`diffuse` package. Then run the demo:
 
 ```bash
-DIFFUSE_PYTHON_PATH=build/python PYTHONPATH=python python3 python/examples/powder_demo.py
+python python/examples/powder_demo.py
 ```
 
 It reads `examples/anatase.cif`, calculates X-ray and neutron patterns for a
 10×10×4 supercell and an X-ray pattern for a 3×3×1 crystal, and shows the
-plot.
+plot. In Jupyter, `import diffuse as dc` works directly once the package is
+installed in the environment the notebook runs in.
 
-For Jupyter, set the two variables before starting it, or at the top of the
-notebook before `import diffuse`:
-
-```python
-import os, sys
-os.environ["DIFFUSE_PYTHON_PATH"] = "/path/to/build/python"
-sys.path.insert(0, "/path/to/DiffuseCode/python")
-import diffuse as dc
-```
+For work on DiffuseCode itself, a CMake build folder with
+`DIFFUSE_PYTHON_PATH` and `PYTHONPATH` set works too (see `docs/install.md`,
+"For development").
 
 ## What is in the API
 
