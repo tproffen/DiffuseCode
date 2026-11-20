@@ -65,23 +65,41 @@ def _import_suite_python():
     otherwise any "suite_python" on the import path.
     """
     path = os.environ.get("DIFFUSE_PYTHON_PATH")
+    packaged = f"{__package__}.suite_python"
     if path:
         if path not in sys.path:
             sys.path.insert(0, path)
-        candidates = ["suite_python"]
+        candidates = ["suite_python", packaged]
     else:
-        candidates = [f"{__package__}.suite_python", "suite_python"]
+        candidates = [packaged, "suite_python"]
     error = None
     for name in candidates:
         try:
-            return importlib.import_module(name).suite
+            module = importlib.import_module(name).suite
         except ImportError as exc:
             error = exc
-    raise ImportError(
-        "The DISCUS Python module 'suite_python' was not found. Install the "
-        "package with 'pip install .' (from the DiffuseCode folder), or build "
-        "DiffuseCode with -DDIFFUSE_PYTHON=ON and set "
-        "DIFFUSE_PYTHON_PATH=<build>/python.") from error
+            continue
+        if path and name == packaged:
+            import warnings
+            warnings.warn(f"DIFFUSE_PYTHON_PATH={path} has no suite_python module; "
+                          "using the one installed with the diffuse package. Unset "
+                          "DIFFUSE_PYTHON_PATH to silence this.", stacklevel=3)
+        return module
+    here = Path(__file__).resolve().parent
+    lines = [
+        "The DISCUS Python module 'suite_python' was not found.",
+        f"  diffuse package used: {here}",
+        f"  DIFFUSE_PYTHON_PATH:  {path or '(not set)'}",
+        f"  PYTHONPATH:           {os.environ.get('PYTHONPATH') or '(not set)'}",
+        "Install the package with 'pip install .' (in the DiffuseCode folder, in "
+        "your virtual environment), or build with -DDIFFUSE_PYTHON=ON and set "
+        "DIFFUSE_PYTHON_PATH=<build>/python.",
+    ]
+    if "site-packages" not in str(here):
+        lines.append("The diffuse package above is the source folder, not an installed "
+                     "copy: if you installed with pip, unset PYTHONPATH and "
+                     "DIFFUSE_PYTHON_PATH (check ~/.bashrc).")
+    raise ImportError("\n".join(lines)) from error
 
 
 class _Capture:
