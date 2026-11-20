@@ -42,8 +42,9 @@ Useful options:
 | `--list` | show what would run |
 | `--check-test-all` | check that `manifest.toml` and `test_all.mac` list the same macros |
 
-Without an X display it runs each test under `xvfb-run` (KUPLOT needs one).
-On Debian/Ubuntu install `xvfb` and `pgplot5`.
+With a graphics build and no X display it runs each test under `xvfb-run`
+(KUPLOT needs one); on Debian/Ubuntu install `xvfb` and `pgplot5`. A build
+with `-DDIFFUSE_GRAPHICS=OFF` needs neither: use `--xvfb off`.
 
 Results of a run with `-j 4` on 4 cores: 30 PASS, 1 RAN (`03.pdf`, no check
 yet), 2 SKIPPED (`04.sro2`, `09.znse_pdf_mpi`), about 80 s wall time.
@@ -130,6 +131,10 @@ pytest tests, then the legacy tests tagged `fast` and `mc`, on every push to
 3. Add a `[[test]]` entry to `manifest.toml`.
 4. Run `python3 tools/run_legacy_tests.py --check-test-all` and the test itself
    with `--id`.
+5. Keep generated files out of git: references go into `RESULTS/` (or
+   `tests/golden/` for the Python tests); everything the macro writes
+   besides that belongs in `tests/.gitignore`. After running the test,
+   `git status` should show only the files you meant to add.
 
 Plot macros must not need an interactive viewer: use `program cif` and a
 plain `run` instead of `program jmol` and `run plot:inter`.

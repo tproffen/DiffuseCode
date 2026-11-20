@@ -459,16 +459,20 @@ point Python at the build.</p>
 <h2>Build<a class="headerlink" href="#build" title="Link to this heading">#</a></h2>
 <p>On Debian or Ubuntu, install the build dependencies:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>gfortran<span class="w"> </span>cmake<span class="w"> </span>libfftw3-dev<span class="w"> </span>libhdf5-dev<span class="w"> </span>libreadline-dev<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>libpng-dev<span class="w"> </span>libx11-dev<span class="w"> </span>zlib1g-dev<span class="w"> </span>pgplot5<span class="w"> </span>python3-dev<span class="w"> </span>python3-numpy<span class="w"> </span>python3-matplotlib
+<span class="w">    </span>zlib1g-dev<span class="w"> </span>python3-dev<span class="w"> </span>python3-numpy<span class="w"> </span>python3-matplotlib
 </pre></div>
 </div>
+<p>The Python interface needs no graphics libraries: <code class="docutils literal notranslate"><span class="pre">-DDIFFUSE_GRAPHICS=OFF</span></code>
+below builds without PGPLOT and X11. For the classic <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> with
+KUPLOT plots, leave that option out and also install <code class="docutils literal notranslate"><span class="pre">libpng-dev</span> <span class="pre">libx11-dev</span> <span class="pre">pgplot5</span></code>.</p>
 <p>Then, from the repository root:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">FC</span><span class="o">=</span>gfortran<span class="w"> </span><span class="nv">CC</span><span class="o">=</span>gcc<span class="w"> </span><span class="nv">CXX</span><span class="o">=</span>g++<span class="w"> </span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-DDIFFUSE_PYTHON<span class="o">=</span>ON<span class="w"> </span>-DPGPLOT_DIR<span class="o">=</span>/usr/lib/pgplot5
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span>-DDIFFUSE_PYTHON<span class="o">=</span>ON<span class="w"> </span>-DDIFFUSE_GRAPHICS<span class="o">=</span>OFF
 cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>-j
 </pre></div>
 </div>
-<p>This builds <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> and the Python module <code class="docutils literal notranslate"><span class="pre">build/python/suite_python*.so</span></code>.</p>
+<p>This builds <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> and the Python module <code class="docutils literal notranslate"><span class="pre">build/python/suite_python*.so</span></code>.
+CMake finds the Fortran compiler itself; set <code class="docutils literal notranslate"><span class="pre">FC</span></code> (or
+<code class="docutils literal notranslate"><span class="pre">-DCMAKE_Fortran_COMPILER=...</span></code>) only to pick a different one.</p>
 </section>
 <section id="use">
 <h2>Use<a class="headerlink" href="#use" title="Link to this heading">#</a></h2>

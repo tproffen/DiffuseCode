@@ -517,8 +517,9 @@ and exits with code 1 if any test did not pass.</p>
 </tbody>
 </table>
 </div>
-<p>Without an X display it runs each test under <code class="docutils literal notranslate"><span class="pre">xvfb-run</span></code> (KUPLOT needs one).
-On Debian/Ubuntu install <code class="docutils literal notranslate"><span class="pre">xvfb</span></code> and <code class="docutils literal notranslate"><span class="pre">pgplot5</span></code>.</p>
+<p>With a graphics build and no X display it runs each test under <code class="docutils literal notranslate"><span class="pre">xvfb-run</span></code>
+(KUPLOT needs one); on Debian/Ubuntu install <code class="docutils literal notranslate"><span class="pre">xvfb</span></code> and <code class="docutils literal notranslate"><span class="pre">pgplot5</span></code>. A build
+with <code class="docutils literal notranslate"><span class="pre">-DDIFFUSE_GRAPHICS=OFF</span></code> needs neither: use <code class="docutils literal notranslate"><span class="pre">--xvfb</span> <span class="pre">off</span></code>.</p>
 <p>Results of a run with <code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">4</span></code> on 4 cores: 30 PASS, 1 RAN (<code class="docutils literal notranslate"><span class="pre">03.pdf</span></code>, no check
 yet), 2 SKIPPED (<code class="docutils literal notranslate"><span class="pre">04.sro2</span></code>, <code class="docutils literal notranslate"><span class="pre">09.znse_pdf_mpi</span></code>), about 80 s wall time.</p>
 <section id="how-batch-mode-works">
@@ -629,6 +630,10 @@ correct (see <code class="docutils literal notranslate"><span class="pre">02.Cal
 <li><p>Add a <code class="docutils literal notranslate"><span class="pre">[[test]]</span></code> entry to <code class="docutils literal notranslate"><span class="pre">manifest.toml</span></code>.</p></li>
 <li><p>Run <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/run_legacy_tests.py</span> <span class="pre">--check-test-all</span></code> and the test itself
 with <code class="docutils literal notranslate"><span class="pre">--id</span></code>.</p></li>
+<li><p>Keep generated files out of git: references go into <code class="docutils literal notranslate"><span class="pre">RESULTS/</span></code> (or
+<code class="docutils literal notranslate"><span class="pre">tests/golden/</span></code> for the Python tests); everything the macro writes
+besides that belongs in <code class="docutils literal notranslate"><span class="pre">tests/.gitignore</span></code>. After running the test,
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span></code> should show only the files you meant to add.</p></li>
 </ol>
 <p>Plot macros must not need an interactive viewer: use <code class="docutils literal notranslate"><span class="pre">program</span> <span class="pre">cif</span></code> and a
 plain <code class="docutils literal notranslate"><span class="pre">run</span></code> instead of <code class="docutils literal notranslate"><span class="pre">program</span> <span class="pre">jmol</span></code> and <code class="docutils literal notranslate"><span class="pre">run</span> <span class="pre">plot:inter</span></code>.</p>
