@@ -20,15 +20,20 @@ sudo apt-get install -y gfortran cmake make libfftw3-dev libhdf5-dev \
     libreadline-dev zlib1g-dev python3-dev python3-venv
 ```
 
-Then, in the DiffuseCode folder, create a virtual environment and install the
-package into it:
+Then create a virtual environment called `discus` in your home folder,
+activate it, and install the package into it from the DiffuseCode folder:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv ~/discus
+source ~/discus/bin/activate
 pip install --upgrade pip
 pip install .
 ```
+
+Run `source ~/discus/bin/activate` again in every new terminal before using
+the package (or add it to `~/.bashrc`). The environment lives outside the
+DiffuseCode folder on purpose: that folder already has a `discus/`
+subfolder with the DISCUS sources.
 
 This also installs NumPy and matplotlib. Use `.[test]` for what the tests
 need, `.[docs]` for the documentation tools. The build takes a few minutes. Set
