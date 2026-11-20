@@ -18,7 +18,7 @@ description = "DISCUS diffuse-scattering simulations from Python (early preview)
 readme = "python/README.md"
 license = { file = "License.txt" }
 requires-python = ">=3.10"
-dependencies = ["numpy", "matplotlib"]   # matplotlib: plot() methods and the examples
+dependencies = ["numpy", "matplotlib", "py3Dmol"]   # plot() methods, Crystal.view(), the examples
 
 [project.optional-dependencies]
 plot = []                        # kept so that "pip install .[plot]" still works

@@ -34,7 +34,7 @@ Run `source ~/.diffuse/bin/activate` again in every new terminal before using
 the package (or add it to `~/.bashrc`). Keeping the environment outside the
 DiffuseCode folder means a fresh clone or `git clean` does not touch it.
 
-This also installs NumPy and matplotlib. Use `.[test]` for what the tests
+This also installs NumPy, matplotlib and py3Dmol (3D views of structures). Use `.[test]` for what the tests
 need, `.[docs]` for the documentation tools. The build takes a few minutes. Set
 `CMAKE_BUILD_PARALLEL_LEVEL` to the number of CPU cores to make it faster,
 for example `CMAKE_BUILD_PARALLEL_LEVEL=4 pip install .`.
@@ -89,8 +89,12 @@ after installing ipympl, or the figures show `Error displaying widget`; the
 same happens when `jupyter` is not the one from your environment
 (`which jupyter` should point into it).
 
-The notebook `python/examples/interactive_plots.ipynb` shows this with a
-powder pattern, a diffuse-scattering map and a PDF.
+Structures can be viewed in 3D in the notebook with
+{meth}`Crystal.view() <diffuse.Crystal.view>` (py3Dmol, installed with the
+package; no extension needed): rotate with the mouse, zoom with the wheel.
+
+The notebook `python/examples/interactive_plots.ipynb` shows both with a
+structure view, a powder pattern, a diffuse-scattering map and a PDF.
 
 ## Without admin rights (conda)
 

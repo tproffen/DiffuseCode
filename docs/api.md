@@ -10,7 +10,10 @@
 .. autofunction:: read_structure
 
 .. autoclass:: Crystal
-   :members: atoms, positions, volume, a
+   :members: atoms, positions, cartesian, lattice_vectors, view, volume, a
+
+.. autoclass:: StructureView
+   :members: show, write_html
 ```
 
 ## Powder diffraction
