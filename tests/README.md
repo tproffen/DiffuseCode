@@ -134,7 +134,10 @@ It runs only what the changes need (`tools/ci_changes.py`, first job
 
 Opening a pull request into `claude-python-app` runs everything once, as the
 check before merging; later pushes to its branch run as pushes. A manual run
-(Actions tab, "Run workflow") also runs everything. To see why a job ran or
+also runs everything. GitHub shows the "Run workflow" button (Actions tab)
+only for workflows on the default branch (`master`), so until the first
+release start it from the command line, for any branch:
+`gh workflow run tests.yml --ref claude-python-app`, or ask Claude. To see why a job ran or
 not, open the "changes" job, or try it locally:
 `python3 tools/ci_changes.py --files discus/prog/fourier.f90`.
 
