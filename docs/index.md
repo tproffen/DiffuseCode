@@ -28,6 +28,7 @@ g = dc.pdf(cr, rmax=20, qmax=25)                                    # G(r)
 install
 gallery/index
 api
+standalone
 ```
 
 ```{toctree}

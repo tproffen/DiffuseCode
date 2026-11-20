@@ -98,6 +98,8 @@ export DIFFUSE_PYTHON_PATH=$PWD/build/python
 export PYTHONPATH=$PWD/python
 ```
 
+The classic program without Python is described in {doc}`standalone`.
+
 `DIFFUSE_PYTHON_PATH` takes precedence over an installed package, so the
 tests (`pytest tests/python`) and the documentation then use the build folder
 and the source in `python/`. Leave out `-DDIFFUSE_GRAPHICS=OFF`, and install
