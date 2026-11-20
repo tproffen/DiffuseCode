@@ -27,13 +27,13 @@ package into it:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install ".[plot]"
+pip install .
 ```
 
-`.[plot]` also installs matplotlib; use `.[test]` for what the tests need,
-`.[docs]` for the documentation tools. The build takes a few minutes. Set
+This also installs NumPy and matplotlib. Use `.[test]` for what the tests
+need, `.[docs]` for the documentation tools. The build takes a few minutes. Set
 `CMAKE_BUILD_PARALLEL_LEVEL` to the number of CPU cores to make it faster,
-for example `CMAKE_BUILD_PARALLEL_LEVEL=4 pip install ".[plot]"`.
+for example `CMAKE_BUILD_PARALLEL_LEVEL=4 pip install .`.
 
 Check that it works:
 

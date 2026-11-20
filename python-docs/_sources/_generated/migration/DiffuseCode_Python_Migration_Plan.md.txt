@@ -2,7 +2,7 @@
 
 A high-level look at the current Fortran code and options for separating compute from the command language, graphics and I/O, with a web front end as a later goal.
 
-> **Branches:** until the first release of the Python package, all migration work is built against and merged into the **`claude-python-app`** branch, not `master`. Feature branches start from `claude-python-app`, and pull requests target it. CI (`.github/workflows/tests.yml`) runs on pushes to it and on pull requests into it.
+> **Branches:** until the first release of the Python package, all migration work is built against and merged into the **`claude-python-app`** branch, not `master`. Feature branches start from `claude-python-app`, and pull requests target it. CI (`.github/workflows/tests.yml`) runs on pushes to it and to `claude/**` branches (only the jobs the changes need), and runs everything once when a pull request into it is opened. **At the first release:** the workflow reaches `master`, the default branch, and only then does its weekly full run (`schedule`) start; GitHub runs schedules only from the default branch (decided Nov 2026: no workflow on `master` before that).
 
 > **Related documents:** progress on WP0 is tracked in [`WP0_Test_Baseline.md`](WP0_Test_Baseline.md); test gaps are in [`WP0_Test_Coverage_Gaps.md`](WP0_Test_Coverage_Gaps.md). `mixscat` is deprecated and not part of the migration.
 

@@ -474,13 +474,13 @@ package into it:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 <span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
-pip<span class="w"> </span>install<span class="w"> </span><span class="s2">".[plot]"</span>
+pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">.[plot]</span></code> also installs matplotlib; use <code class="docutils literal notranslate"><span class="pre">.[test]</span></code> for what the tests need,
-<code class="docutils literal notranslate"><span class="pre">.[docs]</span></code> for the documentation tools. The build takes a few minutes. Set
+<p>This also installs NumPy and matplotlib. Use <code class="docutils literal notranslate"><span class="pre">.[test]</span></code> for what the tests
+need, <code class="docutils literal notranslate"><span class="pre">.[docs]</span></code> for the documentation tools. The build takes a few minutes. Set
 <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_PARALLEL_LEVEL</span></code> to the number of CPU cores to make it faster,
-for example <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_PARALLEL_LEVEL=4</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&quot;.[plot]&quot;</span></code>.</p>
+for example <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_PARALLEL_LEVEL=4</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code>.</p>
 <p>Check that it works:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>python/examples/powder_demo.py
 </pre></div>

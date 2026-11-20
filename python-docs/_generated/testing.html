@@ -616,9 +616,43 @@ so start each calculation with the relevant <code class="docutils literal notran
 <section id="ci">
 <h2>CI<a class="headerlink" href="#ci" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">.github/workflows/tests.yml</span></code> builds with the Python module and runs the
-pytest tests, then the legacy tests tagged <code class="docutils literal notranslate"><span class="pre">fast</span></code> and <code class="docutils literal notranslate"><span class="pre">mc</span></code>, on every push to
-<code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code> (and <code class="docutils literal notranslate"><span class="pre">claude/**</span></code> branches) and on pull requests into
-<code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code>.</p>
+pytest tests, then the legacy tests tagged <code class="docutils literal notranslate"><span class="pre">fast</span></code> and <code class="docutils literal notranslate"><span class="pre">mc</span></code>.</p>
+<p>It runs only what the changes need (<code class="docutils literal notranslate"><span class="pre">tools/ci_changes.py</span></code>, first job
+“changes”). A push to a <code class="docutils literal notranslate"><span class="pre">claude/**</span></code> branch is compared with
+<code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code>, a push to <code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code> with the commit before:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Changed</p></th>
+<th class="head"><p>Runs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">migration/</span></code>, <code class="docutils literal notranslate"><span class="pre">*.md</span></code> outside <code class="docutils literal notranslate"><span class="pre">docs/</span></code>, <code class="docutils literal notranslate"><span class="pre">License.txt</span></code></p></td>
+<td><p>nothing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">docs/</span></code></p></td>
+<td><p>docs (Ubuntu 24.04)</p></td>
+</tr>
+<tr class="row-even"><td><p>Python package, <code class="docutils literal notranslate"><span class="pre">tests/python/</span></code>, <code class="docutils literal notranslate"><span class="pre">tests/golden/</span></code></p></td>
+<td><p>pytest (graphics build, Ubuntu 24.04 and 22.04), docs</p></td>
+</tr>
+<tr class="row-odd"><td><p>Fortran sources, legacy tests, anything else</p></td>
+<td><p>build, legacy tests, pytest (graphics build, 22.04)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>, <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code>, CMake, <code class="docutils literal notranslate"><span class="pre">python/suite_python.f90</span></code>, <code class="docutils literal notranslate"><span class="pre">.github/</span></code></p></td>
+<td><p>everything, conda included</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Opening a pull request into <code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code> runs everything once, as the
+check before merging; later pushes to its branch run as pushes. A manual run
+also runs everything. GitHub shows the “Run workflow” button (Actions tab)
+only for workflows on the default branch (<code class="docutils literal notranslate"><span class="pre">master</span></code>), so until the first
+release start it from the command line, for any branch:
+<code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">workflow</span> <span class="pre">run</span> <span class="pre">tests.yml</span> <span class="pre">--ref</span> <span class="pre">claude-python-app</span></code>, or ask Claude. To see why a job ran or
+not, open the “changes” job, or try it locally:
+<code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/ci_changes.py</span> <span class="pre">--files</span> <span class="pre">discus/prog/fourier.f90</span></code>.</p>
 </section>
 <section id="adding-a-test">
 <h2>Adding a test<a class="headerlink" href="#adding-a-test" title="Link to this heading">#</a></h2>

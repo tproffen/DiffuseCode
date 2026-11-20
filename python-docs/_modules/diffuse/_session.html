@@ -508,23 +508,41 @@
 <span class="sd">    otherwise any "suite_python" on the import path.</span>
 <span class="sd">    """</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DIFFUSE_PYTHON_PATH"</span><span class="p">)</span>
+    <span class="n">packaged</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">__package__</span><span class="si">}</span><span class="s2">.suite_python"</span>
     <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
-        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"suite_python"</span><span class="p">]</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"suite_python"</span><span class="p">,</span> <span class="n">packaged</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">__package__</span><span class="si">}</span><span class="s2">.suite_python"</span><span class="p">,</span> <span class="s2">"suite_python"</span><span class="p">]</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">packaged</span><span class="p">,</span> <span class="s2">"suite_python"</span><span class="p">]</span>
     <span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">suite</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">suite</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="n">error</span> <span class="o">=</span> <span class="n">exc</span>
-    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-        <span class="s2">"The DISCUS Python module 'suite_python' was not found. Install the "</span>
-        <span class="s2">"package with 'pip install .' (from the DiffuseCode folder), or build "</span>
-        <span class="s2">"DiffuseCode with -DDIFFUSE_PYTHON=ON and set "</span>
-        <span class="s2">"DIFFUSE_PYTHON_PATH=&lt;build&gt;/python."</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">and</span> <span class="n">name</span> <span class="o">==</span> <span class="n">packaged</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DIFFUSE_PYTHON_PATH=</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> has no suite_python module; "</span>
+                          <span class="s2">"using the one installed with the diffuse package. Unset "</span>
+                          <span class="s2">"DIFFUSE_PYTHON_PATH to silence this."</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">module</span>
+    <span class="n">here</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">"The DISCUS Python module 'suite_python' was not found."</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  diffuse package used: </span><span class="si">{</span><span class="n">here</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  DIFFUSE_PYTHON_PATH:  </span><span class="si">{</span><span class="n">path</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'(not set)'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"  PYTHONPATH:           </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'PYTHONPATH'</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'(not set)'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"Install the package with 'pip install .' (in the DiffuseCode folder, in "</span>
+        <span class="s2">"your virtual environment), or build with -DDIFFUSE_PYTHON=ON and set "</span>
+        <span class="s2">"DIFFUSE_PYTHON_PATH=&lt;build&gt;/python."</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="s2">"site-packages"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">here</span><span class="p">):</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"The diffuse package above is the source folder, not an installed "</span>
+                     <span class="s2">"copy: if you installed with pip, unset PYTHONPATH and "</span>
+                     <span class="s2">"DIFFUSE_PYTHON_PATH (check ~/.bashrc)."</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_Capture</span><span class="p">:</span>
