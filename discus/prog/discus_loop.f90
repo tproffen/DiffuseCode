@@ -72,7 +72,7 @@ fehler: IF (ier_num.ne.0) then
    IF( ier_num ==-9.and. ier_typ==ER_IO) THEN  
       WRITE(output_io, 8000)
       WRITE(output_io, 9000)
-      stop
+      IF(.NOT. ier_api) stop     ! library mode: an error like any other
    ENDIF
 !
    IF(mpi_active .AND. ier_sta == ER_S_EXIT) THEN  ! Error while MPI is on

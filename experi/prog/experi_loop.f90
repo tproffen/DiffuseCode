@@ -45,7 +45,7 @@ loop_main: do
       if(ier_num ==-9.and. ier_typ==ER_IO)  then
          write(output_io, 8000)
          write(output_io, 9000)
-         stop
+         IF(.NOT. ier_api) stop     ! library mode: an error like any other
       endif
 !
 !     Regular error!

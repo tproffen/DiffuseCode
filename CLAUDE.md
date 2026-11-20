@@ -17,6 +17,7 @@ targets `claude-python-app`.
   work packages WP0–WP10).
 - `migration/WP0_Test_Baseline.md` – test baseline tasks and progress log.
 - `tests/README.md` – how to run the tests.
+- `migration/WP2_Core_Survey.md` – WP2 (core infrastructure) survey and next steps.
 
 ## Build and test
 

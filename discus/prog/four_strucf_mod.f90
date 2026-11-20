@@ -132,6 +132,7 @@ SUBROUTINE four_strucf_version_15(iscat, lform)
 USE discus_config_mod 
 USE diffuse_mod 
 USE precision_mod
+USE errlist_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -235,8 +236,10 @@ ENDDO
    IF(ALLOCATED(tcsfp)) DEALLOCATE(tcsfp)
    ALLOCATE(tcsfp(0:num(2)-1, 0:num(3)-1, 0:num(1)-1), STAT=alloc_stat)
    IF (alloc_stat /= 0) THEN
-      WRITE(*,*) "Error: Unable to allocate memory for tcsfp"
-      STOP
+      ier_num = -3                 ! Could not allocate arrays
+      ier_typ = ER_COMM
+      ier_msg(1) = 'Fourier: no memory for the structure factor grid'
+      RETURN
    ENDIF
    tcsfp = CMPLX(0.0d0, 0.0d0, KIND=KIND(0.0D0))
    DO j = 1, num(1)
