@@ -188,6 +188,13 @@
   </a>
 </li>
 
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../_generated/migration/WP2_Core_Survey.html">
+    WP2 – Core infrastructure: survey and first step
+  </a>
+</li>
+
                 </ul>
             </li>
             
@@ -332,6 +339,13 @@
   </a>
 </li>
 
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../_generated/migration/WP2_Core_Survey.html">
+    WP2 – Core infrastructure: survey and first step
+  </a>
+</li>
+
   </ul>
 </nav></div>
           
@@ -446,7 +460,9 @@
 
 <span class="sd">* **Errors become exceptions.** A command error ends the whole macro run.</span>
 <span class="sd">  Every macro written here sets a flag on its last line; if the flag is not</span>
-<span class="sd">  set, ``run()`` raises ``MacroError`` with the ``***...***`` error lines.</span>
+<span class="sd">  set, ``run()`` raises ``MacroError``. DISCUS runs in library mode</span>
+<span class="sd">  (``dc_init``): an error never ends the process, and the first error is</span>
+<span class="sd">  recorded, so ``MacroError`` carries its number, type and message.</span>
 <span class="sd">* **Output is captured.** The suite writes to the process's stdout/stderr.</span>
 <span class="sd">  ``run()`` sends both file descriptors to a temporary file while the macro</span>
 <span class="sd">  runs, and keeps the text in ``Session.last_output``. Pass ``echo=True``</span>
@@ -490,13 +506,31 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">MacroError</span><span class="p">(</span><span class="n">DiffuseError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A command failed inside DISCUS.</span>
 
-<span class="sd">    The message holds DISCUS's ``***`` error lines; ``output`` holds all</span>
-<span class="sd">    the text DISCUS wrote during the failed call.</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    code : int</span>
+<span class="sd">        DISCUS error number (negative), or 0 if DISCUS recorded none.</span>
+<span class="sd">    category : str</span>
+<span class="sd">        DISCUS error type: ``"COMM"`` (command language), ``"IO"``,</span>
+<span class="sd">        ``"FORT"`` (expressions), ``"MAC"``, ``"MATH"``, ``"APPL"`` (the</span>
+<span class="sd">        program itself) and others.</span>
+<span class="sd">    text : str</span>
+<span class="sd">        DISCUS's standard message for this error number.</span>
+<span class="sd">    details : list of str</span>
+<span class="sd">        Further lines DISCUS gave for this error (often the file or value</span>
+<span class="sd">        concerned).</span>
+<span class="sd">    output : str</span>
+<span class="sd">        All the text DISCUS wrote during the failed call.</span>
 <span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                 <span class="n">category</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="n">details</span><span class="o">=</span><span class="p">()):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">output</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">category</span> <span class="o">=</span> <span class="n">category</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">details</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">details</span><span class="p">)</span></div>
 
 
 
@@ -597,8 +631,14 @@
         <span class="c1"># flush_output() is in suite_python.f90 since the demo API; builds</span>
         <span class="c1"># without it rely on GFORTRAN_UNBUFFERED_PRECONNECTED alone.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_flush</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="p">,</span> <span class="s2">"flush_output"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># dc_init (library mode, error records) since WP2; older builds of</span>
+        <span class="c1"># the module only have initialize_suite.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_core</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="p">,</span> <span class="s2">"dc_init"</span><span class="p">)</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">initialize_suite</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_init</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">initialize_suite</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_show</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_capture</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Capture</span><span class="p">:</span>
@@ -636,6 +676,7 @@
         <span class="c1"># DISCUS's "cd" changes the working directory of the whole process;</span>
         <span class="c1"># give the caller theirs back afterwards.</span>
         <span class="n">caller_cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_error</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">execute_macro</span><span class="p">(</span><span class="s2">"@"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">driver</span><span class="p">))</span>
@@ -644,22 +685,111 @@
             <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">caller_cwd</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_show</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
-            <span class="n">errors</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="s2">"***"</span> <span class="ow">in</span> <span class="n">line</span><span class="p">]</span>
-            <span class="k">raise</span> <span class="n">MacroError</span><span class="p">(</span><span class="s2">"DISCUS command failed:</span><span class="se">\n</span><span class="s2">  "</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"(no message)"</span><span class="p">]),</span>
-                             <span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error</span><span class="p">(</span><span class="s2">"DISCUS command failed"</span><span class="p">,</span> <span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cap</span><span class="o">.</span><span class="n">text</span></div>
 
+
+    <span class="c1"># -- errors -------------------------------------------------------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_clear_error</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_clear_error</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Session.last_error">
+<a class="viewcode-back" href="../../api.html#diffuse.Session.last_error">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">last_error</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""The first error DISCUS recorded in the last call.</span>
+
+<span class="sd">        Returns ``(code, category, text, details)``; ``code`` is 0 when</span>
+<span class="sd">        there was no error (or the module predates the WP2 core).</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="p">[]</span>
+        <span class="n">num</span><span class="p">,</span> <span class="n">_typ</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">msgs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_last_error</span><span class="p">()</span>
+        <span class="n">msgs</span> <span class="o">=</span> <span class="n">msgs</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span>
+        <span class="n">details</span> <span class="o">=</span> <span class="p">[</span><span class="n">msgs</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="mi">80</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">msgs</span><span class="p">),</span> <span class="mi">80</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">),</span> <span class="bp">cls</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">text</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">details</span> <span class="k">if</span> <span class="n">d</span><span class="p">])</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MacroError</span><span class="p">:</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_error</span><span class="p">()</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="s2">"***"</span> <span class="ow">in</span> <span class="n">line</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">code</span><span class="p">:</span>
+            <span class="c1"># The recorded error says it all; the other *** lines are the</span>
+            <span class="c1"># macro and menu levels reporting that it happened.</span>
+            <span class="n">head</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"> (DISCUS error </span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="n">details</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">head</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">what</span> <span class="o">+</span> <span class="s2">":"</span><span class="p">,</span> <span class="n">lines</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"(no message)"</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">MacroError</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">head</span><span class="p">,</span> <span class="o">*</span><span class="n">body</span><span class="p">]),</span> <span class="n">output</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">details</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Session.value">
 <a class="viewcode-back" href="../../api.html#diffuse.Session.value">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Value of a DISCUS expression, e.g. ``n[1]`` or ``lat[1]``."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_error</span><span class="p">()</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
             <span class="n">v</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">expression</span><span class="p">))</span>
-        <span class="k">if</span> <span class="s2">"***"</span> <span class="ow">in</span> <span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MacroError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"cannot evaluate '</span><span class="si">{</span><span class="n">expression</span><span class="si">}</span><span class="s2">':</span><span class="se">\n</span><span class="s2">  "</span> <span class="o">+</span> <span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_error</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="s2">"***"</span> <span class="ow">in</span> <span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"cannot evaluate '</span><span class="si">{</span><span class="n">expression</span><span class="si">}</span><span class="s2">'"</span><span class="p">,</span> <span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
 
+
+    <span class="c1"># -- state ---------------------------------------------------------------</span>
+<div class="viewcode-block" id="Session.reset">
+<a class="viewcode-back" href="../../api.html#diffuse.Session.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Put DISCUS, KUPLOT, DIFFEV and REFINE back into their start-up state.</span>
+
+<span class="sd">        Same as the suite command ``reset``. Variables and the random number</span>
+<span class="sd">        generator are kept. ``current_crystal`` is cleared, so the next</span>
+<span class="sd">        calculation on a Crystal reads it in again.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"reset"</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_show</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_crystal</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Session.seed">
+<a class="viewcode-back" href="../../api.html#diffuse.Session.seed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Seed the random number generator, as the DISCUS command ``seed``.</span>
+
+<span class="sd">        The same seed gives the same sequence of random numbers, so</span>
+<span class="sd">        calculations with random elements (``lots``, MMC, ...) repeat.</span>
+<span class="sd">        ``value=0`` seeds from the clock. With more than one OpenMP thread</span>
+<span class="sd">        the order in which threads draw numbers can still vary.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_seed</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Session.random_state">
+<a class="viewcode-back" href="../../api.html#diffuse.Session.random_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">random_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The random number generator's state, for :meth:`set_random_state`."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"random_state"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_get_random_state</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_random_size</span><span class="p">())))</span></div>
+
+
+<div class="viewcode-block" id="Session.set_random_state">
+<a class="viewcode-back" href="../../api.html#diffuse.Session.set_random_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_random_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Put the generator back into a state from :meth:`random_state`."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"set_random_state"</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_random_size</span><span class="p">()),):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"state must have </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_random_size</span><span class="p">()</span><span class="si">}</span><span class="s2"> integers, "</span>
+                             <span class="sa">f</span><span class="s2">"not shape </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_set_random_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_require_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DiffuseError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">() needs a suite_python module built from "</span>
+                               <span class="s2">"DiffuseCode with the WP2 core (dc_* functions); rebuild it."</span><span class="p">)</span>
 
     <span class="c1"># -- KUPLOT data sets -------------------------------------------------</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>

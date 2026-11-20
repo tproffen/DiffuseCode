@@ -191,6 +191,13 @@
   </a>
 </li>
 
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="_generated/migration/WP2_Core_Survey.html">
+    WP2 – Core infrastructure: survey and first step
+  </a>
+</li>
+
                 </ul>
             </li>
             
@@ -334,6 +341,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="_generated/migration/WP0_Test_Coverage_Gaps.html">
     Test coverage gaps – what to add and harden
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="_generated/migration/WP2_Core_Survey.html">
+    WP2 – Core infrastructure: survey and first step
   </a>
 </li>
 
@@ -1100,6 +1114,19 @@ sphere). Default: an infinite crystal with periodic boundaries.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="diffuse.Session.last_error">
+<span class="sig-name descname"><span class="pre">last_error</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#Session.last_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Session.last_error" title="Link to this definition">#</a></dt>
+<dd><p>The first error DISCUS recorded in the last call.</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">(code,</span> <span class="pre">category,</span> <span class="pre">text,</span> <span class="pre">details)</span></code>; <code class="docutils literal notranslate"><span class="pre">code</span></code> is 0 when
+there was no error (or the module predates the WP2 core).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)">int</a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="diffuse.Session.value">
 <span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expression</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#Session.value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Session.value" title="Link to this definition">#</a></dt>
 <dd><p>Value of a DISCUS expression, e.g. <code class="docutils literal notranslate"><span class="pre">n[1]</span></code> or <code class="docutils literal notranslate"><span class="pre">lat[1]</span></code>.</p>
@@ -1109,6 +1136,60 @@ sphere). Default: an infinite crystal with periodic boundaries.</p></li>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diffuse.Session.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#Session.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Session.reset" title="Link to this definition">#</a></dt>
+<dd><p>Put DISCUS, KUPLOT, DIFFEV and REFINE back into their start-up state.</p>
+<p>Same as the suite command <code class="docutils literal notranslate"><span class="pre">reset</span></code>. Variables and the random number
+generator are kept. <code class="docutils literal notranslate"><span class="pre">current_crystal</span></code> is cleared, so the next
+calculation on a Crystal reads it in again.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diffuse.Session.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#Session.seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Session.seed" title="Link to this definition">#</a></dt>
+<dd><p>Seed the random number generator, as the DISCUS command <code class="docutils literal notranslate"><span class="pre">seed</span></code>.</p>
+<p>The same seed gives the same sequence of random numbers, so
+calculations with random elements (<code class="docutils literal notranslate"><span class="pre">lots</span></code>, MMC, …) repeat.
+<code class="docutils literal notranslate"><span class="pre">value=0</span></code> seeds from the clock. With more than one OpenMP thread
+the order in which threads draw numbers can still vary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diffuse.Session.random_state">
+<span class="sig-name descname"><span class="pre">random_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#Session.random_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Session.random_state" title="Link to this definition">#</a></dt>
+<dd><p>The random number generator’s state, for <a class="reference internal" href="#diffuse.Session.set_random_state" title="diffuse.Session.set_random_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_random_state()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diffuse.Session.set_random_state">
+<span class="sig-name descname"><span class="pre">set_random_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#Session.set_random_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Session.set_random_state" title="Link to this definition">#</a></dt>
+<dd><p>Put the generator back into a state from <a class="reference internal" href="#diffuse.Session.random_state" title="diffuse.Session.random_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">random_state()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1144,6 +1225,45 @@ sphere). Default: an infinite crystal with periodic boundaries.</p></li>
 </dd></dl>
 
 </section>
+<section id="state-and-random-numbers">
+<h2>State and random numbers<a class="headerlink" href="#state-and-random-numbers" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="diffuse.seed">
+<span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse.html#seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.seed" title="Link to this definition">#</a></dt>
+<dd><p>Seed DISCUS’s random number generator.</p>
+<p>Calculations with random elements (<code class="docutils literal notranslate"><span class="pre">lots</span></code> in Fourier, Monte Carlo,
+random displacements) then repeat exactly. <code class="docutils literal notranslate"><span class="pre">value=0</span></code> seeds from the
+clock.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – The seed, as for the DISCUS command <code class="docutils literal notranslate"><span class="pre">seed</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">diffuse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dc</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diffuse.reset">
+<span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse.html#reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.reset" title="Link to this definition">#</a></dt>
+<dd><p>Put DISCUS back into its start-up state (the suite command <code class="docutils literal notranslate"><span class="pre">reset</span></code>).</p>
+<p>Removes the structure and all menu settings. Variables and the random
+number generator are kept. A <a class="reference internal" href="#diffuse.Crystal" title="diffuse.Crystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Crystal</span></code></a> made earlier is read in
+again when it is used next.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="errors">
 <h2>Errors<a class="headerlink" href="#errors" title="Link to this heading">#</a></h2>
 <dl class="py exception">
@@ -1154,18 +1274,77 @@ sphere). Default: an infinite crystal with periodic boundaries.</p></li>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="diffuse.MacroError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">MacroError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#MacroError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.MacroError" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">MacroError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">details</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#MacroError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.MacroError" title="Link to this definition">#</a></dt>
 <dd><p>A command failed inside DISCUS.</p>
-<p>The message holds DISCUS’s <code class="docutils literal notranslate"><span class="pre">***</span></code> error lines; <code class="docutils literal notranslate"><span class="pre">output</span></code> holds all
-the text DISCUS wrote during the failed call.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
 <li><p><strong>output</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
+<li><p><strong>code</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>category</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.MacroError.code">
+<span class="sig-name descname"><span class="pre">code</span></span><a class="headerlink" href="#diffuse.MacroError.code" title="Link to this definition">#</a></dt>
+<dd><p>DISCUS error number (negative), or 0 if DISCUS recorded none.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.MacroError.category">
+<span class="sig-name descname"><span class="pre">category</span></span><a class="headerlink" href="#diffuse.MacroError.category" title="Link to this definition">#</a></dt>
+<dd><p>DISCUS error type: <code class="docutils literal notranslate"><span class="pre">&quot;COMM&quot;</span></code> (command language), <code class="docutils literal notranslate"><span class="pre">&quot;IO&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;FORT&quot;</span></code> (expressions), <code class="docutils literal notranslate"><span class="pre">&quot;MAC&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;MATH&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;APPL&quot;</span></code> (the
+program itself) and others.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.MacroError.text">
+<span class="sig-name descname"><span class="pre">text</span></span><a class="headerlink" href="#diffuse.MacroError.text" title="Link to this definition">#</a></dt>
+<dd><p>DISCUS’s standard message for this error number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.MacroError.details">
+<span class="sig-name descname"><span class="pre">details</span></span><a class="headerlink" href="#diffuse.MacroError.details" title="Link to this definition">#</a></dt>
+<dd><p>Further lines DISCUS gave for this error (often the file or value
+concerned).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a> of <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.MacroError.output">
+<span class="sig-name descname"><span class="pre">output</span></span><a class="headerlink" href="#diffuse.MacroError.output" title="Link to this definition">#</a></dt>
+<dd><p>All the text DISCUS wrote during the failed call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -1277,16 +1456,33 @@ the text DISCUS wrote during the failed call.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session"><code class="docutils literal notranslate"><span class="pre">Session</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session.workdir"><code class="docutils literal notranslate"><span class="pre">Session.workdir</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session.run"><code class="docutils literal notranslate"><span class="pre">Session.run()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session.last_error"><code class="docutils literal notranslate"><span class="pre">Session.last_error()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session.value"><code class="docutils literal notranslate"><span class="pre">Session.value()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session.reset"><code class="docutils literal notranslate"><span class="pre">Session.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session.seed"><code class="docutils literal notranslate"><span class="pre">Session.seed()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session.random_state"><code class="docutils literal notranslate"><span class="pre">Session.random_state()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session.set_random_state"><code class="docutils literal notranslate"><span class="pre">Session.set_random_state()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session.dataset"><code class="docutils literal notranslate"><span class="pre">Session.dataset()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Session.dataset_2d"><code class="docutils literal notranslate"><span class="pre">Session.dataset_2d()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-and-random-numbers">State and random numbers</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.seed"><code class="docutils literal notranslate"><span class="pre">seed()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.reset"><code class="docutils literal notranslate"><span class="pre">reset()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#errors">Errors</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.DiffuseError"><code class="docutils literal notranslate"><span class="pre">DiffuseError</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.MacroError"><code class="docutils literal notranslate"><span class="pre">MacroError</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.MacroError"><code class="docutils literal notranslate"><span class="pre">MacroError</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.MacroError.code"><code class="docutils literal notranslate"><span class="pre">MacroError.code</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.MacroError.category"><code class="docutils literal notranslate"><span class="pre">MacroError.category</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.MacroError.text"><code class="docutils literal notranslate"><span class="pre">MacroError.text</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.MacroError.details"><code class="docutils literal notranslate"><span class="pre">MacroError.details</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.MacroError.output"><code class="docutils literal notranslate"><span class="pre">MacroError.output</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

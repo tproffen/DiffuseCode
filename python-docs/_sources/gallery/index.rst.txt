@@ -20,6 +20,23 @@ documentation is built, so the output and plots here are real results.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="A failed DISCUS command raises diffuse.MacroError, which carries DISCUS&#x27;s error number, type and message. The Python process keeps running and the next call works.">
+
+.. only:: html
+
+  .. image:: /gallery/images/thumb/sphx_glr_errors_and_seeds_thumb.png
+    :alt:
+
+  :doc:`/gallery/errors_and_seeds`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Errors and reproducible random numbers</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Calculate the pair distribution function G(r) with diffuse.pdf: how a finite Q range adds termination ripples, and how X-rays and neutrons weight the atom pairs differently.">
 
 .. only:: html
@@ -79,6 +96,7 @@ documentation is built, so the output and plots here are real results.
 .. toctree::
    :hidden:
 
+   /gallery/errors_and_seeds
    /gallery/pdf_demo
    /gallery/fourier_demo
    /gallery/powder_demo

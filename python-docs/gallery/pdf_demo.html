@@ -50,7 +50,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Single-crystal diffraction and diffuse scattering" href="fourier_demo.html" />
-    <link rel="prev" title="Examples" href="index.html" />
+    <link rel="prev" title="Errors and reproducible random numbers" href="errors_and_seeds.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
@@ -188,6 +188,13 @@
 <li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="../_generated/migration/WP0_Test_Coverage_Gaps.html">
     Test coverage gaps – what to add and harden
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../_generated/migration/WP2_Core_Survey.html">
+    WP2 – Core infrastructure: survey and first step
   </a>
 </li>
 
@@ -337,6 +344,13 @@
   </a>
 </li>
 
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../_generated/migration/WP2_Core_Survey.html">
+    WP2 – Core infrastructure: survey and first step
+  </a>
+</li>
+
   </ul>
 </nav></div>
           
@@ -395,6 +409,7 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="errors_and_seeds.html">Errors and reproducible random numbers</a></li>
 <li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Pair distribution functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fourier_demo.html">Single-crystal diffraction and diffuse scattering</a></li>
 <li class="toctree-l1"><a class="reference internal" href="powder_demo.html">Powder patterns of anatase</a></li>
@@ -491,7 +506,7 @@ instrument resolution, which damps the peaks at large r.</p>
 </span><a class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-method reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_title.html#matplotlib.axes.Axes.set_title" title="matplotlib.axes.Axes.set_title"><span class="n">ax</span><span class="o">.</span><span class="n">set_title</span></a><span class="p">(</span><span class="s2">&quot;</span><span class="s2">Nickel (fcc)</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span><a class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-method reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.legend.html#matplotlib.axes.Axes.legend" title="matplotlib.axes.Axes.legend"><span class="n">ax</span><span class="o">.</span><span class="n">legend</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../_images/sphx_glr_pdf_demo_001.png" srcset="../_images/sphx_glr_pdf_demo_001.png" alt="Nickel (fcc)" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend object at 0x7f6303d69d00&gt;
+<img src="../_images/sphx_glr_pdf_demo_001.png" srcset="../_images/sphx_glr_pdf_demo_001.png" alt="Nickel (fcc)" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend object at 0x7f4d9508ae10&gt;
 </pre></div>
 </div>
 <p>The first peak sits at the nearest-neighbour distance a/√2:</p>
@@ -519,7 +534,7 @@ negative, so Ti–O peaks point down.</p>
 </span><span class="w">
 </span><a class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.show.html#matplotlib.pyplot.show" title="matplotlib.pyplot.show"><span class="n">plt</span><span class="o">.</span><span class="n">show</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../_images/sphx_glr_pdf_demo_002.png" srcset="../_images/sphx_glr_pdf_demo_002.png" alt="Anatase (TiO₂)" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.258 seconds)</p>
+<img src="../_images/sphx_glr_pdf_demo_002.png" srcset="../_images/sphx_glr_pdf_demo_002.png" alt="Anatase (TiO₂)" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.266 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-pdf-demo-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/3aa2f7eb81e712d133ec09b380d3e4c0/pdf_demo.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">pdf_demo.ipynb</span></code></a></p>
@@ -546,12 +561,12 @@ negative, so Ti–O peaks point down.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="index.html"
+       href="errors_and_seeds.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Examples</p>
+        <p class="prev-next-title">Errors and reproducible random numbers</p>
       </div>
     </a>
     <a class="right-next"
