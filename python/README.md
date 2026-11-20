@@ -28,7 +28,7 @@ the system packages to install first, the conda route for users without
 admin rights, and notes for WSL2):
 
 ```bash
-python3 -m venv ~/discus && source ~/discus/bin/activate
+python3 -m venv ~/.diffuse && source ~/.diffuse/bin/activate
 ```
 
 ```bash
