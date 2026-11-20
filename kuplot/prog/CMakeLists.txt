@@ -35,7 +35,6 @@ if(DIFFUSE_GRAPHICS)
           kuplot_select_device.f90 )
   set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY})
   set (LIBS_GRAPHIC ${PGPLOT_PGPLOT_LIBRARY} ${X11_X11_LIB} )
-  set (PGSERVER ${PGPLOT_DIR}/pgxwin_server)
   set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 else (DIFFUSE_GRAPHICS)
   set (SOURCES_GRAPHIC  color_low_nographic.f90 draw_nographic.f90
@@ -95,11 +94,30 @@ if (DIFFUSE_SHARED_LIB)
   install (TARGETS kuplot_all DESTINATION lib)
 endif (DIFFUSE_SHARED_LIB)
 
-option(INSTALL_PGPLOT "Switch to optionally install pgplot files" ON)
-if (INSTALL_PGPLOT)
-  install (FILES ${PGPLOT_DIR}/grfont.dat DESTINATION share)
-  install (PROGRAMS ${PGSERVER} DESTINATION bin)
-endif (INSTALL_PGPLOT)
+# PGPLOT's font file and X11 server are copied into the installation, so
+# that KUPLOT finds them next to discus_suite. They are looked up in
+# PGPLOT_DIR and in the usual system places (Debian/Ubuntu: grfont.dat in
+# /usr/lib/pgplot5, pgxwin_server in /usr/bin); a file that is not found is
+# skipped with a warning. Nothing is installed without graphics.
+option(INSTALL_PGPLOT "Switch to optionally install pgplot files" ${DIFFUSE_GRAPHICS})
+if (INSTALL_PGPLOT AND DIFFUSE_GRAPHICS)
+  find_file (PGPLOT_GRFONT grfont.dat
+             PATHS ${PGPLOT_DIR} $ENV{PGPLOT_DIR} /usr/lib/pgplot5 /usr/local/pgplot
+                   /usr/share/pgplot5 /usr/local/share/pgplot /opt/local/lib/pgplot
+             NO_DEFAULT_PATH)
+  find_program (PGPLOT_SERVER pgxwin_server
+                PATHS ${PGPLOT_DIR} $ENV{PGPLOT_DIR} /usr/lib/pgplot5 /usr/local/pgplot)
+  if (PGPLOT_GRFONT)
+    install (FILES ${PGPLOT_GRFONT} DESTINATION share)
+  else ()
+    message (WARNING "PGPLOT grfont.dat not found; not installed (set PGPLOT_DIR)")
+  endif ()
+  if (PGPLOT_SERVER)
+    install (PROGRAMS ${PGPLOT_SERVER} DESTINATION bin)
+  else ()
+    message (WARNING "pgxwin_server not found; not installed (set PGPLOT_DIR)")
+  endif ()
+endif (INSTALL_PGPLOT AND DIFFUSE_GRAPHICS)
 
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/kuplot/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION share/kuplot)

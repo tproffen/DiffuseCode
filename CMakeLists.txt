@@ -5,15 +5,10 @@ cmake_minimum_required(VERSION 3.12.0)
 project(DIFFUSE)
 enable_language(Fortran)
 
-if ( NOT DEFINED ENV{FC} )
-    message(FATAL_ERROR "The environment variable FC is not set
-Please set FC to the full path to fortran compiler before running CMake/ccmake
-For example use: export FC=$(which gfortran) or export FC=$(which ifort) ")
-else ()
-   message (status " FC set to $ENV{FC} ")
-endif()
-set (CMAKE_Fortran_COMPILER $ENV{FC})
-message ( status " TOPLEVEL COMPILER is ${CMAKE_Fortran_COMPILER}" )
+# CMake chooses the Fortran compiler in enable_language() above: from
+# -DCMAKE_Fortran_COMPILER=..., else the FC environment variable, else the
+# first one it finds (gfortran, ifort, ...). FC is no longer required.
+message ( status " TOPLEVEL COMPILER is ${CMAKE_Fortran_COMPILER} (${CMAKE_Fortran_COMPILER_ID})" )
 
 # Detect if Intel or Portland Fortran compiler is used.
 if (${CMAKE_Fortran_COMPILER} MATCHES "ifort")

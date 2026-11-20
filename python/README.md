@@ -23,11 +23,12 @@ plots) is built from `docs/`; see "Documentation" below.
 
 ## Running the demo
 
-Build DiffuseCode with the Python module (from the repository root):
+Build DiffuseCode with the Python module (from the repository root). The
+Python interface needs no graphics, so this builds without PGPLOT and X11
+(see `docs/install.md` for the packages):
 
 ```bash
-FC=gfortran CC=gcc CXX=g++ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-    -DDIFFUSE_PYTHON=ON -DPGPLOT_DIR=/usr/lib/pgplot5
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDIFFUSE_PYTHON=ON -DDIFFUSE_GRAPHICS=OFF
 ```
 
 ```bash

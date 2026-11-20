@@ -1,0 +1,45 @@
+#
+#  test_serial.mac
+#
+################################################################################
+#
+#  Serial version of refine.mac for the automatic tests (no MPI needed):
+#  the same refinement model, 4 generations, all individuals computed one
+#  after the other ("compute:serial"). Unlike refine.mac it does not end the
+#  DISCUS_SUITE, and it checks the result:
+#    - the best R-value is a number between 0 and 1
+#    - it is not worse after the last generation than after the first
+#      (differential evolution keeps the best member)
+#
+################################################################################
+#
+diffev
+variable integer, P_pop
+variable integer, P_chd
+if(P_pop==0) then
+  P_pop =  10
+endif
+if(P_chd==0) then
+  P_chd =  10
+endif
+  reset
+  @cleanup.mac                ! Remove old files
+  @setup.mac                  ! Define number of individual repetitions
+  @get_model.mac              ! Define the refinement model to use
+  @diffev_setup.mac           ! Define refinement details
+  init
+  do i[0]=1,   4
+    run_mpi discus, dis.diffev.mac  , repeat:REF_NINDIV, logfile:LOGFILES/d, compute:serial
+    compare
+    if(i[0]==1) then
+      r[10] = bestr[0]
+    endif
+  enddo
+  r[11] = bestr[0]
+exit                          ! Back to suite
+#
+echo " best R-value after generation 1 and 4  %10.5f %10.5f", r[10], r[11]
+LTEST_MAC = FALSE
+if(r[11] > 0.0 .and. r[11] < 1.0 .and. r[11] <= r[10]) then
+  LTEST_MAC = TRUE
+endif

@@ -1,9 +1,11 @@
 # Build DiffuseCode with the Python module and run the tests.
 #
-#   1. pytest tests/python   – diffuse package, suite_python, golden data, demo
-#   2. legacy macro tests     – tools/run_legacy_tests.py, tags fast and mc
-#   3. documentation          – Sphinx (docs/), uploaded as the "docs-html"
-#                               artifact; not published anywhere yet
+#   linux              full build with graphics (PGPLOT, X11):
+#                      legacy macro tests (tools/run_legacy_tests.py) + pytest
+#   python-nographics  DIFFUSE_GRAPHICS=OFF without PGPLOT/X11 installed (the
+#                      set-up of the future Python package): pytest + Sphinx
+#                      docs, uploaded as the "docs-html" artifact
+#   publish-docs       pushes to claude-python-app only: docs to gh-pages
 #
 # Development happens on claude-python-app until the first release of the
 # Python package; feature branches (claude/**) merge into it.
@@ -24,10 +26,7 @@ jobs:
   linux:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
-    env:
-      FC: gfortran
-      CC: gcc
-      CXX: g++
+    # No FC/CC/CXX and no PGPLOT_DIR: CMake finds the compilers and PGPLOT.
     steps:
       - uses: actions/checkout@v4
 
@@ -42,19 +41,17 @@ jobs:
       - name: Configure
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-                -DDIFFUSE_PYTHON=ON -DPGPLOT_DIR=/usr/lib/pgplot5 \
-                -DPYTHON_EXECUTABLE=/usr/bin/python3 -Wno-dev
+                -DDIFFUSE_PYTHON=ON -DPYTHON_EXECUTABLE=/usr/bin/python3 -Wno-dev
 
       - name: Build
         run: cmake --build build -j "$(nproc)"
 
       - name: Python environment
         # --system-site-packages: use the apt NumPy/matplotlib/pytest that the
-        # compiled module was built against; add gemmi (test references) and
-        # the docs tools.
+        # compiled module was built against; add gemmi (test references).
         run: |
           python3 -m venv --system-site-packages .venv
-          .venv/bin/pip install --quiet -r tests/requirements.txt -r docs/requirements.txt
+          .venv/bin/pip install --quiet -r tests/requirements.txt
 
       - name: Python tests (pytest)
         env:
@@ -67,13 +64,68 @@ jobs:
 
       - name: Legacy macro tests
         # Tests tagged mc run with "seed 1234" on one thread (repeatable). A
-        # failed mc test is still re-run: 04.sro3 rarely gets a broken Fourier
-        # result (WP0 log). A pass on retry is reported as flaky; a real break
-        # still fails.
+        # failed mc test is still re-run: 04.sro3 can get a broken Fourier
+        # result after its MMC run (WP0 log). A pass on retry is reported as
+        # flaky; a real break still fails.
         run: |
           python3 tools/run_legacy_tests.py \
             --exe build/suite/prog/discus_suite -j "$(nproc)" \
             --tags fast,mc --retry-mc 2 --junit legacy-results.xml --workdir legacy-work
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            pytest-results.xml
+            legacy-results.xml
+            legacy-work/**/*.log
+          if-no-files-found: ignore
+
+  # The Python package needs no graphics: build without PGPLOT and X11
+  # (neither is installed here), check nothing links them, run the Python
+  # tests and build the docs.
+  python-nographics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (no PGPLOT, X11 or Xvfb)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gfortran cmake make libfftw3-dev libhdf5-dev libreadline-dev zlib1g-dev \
+            python3-dev python3-numpy python3-pytest python3-matplotlib python3-venv
+
+      - name: Configure (DIFFUSE_GRAPHICS=OFF)
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDIFFUSE_GRAPHICS=OFF \
+                -DDIFFUSE_PYTHON=ON -DPYTHON_EXECUTABLE=/usr/bin/python3 -Wno-dev
+
+      - name: Build
+        run: cmake --build build -j "$(nproc)"
+
+      - name: Check that nothing links PGPLOT, X11 or PNG
+        run: |
+          for f in build/suite/prog/discus_suite build/python/suite_python*.so; do
+            if ldd "$f" | grep -i -E 'pgplot|libx11|libpng'; then
+              echo "::error::$f links graphics libraries"; exit 1
+            fi
+          done
+
+      - name: Python environment
+        run: |
+          python3 -m venv --system-site-packages .venv
+          .venv/bin/pip install --quiet -r tests/requirements.txt -r docs/requirements.txt
+
+      - name: Python tests (pytest)
+        env:
+          DIFFUSE_PYTHON_PATH: ${{ github.workspace }}/build/python
+          DIFFUSE_REQUIRE_PYTHON: "1"
+          MPLBACKEND: Agg
+        run: .venv/bin/python -m pytest tests/python -v -rxs --junitxml=pytest-nographics.xml
 
       - name: Documentation
         if: success() || failure()
@@ -95,11 +147,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: |
-            pytest-results.xml
-            legacy-results.xml
-            legacy-work/**/*.log
+          name: test-results-nographics
+          path: pytest-nographics.xml
           if-no-files-found: ignore
 
   # Publish the docs to https://tproffen.github.io/DiffuseCode/python-docs/
@@ -107,7 +156,7 @@ jobs:
   # replaces python-docs/ (plus an empty .nojekyll at the root) and refuses
   # to publish if anything else would change.
   publish-docs:
-    needs: linux
+    needs: [linux, python-nographics]
     if: github.event_name == 'push' && github.ref == 'refs/heads/claude-python-app'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
