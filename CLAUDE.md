@@ -36,6 +36,13 @@ python3 tools/run_legacy_tests.py --exe build/suite/prog/discus_suite -j 4 --tag
 
 CMake finds the compilers itself (`FC` is optional). Keep build trees outside `tests/`.
 
+CI runs only the jobs a change needs (`tools/ci_changes.py`, see
+`tests/README.md`). After substantial changes (Fortran core, build or
+packaging, several areas at once), **offer the owner a full CI run** and
+start it only after they say yes: `actions_run_trigger` with `run_workflow`,
+`tests.yml`, the branch as ref. The "Run workflow" button does not exist
+before the workflow is on `master` (first release).
+
 ## Documentation
 
 Sphinx in `docs/` (MyST Markdown, autodoc + napoleon, sphinx-gallery over
