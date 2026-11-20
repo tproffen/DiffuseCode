@@ -1,0 +1,34 @@
+# Conda environment to build and use the diffuse Python package without
+# admin rights (everything, including the compilers, comes from conda-forge).
+#
+#   # once: install Miniforge into your home folder
+#   #   https://github.com/conda-forge/miniforge
+#   conda env create -f environment.yml
+#   conda activate diffuse
+#   pip install --no-build-isolation .
+#
+# See docs/install.md.
+name: diffuse
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  - pip
+  # build tools
+  - fortran-compiler
+  - c-compiler
+  - cxx-compiler
+  - cmake>=3.15
+  - make
+  - scikit-build-core>=0.10
+  # libraries DiffuseCode links against
+  - fftw
+  - hdf5          # includes the Fortran interface
+  - readline
+  - zlib
+  # Python packages
+  - numpy
+  - matplotlib
+  # tests (optional)
+  - pytest
+  - gemmi

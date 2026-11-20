@@ -25,7 +25,17 @@ import pytest
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))                    # compare.py
-sys.path.insert(0, str(HERE.parents[1] / "python"))   # the diffuse package
+
+# Which diffuse package to test: with DIFFUSE_PYTHON_PATH (a CMake build
+# folder) the source in python/; otherwise an installed one ("pip install
+# ."), and the source only if none is installed.
+import importlib.util  # noqa: E402
+
+SOURCE_PACKAGE = HERE.parents[1] / "python"
+USE_SOURCE = bool(os.environ.get("DIFFUSE_PYTHON_PATH")) or \
+    importlib.util.find_spec("diffuse") is None
+if USE_SOURCE:
+    sys.path.insert(0, str(SOURCE_PACKAGE))
 
 
 @pytest.fixture(scope="session")

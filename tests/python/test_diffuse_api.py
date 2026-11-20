@@ -164,9 +164,12 @@ def test_plot(dc):
 def test_example_script(script, tmp_path):
     """Each script in python/examples/ runs on its own (own process, no display)."""
     pytest.importorskip("matplotlib")
-    if not os.environ.get("DIFFUSE_PYTHON_PATH"):
-        pytest.skip("DIFFUSE_PYTHON_PATH not set")
-    env = os.environ | {"PYTHONPATH": str(REPO / "python"), "MPLBACKEND": "Agg"}
+    import conftest
+    env = os.environ | {"MPLBACKEND": "Agg"}
+    if conftest.USE_SOURCE:
+        if not os.environ.get("DIFFUSE_PYTHON_PATH"):
+            pytest.skip("diffuse is not installed and DIFFUSE_PYTHON_PATH is not set")
+        env["PYTHONPATH"] = str(REPO / "python")
     r = subprocess.run([sys.executable, str(EXAMPLES / script)], cwd=tmp_path,
                        env=env, capture_output=True, text=True, timeout=300)
     assert r.returncode == 0, r.stdout + r.stderr
