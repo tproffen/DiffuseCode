@@ -508,7 +508,7 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 <p>Run <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">~/.diffuse/bin/activate</span></code> again in every new terminal before using
 the package (or add it to <code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code>). Keeping the environment outside the
 DiffuseCode folder means a fresh clone or <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clean</span></code> does not touch it.</p>
-<p>This also installs NumPy and matplotlib. Use <code class="docutils literal notranslate"><span class="pre">.[test]</span></code> for what the tests
+<p>This also installs NumPy, matplotlib and py3Dmol (3D views of structures). Use <code class="docutils literal notranslate"><span class="pre">.[test]</span></code> for what the tests
 need, <code class="docutils literal notranslate"><span class="pre">.[docs]</span></code> for the documentation tools. The build takes a few minutes. Set
 <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_PARALLEL_LEVEL</span></code> to the number of CPU cores to make it faster,
 for example <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_PARALLEL_LEVEL=4</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code>.</p>
@@ -534,9 +534,34 @@ on the Windows side are much slower to read and write from Linux, and the
 build reads and writes many files.</p></li>
 <li><p><strong>No display is needed.</strong> The package has no graphics; matplotlib plots go
 to files, or to a window if your WSL2 has WSLg (Windows 11).</p></li>
-<li><p><strong>Jupyter:</strong> run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">jupyterlab</span></code> in the virtual environment and
-start <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">lab</span></code>; open the link it prints in your Windows browser.</p></li>
+<li><p><strong>Jupyter:</strong> see <a class="reference internal" href="#jupyter">Jupyter</a> below; on WSL2, open the link that
+<code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">lab</span></code> prints in your Windows browser.</p></li>
 </ul>
+</section>
+<section id="jupyter">
+<h2>Jupyter<a class="headerlink" href="#jupyter" title="Link to this heading">#</a></h2>
+<p>To use the package in JupyterLab with interactive plots (zoom, pan, a
+readout of the coordinates under the mouse), install it with the <code class="docutils literal notranslate"><span class="pre">jupyter</span></code>
+extra, which adds JupyterLab and <a class="reference external" href="https://matplotlib.org/ipympl/">ipympl</a>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">".[jupyter]"</span>
+jupyter<span class="w"> </span>lab
+</pre></div>
+</div>
+<p>(The quotes stop the shell from reading the square brackets.) In the
+notebook, before plotting:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">widget</span>
+</pre></div>
+</div>
+<p>Each figure then has a toolbar: the magnifier zooms into a box, the arrows
+pan, home returns to the full view, the disk saves a PNG. Restart JupyterLab
+after installing ipympl, or the figures show <code class="docutils literal notranslate"><span class="pre">Error</span> <span class="pre">displaying</span> <span class="pre">widget</span></code>; the
+same happens when <code class="docutils literal notranslate"><span class="pre">jupyter</span></code> is not the one from your environment
+(<code class="docutils literal notranslate"><span class="pre">which</span> <span class="pre">jupyter</span></code> should point into it).</p>
+<p>Structures can be viewed in 3D in the notebook with
+<a class="reference internal" href="api.html#diffuse.Crystal.view" title="diffuse.Crystal.view"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Crystal.view()</span></code></a> (py3Dmol, installed with the
+package; no extension needed): rotate with the mouse, zoom with the wheel.</p>
+<p>The notebook <code class="docutils literal notranslate"><span class="pre">python/examples/interactive_plots.ipynb</span></code> shows both with a
+structure view, a powder pattern, a diffuse-scattering map and a PDF.</p>
 </section>
 <section id="without-admin-rights-conda">
 <h2>Without admin rights (conda)<a class="headerlink" href="#without-admin-rights-conda" title="Link to this heading">#</a></h2>
@@ -641,6 +666,7 @@ own error lines.</p></li>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#with-system-packages-debian-ubuntu-wsl2">With system packages (Debian, Ubuntu, WSL2)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wsl2">WSL2</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jupyter">Jupyter</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#without-admin-rights-conda">Without admin rights (conda)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#for-development-a-cmake-build-folder">For development: a CMake build folder</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-it-works-and-its-limits">How it works, and its limits</a></li>

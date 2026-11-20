@@ -673,9 +673,12 @@ pytest tests, then the legacy tests tagged <code class="docutils literal notrans
 </tbody>
 </table>
 </div>
-<p>Opening a pull request into <code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code> runs everything once, as the
-check before merging; later pushes to its branch run as pushes. A manual run
-also runs everything. GitHub shows the “Run workflow” button (Actions tab)
+<p>Opening a pull request into <code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code> runs nothing when the branch
+already contains the latest <code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code>: the push runs tested exactly
+that code. If <code class="docutils literal notranslate"><span class="pre">claude-python-app</span></code> has moved on since the branch began, the
+pull request run tests the merge result, for the jobs the PR’s changes need;
+that catches clashes with what was merged in between. Later pushes to the
+branch run as pushes. A manual run also runs everything. GitHub shows the “Run workflow” button (Actions tab)
 only for workflows on the default branch (<code class="docutils literal notranslate"><span class="pre">master</span></code>), so until the first
 release start it from the command line, for any branch:
 <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">workflow</span> <span class="pre">run</span> <span class="pre">tests.yml</span> <span class="pre">--ref</span> <span class="pre">claude-python-app</span></code>, or ask Claude. To see why a job ran or

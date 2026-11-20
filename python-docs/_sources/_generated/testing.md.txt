@@ -132,9 +132,12 @@ It runs only what the changes need (`tools/ci_changes.py`, first job
 | Fortran sources, legacy tests, anything else | build, legacy tests, pytest (graphics build, 22.04) |
 | `pyproject.toml`, `environment.yml`, CMake, `python/suite_python.f90`, `.github/` | everything, conda included |
 
-Opening a pull request into `claude-python-app` runs everything once, as the
-check before merging; later pushes to its branch run as pushes. A manual run
-also runs everything. GitHub shows the "Run workflow" button (Actions tab)
+Opening a pull request into `claude-python-app` runs nothing when the branch
+already contains the latest `claude-python-app`: the push runs tested exactly
+that code. If `claude-python-app` has moved on since the branch began, the
+pull request run tests the merge result, for the jobs the PR's changes need;
+that catches clashes with what was merged in between. Later pushes to the
+branch run as pushes. A manual run also runs everything. GitHub shows the "Run workflow" button (Actions tab)
 only for workflows on the default branch (`master`), so until the first
 release start it from the command line, for any branch:
 `gh workflow run tests.yml --ref claude-python-app`, or ask Claude. To see why a job ran or

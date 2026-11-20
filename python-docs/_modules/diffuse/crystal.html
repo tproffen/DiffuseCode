@@ -561,11 +561,195 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span></div>
 
 
+<div class="viewcode-block" id="Crystal.lattice_vectors">
+<a class="viewcode-back" href="../../api.html#diffuse.Crystal.lattice_vectors">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">lattice_vectors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The unit-cell vectors a, b, c as rows, in Å, shape (3, 3).</span>
+
+<span class="sd">        Standard orientation: a along x, b in the xy plane, c completing a</span>
+<span class="sd">        right-handed set.</span>
+<span class="sd">        """</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">al</span><span class="p">,</span> <span class="n">be</span><span class="p">,</span> <span class="n">ga</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span>
+        <span class="n">ca</span><span class="p">,</span> <span class="n">cb</span><span class="p">,</span> <span class="n">cg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">([</span><span class="n">al</span><span class="p">,</span> <span class="n">be</span><span class="p">,</span> <span class="n">ga</span><span class="p">]))</span>
+        <span class="n">sg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">ga</span><span class="p">))</span>
+        <span class="n">cx</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="n">cb</span>
+        <span class="n">cy</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="p">(</span><span class="n">ca</span> <span class="o">-</span> <span class="n">cb</span> <span class="o">*</span> <span class="n">cg</span><span class="p">)</span> <span class="o">/</span> <span class="n">sg</span>
+        <span class="n">cz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">c</span> <span class="o">-</span> <span class="n">cx</span> <span class="o">*</span> <span class="n">cx</span> <span class="o">-</span> <span class="n">cy</span> <span class="o">*</span> <span class="n">cy</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">a</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="n">b</span> <span class="o">*</span> <span class="n">cg</span><span class="p">,</span> <span class="n">b</span> <span class="o">*</span> <span class="n">sg</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span><span class="p">]])</span></div>
+
+
+<div class="viewcode-block" id="Crystal.cartesian">
+<a class="viewcode-back" href="../../api.html#diffuse.Crystal.cartesian">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cartesian</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Atom positions in Å, shape (natoms, 3), in the orientation of</span>
+<span class="sd">        :meth:`lattice_vectors`."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Crystal.view">
+<a class="viewcode-back" href="../../api.html#diffuse.Crystal.view">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ball"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">cell</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">"crystal"</span><span class="p">,</span>
+             <span class="n">show</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colors</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">640</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">480</span><span class="p">,</span>
+             <span class="n">background</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"white"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Show the structure in 3D in a Jupyter notebook (py3Dmol).</span>
+
+<span class="sd">        Rotate with the left mouse button, zoom with the wheel, move with the</span>
+<span class="sd">        right button (or Ctrl + left). Uses ``py3Dmol`` (3Dmol.js), which</span>
+<span class="sd">        is installed with the package.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        style : {"ball", "spacefill", "stick", "ballstick"}</span>
+<span class="sd">            Small spheres (default), touching spheres, or bonds; bonds are</span>
+<span class="sd">            drawn between atoms closer than the sum of their covalent radii.</span>
+<span class="sd">        scale : float</span>
+<span class="sd">            Size factor for the spheres and sticks, e.g. 3 for a sparse</span>
+<span class="sd">            model structure whose atoms are far apart.</span>
+<span class="sd">        cell : {"crystal", "unit"} or None</span>
+<span class="sd">            Draw the edges of the whole crystal (all unit cells), of one</span>
+<span class="sd">            unit cell, or nothing.</span>
+<span class="sd">        show : str or sequence of str, optional</span>
+<span class="sd">            Only these atom types (DISCUS names such as ``"CU"``), for</span>
+<span class="sd">            example to see how one kind of atom is ordered.</span>
+<span class="sd">        colors : dict, optional</span>
+<span class="sd">            Colours for atom types, e.g. ``{"CU": "orange", "AU": "gold"}``.</span>
+<span class="sd">            Other atoms are coloured by element (Jmol colours).</span>
+<span class="sd">        width, height : int</span>
+<span class="sd">            Size in pixels.</span>
+<span class="sd">        background : str</span>
+<span class="sd">            Background colour.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        StructureView</span>
+<span class="sd">            Displayed when it is the last expression in a notebook cell</span>
+<span class="sd">            (or call ``.show()``). ``.write_html("file.html")`` saves a page</span>
+<span class="sd">            that shows the structure in any browser. The py3Dmol view is</span>
+<span class="sd">            ``.viewer``; other py3Dmol methods (``addLabel``, ``setView`` ...)</span>
+<span class="sd">            can be called on the StructureView directly, then ``.show()``.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Fine for tens of thousands of atoms with ``"ball"``; bonds</span>
+<span class="sd">        (``"stick"``, ``"ballstick"``) get slow for large crystals.</span>
+<span class="sd">        """</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">py3Dmol</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">"Crystal.view() needs py3Dmol, which is installed with "</span>
+                              <span class="s2">"the diffuse package: pip install py3Dmol"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+        <span class="k">if</span> <span class="n">style</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_VIEW_STYLES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"style must be one of </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_VIEW_STYLES</span><span class="p">)</span><span class="si">}</span><span class="s2">, not </span><span class="si">{</span><span class="n">style</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">scale</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"scale must be positive"</span><span class="p">)</span>
+        <span class="n">look</span> <span class="o">=</span> <span class="p">{</span><span class="n">kind</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="o">*</span> <span class="n">scale</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">_VIEW_STYLES</span><span class="p">[</span><span class="n">style</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="n">cell</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"crystal"</span><span class="p">,</span> <span class="s2">"unit"</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"cell must be 'crystal', 'unit' or None, not </span><span class="si">{</span><span class="n">cell</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">names</span><span class="p">,</span> <span class="n">frac</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">()</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="nb">bool</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">wanted</span> <span class="o">=</span> <span class="p">{</span><span class="n">show</span><span class="o">.</span><span class="n">upper</span><span class="p">()}</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">show</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">show</span><span class="p">}</span>
+            <span class="n">unknown</span> <span class="o">=</span> <span class="n">wanted</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no atoms of type </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">unknown</span><span class="p">)</span><span class="si">}</span><span class="s2">; the crystal has </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">names</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">keep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">wanted</span><span class="p">))</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+        <span class="n">xyz</span> <span class="o">=</span> <span class="n">frac</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">()</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">model</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_element</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.5f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">y</span><span class="si">:</span><span class="s2">.5f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">z</span><span class="si">:</span><span class="s2">.5f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">xyz</span><span class="p">)]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">py3Dmol</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">addModel</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"xyz"</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">setStyle</span><span class="p">({},</span> <span class="n">look</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="p">(</span><span class="n">colors</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">names</span> <span class="o">==</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+                <span class="n">spec</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">look</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">setStyle</span><span class="p">({</span><span class="s2">"index"</span><span class="p">:</span> <span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()},</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cell</span> <span class="o">==</span> <span class="s2">"unit"</span><span class="p">:</span>
+                <span class="n">lo</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>          <span class="c1"># all unit cells: from floor(min) to floor(max) + 1</span>
+                <span class="n">lo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">frac</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">)</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">frac</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">lo</span>
+            <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">_box_edges</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+                <span class="n">p</span><span class="p">,</span> <span class="n">q</span> <span class="o">=</span> <span class="n">start</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">(),</span> <span class="n">end</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">()</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">addLine</span><span class="p">({</span><span class="s2">"start"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="s2">"xyz"</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">p</span><span class="p">))),</span>
+                           <span class="s2">"end"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="s2">"xyz"</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">q</span><span class="p">))),</span>
+                           <span class="s2">"color"</span><span class="p">:</span> <span class="s2">"black"</span><span class="p">,</span> <span class="s2">"dashed"</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">setBackgroundColor</span><span class="p">(</span><span class="n">background</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">zoomTo</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">StructureView</span><span class="p">(</span><span class="n">v</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StructureView">
+<a class="viewcode-back" href="../../api.html#diffuse.StructureView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StructureView</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A 3D view of a crystal, from :meth:`Crystal.view`.</span>
+
+<span class="sd">    Wraps a ``py3Dmol.view`` (in ``viewer``) so that a notebook shows the</span>
+<span class="sd">    view and nothing else; any other py3Dmol method is passed on to it.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewer</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">viewer</span> <span class="o">=</span> <span class="n">viewer</span>
+
+<div class="viewcode-block" id="StructureView.show">
+<a class="viewcode-back" href="../../api.html#diffuse.StructureView.show">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Display the view (in a notebook)."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">viewer</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="StructureView.write_html">
+<a class="viewcode-back" href="../../api.html#diffuse.StructureView.write_html">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write_html</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fullpage</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Save the view as a web page (or return the HTML if ``path`` is</span>
+<span class="sd">        None). The page loads 3Dmol.js from the internet when opened."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewer</span><span class="o">.</span><span class="n">write_html</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fullpage</span><span class="o">=</span><span class="n">fullpage</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ipython_display_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">viewer</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">viewer</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">cell</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="p">)</span>
         <span class="n">sc</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">", supercell=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">supercell</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">supercell</span> <span class="k">else</span> <span class="s2">""</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"Crystal('</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">'</span><span class="si">{</span><span class="n">sc</span><span class="si">}</span><span class="s2">, natoms=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">natoms</span><span class="si">}</span><span class="s2">, lattice=(</span><span class="si">{</span><span class="n">cell</span><span class="si">}</span><span class="s2">))"</span></div>
 
+
+
+<span class="n">_VIEW_STYLES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"ball"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"sphere"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"scale"</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">}},</span>
+    <span class="s2">"spacefill"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"sphere"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"scale"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}},</span>
+    <span class="s2">"stick"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"stick"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"radius"</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">}},</span>
+    <span class="s2">"ballstick"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"sphere"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"scale"</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">},</span> <span class="s2">"stick"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"radius"</span><span class="p">:</span> <span class="mf">0.12</span><span class="p">}},</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_element</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Element symbol from a DISCUS atom name: 'TI4+' -&gt; 'Ti', 'O2-' -&gt; 'O'."""</span>
+    <span class="n">letters</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ch</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+            <span class="k">break</span>
+        <span class="n">letters</span> <span class="o">+=</span> <span class="n">ch</span>
+    <span class="n">letters</span> <span class="o">=</span> <span class="n">letters</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">"X"</span>
+    <span class="k">return</span> <span class="n">letters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="n">letters</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_box_edges</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The 12 edges of the box lo .. lo + n, in fractional coordinates."""</span>
+    <span class="n">corners</span> <span class="o">=</span> <span class="p">[</span><span class="n">lo</span> <span class="o">+</span> <span class="n">n</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">corners</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">corners</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+                                <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_parse_stru_atoms</span><span class="p">(</span><span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
