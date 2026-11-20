@@ -66,12 +66,21 @@
 #   case, CMake is not used to find the compiler and configure the associated build system.
 #
 
-find_program(F2PY_EXECUTABLE NAMES f2py${PYTHON_VERSION_MAJOR} f2py)
+# DiffuseCode: run f2py as "<python> -m numpy.f2py", with the same interpreter
+# whose NumPy headers the module is compiled against. A launcher script found
+# on the PATH (f2py, f2py3) may belong to another NumPy: on Ubuntu 22.04,
+# /usr/bin/f2py3 fails with "StopIteration" when a newer NumPy installed with
+# pip shadows the system one. Set F2PY_EXECUTABLE to override.
+if(NOT F2PY_EXECUTABLE AND PYTHON_EXECUTABLE)
+  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import numpy.f2py"
+                  RESULT_VARIABLE _f2py_import_failed OUTPUT_QUIET ERROR_QUIET)
+  if(NOT _f2py_import_failed)
+    set(F2PY_EXECUTABLE "${PYTHON_EXECUTABLE}" "-m" "numpy.f2py")
+  endif()
+endif()
 
-# XXX This is required to support NumPy < v0.15.0. See note in module documentation above.
 if(NOT F2PY_EXECUTABLE)
-  find_package(NumPy)
-  set(F2PY_EXECUTABLE "${PYTHON_EXECUTABLE}" "-m" "numpy.f2py.__main__")
+  find_program(F2PY_EXECUTABLE NAMES f2py${PYTHON_VERSION_MAJOR} f2py)
 endif()
 
 if(NOT F2PY_INCLUDE_DIR)
@@ -100,7 +109,7 @@ set(F2PY_INCLUDE_DIRS "${F2PY_INCLUDE_DIR}" "${NumPy_INCLUDE_DIRS}")
 
 if(F2PY_EXECUTABLE)
   # extract the version string
-  execute_process(COMMAND "${F2PY_EXECUTABLE}" -v
+  execute_process(COMMAND ${F2PY_EXECUTABLE} -v
                   OUTPUT_VARIABLE F2PY_VERSION_STRING
                   OUTPUT_STRIP_TRAILING_WHITESPACE)
   if("${F2PY_VERSION_STRING}" MATCHES "^([0-9]+)(.([0-9+]))?(.([0-9+]))?$")

@@ -34,7 +34,9 @@ add_custom_target(${f2py_module_name} ALL
 
 add_custom_command(
   OUTPUT "${f2py_module_name}module.c" "${f2py_module_name}-f2pywrappers2.f90"
-  COMMAND ${F2PY_EXECUTABLE}
+  # --quiet: no progress report and no notes about the DISCUS modules that
+  # suite_python.f90 uses internally (f2py does not need them)
+  COMMAND ${F2PY_EXECUTABLE} --quiet
     -m ${f2py_module_name}
     ${fortran_src_file}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
