@@ -23,6 +23,7 @@ dependencies = ["numpy", "matplotlib"]   # matplotlib: plot() methods and the ex
 [project.optional-dependencies]
 plot = []                        # kept so that "pip install .[plot]" still works
 test = ["pytest", "matplotlib", "gemmi>=0.6", "tomli; python_version < '3.11'"]
+jupyter = ["jupyterlab", "ipympl"]  # interactive plots: %matplotlib widget
 docs = ["sphinx>=7.2", "myst-parser>=2.0", "pydata-sphinx-theme>=0.15", "sphinx-gallery>=0.15", "matplotlib"]
 
 [project.urls]

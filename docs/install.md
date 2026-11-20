@@ -62,8 +62,35 @@ in CI. Three tips:
   build reads and writes many files.
 * **No display is needed.** The package has no graphics; matplotlib plots go
   to files, or to a window if your WSL2 has WSLg (Windows 11).
-* **Jupyter:** run `pip install jupyterlab` in the virtual environment and
-  start `jupyter lab`; open the link it prints in your Windows browser.
+* **Jupyter:** see [Jupyter](#jupyter) below; on WSL2, open the link that
+  `jupyter lab` prints in your Windows browser.
+
+## Jupyter
+
+To use the package in JupyterLab with interactive plots (zoom, pan, a
+readout of the coordinates under the mouse), install it with the `jupyter`
+extra, which adds JupyterLab and [ipympl](https://matplotlib.org/ipympl/):
+
+```bash
+pip install ".[jupyter]"
+jupyter lab
+```
+
+(The quotes stop the shell from reading the square brackets.) In the
+notebook, before plotting:
+
+```python
+%matplotlib widget
+```
+
+Each figure then has a toolbar: the magnifier zooms into a box, the arrows
+pan, home returns to the full view, the disk saves a PNG. Restart JupyterLab
+after installing ipympl, or the figures show `Error displaying widget`; the
+same happens when `jupyter` is not the one from your environment
+(`which jupyter` should point into it).
+
+The notebook `python/examples/interactive_plots.ipynb` shows this with a
+powder pattern, a diffuse-scattering map and a PDF.
 
 ## Without admin rights (conda)
 

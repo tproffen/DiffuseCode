@@ -160,16 +160,37 @@ def test_plot(dc):
     plt.close("all")
 
 
-@pytest.mark.parametrize("script", sorted(p.name for p in EXAMPLES.glob("*.py")))
-def test_example_script(script, tmp_path):
-    """Each script in python/examples/ runs on its own (own process, no display)."""
-    pytest.importorskip("matplotlib")
+def _example_env():
     import conftest
     env = os.environ | {"MPLBACKEND": "Agg"}
     if conftest.USE_SOURCE:
         if not os.environ.get("DIFFUSE_PYTHON_PATH"):
             pytest.skip("diffuse is not installed and DIFFUSE_PYTHON_PATH is not set")
         env["PYTHONPATH"] = str(REPO / "python")
+    return env
+
+
+@pytest.mark.parametrize("notebook", sorted(p.name for p in EXAMPLES.glob("*.ipynb")))
+def test_example_notebook(notebook, tmp_path):
+    """The code cells of each notebook in python/examples/ run (as one script,
+    without the IPython magics such as %matplotlib widget, so neither Jupyter
+    nor ipympl is needed)."""
+    pytest.importorskip("matplotlib")
+    import json
+    cells = json.loads((EXAMPLES / notebook).read_text())["cells"]
+    code = "\n".join("".join(c["source"]) for c in cells if c["cell_type"] == "code")
+    code = "\n".join(line for line in code.splitlines() if not line.lstrip().startswith(("%", "!")))
+    script = tmp_path / "notebook.py"
+    script.write_text(code + "\n")
+    r = subprocess.run([sys.executable, str(script)], cwd=EXAMPLES, env=_example_env(),
+                       capture_output=True, text=True, timeout=300)
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+@pytest.mark.parametrize("script", sorted(p.name for p in EXAMPLES.glob("*.py")))
+def test_example_script(script, tmp_path):
+    """Each script in python/examples/ runs on its own (own process, no display)."""
+    pytest.importorskip("matplotlib")
     r = subprocess.run([sys.executable, str(EXAMPLES / script)], cwd=tmp_path,
-                       env=env, capture_output=True, text=True, timeout=300)
+                       env=_example_env(), capture_output=True, text=True, timeout=300)
     assert r.returncode == 0, r.stdout + r.stderr
