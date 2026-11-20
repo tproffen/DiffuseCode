@@ -114,6 +114,18 @@ jobs:
             --exe build/suite/prog/discus_suite -j "$(nproc)" \
             --tags fast,mc --retry-mc 2 --junit legacy-results.xml --workdir legacy-work
 
+      - name: Install and run the standalone program (docs/standalone.md)
+        # cmake --install as in the docs; the installed discus_suite must run
+        # a macro and find its help files in ../share.
+        run: |
+          prefix="$RUNNER_TEMP/discus-suite"
+          cmake --install build --prefix "$prefix" > /dev/null
+          test -f "$prefix/share/suite.hlp"
+          mkdir -p "$RUNNER_TEMP/standalone" && cd "$RUNNER_TEMP/standalone"
+          printf 'r[1] = 6*7\necho "answer %%4.1f", r[1]\nexit\n' > check.mac
+          "$prefix/bin/discus_suite" -macro check.mac < /dev/null > out.txt 2>&1 || true
+          grep -q "answer 42.0" out.txt || { cat out.txt; exit 1; }
+
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
