@@ -301,6 +301,15 @@ The results are `xarray` objects with coordinates and metadata, and they can be 
 
 **Done when:** A clean virtual environment can install the wheel and run one smoke test.
 
+**Installation without admin rights.** Many users cannot install system packages (FFTW, HDF5 with Fortran, a Fortran compiler). WP1 should cover them, in this order:
+
+1. **Conda environment for building from source (first step of WP1).** An `environment.yml` with the conda-forge packages `fortran-compiler`, `cmake`, `make`, `fftw`, `hdf5` (includes the Fortran libraries), `readline` and `numpy`; Miniforge installs into the home directory, and CMake finds the libraries through `$CONDA_PREFIX`. Add a CI job that builds and tests this way so it keeps working. Works on Linux, macOS and HPC clusters.
+2. **Wheels** (the task above): `pip install diffuse` into a virtual environment or with `pip install --user`, FFTW and HDF5 bundled, no compiler needed. Covers the Python package only, not the `discus_suite` binary.
+3. **A conda-forge package**, which can also ship `discus_suite` (see the distribution decision in 7.12).
+4. **Document the other routes:** HPC environment modules (`module load gcc hdf5 fftw cmake`) or Spack, which builds the dependencies in the user's home directory; and a container image (Apptainer/Singularity on clusters, rootless Podman on desktops) for courses and workshops. Building FFTW and HDF5 from source into `~/.local` works but is not a route to recommend.
+
+Also make **readline optional** for the Python build: it is only used by the interactive `discus_suite` prompt, but CMake currently requires it for every build.
+
 ### WP2 · Core infrastructure
 
 *Months 2–6*
@@ -457,7 +466,7 @@ Months from the start, assuming about 1.5 full-time developers. Some packages ov
 ### 7.12 Decisions needed
 
 - **Binding technology:** `bind(C)` + nanobind (recommended: cleaner arrays, exceptions and GIL control) or f2py (already used by `suite_python`, less code at first, weaker for complex interfaces).
-- **Distribution:** PyPI wheels, conda-forge, or both.
+- **Distribution:** PyPI wheels, conda-forge, or both. Users without admin rights need at least one of them; until then, a conda environment for building from source (WP1).
 - **Supported platforms and compilers** for official builds. Is Windows native, or WSL only?
 - **Backward-compatibility promise** for macros and file formats, and how long `discus_suite` is maintained.
 - **Data formats:** NeXus/HDF5 as the standard result format, and which version of the DISCUS structure format to keep.
