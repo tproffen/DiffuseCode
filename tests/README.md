@@ -118,9 +118,28 @@ so start each calculation with the relevant `reset`.
 ## CI
 
 `.github/workflows/tests.yml` builds with the Python module and runs the
-pytest tests, then the legacy tests tagged `fast` and `mc`, on every push to
-`claude-python-app` (and `claude/**` branches) and on pull requests into
-`claude-python-app`.
+pytest tests, then the legacy tests tagged `fast` and `mc`.
+
+It runs only what the changes need (`tools/ci_changes.py`, first job
+"changes"). A push to a `claude/**` branch is compared with
+`claude-python-app`, a push to `claude-python-app` with the commit before:
+
+| Changed | Runs |
+|---|---|
+| `migration/`, `*.md` outside `docs/`, `License.txt` | nothing |
+| `docs/` | docs (Ubuntu 24.04) |
+| Python package, `tests/python/`, `tests/golden/` | pytest (graphics build, Ubuntu 24.04 and 22.04), docs |
+| Fortran sources, legacy tests, anything else | build, legacy tests, pytest (graphics build, 22.04) |
+| `pyproject.toml`, `environment.yml`, CMake, `python/suite_python.f90`, `.github/` | everything, conda included |
+
+Opening a pull request into `claude-python-app` runs everything once, as the
+check before merging; later pushes to its branch run as pushes. A manual run
+also runs everything. GitHub shows the "Run workflow" button (Actions tab)
+only for workflows on the default branch (`master`), so until the first
+release start it from the command line, for any branch:
+`gh workflow run tests.yml --ref claude-python-app`, or ask Claude. To see why a job ran or
+not, open the "changes" job, or try it locally:
+`python3 tools/ci_changes.py --files discus/prog/fourier.f90`.
 
 ## Adding a test
 

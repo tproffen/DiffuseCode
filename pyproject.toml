@@ -18,10 +18,10 @@ description = "DISCUS diffuse-scattering simulations from Python (early preview)
 readme = "python/README.md"
 license = { file = "License.txt" }
 requires-python = ">=3.10"
-dependencies = ["numpy"]
+dependencies = ["numpy", "matplotlib"]   # matplotlib: plot() methods and the examples
 
 [project.optional-dependencies]
-plot = ["matplotlib"]
+plot = []                        # kept so that "pip install .[plot]" still works
 test = ["pytest", "matplotlib", "gemmi>=0.6", "tomli; python_version < '3.11'"]
 docs = ["sphinx>=7.2", "myst-parser>=2.0", "pydata-sphinx-theme>=0.15", "sphinx-gallery>=0.15", "matplotlib"]
 

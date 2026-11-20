@@ -12,6 +12,19 @@
 #
 # Development happens on claude-python-app until the first release of the
 # Python package; feature branches (claude/**) merge into it.
+#
+# Which jobs run (job "changes", tools/ci_changes.py):
+#   push to claude/**            only what the branch's changes need,
+#                                compared with claude-python-app
+#   push to claude-python-app    only what the push (the merged PR) needs
+#   PR opened or reopened,       everything, once: the full check before
+#   weekly, manual run           merging. Later pushes to the PR branch
+#                                run as pushes (no second run per push).
+# Text only (migration/, *.md outside docs/): nothing. docs/: the docs.
+# Python package: pytest (graphics build, Ubuntu 24.04 and 22.04) and docs.
+# Fortran, legacy tests: build, legacy tests, pytest on 22.04 (WSL2).
+# pyproject.toml, environment.yml, CMake, the f2py wrapper, this workflow:
+# everything, conda included.
 name: tests
 
 on:
@@ -19,6 +32,11 @@ on:
     branches: [claude-python-app, "claude/**"]
   pull_request:
     branches: [claude-python-app]
+    types: [opened, reopened, ready_for_review]
+  # Weekly full run. GitHub runs scheduled workflows only from the default
+  # branch (master), so this fires once the file is there.
+  schedule:
+    - cron: "17 4 * * 1"           # Mondays 04:17 UTC
   workflow_dispatch:
 
 concurrency:
@@ -26,7 +44,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      build: ${{ steps.decide.outputs.build }}
+      legacy: ${{ steps.decide.outputs.legacy }}
+      conda: ${{ steps.decide.outputs.conda }}
+      docs: ${{ steps.decide.outputs.docs }}
+      package_os: ${{ steps.decide.outputs.package_os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0             # history of claude-python-app for the diff
+      - id: decide
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: python3 tools/ci_changes.py
+
   linux:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     # No FC/CC/CXX and no PGPLOT_DIR: CMake finds the compilers and PGPLOT.
@@ -66,6 +104,7 @@ jobs:
         run: .venv/bin/python -m pytest tests/python -v -rxs --junitxml=pytest-results.xml
 
       - name: Legacy macro tests
+        if: needs.changes.outputs.legacy == 'true'
         # Tests tagged mc run with "seed 1234" on one thread (repeatable). A
         # failed mc test is still re-run: 04.sro3 can get a broken Fourier
         # result after its MMC run (WP0 log). A pass on retry is reported as
@@ -91,10 +130,12 @@ jobs:
   # Ubuntu 22.04 with Python 3.10 is the WSL2 default (the main development
   # environment); 24.04 builds the docs that get published.
   python-package:
+    needs: changes
+    if: needs.changes.outputs.package_os != '[]'
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-22.04]
+        os: ${{ fromJSON(needs.changes.outputs.package_os) }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     env:
@@ -158,6 +199,8 @@ jobs:
   # Users without admin rights: everything from conda-forge (environment.yml),
   # including the compilers; no system packages.
   conda:
+    needs: changes
+    if: needs.changes.outputs.conda == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     defaults:
@@ -190,8 +233,15 @@ jobs:
   # replaces python-docs/ (plus an empty .nojekyll at the root) and refuses
   # to publish if anything else would change.
   publish-docs:
-    needs: [linux, python-package]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/claude-python-app'
+    # Only when the docs were built (docs/ or the package changed), and no
+    # test job failed; a skipped job is fine.
+    needs: [changes, linux, python-package]
+    if: >-
+      always() && github.event_name == 'push' &&
+      github.ref == 'refs/heads/claude-python-app' &&
+      needs.changes.outputs.docs == 'true' &&
+      needs.python-package.result == 'success' &&
+      contains(fromJSON('["success", "skipped"]'), needs.linux.result)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
