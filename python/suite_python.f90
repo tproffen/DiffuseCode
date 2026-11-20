@@ -35,6 +35,17 @@ PUBLIC get_data_length     ! Returns length of KUPLOT data set ik
 PUBLIC get_data_sets       ! Returns number of loaded KUPLOT data sets
 public python_error
 PUBLIC flush_output       ! Flush the Fortran output units (for Python output capture)
+!  Core interface (migration plan, WP2). These take and return plain
+!  integers, strings and integer arrays only, so that they can move to a
+!  bind(C) layer later without changing the Python side.
+PUBLIC dc_init             ! Initialize in library mode (no STOP on errors)
+PUBLIC dc_reset            ! Reset DISCUS, KUPLOT, DIFFEV, REFINE (suite "reset")
+PUBLIC dc_clear_error      ! Forget the last recorded error
+PUBLIC dc_last_error       ! First error shown since dc_clear_error
+PUBLIC dc_seed             ! Seed the random number generator (DISCUS "seed n")
+PUBLIC dc_random_size      ! Number of integers in the generator state
+PUBLIC dc_get_random_state ! Current generator state
+PUBLIC dc_set_random_state ! Put the generator back into a saved state
 !
 CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -339,5 +350,168 @@ IF(output_io /= OUTPUT_UNIT .AND. output_io /= ERROR_UNIT) FLUSH(output_io)
 IF(error_io  /= OUTPUT_UNIT .AND. error_io  /= ERROR_UNIT) FLUSH(error_io)
 !
 END SUBROUTINE flush_output
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE dc_init()
+!
+!  Initialize the suite for use as a library: an error never ends the
+!  process (no STOP, also not with "set error,exit" or a read error on
+!  standard input); the first error is kept for dc_last_error.
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+ier_api = .TRUE.
+CALL initialize_suite()
+CALL dc_clear_error()
+!
+END SUBROUTINE dc_init
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE dc_reset()
+!
+!  Put DISCUS, KUPLOT, DIFFEV and REFINE back into their start-up state,
+!  as the suite command "reset" does. Variables (r[], i[], user variables)
+!  and the random number generator are kept.
+!
+USE discus_reset_all_mod
+USE kuplot_reset_mod
+USE diffev_reset
+USE refine_reset
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=3) :: zeile
+INTEGER          :: lp
+!
+zeile = 'all'
+lp    = 3
+CALL kuplot_do_reset(zeile, lp)
+CALL discus_reset_all
+CALL diffev_do_reset
+CALL refine_do_reset
+CALL dc_clear_error()
+!
+END SUBROUTINE dc_reset
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE dc_clear_error()
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+ier_last_num  = 0
+ier_last_typ  = ER_NONE
+ier_last_cls  = ' '
+ier_last_text = ' '
+ier_last_msg  = ' '
+!
+END SUBROUTINE dc_clear_error
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE dc_last_error(num, typ, cls, text, msgs)
+!
+!  The first error shown since dc_clear_error: its number (< 0; 0 if there
+!  was none), type (ER_COMM, ER_IO, ... in errlist_mod), type name, the
+!  standard message and DISCUS's extra lines (7 x 80 characters).
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+INTEGER           , INTENT(OUT) :: num
+INTEGER           , INTENT(OUT) :: typ
+CHARACTER(LEN=4)  , INTENT(OUT) :: cls
+CHARACTER(LEN=45) , INTENT(OUT) :: text
+CHARACTER(LEN=560), INTENT(OUT) :: msgs
+!f2py intent(out) num, typ, cls, text, msgs
+!
+INTEGER :: i
+!
+num  = ier_last_num
+typ  = ier_last_typ
+cls  = ier_last_cls
+text = ier_last_text
+msgs = ' '
+DO i = 1, 7
+   msgs((i-1)*80+1:i*80) = ier_last_msg(i)
+ENDDO
+!
+END SUBROUTINE dc_last_error
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE dc_seed(value)
+!
+!  Same as the command "seed value"; value 0 seeds from the clock.
+!
+USE random_state_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: value
+INTEGER, DIMENSION(1) :: iwerte
+!
+iwerte(1) = value
+CALL ini_ran_ix(1, iwerte, 0)
+!
+END SUBROUTINE dc_seed
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+INTEGER FUNCTION dc_random_size()
+!
+USE random_state_mod
+!
+IMPLICIT NONE
+!
+dc_random_size = random_nseeds()
+!
+END FUNCTION dc_random_size
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE dc_get_random_state(state, n)
+!
+USE random_state_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN)  :: n
+INTEGER, INTENT(OUT) :: state(n)
+!f2py intent(out) state
+!f2py intent(in) n
+INTEGER :: nseeds
+!
+CALL random_current(nseeds, state)
+!
+END SUBROUTINE dc_get_random_state
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE dc_set_random_state(state, n)
+!
+!  Restore a state from dc_get_random_state. Also clears the second
+!  Gaussian number that gasdev keeps, as "seed" does.
+!
+USE random_mod
+USE random_state_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: n
+INTEGER, INTENT(IN) :: state(n)
+!
+CALL alloc_random()
+CALL put_seeds(n, state)
+iset = 0
+!
+END SUBROUTINE dc_set_random_state
 !
 END MODULE suite

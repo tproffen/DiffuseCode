@@ -9,7 +9,9 @@ What this layer adds on top of ``suite_python``:
 
 * **Errors become exceptions.** A command error ends the whole macro run.
   Every macro written here sets a flag on its last line; if the flag is not
-  set, ``run()`` raises ``MacroError`` with the ``***...***`` error lines.
+  set, ``run()`` raises ``MacroError``. DISCUS runs in library mode
+  (``dc_init``): an error never ends the process, and the first error is
+  recorded, so ``MacroError`` carries its number, type and message.
 * **Output is captured.** The suite writes to the process's stdout/stderr.
   ``run()`` sends both file descriptors to a temporary file while the macro
   runs, and keeps the text in ``Session.last_output``. Pass ``echo=True``
@@ -48,13 +50,31 @@ class DiffuseError(RuntimeError):
 class MacroError(DiffuseError):
     """A command failed inside DISCUS.
 
-    The message holds DISCUS's ``***`` error lines; ``output`` holds all
-    the text DISCUS wrote during the failed call.
+    Attributes
+    ----------
+    code : int
+        DISCUS error number (negative), or 0 if DISCUS recorded none.
+    category : str
+        DISCUS error type: ``"COMM"`` (command language), ``"IO"``,
+        ``"FORT"`` (expressions), ``"MAC"``, ``"MATH"``, ``"APPL"`` (the
+        program itself) and others.
+    text : str
+        DISCUS's standard message for this error number.
+    details : list of str
+        Further lines DISCUS gave for this error (often the file or value
+        concerned).
+    output : str
+        All the text DISCUS wrote during the failed call.
     """
 
-    def __init__(self, message: str, output: str = ""):
+    def __init__(self, message: str, output: str = "", code: int = 0,
+                 category: str = "", text: str = "", details=()):
         super().__init__(message)
         self.output = output
+        self.code = code
+        self.category = category
+        self.text = text
+        self.details = list(details)
 
 
 def _import_suite_python():
@@ -152,8 +172,14 @@ class Session:
         # flush_output() is in suite_python.f90 since the demo API; builds
         # without it rely on GFORTRAN_UNBUFFERED_PRECONNECTED alone.
         self._flush = getattr(self._s, "flush_output", None)
+        # dc_init (library mode, error records) since WP2; older builds of
+        # the module only have initialize_suite.
+        self._core = hasattr(self._s, "dc_init")
         with self._capture() as cap:
-            self._s.initialize_suite()
+            if self._core:
+                self._s.dc_init()
+            else:
+                self._s.initialize_suite()
         self._show(cap.text)
 
     def _capture(self) -> _Capture:
@@ -189,6 +215,7 @@ class Session:
         # DISCUS's "cd" changes the working directory of the whole process;
         # give the caller theirs back afterwards.
         caller_cwd = os.getcwd()
+        self._clear_error()
         try:
             with self._capture() as cap:
                 self._s.execute_macro("@" + str(driver))
@@ -197,18 +224,92 @@ class Session:
             os.chdir(caller_cwd)
         self._show(cap.text)
         if not ok:
-            errors = [line.strip() for line in cap.text.splitlines() if "***" in line]
-            raise MacroError("DISCUS command failed:\n  " + "\n  ".join(errors or ["(no message)"]),
-                             cap.text)
+            raise self._error("DISCUS command failed", cap.text)
         return cap.text
+
+    # -- errors -------------------------------------------------------------
+    def _clear_error(self) -> None:
+        if self._core:
+            self._s.dc_clear_error()
+
+    def last_error(self) -> tuple[int, str, str, list[str]]:
+        """The first error DISCUS recorded in the last call.
+
+        Returns ``(code, category, text, details)``; ``code`` is 0 when
+        there was no error (or the module predates the WP2 core).
+        """
+        if not self._core:
+            return 0, "", "", []
+        num, _typ, cls, text, msgs = self._s.dc_last_error()
+        msgs = msgs.decode(errors="replace")
+        details = [msgs[i:i + 80].strip() for i in range(0, len(msgs), 80)]
+        return (int(num), cls.decode().strip(), text.decode(errors="replace").strip(),
+                [d for d in details if d])
+
+    def _error(self, what: str, output: str) -> MacroError:
+        code, category, text, details = self.last_error()
+        lines = [line.strip() for line in output.splitlines() if "***" in line]
+        if code:
+            # The recorded error says it all; the other *** lines are the
+            # macro and menu levels reporting that it happened.
+            head = f"{what}: {text} (DISCUS error {code}, {category})"
+            body = details
+        else:
+            head, body = what + ":", lines or ["(no message)"]
+        return MacroError("\n  ".join([head, *body]), output, code, category, text, details)
 
     def value(self, expression: str) -> float:
         """Value of a DISCUS expression, e.g. ``n[1]`` or ``lat[1]``."""
+        self._clear_error()
         with self._capture() as cap:
             v = float(self._s.get_value(expression))
-        if "***" in cap.text:
-            raise MacroError(f"cannot evaluate '{expression}':\n  " + cap.text.strip(), cap.text)
+        if self.last_error()[0] < 0 or "***" in cap.text:
+            raise self._error(f"cannot evaluate '{expression}'", cap.text)
         return v
+
+    # -- state ---------------------------------------------------------------
+    def reset(self) -> None:
+        """Put DISCUS, KUPLOT, DIFFEV and REFINE back into their start-up state.
+
+        Same as the suite command ``reset``. Variables and the random number
+        generator are kept. ``current_crystal`` is cleared, so the next
+        calculation on a Crystal reads it in again.
+        """
+        self._require_core("reset")
+        with self._capture() as cap:
+            self._s.dc_reset()
+        self._show(cap.text)
+        self.current_crystal = None
+
+    def seed(self, value: int) -> None:
+        """Seed the random number generator, as the DISCUS command ``seed``.
+
+        The same seed gives the same sequence of random numbers, so
+        calculations with random elements (``lots``, MMC, ...) repeat.
+        ``value=0`` seeds from the clock. With more than one OpenMP thread
+        the order in which threads draw numbers can still vary.
+        """
+        self._require_core("seed")
+        self._s.dc_seed(int(value))
+
+    def random_state(self) -> np.ndarray:
+        """The random number generator's state, for :meth:`set_random_state`."""
+        self._require_core("random_state")
+        return np.asarray(self._s.dc_get_random_state(int(self._s.dc_random_size())))
+
+    def set_random_state(self, state) -> None:
+        """Put the generator back into a state from :meth:`random_state`."""
+        self._require_core("set_random_state")
+        state = np.asarray(state, dtype=np.int32)
+        if state.shape != (int(self._s.dc_random_size()),):
+            raise ValueError(f"state must have {self._s.dc_random_size()} integers, "
+                             f"not shape {state.shape}")
+        self._s.dc_set_random_state(state)
+
+    def _require_core(self, what: str) -> None:
+        if not self._core:
+            raise DiffuseError(f"{what}() needs a suite_python module built from "
+                               "DiffuseCode with the WP2 core (dc_* functions); rebuild it.")
 
     # -- KUPLOT data sets -------------------------------------------------
     def n_datasets(self) -> int:

@@ -75,7 +75,7 @@ ENDIF
 !       error status is set to ER_S_EXIT
 !
 IF(ier_num.lt.0 .AND. ier_sta == ER_S_EXIT .AND. &
-          .NOT. mpi_is_slave ) THEN
+          .NOT. mpi_is_slave .AND. .NOT. ier_api) THEN
    WRITE( error_io,1000) CHAR(7)
    IF(error_io /=0 ) WRITE(*,1000) CHAR(7)
    STOP
@@ -150,6 +150,16 @@ character(len=11) :: color   ! Use this color
        IF(ier_ctrlc) THEN     ! Avoid multiple message in case of a ctrl-c
           IF(ier_rep .AND. ier_num==-14) RETURN
           ier_rep = .TRUE.
+       ENDIF
+!      Keep the first error for a library caller (see errlist_mod)
+       IF(ier_num < 0 .AND. ier_last_num == 0) THEN
+          ier_last_num  = ier_num
+          ier_last_typ  = ier_typ
+          ier_last_cls  = typ
+          ier_last_text = ' '
+          IF(iu <= ier_num .AND. ier_num <= io) ier_last_text = error(ier_num)
+          IF(ier_last_text == ' ') ier_last_text = 'No error message for this error number'
+          ier_last_msg  = ier_msg
        ENDIF
        IF(iu <= ier_num .AND. ier_num <= io) THEN
          IF(    error(ier_num).ne.' ') THEN

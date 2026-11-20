@@ -48,7 +48,16 @@
 .. autofunction:: session
 
 .. autoclass:: Session
-   :members: run, value, dataset, dataset_2d, workdir, last_output
+   :members: run, value, dataset, dataset_2d, workdir, last_output, last_error,
+             reset, seed, random_state, set_random_state
+```
+
+## State and random numbers
+
+```{eval-rst}
+.. autofunction:: seed
+
+.. autofunction:: reset
 ```
 
 ## Errors

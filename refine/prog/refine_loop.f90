@@ -74,7 +74,7 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
             IF( ier_num ==-9.and. ier_typ==ER_IO) THEN
                write(output_io, 8000)
                write(output_io, 9000)
-               stop
+               IF(.NOT. ier_api) stop     ! library mode: an error like any other
             ENDIF
                IF(mpi_active .AND. ier_sta == ER_S_EXIT) THEN  ! Error while MPI is on
                   ier_sta = ER_S_LIVE              ! Fake Error status to prevent stop

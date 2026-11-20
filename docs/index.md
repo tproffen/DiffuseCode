@@ -38,4 +38,5 @@ _generated/testing
 _generated/migration/DiffuseCode_Python_Migration_Plan
 _generated/migration/WP0_Test_Baseline
 _generated/migration/WP0_Test_Coverage_Gaps
+_generated/migration/WP2_Core_Survey
 ```

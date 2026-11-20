@@ -21,10 +21,41 @@ from .powder import PowderPattern, powder
 __all__ = [
     "Crystal", "DiffuseError", "FourierMap", "MacroError", "PDFPattern",
     "PowderPattern", "Session",
-    "fourier", "pdf", "powder", "read_structure", "run_macro", "session",
+    "fourier", "pdf", "powder", "read_structure", "reset", "run_macro", "seed",
+    "session",
 ]
 
 
 def run_macro(commands: str, cwd=None) -> str:
     """Run DISCUS macro text (escape hatch for commands not wrapped yet)."""
     return session().run(commands, cwd)
+
+
+def seed(value: int) -> None:
+    """Seed DISCUS's random number generator.
+
+    Calculations with random elements (``lots`` in Fourier, Monte Carlo,
+    random displacements) then repeat exactly. ``value=0`` seeds from the
+    clock.
+
+    Parameters
+    ----------
+    value : int
+        The seed, as for the DISCUS command ``seed``.
+
+    Examples
+    --------
+    >>> import diffuse as dc
+    >>> dc.seed(1234)
+    """
+    session().seed(value)
+
+
+def reset() -> None:
+    """Put DISCUS back into its start-up state (the suite command ``reset``).
+
+    Removes the structure and all menu settings. Variables and the random
+    number generator are kept. A :class:`Crystal` made earlier is read in
+    again when it is used next.
+    """
+    session().reset()
