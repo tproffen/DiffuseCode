@@ -329,7 +329,7 @@ SUBROUTINE flush_output()
 !  text; buffered output would otherwise appear later, outside the capture.
 !
 USE prompt_mod
-USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY: OUTPUT_UNIT, ERROR_UNIT
+USE ISO_FORTRAN_ENV, ONLY: OUTPUT_UNIT, ERROR_UNIT   ! plain form: f2py prints a debug line for "USE, INTRINSIC ::"
 !
 IMPLICIT NONE
 !
