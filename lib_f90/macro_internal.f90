@@ -11,6 +11,7 @@ public  :: macro_tree_co
 PUBLIC  :: macro_internal
 PUBLIC  :: macro_root, macro_temp, macro_read_temp
 PUBLIC  :: macro_add_node, macro_find_node, macro_write_node
+PUBLIC  :: macro_store
 PUBLIC  :: mac_tree_root, mac_tree_temp, mac_tree_active, mac_tree_tail, mac_tree_srch
 PUBLIC  :: macro_level
 PUBLIC  :: macro_rem_all
@@ -59,6 +60,38 @@ INTEGER :: macro_counter = 0
 INTEGER :: macro_tree_co = 0
 !
 CONTAINS
+!
+!*******************************************************************************
+!
+SUBROUTINE macro_store(macrofile, nlines, content)
+!
+!  Store a macro given as lines of text in the internal storage, under the
+!  name "macrofile". A later "@macrofile" runs it without reading a file
+!  (file_kdo looks into the storage first). An entry of the same name is
+!  replaced. Used by the Python interface to run commands without a file.
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*)                  , INTENT(IN) :: macrofile
+INTEGER                           , INTENT(IN) :: nlines
+CHARACTER(LEN=*), DIMENSION(nlines), INTENT(IN) :: content
+!
+TYPE(macro_internal), POINTER :: node
+!
+ALLOCATE(node)
+macro_counter = macro_counter + 1
+node%number    = macro_counter
+node%macrofile = macrofile
+NULLIFY(node%before)
+NULLIFY(node%after)
+ALLOCATE(node%macros)
+node%macros%macro_length = 0
+node%macros%lmacro       = .false.
+CALL node%macros%alloc_arrays(nlines)
+CALL node%macros%set_macro(nlines, content)
+CALL macro_add_node(macro_root, node)
+!
+END SUBROUTINE macro_store
 !
 !*******************************************************************************
 !

@@ -1,8 +1,8 @@
 """The one DISCUS suite that lives in this Python process.
 
 For now everything runs through the f2py module ``suite_python`` (built with
-``-DDIFFUSE_PYTHON=ON``): Python writes the commands to a small macro and
-the suite runs it. The planned bind(C) core (migration plan, WP2) will
+``-DDIFFUSE_PYTHON=ON``): Python hands the commands to the suite as a macro
+held in memory (``dc_run_commands``; no file), and the suite runs it. The planned bind(C) core (migration plan, WP2) will
 replace this module; the public API in ``diffuse`` is meant to stay the same.
 
 What this layer adds on top of ``suite_python``:
@@ -45,6 +45,8 @@ os.environ.setdefault("GFORTRAN_UNBUFFERED_PRECONNECTED", "y")
 # r[] runs from 0 to MAXPAR = 500 (lib_f90/param_mod.f90); the top entry is
 # reserved for the completion flag.
 FLAG = "r[499]"
+# Longest command line DISCUS takes (PREC_STRING in lib_f90/precision_mod.f90)
+MAX_LINE = 1024
 _ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
 
@@ -135,6 +137,12 @@ class _Capture:
     reads it once, when it is first loaded, and NumPy (through OpenBLAS) may
     have loaded it before this module.
 
+    ``stdin``: a file of empty lines that becomes file descriptor 0 for the
+    call, so that DISCUS never waits for the keyboard: a read gets an empty
+    line, as if Return was pressed (a pause continues, a question keeps its
+    default). Not /dev/null: after an end of file, gfortran stops the whole
+    process at the next read of that unit.
+
     With ``live=True`` a thread shows complete lines while they are written
     (on the real terminal, or through ``sys.stdout`` in Jupyter, where it is
     not the process's file descriptor 1); ``shown`` is the text shown so far.
@@ -142,11 +150,12 @@ class _Capture:
 
     POLL = 0.2                          # seconds between looks at the file
 
-    def __init__(self, flush=None, live: bool = False):
+    def __init__(self, flush=None, live: bool = False, stdin=None):
         self.text = ""
         self.shown = ""
         self._flush = flush
         self._live = live
+        self._stdin = stdin
 
     def __enter__(self):
         if self._flush is not None:
@@ -157,6 +166,15 @@ class _Capture:
         self._saved = [os.dup(1), os.dup(2)]
         os.dup2(self._file.fileno(), 1)
         os.dup2(self._file.fileno(), 2)
+        self._saved_in = False                # False: not replaced; None: fd 0 was closed
+        if self._stdin is not None:
+            try:
+                self._saved_in = os.dup(0)
+            except OSError:
+                self._saved_in = None
+            fd = os.open(self._stdin, os.O_RDONLY)
+            os.dup2(fd, 0)
+            os.close(fd)
         self._pos = 0
         self._thread = None
         if self._live:
@@ -176,6 +194,11 @@ class _Capture:
         os.dup2(self._saved[1], 2)
         for fd in self._saved:
             os.close(fd)
+        if self._saved_in is None:
+            os.close(0)
+        elif self._saved_in is not False:
+            os.dup2(self._saved_in, 0)
+            os.close(self._saved_in)
         self._file.seek(0)
         self.text = _ANSI.sub("", self._file.read().decode(errors="replace"))
         self._file.close()
@@ -214,6 +237,9 @@ class Session:
         self._s = _import_suite_python()
         self._workdir = Path(tempfile.mkdtemp(prefix="diffuse_"))
         atexit.register(shutil.rmtree, self._workdir, ignore_errors=True)
+        # Standard input for DISCUS calls (see _Capture): empty lines
+        self._stdin = self._workdir / "_stdin"
+        self._stdin.write_text("\n" * 20000)
         self.current_crystal = None      # the Crystal now held by DISCUS
         # flush_output() is in suite_python.f90 since the demo API; builds
         # without it rely on GFORTRAN_UNBUFFERED_PRECONNECTED alone.
@@ -229,7 +255,7 @@ class Session:
         self._show(cap.text)
 
     def _capture(self, live: bool = False) -> _Capture:
-        return _Capture(self._flush, live=live and self.echo)
+        return _Capture(self._flush, live=live and self.echo, stdin=self._stdin)
 
     def _show(self, text: str, shown: str = "") -> None:
         """Keep ``text`` as the last output; with echo, print what was not
@@ -250,24 +276,31 @@ class Session:
         Raises MacroError if a command error stopped the macro.
         """
         cwd = Path(cwd or self._workdir).resolve()
-        # One driver file per session, overwritten on every call. DISCUS keeps
-        # macros in memory by file name, but empties that store when a
-        # top-level macro ends (also after an error), so the new text is
-        # always read. The scratch folder stays at a few files however many
-        # calls a session makes.
-        driver = self._workdir / "_driver.mac"
-        driver.write_text(
-            f"cd {cwd}\n"
-            f"{FLAG} = 0\n"
-            f"{commands.strip()}\n"
-            f"{FLAG} = 1\n")
+        text = f"cd {cwd}\n{FLAG} = 0\n{commands.strip()}\n{FLAG} = 1\n"
+        too_long = [i for i, line in enumerate(text.splitlines(), -1)
+                    if len(line.encode()) > MAX_LINE]
+        if too_long:
+            raise ValueError(f"command line {too_long[0]} is longer than DISCUS's limit "
+                             f"of {MAX_LINE} characters")
+        if hasattr(self._s, "dc_run_commands"):
+            # In memory: DISCUS stores the lines as a macro and runs them,
+            # no file involved (WP2).
+            run = lambda: self._s.dc_run_commands(text)        # noqa: E731
+        else:
+            # Older builds of the module: a driver file, one per session and
+            # overwritten on every call. DISCUS keeps macros in memory by
+            # name but empties that store when a top-level macro ends (also
+            # after an error), so the new text is always read.
+            driver = self._workdir / "_driver.mac"
+            driver.write_text(text)
+            run = lambda: self._s.execute_macro("@" + str(driver))  # noqa: E731
         # DISCUS's "cd" changes the working directory of the whole process;
         # give the caller theirs back afterwards.
         caller_cwd = os.getcwd()
         self._clear_error()
         try:
             with self._capture(live=True) as cap:
-                self._s.execute_macro("@" + str(driver))
+                run()
                 ok = self._s.get_value(FLAG) == 1.0
         finally:
             os.chdir(caller_cwd)
@@ -304,7 +337,9 @@ class Session:
             head = f"{what}: {text} (DISCUS error {code}, {category})"
             body = details
         else:
-            head, body = what + ":", lines or ["(no message)"]
+            head, body = what + ":", lines or [
+                "DISCUS stopped before the end of the commands without an error "
+                "(for example 'exit' at the top level, which ends the macro)"]
         return MacroError("\n  ".join([head, *body]), output, code, category, text, details)
 
     def value(self, expression: str) -> float:

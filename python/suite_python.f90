@@ -46,6 +46,7 @@ PUBLIC dc_seed             ! Seed the random number generator (DISCUS "seed n")
 PUBLIC dc_random_size      ! Number of integers in the generator state
 PUBLIC dc_get_random_state ! Current generator state
 PUBLIC dc_set_random_state ! Put the generator back into a saved state
+PUBLIC dc_run_commands     ! Run lines of commands (a macro held in memory, no file)
 !
 CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -516,5 +517,73 @@ CALL put_seeds(n, state)
 iset = 0
 !
 END SUBROUTINE dc_set_random_state
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE dc_run_commands(text, nchar_max, nlines)
+!
+!  Run command lines (separated by newlines in "text") as a macro held in
+!  memory: the lines go into DISCUS's macro storage under a fixed name and
+!  are run from there, as "@file" would, but without writing a file. The
+!  storage is emptied when the macro ends. nchar_max returns the longest
+!  line and nlines the number of lines (the caller checks them against
+!  the line length limit, PREC_STRING).
+!
+USE class_macro_internal
+USE errlist_mod
+USE precision_mod
+USE blanks_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN)  :: text
+INTEGER         , INTENT(OUT) :: nchar_max
+INTEGER         , INTENT(OUT) :: nlines
+!f2py intent(out) nchar_max, nlines
+!f2py threadsafe
+!
+CHARACTER(LEN=*), PARAMETER :: NAME = '/diffuse/python/commands.mac'
+CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE :: content
+CHARACTER(LEN=PREC_STRING) :: line
+INTEGER :: i, start, length, n
+!
+!  Count the lines (the last one may lack a newline)
+n = 0
+DO i = 1, LEN(text)
+   IF(text(i:i) == ACHAR(10)) n = n + 1
+ENDDO
+IF(LEN(text) > 0) THEN
+   IF(text(LEN(text):LEN(text)) /= ACHAR(10)) n = n + 1
+ENDIF
+nlines    = n
+nchar_max = 0
+IF(n == 0) RETURN
+ALLOCATE(content(n))
+content = ' '
+start = 1
+n = 0
+DO i = 1, LEN(text) + 1
+   IF(i > LEN(text)) THEN
+      IF(start > LEN(text)) EXIT
+   ELSEIF(text(i:i) /= ACHAR(10)) THEN
+      CYCLE
+   ENDIF
+   n = n + 1
+   length = i - start
+   nchar_max = MAX(nchar_max, length)
+   line = ' '
+   IF(length > 0) line = text(start:start + MIN(length, PREC_STRING) - 1)
+   length = MIN(length, PREC_STRING)
+   CALL rem_leading_bl(line, length)          ! as file_kdo does for files
+   content(n) = line
+   start = i + 1
+ENDDO
+IF(nchar_max > PREC_STRING) RETURN            ! caller reports the long line
+CALL macro_store(NAME, nlines, content)
+DEALLOCATE(content)
+line = '@' // NAME
+CALL execute_macro(line)
+!
+END SUBROUTINE dc_run_commands
 !
 END MODULE suite

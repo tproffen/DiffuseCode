@@ -914,9 +914,13 @@ IF (ianz == 0) THEN
          ier_msg(3) = 'Or enter ''cancel'' and  <RETURN>      '   
          call errlist
          call no_error
-         write(*,'(a)', advance='no') '------ > Waiting for <RETURN> : '
          cdummy ='anyway'
-         read(*,'(a)') cdummy
+         if(ier_api) then           ! library mode: nobody to ask; cancel
+            cdummy = 'cancel'
+         else
+            write(*,'(a)', advance='no') '------ > Waiting for <RETURN> : '
+            read(*,'(a)') cdummy
+         endif
          if(cdummy=='cancel') then
             return
          else!ifcdummy==' ') then
