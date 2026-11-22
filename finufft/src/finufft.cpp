@@ -214,10 +214,14 @@ void onedim_fseries_kernel(BIGINT nf, FLT *fwkerhalf, finufft_spread_opts opts)
   std::vector<BIGINT> brk(nt+1);        // start indices for each thread
   for (int t=0; t<=nt; ++t)             // split nout mode indices btw threads
     brk[t] = (BIGINT)(0.5 + nout*t/(double)nt);
-#pragma omp parallel num_threads(nt)
-  {                                     // each thread gets own chunk to do
-    int t = MY_OMP_GET_THREAD_NUM();
-    std::complex<FLT> aj[MAX_NQUAD];    // phase rotator for this thread
+  // DiffuseCode: a loop over the chunks, so that every chunk is done even
+  // if OpenMP starts fewer than nt threads (OMP_THREAD_LIMIT, nested or
+  // dynamic teams). Before, chunk t was done only by thread t, and missing
+  // threads left parts of fwkerhalf uninitialised (garbage, Inf/NaN in the
+  // transform; tests/04.SRO/SRO_3 with OMP_THREAD_LIMIT=1).
+#pragma omp parallel for num_threads(nt) schedule(static,1)
+  for (int t=0; t<nt; ++t) {            // each chunk on its own
+    std::complex<FLT> aj[MAX_NQUAD];    // phase rotator for this chunk
     for (int n=0;n<q;++n)
       aj[n] = pow(a[n],(FLT)brk[t]);    // init phase factors for chunk
     for (BIGINT j=brk[t];j<brk[t+1];++j) {          // loop along output array

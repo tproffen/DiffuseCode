@@ -21,7 +21,7 @@ SAVE
 !                                                                       
 REAL(KIND=PREC_DP), INTENT(IN) ::  sig
 !                                                                       
-REAL(KIND=PREC_DP) ::  v1, v2, r, fac, gset 
+REAL(KIND=PREC_DP) ::  v1, v2, r, fac     ! gset is in random_mod
 REAL(KIND=PREC_DP) :: r1
 !                                                                       
 !SAVE gset 

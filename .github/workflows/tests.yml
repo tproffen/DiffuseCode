@@ -110,14 +110,13 @@ jobs:
 
       - name: Legacy macro tests
         if: needs.changes.outputs.legacy == 'true'
-        # Tests tagged mc run with "seed 1234" on one thread (repeatable). A
-        # failed mc test is still re-run: 04.sro3 can get a broken Fourier
-        # result after its MMC run (WP0 log). A pass on retry is reported as
-        # flaky; a real break still fails.
+        # Tests tagged mc run with "seed 1234" on one thread (repeatable), so
+        # no re-runs: the one flaky case (04.sro3, a broken Fourier with
+        # OMP_THREAD_LIMIT=1) was a bug in the bundled finufft, fixed in WP2.
         run: |
           python3 tools/run_legacy_tests.py \
             --exe build/suite/prog/discus_suite -j "$(nproc)" \
-            --tags fast,mc --retry-mc 2 --junit legacy-results.xml --workdir legacy-work
+            --tags fast,mc --junit legacy-results.xml --workdir legacy-work
 
       - name: Install and run the standalone program (docs/standalone.md)
         # cmake --install as in the docs; the installed discus_suite must run
