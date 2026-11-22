@@ -618,23 +618,23 @@ IF(                 local_mpi_myid==0) THEN
 !     WRITE ( *, 2100) TRIM(color_bg),TRIM(color_info),mac_dir (1:mac_dir_l),     TRIM(color_fg)
       line =  start_dir
       CALL display_dir(line)
-      WRITE ( *, 2200) TRIM(color_bg),TRIM(color_info),line (1:LEN_TRIM(line)) ,TRIM(color_fg)
-      WRITE ( *, 2300) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
-      WRITE ( *, 2400) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
-      WRITE ( *, 2500) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
-      WRITE ( *, 2600) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
+      WRITE(output_io, 2200) TRIM(color_bg),TRIM(color_info),line (1:LEN_TRIM(line)) ,TRIM(color_fg)
+      WRITE(output_io, 2300) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
+      WRITE(output_io, 2400) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
+      WRITE(output_io, 2500) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
+      WRITE(output_io, 2600) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       IF(operating == OS_LINUX_WSL) THEN
-         WRITE ( *, 2700) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
+         WRITE(output_io, 2700) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
          if(generic_get_interval()>0) then
          IF(since_update>generic_get_interval()) THEN
-            WRITE(*,*)
-            WRITE(*,2750) TRIM(color_bg),TRIM(color_fg)
+            WRITE(output_io,*)
+            WRITE(output_io,2750) TRIM(color_bg),TRIM(color_fg)
          ENDIF
          endif
       ENDIF
       IF(new_version > old_version ) THEN
-         WRITE(*,*)
-         WRITE(*,2800) TRIM(color_bg),TRIM(color_info),cversion, TRIM(color_fg)
+         WRITE(output_io,*)
+         WRITE(output_io,2800) TRIM(color_bg),TRIM(color_info),cversion, TRIM(color_fg)
       ENDIF
    ELSE
 !     WRITE ( *,  900)  man_dir (1:LEN_TRIM(man_dir)) 
@@ -642,23 +642,23 @@ IF(                 local_mpi_myid==0) THEN
 !     WRITE ( *, 1100) mac_dir (1:mac_dir_l) 
       line =  start_dir
       CALL display_dir(line)
-      WRITE ( *, 1200) line (1:LEN_TRIM(line))
-      WRITE ( *, 1300)
-      WRITE ( *, 1400)
-      WRITE ( *, 1500)
-      WRITE ( *, 1600)
+      WRITE(output_io, 1200) line (1:LEN_TRIM(line))
+      WRITE(output_io, 1300)
+      WRITE(output_io, 1400)
+      WRITE(output_io, 1500)
+      WRITE(output_io, 1600)
       IF(operating == OS_LINUX_WSL) THEN
-         WRITE ( *, 1700)
+         WRITE(output_io, 1700)
          if(generic_get_interval()>0) then
          IF(since_update>generic_get_interval()) THEN
-            WRITE(*,*)
-            WRITE(*,1750) 
+            WRITE(output_io,*)
+            WRITE(output_io,1750) 
          ENDIF
          endif
       ENDIF
       IF(new_version > old_version ) THEN
-         WRITE(*,*)
-         WRITE(*,1800) cversion
+         WRITE(output_io,*)
+         WRITE(output_io,1800) cversion
       ENDIF
    ENDIF
 ENDIF

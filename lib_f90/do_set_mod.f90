@@ -116,6 +116,9 @@ if (zeile.ne.' ') then
                prompt_status = PROMPT_REDIRECT 
 !               socket_status = PROMPT_REDIRECT 
 !                                                                       
+            elseif(str_comp(cpara(2), 'old', 1, lpara(2), 3) .and. ier_api) then
+!              Library mode: the output stays on standard output, which the caller captures
+               prompt_status = prompt_status_old 
             elseif(str_comp(cpara(2), 'old', 1, lpara(2), 3)) then
                if (output_status.ne.OUTPUT_SCREEN) then 
                   close (output_io) 
@@ -166,7 +169,8 @@ if (zeile.ne.' ') then
 !                                                                       
 !------ ------- Second+1 optional parameter general output              
 !                                                                       
-            if (ianz.ge.3) then 
+!           (not in library mode: the output stays on standard output, which the caller captures)
+            if (ianz.ge.3 .and. .not. ier_api) then 
                if(str_comp(cpara(3), 'on', 2, lpara(3), 2)) then
                   if (output_status.ne.OUTPUT_SCREEN) then 
                      close (output_io) 

@@ -123,7 +123,7 @@ version_discus = version
    ELSE
       STRING =               'OpenMP is inactive                   '
    ENDIF
-   WRITE ( *, 1000) version, is_debug, string, cdate
+   WRITE (output_io, 1000) version, is_debug, string, cdate
    do i=1, len_trim(version)
       if(iachar(version(i:i))<0 .or. iachar(version(i:i))>nine) version(i:i) = ' ' ! Eliminate characters
    enddo

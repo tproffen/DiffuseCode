@@ -313,7 +313,7 @@ IF (dir.eq.' ') THEN
       ENDIF
    ENDIF
    IF (echo) then 
-      WRITE ( *, 1000) cwd_echo(1:LEN_TRIM(cwd_echo)) 
+      WRITE (output_io, 1000) cwd_echo(1:LEN_TRIM(cwd_echo)) 
    ENDIF 
 ELSE 
    if(dir=='$HOME') then
