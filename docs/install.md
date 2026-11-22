@@ -62,8 +62,55 @@ in CI. Three tips:
   build reads and writes many files.
 * **No display is needed.** The package has no graphics; matplotlib plots go
   to files, or to a window if your WSL2 has WSLg (Windows 11).
-* **Jupyter:** see [Jupyter](#jupyter) below; on WSL2, open the link that
-  `jupyter lab` prints in your Windows browser.
+* **Jupyter:** see [Jupyter](#jupyter) below, and the next section for
+  opening it in your Windows browser.
+
+### JupyterLab on WSL2
+
+JupyterLab runs inside WSL2; you use it from your Windows browser. Start it
+without a browser on the Linux side:
+
+```bash
+jupyter lab --no-browser
+```
+
+It prints a link like `http://localhost:8888/lab?token=...`. Paste it into
+the Windows browser (in Windows Terminal, Ctrl+click opens it): WSL2
+forwards `localhost` to Windows.
+
+To make that the default, so that a plain `jupyter lab` never tries to open
+a browser, create the configuration file once:
+
+```bash
+jupyter lab --generate-config
+```
+
+and add this line to `~/.jupyter/jupyter_lab_config.py`:
+
+```python
+c.ServerApp.open_browser = False
+```
+
+If `localhost` does not reach JupyterLab from Windows (some WSL network
+settings), let it listen on all interfaces and use the WSL address instead
+of `localhost` in the link (the first address that `hostname -I` prints):
+
+```bash
+jupyter lab --no-browser --ip=0.0.0.0
+```
+
+Alternatively, let `jupyter lab` open the Windows browser itself: install
+`wslu` (`sudo apt install wslu`), which provides `wslview`, and put these two
+lines into `~/.jupyter/jupyter_lab_config.py` instead:
+
+```python
+c.ServerApp.browser = "wslview %s"
+c.ServerApp.use_redirect_file = False
+```
+
+The second line is needed because by default JupyterLab opens a start-up
+file whose path exists only inside WSL, which the Windows browser cannot
+open; with it, the browser gets the link with the token.
 
 ## Jupyter
 
