@@ -1261,6 +1261,25 @@ not the structure itself; uninitialised memory is the likely cause (the
 result depends on the machine: CI passes). It is unrelated to graphics.
 This is the case to debug, with a debug build (<code class="docutils literal notranslate"><span class="pre">-DDEBUG=ON</span></code>,
 <code class="docutils literal notranslate"><span class="pre">-fcheck=all</span></code>).</p>
+<p><strong>Solved (WP2, Nov 2026): a bug in the bundled finufft.</strong> Not state left by
+the MMC run, and not reset: <code class="docutils literal notranslate"><span class="pre">onedim_fseries_kernel</span></code> (<code class="docutils literal notranslate"><span class="pre">finufft/src/finufft.cpp</span></code>)
+splits the kernel’s Fourier coefficients (<code class="docutils literal notranslate"><span class="pre">phiHat</span></code>) into one chunk per
+<em>planned</em> thread (<code class="docutils literal notranslate"><span class="pre">omp_get_max_threads()</span></code>) and lets thread <em>t</em> fill chunk <em>t</em>.
+With <code class="docutils literal notranslate"><span class="pre">OMP_THREAD_LIMIT=1</span></code> (set by the runner for <code class="docutils literal notranslate"><span class="pre">mc</span></code> tests) OpenMP starts
+one thread, so only the first chunk was filled and the rest kept whatever
+the memory held before: harmless zeros on one machine, <code class="docutils literal notranslate"><span class="pre">Infinity</span></code>/<code class="docutils literal notranslate"><span class="pre">NaN</span></code> in
+the map on another, depending on earlier activity (which is why an extra
+harmless command, or debug output, changed the result). Found with a
+valgrind build (finufft compiled for AVX2 instead of <code class="docutils literal notranslate"><span class="pre">-march=native</span></code>, which
+valgrind cannot run): the written intensities depended on memory allocated
+for <code class="docutils literal notranslate"><span class="pre">phiHat</span></code> in <code class="docutils literal notranslate"><span class="pre">finufft_makeplan</span></code>. <code class="docutils literal notranslate"><span class="pre">OMP_THREAD_LIMIT=1</span></code> gives <code class="docutils literal notranslate"><span class="pre">Infinity</span></code>
+values, no limit or <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS=1</span></code> none. The same “one chunk per
+thread” pattern was in <code class="docutils literal notranslate"><span class="pre">bin_sort_multithread</span></code> (<code class="docutils literal notranslate"><span class="pre">spreadinterp.cpp</span></code>, twice).
+Fixed in all three places with an OpenMP loop over the chunks, which does
+every chunk however many threads run. Afterwards <code class="docutils literal notranslate"><span class="pre">04.sro3</span></code> passes, and all
+31 <code class="docutils literal notranslate"><span class="pre">fast</span></code>+<code class="docutils literal notranslate"><span class="pre">mc</span></code> tests pass on this machine without retries; CI no longer uses
+<code class="docutils literal notranslate"><span class="pre">--retry-mc</span></code>. (Newer finufft releases restructured this code; worth checking
+upstream before updating the bundled copy.)</p>
 </section>
 <section id="no-more-silent-sections">
 <span id="04--no-more-silent-sections"></span><h3>0.4 – no more silent sections<a class="headerlink" href="#no-more-silent-sections" title="Link to this heading">#</a></h3>

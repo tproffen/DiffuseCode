@@ -537,6 +537,26 @@ result depends on the machine: CI passes). It is unrelated to graphics.
 This is the case to debug, with a debug build (`-DDEBUG=ON`,
 `-fcheck=all`).
 
+**Solved (WP2, Nov 2026): a bug in the bundled finufft.** Not state left by
+the MMC run, and not reset: `onedim_fseries_kernel` (`finufft/src/finufft.cpp`)
+splits the kernel's Fourier coefficients (`phiHat`) into one chunk per
+*planned* thread (`omp_get_max_threads()`) and lets thread *t* fill chunk *t*.
+With `OMP_THREAD_LIMIT=1` (set by the runner for `mc` tests) OpenMP starts
+one thread, so only the first chunk was filled and the rest kept whatever
+the memory held before: harmless zeros on one machine, `Infinity`/`NaN` in
+the map on another, depending on earlier activity (which is why an extra
+harmless command, or debug output, changed the result). Found with a
+valgrind build (finufft compiled for AVX2 instead of `-march=native`, which
+valgrind cannot run): the written intensities depended on memory allocated
+for `phiHat` in `finufft_makeplan`. `OMP_THREAD_LIMIT=1` gives `Infinity`
+values, no limit or `OMP_NUM_THREADS=1` none. The same "one chunk per
+thread" pattern was in `bin_sort_multithread` (`spreadinterp.cpp`, twice).
+Fixed in all three places with an OpenMP loop over the chunks, which does
+every chunk however many threads run. Afterwards `04.sro3` passes, and all
+31 `fast`+`mc` tests pass on this machine without retries; CI no longer uses
+`--retry-mc`. (Newer finufft releases restructured this code; worth checking
+upstream before updating the bundled copy.)
+
 ### 0.4 – no more silent sections
 
 * **03 PDF** now checks its results. The 9 PDFs `pdf.mac` writes are

@@ -169,8 +169,19 @@ Python (`diffuse`): `MacroError` has `code`, `category`, `text` and
    `macro_close` work as before. `run()` writes no file; older module
    builds still use `_driver.mac`. Lines longer than 1024 characters
    (`PREC_STRING`) are refused in Python.
-4. **Reset completeness.** Find what `reset` leaves behind (start with the
-   `04.sro3` MMC case, debug build with `-fcheck=all`).
+4. **Reset completeness.** *Done (Nov 2026).* The `04.sro3` case was not
+   left-over state but a bug in the bundled finufft (a chunk of the kernel
+   coefficients stayed uninitialised when OpenMP ran fewer threads than
+   planned, e.g. `OMP_THREAD_LIMIT=1`); fixed, see the WP0 log. Test:
+   after an MMC run and `reset()`, a Fourier map and a powder pattern are
+   identical to a fresh process (serial; with several threads the powder
+   sums differ in the last digits from run to run anyway). The `diffuse`
+   functions set every option they use, so they do not depend on `reset`.
+   `reset` keeps variables, the random generator and `set` options such as
+   `set parallel` (a process-wide `OMP_SET_NUM_THREADS`) and `set error`.
+   Also found: `random_state()` missed the Gaussian number `gasdev` keeps
+   waiting (`gset`, a SAVEd local); it is now in `random_mod`, and the
+   state restores exactly also between the two numbers of a pair.
 5. **Decide the binding** (plan: f2py now, `bind(C)` + nanobind or ctypes
    later). The `dc_*` functions are written so that this is a mechanical
    change; f2py stays until WP3/WP4 need arrays of structures.

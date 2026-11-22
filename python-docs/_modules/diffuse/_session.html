@@ -839,9 +839,10 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Put DISCUS, KUPLOT, DIFFEV and REFINE back into their start-up state.</span>
 
-<span class="sd">        Same as the suite command ``reset``. Variables and the random number</span>
-<span class="sd">        generator are kept. ``current_crystal`` is cleared, so the next</span>
-<span class="sd">        calculation on a Crystal reads it in again.</span>
+<span class="sd">        Same as the suite command ``reset``. Variables, the random number</span>
+<span class="sd">        generator and settings made with ``set`` (``set parallel``,</span>
+<span class="sd">        ``set error`` ...) are kept. ``current_crystal`` is cleared, so the</span>
+<span class="sd">        next calculation on a Crystal reads it in again.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"reset"</span><span class="p">)</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
@@ -867,7 +868,11 @@
 <div class="viewcode-block" id="Session.random_state">
 <a class="viewcode-back" href="../../api.html#diffuse.Session.random_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">random_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""The random number generator's state, for :meth:`set_random_state`."""</span>
+<span class="w">        </span><span class="sd">"""The random number generator's complete state, for :meth:`set_random_state`.</span>
+
+<span class="sd">        Includes the Gaussian number that DISCUS may keep waiting (Gaussian</span>
+<span class="sd">        numbers come in pairs), so a restore repeats the sequence exactly.</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"random_state"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_get_random_state</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_random_size</span><span class="p">())))</span></div>
 

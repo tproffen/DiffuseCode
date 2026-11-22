@@ -534,7 +534,7 @@ and exits with code 1 if any test did not pass.</p>
 <td><p>tests tagged <code class="docutils literal notranslate"><span class="pre">mc</span></code> run with <code class="docutils literal notranslate"><span class="pre">seed</span> <span class="pre">N</span></code> (default 1234; a test’s own <code class="docutils literal notranslate"><span class="pre">seed</span></code> in the manifest wins) on one OpenMP thread, so they repeat exactly; <code class="docutils literal notranslate"><span class="pre">--no-seed</span></code> runs them unseeded with their own thread settings</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--retry-mc</span> <span class="pre">N</span></code></p></td>
-<td><p>re-run a failed test tagged <code class="docutils literal notranslate"><span class="pre">mc</span></code> up to N times; a pass on retry is reported as <code class="docutils literal notranslate"><span class="pre">flaky</span></code> (MMC ignores <code class="docutils literal notranslate"><span class="pre">seed</span></code>, WP0 0.5a)</p></td>
+<td><p>re-run a failed test tagged <code class="docutils literal notranslate"><span class="pre">mc</span></code> up to N times; a pass on retry is reported as <code class="docutils literal notranslate"><span class="pre">flaky</span></code> (no longer used by CI: seeded <code class="docutils literal notranslate"><span class="pre">mc</span></code> tests repeat exactly)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--list</span></code></p></td>
 <td><p>show what would run</p></td>

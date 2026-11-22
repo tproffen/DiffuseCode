@@ -38,7 +38,7 @@ Useful options:
 | `--junit FILE`, `--json FILE` | machine-readable reports |
 | `--workdir DIR`, `--keep` | where copies and logs go; keep passing tests' copies too |
 | `--seed N`, `--no-seed` | tests tagged `mc` run with `seed N` (default 1234; a test's own `seed` in the manifest wins) on one OpenMP thread, so they repeat exactly; `--no-seed` runs them unseeded with their own thread settings |
-| `--retry-mc N` | re-run a failed test tagged `mc` up to N times; a pass on retry is reported as `flaky` (MMC ignores `seed`, WP0 0.5a) |
+| `--retry-mc N` | re-run a failed test tagged `mc` up to N times; a pass on retry is reported as `flaky` (no longer used by CI: seeded `mc` tests repeat exactly) |
 | `--list` | show what would run |
 | `--check-test-all` | check that `manifest.toml` and `test_all.mac` list the same macros |
 

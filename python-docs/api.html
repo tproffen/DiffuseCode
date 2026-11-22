@@ -1250,9 +1250,10 @@ there was no error (or the module predates the WP2 core).</p>
 <dt class="sig sig-object py" id="diffuse.Session.reset">
 <span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#Session.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Session.reset" title="Link to this definition">#</a></dt>
 <dd><p>Put DISCUS, KUPLOT, DIFFEV and REFINE back into their start-up state.</p>
-<p>Same as the suite command <code class="docutils literal notranslate"><span class="pre">reset</span></code>. Variables and the random number
-generator are kept. <code class="docutils literal notranslate"><span class="pre">current_crystal</span></code> is cleared, so the next
-calculation on a Crystal reads it in again.</p>
+<p>Same as the suite command <code class="docutils literal notranslate"><span class="pre">reset</span></code>. Variables, the random number
+generator and settings made with <code class="docutils literal notranslate"><span class="pre">set</span></code> (<code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">parallel</span></code>,
+<code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">error</span></code> …) are kept. <code class="docutils literal notranslate"><span class="pre">current_crystal</span></code> is cleared, so the
+next calculation on a Crystal reads it in again.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
@@ -1281,7 +1282,9 @@ the order in which threads draw numbers can still vary.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="diffuse.Session.random_state">
 <span class="sig-name descname"><span class="pre">random_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#Session.random_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Session.random_state" title="Link to this definition">#</a></dt>
-<dd><p>The random number generator’s state, for <a class="reference internal" href="#diffuse.Session.set_random_state" title="diffuse.Session.set_random_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_random_state()</span></code></a>.</p>
+<dd><p>The random number generator’s complete state, for <a class="reference internal" href="#diffuse.Session.set_random_state" title="diffuse.Session.set_random_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_random_state()</span></code></a>.</p>
+<p>Includes the Gaussian number that DISCUS may keep waiting (Gaussian
+numbers come in pairs), so a restore repeats the sequence exactly.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a></p>
@@ -1359,8 +1362,9 @@ clock.</p>
 <dt class="sig sig-object py" id="diffuse.reset">
 <span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse.html#reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.reset" title="Link to this definition">#</a></dt>
 <dd><p>Put DISCUS back into its start-up state (the suite command <code class="docutils literal notranslate"><span class="pre">reset</span></code>).</p>
-<p>Removes the structure and all menu settings. Variables and the random
-number generator are kept. A <a class="reference internal" href="#diffuse.Crystal" title="diffuse.Crystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Crystal</span></code></a> made earlier is read in
+<p>Removes the structure and all menu settings. Variables, the random
+number generator and settings made with <code class="docutils literal notranslate"><span class="pre">set</span></code> (for example
+<code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">parallel</span></code>) are kept. A <a class="reference internal" href="#diffuse.Crystal" title="diffuse.Crystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Crystal</span></code></a> made earlier is read in
 again when it is used next.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>

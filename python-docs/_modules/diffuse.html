@@ -524,8 +524,9 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Put DISCUS back into its start-up state (the suite command ``reset``).</span>
 
-<span class="sd">    Removes the structure and all menu settings. Variables and the random</span>
-<span class="sd">    number generator are kept. A :class:`Crystal` made earlier is read in</span>
+<span class="sd">    Removes the structure and all menu settings. Variables, the random</span>
+<span class="sd">    number generator and settings made with ``set`` (for example</span>
+<span class="sd">    ``set parallel``) are kept. A :class:`Crystal` made earlier is read in</span>
 <span class="sd">    again when it is used next.</span>
 <span class="sd">    """</span>
     <span class="n">session</span><span class="p">()</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>

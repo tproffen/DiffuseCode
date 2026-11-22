@@ -716,8 +716,19 @@ disk), so loops, blocks, nested <code class="docutils literal notranslate"><span
 <code class="docutils literal notranslate"><span class="pre">macro_close</span></code> work as before. <code class="docutils literal notranslate"><span class="pre">run()</span></code> writes no file; older module
 builds still use <code class="docutils literal notranslate"><span class="pre">_driver.mac</span></code>. Lines longer than 1024 characters
 (<code class="docutils literal notranslate"><span class="pre">PREC_STRING</span></code>) are refused in Python.</p></li>
-<li><p><strong>Reset completeness.</strong> Find what <code class="docutils literal notranslate"><span class="pre">reset</span></code> leaves behind (start with the
-<code class="docutils literal notranslate"><span class="pre">04.sro3</span></code> MMC case, debug build with <code class="docutils literal notranslate"><span class="pre">-fcheck=all</span></code>).</p></li>
+<li><p><strong>Reset completeness.</strong> <em>Done (Nov 2026).</em> The <code class="docutils literal notranslate"><span class="pre">04.sro3</span></code> case was not
+left-over state but a bug in the bundled finufft (a chunk of the kernel
+coefficients stayed uninitialised when OpenMP ran fewer threads than
+planned, e.g. <code class="docutils literal notranslate"><span class="pre">OMP_THREAD_LIMIT=1</span></code>); fixed, see the WP0 log. Test:
+after an MMC run and <code class="docutils literal notranslate"><span class="pre">reset()</span></code>, a Fourier map and a powder pattern are
+identical to a fresh process (serial; with several threads the powder
+sums differ in the last digits from run to run anyway). The <code class="docutils literal notranslate"><span class="pre">diffuse</span></code>
+functions set every option they use, so they do not depend on <code class="docutils literal notranslate"><span class="pre">reset</span></code>.
+<code class="docutils literal notranslate"><span class="pre">reset</span></code> keeps variables, the random generator and <code class="docutils literal notranslate"><span class="pre">set</span></code> options such as
+<code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">parallel</span></code> (a process-wide <code class="docutils literal notranslate"><span class="pre">OMP_SET_NUM_THREADS</span></code>) and <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">error</span></code>.
+Also found: <code class="docutils literal notranslate"><span class="pre">random_state()</span></code> missed the Gaussian number <code class="docutils literal notranslate"><span class="pre">gasdev</span></code> keeps
+waiting (<code class="docutils literal notranslate"><span class="pre">gset</span></code>, a SAVEd local); it is now in <code class="docutils literal notranslate"><span class="pre">random_mod</span></code>, and the
+state restores exactly also between the two numbers of a pair.</p></li>
 <li><p><strong>Decide the binding</strong> (plan: f2py now, <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> + nanobind or ctypes
 later). The <code class="docutils literal notranslate"><span class="pre">dc_*</span></code> functions are written so that this is a mechanical
 change; f2py stays until WP3/WP4 need arrays of structures.</p></li>
