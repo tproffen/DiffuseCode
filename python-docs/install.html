@@ -534,9 +534,45 @@ on the Windows side are much slower to read and write from Linux, and the
 build reads and writes many files.</p></li>
 <li><p><strong>No display is needed.</strong> The package has no graphics; matplotlib plots go
 to files, or to a window if your WSL2 has WSLg (Windows 11).</p></li>
-<li><p><strong>Jupyter:</strong> see <a class="reference internal" href="#jupyter">Jupyter</a> below; on WSL2, open the link that
-<code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">lab</span></code> prints in your Windows browser.</p></li>
+<li><p><strong>Jupyter:</strong> see <a class="reference internal" href="#jupyter">Jupyter</a> below, and the next section for
+opening it in your Windows browser.</p></li>
 </ul>
+<section id="jupyterlab-on-wsl2">
+<h3>JupyterLab on WSL2<a class="headerlink" href="#jupyterlab-on-wsl2" title="Link to this heading">#</a></h3>
+<p>JupyterLab runs inside WSL2; you use it from your Windows browser. Start it
+without a browser on the Linux side:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter<span class="w"> </span>lab<span class="w"> </span>--no-browser
+</pre></div>
+</div>
+<p>It prints a link like <code class="docutils literal notranslate"><span class="pre">http://localhost:8888/lab?token=...</span></code>. Paste it into
+the Windows browser (in Windows Terminal, Ctrl+click opens it): WSL2
+forwards <code class="docutils literal notranslate"><span class="pre">localhost</span></code> to Windows.</p>
+<p>To make that the default, so that a plain <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">lab</span></code> never tries to open
+a browser, create the configuration file once:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter<span class="w"> </span>lab<span class="w"> </span>--generate-config
+</pre></div>
+</div>
+<p>and add this line to <code class="docutils literal notranslate"><span class="pre">~/.jupyter/jupyter_lab_config.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">ServerApp</span><span class="o">.</span><span class="n">open_browser</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">localhost</span></code> does not reach JupyterLab from Windows (some WSL network
+settings), let it listen on all interfaces and use the WSL address instead
+of <code class="docutils literal notranslate"><span class="pre">localhost</span></code> in the link (the first address that <code class="docutils literal notranslate"><span class="pre">hostname</span> <span class="pre">-I</span></code> prints):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter<span class="w"> </span>lab<span class="w"> </span>--no-browser<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0
+</pre></div>
+</div>
+<p>Alternatively, let <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">lab</span></code> open the Windows browser itself: install
+<code class="docutils literal notranslate"><span class="pre">wslu</span></code> (<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt</span> <span class="pre">install</span> <span class="pre">wslu</span></code>), which provides <code class="docutils literal notranslate"><span class="pre">wslview</span></code>, and put these two
+lines into <code class="docutils literal notranslate"><span class="pre">~/.jupyter/jupyter_lab_config.py</span></code> instead:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">ServerApp</span><span class="o">.</span><span class="n">browser</span> <span class="o">=</span> <span class="s2">"wslview </span><span class="si">%s</span><span class="s2">"</span>
+<span class="n">c</span><span class="o">.</span><span class="n">ServerApp</span><span class="o">.</span><span class="n">use_redirect_file</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>The second line is needed because by default JupyterLab opens a start-up
+file whose path exists only inside WSL, which the Windows browser cannot
+open; with it, the browser gets the link with the token.</p>
+</section>
 </section>
 <section id="jupyter">
 <h2>Jupyter<a class="headerlink" href="#jupyter" title="Link to this heading">#</a></h2>
@@ -608,7 +644,8 @@ the results come back through files or KUPLOT data sets.</p>
 remembers how it was made, and <a class="reference internal" href="api.html#diffuse.powder" title="diffuse.powder"><code class="xref py py-func docutils literal notranslate"><span class="pre">powder()</span></code></a> reads it in again if
 another structure was loaded since.</p></li>
 <li><p>DISCUS output is captured, not printed. Set <code class="docutils literal notranslate"><span class="pre">DIFFUSE_ECHO=1</span></code>, or call
-<code class="docutils literal notranslate"><span class="pre">dc.session(echo=True)</span></code>, to see it; the last output is in
+<code class="docutils literal notranslate"><span class="pre">dc.session(echo=True)</span></code>, to see it as it is written, also in a Jupyter
+cell (useful for long calculations); the last output is in
 <code class="docutils literal notranslate"><span class="pre">dc.session().last_output</span></code>.</p></li>
 <li><p>A failed DISCUS command raises <a class="reference internal" href="api.html#diffuse.MacroError" title="diffuse.MacroError"><code class="xref py py-class docutils literal notranslate"><span class="pre">MacroError</span></code></a> with DISCUS’s
 own error lines.</p></li>
@@ -665,7 +702,10 @@ own error lines.</p></li>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#with-system-packages-debian-ubuntu-wsl2">With system packages (Debian, Ubuntu, WSL2)</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wsl2">WSL2</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wsl2">WSL2</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#jupyterlab-on-wsl2">JupyterLab on WSL2</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jupyter">Jupyter</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#without-admin-rights-conda">Without admin rights (conda)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#for-development-a-cmake-build-folder">For development: a CMake build folder</a></li>

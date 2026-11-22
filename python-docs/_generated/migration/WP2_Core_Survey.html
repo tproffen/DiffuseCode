@@ -662,10 +662,28 @@ integer, string and integer-array arguments only, so they can move to a
 <section id="next-steps-for-wp2-in-order">
 <span id="3-next-steps-for-wp2-in-order"></span><h2>3. Next steps for WP2, in order<a class="headerlink" href="#next-steps-for-wp2-in-order" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p><strong>Output to a callback.</strong> Move the <code class="docutils literal notranslate"><span class="pre">write(*</span></code> output of the banner,
-<code class="docutils literal notranslate"><span class="pre">disp_error</span></code> (the duplicate) and <code class="docutils literal notranslate"><span class="pre">exit_mod</span></code> to <code class="docutils literal notranslate"><span class="pre">output_io</span></code>; in library
-mode open <code class="docutils literal notranslate"><span class="pre">output_io</span></code> on a file that <code class="docutils literal notranslate"><span class="pre">_session.py</span></code> reads, or call a
-Python logging function. Then drop the file-descriptor capture.</p></li>
+<li><p><strong>Output.</strong> <em>Done (Nov 2026), differently from first planned.</em> A log
+file opened by the Fortran code would be buffered by gfortran (text
+arrives in blocks of several kB, so no live progress), and the only
+switch against that (<code class="docutils literal notranslate"><span class="pre">GFORTRAN_UNBUFFERED_ALL</span></code>) would slow down every
+large file DISCUS writes. Standard output, by contrast, is unbuffered
+(<code class="docutils literal notranslate"><span class="pre">GFORTRAN_UNBUFFERED_PRECONNECTED</span></code>, set by <code class="docutils literal notranslate"><span class="pre">_session.py</span></code>). So the
+file-descriptor capture stays as the output channel, and:</p>
+<ul class="simple">
+<li><p>the banner, the start-up text and the <code class="docutils literal notranslate"><span class="pre">cd</span></code> echo write to <code class="docutils literal notranslate"><span class="pre">output_io</span></code>
+(standard output in <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code>, so unchanged there); in library
+mode an error writes all its lines (also DISCUS’s extra lines) to
+<code class="docutils literal notranslate"><span class="pre">error_io</span></code>, without the copy to the screen;</p></li>
+<li><p>in library mode <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">prompt</span></code> cannot move the output to a log file or
+switch it off;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">execute_macro</span></code> releases the Python GIL (<code class="docutils literal notranslate"><span class="pre">!f2py</span> <span class="pre">threadsafe</span></code>), so a
+thread can follow the output: with <code class="docutils literal notranslate"><span class="pre">echo=True</span></code> lines are shown as
+DISCUS writes them, in a terminal and in a Jupyter cell (tested with
+a kernel: lines 1 s apart arrive 1 s apart).
+The remaining <code class="docutils literal notranslate"><span class="pre">write(*</span></code> (debug dumps, rare internal messages) are still
+caught by the capture.</p></li>
+</ul>
+</li>
 <li><p><strong>No keyboard reads in library mode</strong> (the 18 above): an error saying
 the command needs a terminal.</p></li>
 <li><p><strong>Commands without a macro file.</strong> Feed the command lines to the macro
