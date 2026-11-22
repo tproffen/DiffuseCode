@@ -577,8 +577,8 @@ and to <code class="docutils literal notranslate"><span class="pre">*</span></co
 <code class="docutils literal notranslate"><span class="pre">_session.py</span></code> can go.</p></li>
 </ul>
 </section>
-<section id="keyboard-input-18-reads-from-standard-input">
-<h3>Keyboard input: 18 reads from standard input<a class="headerlink" href="#keyboard-input-18-reads-from-standard-input" title="Link to this heading">#</a></h3>
+<section id="keyboard-input-18-reads-from-standard-input-22-on-a-closer-look-see-step-2">
+<h3>Keyboard input: 18 reads from standard input (22 on a closer look, see step 2)<a class="headerlink" href="#keyboard-input-18-reads-from-standard-input-22-on-a-closer-look-see-step-2" title="Link to this heading">#</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">wait</span></code>, <code class="docutils literal notranslate"><span class="pre">help</span></code>, parts of <code class="docutils literal notranslate"><span class="pre">show</span></code>, <code class="docutils literal notranslate"><span class="pre">remote</span></code>, <code class="docutils literal notranslate"><span class="pre">exit_mod</span></code>, <code class="docutils literal notranslate"><span class="pre">exp2pdf</span></code> and the
 command reader <code class="docutils literal notranslate"><span class="pre">sup.f90</span></code> (when no macro is active). In library mode these
 must not wait for the keyboard: to be turned into errors (or no-ops) in a
@@ -684,11 +684,38 @@ The remaining <code class="docutils literal notranslate"><span class="pre">write
 caught by the capture.</p></li>
 </ul>
 </li>
-<li><p><strong>No keyboard reads in library mode</strong> (the 18 above): an error saying
-the command needs a terminal.</p></li>
-<li><p><strong>Commands without a macro file.</strong> Feed the command lines to the macro
-machinery from memory (it already stores macros in memory), so
-<code class="docutils literal notranslate"><span class="pre">run()</span></code> no longer writes <code class="docutils literal notranslate"><span class="pre">_driver.mac</span></code>.</p></li>
+<li><p><strong>No keyboard reads in library mode.</strong> <em>Done (Nov 2026).</em> A closer
+look found 22 reads from standard input outside comments: 3 in the
+separate socket client <code class="docutils literal notranslate"><span class="pre">remote.f90</span></code> and 4 in main programs (not part
+of the library); the command reader (<code class="docutils literal notranslate"><span class="pre">get_cmd</span></code>, 2) is already safe
+(from Python, <code class="docutils literal notranslate"><span class="pre">linteractive</span></code> is false and commands come from the
+macro).
+In library mode:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">wait</span></code> and <code class="docutils literal notranslate"><span class="pre">wait</span> <span class="pre">return</span></code> continue at once; <code class="docutils literal notranslate"><span class="pre">wait</span> <span class="pre">input</span></code> is a new
+error, -21 COMM “Command needs a terminal (library mode)”;</p></li>
+<li><p>the pager pauses (<code class="docutils literal notranslate"><span class="pre">help</span></code>, <code class="docutils literal notranslate"><span class="pre">show</span></code>) do not wait (<code class="docutils literal notranslate"><span class="pre">help</span></code> and <code class="docutils literal notranslate"><span class="pre">manual</span></code>
+are switched off without a terminal anyway); the “remainder of macro
+might be faulty” prompt answers “cancel”;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exit</span></code> at the top level ends the macro only: no program exit, so no
+clean-up and no “Update Ubuntu now?” question, which treated end of
+input as yes and would have run the update;</p></li>
+<li><p>as a safety net <code class="docutils literal notranslate"><span class="pre">_session.py</span></code> makes standard input, during each call,
+a file of empty lines: any other read gets an empty line, as if
+Return was pressed (the <code class="docutils literal notranslate"><span class="pre">exp2pdf</span></code> questions keep their defaults).
+Not <code class="docutils literal notranslate"><span class="pre">/dev/null</span></code>: after an end of file gfortran stops the whole
+process at the next read of that unit (tested).</p></li>
+</ul>
+</li>
+<li><p><strong>Commands without a macro file.</strong> <em>Done (Nov 2026).</em> New library
+routine <code class="docutils literal notranslate"><span class="pre">macro_store</span></code> (<code class="docutils literal notranslate"><span class="pre">lib_f90/macro_internal.f90</span></code>) puts lines into
+the macro storage under a name; <code class="docutils literal notranslate"><span class="pre">dc_run_commands(text)</span></code> stores the
+commands as <code class="docutils literal notranslate"><span class="pre">/diffuse/python/commands.mac</span></code> and runs them through the
+usual macro machinery (<code class="docutils literal notranslate"><span class="pre">file_kdo</span></code> looks into the storage before the
+disk), so loops, blocks, nested <code class="docutils literal notranslate"><span class="pre">&#64;file</span></code> macros, error lines and
+<code class="docutils literal notranslate"><span class="pre">macro_close</span></code> work as before. <code class="docutils literal notranslate"><span class="pre">run()</span></code> writes no file; older module
+builds still use <code class="docutils literal notranslate"><span class="pre">_driver.mac</span></code>. Lines longer than 1024 characters
+(<code class="docutils literal notranslate"><span class="pre">PREC_STRING</span></code>) are refused in Python.</p></li>
 <li><p><strong>Reset completeness.</strong> Find what <code class="docutils literal notranslate"><span class="pre">reset</span></code> leaves behind (start with the
 <code class="docutils literal notranslate"><span class="pre">04.sro3</span></code> MMC case, debug build with <code class="docutils literal notranslate"><span class="pre">-fcheck=all</span></code>).</p></li>
 <li><p><strong>Decide the binding</strong> (plan: f2py now, <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> + nanobind or ctypes
@@ -740,7 +767,7 @@ change; f2py stays until WP3/WP4 need arrays of structures.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stop-statements-31-few-reachable-from-python">STOP statements: 31, few reachable from Python</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#errors-one-good-path-already">Errors: one good path already</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-almost-all-through-one-unit">Output: almost all through one unit</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#keyboard-input-18-reads-from-standard-input">Keyboard input: 18 reads from standard input</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#keyboard-input-18-reads-from-standard-input-22-on-a-closer-look-see-step-2">Keyboard input: 18 reads from standard input (22 on a closer look, see step 2)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#global-state">Global state</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#random-numbers">Random numbers</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-python-drives-discus-today">How Python drives DISCUS today</a></li>

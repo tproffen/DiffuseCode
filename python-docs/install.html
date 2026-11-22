@@ -655,8 +655,11 @@ plots.</p>
 <section id="how-it-works-and-its-limits">
 <h2>How it works, and its limits<a class="headerlink" href="#how-it-works-and-its-limits" title="Link to this heading">#</a></h2>
 <p>This version drives DISCUS through the f2py module <code class="docutils literal notranslate"><span class="pre">suite_python</span></code>: Python
-writes the commands to a small macro, DISCUS runs it in the same process, and
-the results come back through files or KUPLOT data sets.</p>
+hands the commands to DISCUS as a macro held in memory, DISCUS runs it in the
+same process, and the results come back through files or KUPLOT data sets.
+DISCUS never waits for the keyboard: a pause such as <code class="docutils literal notranslate"><span class="pre">wait</span></code> continues at
+once, and a command that needs typed input (<code class="docutils literal notranslate"><span class="pre">wait</span> <span class="pre">input</span></code>) raises
+<a class="reference internal" href="api.html#diffuse.MacroError" title="diffuse.MacroError"><code class="xref py py-class docutils literal notranslate"><span class="pre">MacroError</span></code></a>.</p>
 <ul class="simple">
 <li><p>DISCUS holds <strong>one structure at a time</strong> per process. A <a class="reference internal" href="api.html#diffuse.Crystal" title="diffuse.Crystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Crystal</span></code></a>
 remembers how it was made, and <a class="reference internal" href="api.html#diffuse.powder" title="diffuse.powder"><code class="xref py py-func docutils literal notranslate"><span class="pre">powder()</span></code></a> reads it in again if

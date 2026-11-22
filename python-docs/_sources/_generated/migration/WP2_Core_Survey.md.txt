@@ -54,7 +54,7 @@ section 3).
   and to `*`). To be moved to `output_io` before the descriptor capture in
   `_session.py` can go.
 
-### Keyboard input: 18 reads from standard input
+### Keyboard input: 18 reads from standard input (22 on a closer look, see step 2)
 
 `wait`, `help`, parts of `show`, `remote`, `exit_mod`, `exp2pdf` and the
 command reader `sup.f90` (when no macro is active). In library mode these
@@ -140,11 +140,35 @@ Python (`diffuse`): `MacroError` has `code`, `category`, `text` and
      a kernel: lines 1 s apart arrive 1 s apart).
    The remaining `write(*` (debug dumps, rare internal messages) are still
    caught by the capture.
-2. **No keyboard reads in library mode** (the 18 above): an error saying
-   the command needs a terminal.
-3. **Commands without a macro file.** Feed the command lines to the macro
-   machinery from memory (it already stores macros in memory), so
-   `run()` no longer writes `_driver.mac`.
+2. **No keyboard reads in library mode.** *Done (Nov 2026).* A closer
+   look found 22 reads from standard input outside comments: 3 in the
+   separate socket client `remote.f90` and 4 in main programs (not part
+   of the library); the command reader (`get_cmd`, 2) is already safe
+   (from Python, `linteractive` is false and commands come from the
+   macro).
+   In library mode:
+   * `wait` and `wait return` continue at once; `wait input` is a new
+     error, -21 COMM "Command needs a terminal (library mode)";
+   * the pager pauses (`help`, `show`) do not wait (`help` and `manual`
+     are switched off without a terminal anyway); the "remainder of macro
+     might be faulty" prompt answers "cancel";
+   * `exit` at the top level ends the macro only: no program exit, so no
+     clean-up and no "Update Ubuntu now?" question, which treated end of
+     input as yes and would have run the update;
+   * as a safety net `_session.py` makes standard input, during each call,
+     a file of empty lines: any other read gets an empty line, as if
+     Return was pressed (the `exp2pdf` questions keep their defaults).
+     Not `/dev/null`: after an end of file gfortran stops the whole
+     process at the next read of that unit (tested).
+3. **Commands without a macro file.** *Done (Nov 2026).* New library
+   routine `macro_store` (`lib_f90/macro_internal.f90`) puts lines into
+   the macro storage under a name; `dc_run_commands(text)` stores the
+   commands as `/diffuse/python/commands.mac` and runs them through the
+   usual macro machinery (`file_kdo` looks into the storage before the
+   disk), so loops, blocks, nested `@file` macros, error lines and
+   `macro_close` work as before. `run()` writes no file; older module
+   builds still use `_driver.mac`. Lines longer than 1024 characters
+   (`PREC_STRING`) are refused in Python.
 4. **Reset completeness.** Find what `reset` leaves behind (start with the
    `04.sro3` MMC case, debug build with `-fcheck=all`).
 5. **Decide the binding** (plan: f2py now, `bind(C)` + nanobind or ctypes

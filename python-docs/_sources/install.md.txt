@@ -211,8 +211,11 @@ plots.
 ## How it works, and its limits
 
 This version drives DISCUS through the f2py module `suite_python`: Python
-writes the commands to a small macro, DISCUS runs it in the same process, and
-the results come back through files or KUPLOT data sets.
+hands the commands to DISCUS as a macro held in memory, DISCUS runs it in the
+same process, and the results come back through files or KUPLOT data sets.
+DISCUS never waits for the keyboard: a pause such as `wait` continues at
+once, and a command that needs typed input (`wait input`) raises
+{class}`~diffuse.MacroError`.
 
 * DISCUS holds **one structure at a time** per process. A {class}`~diffuse.Crystal`
   remembers how it was made, and {func}`~diffuse.powder` reads it in again if

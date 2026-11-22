@@ -466,8 +466,8 @@
 <span></span><span class="sd">"""The one DISCUS suite that lives in this Python process.</span>
 
 <span class="sd">For now everything runs through the f2py module ``suite_python`` (built with</span>
-<span class="sd">``-DDIFFUSE_PYTHON=ON``): Python writes the commands to a small macro and</span>
-<span class="sd">the suite runs it. The planned bind(C) core (migration plan, WP2) will</span>
+<span class="sd">``-DDIFFUSE_PYTHON=ON``): Python hands the commands to the suite as a macro</span>
+<span class="sd">held in memory (``dc_run_commands``; no file), and the suite runs it. The planned bind(C) core (migration plan, WP2) will</span>
 <span class="sd">replace this module; the public API in ``diffuse`` is meant to stay the same.</span>
 
 <span class="sd">What this layer adds on top of ``suite_python``:</span>
@@ -510,6 +510,8 @@
 <span class="c1"># r[] runs from 0 to MAXPAR = 500 (lib_f90/param_mod.f90); the top entry is</span>
 <span class="c1"># reserved for the completion flag.</span>
 <span class="n">FLAG</span> <span class="o">=</span> <span class="s2">"r[499]"</span>
+<span class="c1"># Longest command line DISCUS takes (PREC_STRING in lib_f90/precision_mod.f90)</span>
+<span class="n">MAX_LINE</span> <span class="o">=</span> <span class="mi">1024</span>
 <span class="n">_ANSI</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\x1b\[[0-9;]*m"</span><span class="p">)</span>
 
 
@@ -606,6 +608,12 @@
 <span class="sd">    reads it once, when it is first loaded, and NumPy (through OpenBLAS) may</span>
 <span class="sd">    have loaded it before this module.</span>
 
+<span class="sd">    ``stdin``: a file of empty lines that becomes file descriptor 0 for the</span>
+<span class="sd">    call, so that DISCUS never waits for the keyboard: a read gets an empty</span>
+<span class="sd">    line, as if Return was pressed (a pause continues, a question keeps its</span>
+<span class="sd">    default). Not /dev/null: after an end of file, gfortran stops the whole</span>
+<span class="sd">    process at the next read of that unit.</span>
+
 <span class="sd">    With ``live=True`` a thread shows complete lines while they are written</span>
 <span class="sd">    (on the real terminal, or through ``sys.stdout`` in Jupyter, where it is</span>
 <span class="sd">    not the process's file descriptor 1); ``shown`` is the text shown so far.</span>
@@ -613,11 +621,12 @@
 
     <span class="n">POLL</span> <span class="o">=</span> <span class="mf">0.2</span>                          <span class="c1"># seconds between looks at the file</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">stdin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shown</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_flush</span> <span class="o">=</span> <span class="n">flush</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_live</span> <span class="o">=</span> <span class="n">live</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span> <span class="o">=</span> <span class="n">stdin</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flush</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -628,6 +637,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">dup</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">dup</span><span class="p">(</span><span class="mi">2</span><span class="p">)]</span>
         <span class="n">os</span><span class="o">.</span><span class="n">dup2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">dup2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_saved_in</span> <span class="o">=</span> <span class="kc">False</span>                <span class="c1"># False: not replaced; None: fd 0 was closed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_saved_in</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">dup</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_saved_in</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">fd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_RDONLY</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">dup2</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pos</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_thread</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_live</span><span class="p">:</span>
@@ -647,6 +665,11 @@
         <span class="n">os</span><span class="o">.</span><span class="n">dup2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved_in</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved_in</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">dup2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_saved_in</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_saved_in</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">_ANSI</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -687,6 +710,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_s</span> <span class="o">=</span> <span class="n">_import_suite_python</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"diffuse_"</span><span class="p">))</span>
         <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># Standard input for DISCUS calls (see _Capture): empty lines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">/</span> <span class="s2">"_stdin"</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">*</span> <span class="mi">20000</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_crystal</span> <span class="o">=</span> <span class="kc">None</span>      <span class="c1"># the Crystal now held by DISCUS</span>
         <span class="c1"># flush_output() is in suite_python.f90 since the demo API; builds</span>
         <span class="c1"># without it rely on GFORTRAN_UNBUFFERED_PRECONNECTED alone.</span>
@@ -702,7 +728,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_show</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_capture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">live</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Capture</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_Capture</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_flush</span><span class="p">,</span> <span class="n">live</span><span class="o">=</span><span class="n">live</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">echo</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_Capture</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_flush</span><span class="p">,</span> <span class="n">live</span><span class="o">=</span><span class="n">live</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">echo</span><span class="p">,</span> <span class="n">stdin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">shown</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Keep ``text`` as the last output; with echo, print what was not</span>
@@ -725,24 +751,31 @@
 <span class="sd">        Raises MacroError if a command error stopped the macro.</span>
 <span class="sd">        """</span>
         <span class="n">cwd</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">cwd</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-        <span class="c1"># One driver file per session, overwritten on every call. DISCUS keeps</span>
-        <span class="c1"># macros in memory by file name, but empties that store when a</span>
-        <span class="c1"># top-level macro ends (also after an error), so the new text is</span>
-        <span class="c1"># always read. The scratch folder stays at a few files however many</span>
-        <span class="c1"># calls a session makes.</span>
-        <span class="n">driver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">/</span> <span class="s2">"_driver.mac"</span>
-        <span class="n">driver</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"cd </span><span class="si">{</span><span class="n">cwd</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">FLAG</span><span class="si">}</span><span class="s2"> = 0</span><span class="se">\n</span><span class="s2">"</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">commands</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">FLAG</span><span class="si">}</span><span class="s2"> = 1</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"cd </span><span class="si">{</span><span class="n">cwd</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">FLAG</span><span class="si">}</span><span class="s2"> = 0</span><span class="se">\n</span><span class="si">{</span><span class="n">commands</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">FLAG</span><span class="si">}</span><span class="s2"> = 1</span><span class="se">\n</span><span class="s2">"</span>
+        <span class="n">too_long</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">(),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span> <span class="o">&gt;</span> <span class="n">MAX_LINE</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">too_long</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"command line </span><span class="si">{</span><span class="n">too_long</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> is longer than DISCUS's limit "</span>
+                             <span class="sa">f</span><span class="s2">"of </span><span class="si">{</span><span class="n">MAX_LINE</span><span class="si">}</span><span class="s2"> characters"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="p">,</span> <span class="s2">"dc_run_commands"</span><span class="p">):</span>
+            <span class="c1"># In memory: DISCUS stores the lines as a macro and runs them,</span>
+            <span class="c1"># no file involved (WP2).</span>
+            <span class="n">run</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_run_commands</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>        <span class="c1"># noqa: E731</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Older builds of the module: a driver file, one per session and</span>
+            <span class="c1"># overwritten on every call. DISCUS keeps macros in memory by</span>
+            <span class="c1"># name but empties that store when a top-level macro ends (also</span>
+            <span class="c1"># after an error), so the new text is always read.</span>
+            <span class="n">driver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">/</span> <span class="s2">"_driver.mac"</span>
+            <span class="n">driver</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+            <span class="n">run</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">execute_macro</span><span class="p">(</span><span class="s2">"@"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">driver</span><span class="p">))</span>  <span class="c1"># noqa: E731</span>
         <span class="c1"># DISCUS's "cd" changes the working directory of the whole process;</span>
         <span class="c1"># give the caller theirs back afterwards.</span>
         <span class="n">caller_cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_clear_error</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">(</span><span class="n">live</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">execute_macro</span><span class="p">(</span><span class="s2">"@"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">driver</span><span class="p">))</span>
+                <span class="n">run</span><span class="p">()</span>
                 <span class="n">ok</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">FLAG</span><span class="p">)</span> <span class="o">==</span> <span class="mf">1.0</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">caller_cwd</span><span class="p">)</span>
@@ -783,7 +816,9 @@
             <span class="n">head</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"> (DISCUS error </span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2">)"</span>
             <span class="n">body</span> <span class="o">=</span> <span class="n">details</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">head</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">what</span> <span class="o">+</span> <span class="s2">":"</span><span class="p">,</span> <span class="n">lines</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"(no message)"</span><span class="p">]</span>
+            <span class="n">head</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">what</span> <span class="o">+</span> <span class="s2">":"</span><span class="p">,</span> <span class="n">lines</span> <span class="ow">or</span> <span class="p">[</span>
+                <span class="s2">"DISCUS stopped before the end of the commands without an error "</span>
+                <span class="s2">"(for example 'exit' at the top level, which ends the macro)"</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">MacroError</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">head</span><span class="p">,</span> <span class="o">*</span><span class="n">body</span><span class="p">]),</span> <span class="n">output</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">details</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Session.value">
