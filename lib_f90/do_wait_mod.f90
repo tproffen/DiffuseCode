@@ -46,6 +46,19 @@ IF(wait_active) THEN
       lp = - lp 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) RETURN 
+!
+!     Library mode (Python): nobody at a keyboard. A pause continues at
+!     once; "wait input" (values typed by the user) is an error.
+      IF(ier_api) THEN
+         IF(ianz >= 1) THEN
+            IF(str_comp(cpara(1), 'input', 1, lpara(1), 5)) THEN
+               ier_num = -21
+               ier_typ = ER_COMM
+               ier_msg(1) = '"wait input" reads values from the keyboard'
+            ENDIF
+         ENDIF
+         RETURN
+      ENDIF
 !                                                                       
       IF (ianz.eq.0) THEN 
          WRITE ( *, 1000,advance='no') 

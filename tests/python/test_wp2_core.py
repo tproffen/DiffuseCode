@@ -9,6 +9,7 @@ terminal, and the next call works.
 
 from __future__ import annotations
 
+import os
 import sys
 import time
 from pathlib import Path
@@ -200,3 +201,75 @@ def test_error_output_has_all_lines(dc):
     with pytest.raises(dc.MacroError) as info:
         dc.run_macro("discus\n  read\n    stru /no/such/file.stru\n  exit\nexit")
     assert "/no/such/file.stru" in info.value.output
+
+
+# ---------------------------------------------------------------- keyboard
+@pytest.fixture
+def typed_stdin():
+    """Put text on file descriptor 0, as if typed, for the duration of a test."""
+    r, w = os.pipe()
+    os.write(w, b"typed by someone\n")
+    os.close(w)
+    saved = os.dup(0)
+    os.dup2(r, 0)
+    os.close(r)
+    yield
+    os.dup2(saved, 0)
+    os.close(saved)
+
+
+def test_discus_never_reads_the_keyboard(dc, typed_stdin):
+    """During a DISCUS call, standard input is a supply of empty lines: what
+    is waiting on the real standard input is not read (and nothing hangs)."""
+    out = dc.run_macro('system "read x; echo got-[$x]"')
+    assert "got-[]" in out
+    assert os.read(0, 100) == b"typed by someone\n"        # still there
+
+
+@pytest.mark.parametrize("macro", ["wait", "wait return"])
+def test_wait_continues(dc, macro):
+    start = time.monotonic()
+    dc.run_macro(macro)
+    assert time.monotonic() - start < 5
+
+
+def test_wait_input_needs_a_terminal(dc):
+    with pytest.raises(dc.MacroError) as info:
+        dc.run_macro("wait input")
+    assert (info.value.code, info.value.category) == (-21, "COMM")
+    assert "terminal" in info.value.text
+    assert dc.session().value("1 + 1") == 2
+
+
+def test_top_level_exit_ends_only_the_macro(dc):
+    """'exit' at the top ends the macro: an error for the call, but no
+    program exit (no clean-up, no update questions); the session goes on."""
+    with pytest.raises(dc.MacroError) as info:
+        dc.run_macro('echo "before"\nexit\necho "after"')
+    assert "stopped before the end" in str(info.value)
+    assert "before" in info.value.output and " after" not in info.value.output
+    assert dc.session().value("2 + 2") == 4
+
+
+# ------------------------------------------------------- commands in memory
+def test_no_macro_file_is_written(dc):
+    s = dc.session()
+    dc.run_macro('r[1] = 3')
+    assert not [p.name for p in s.workdir.iterdir() if p.suffix == ".mac"]
+
+
+def test_macro_files_still_run_from_commands(dc, tmp_path):
+    (tmp_path / "add.mac").write_text("r[2] = $1 + $2\n")
+    dc.run_macro("@add.mac 20, 22", cwd=tmp_path)
+    assert dc.session().value("r[2]") == 42
+
+
+def test_loops_and_blocks_in_memory(dc):
+    out = dc.run_macro('r[3] = 0\ndo i[1] = 1, 5\n  r[3] = r[3] + i[1]\nenddo\n'
+                       'if (r[3] == 15) then\n  echo "sum ok"\nendif')
+    assert dc.session().value("r[3]") == 15 and "sum ok" in out
+
+
+def test_line_too_long(dc):
+    with pytest.raises(ValueError, match="longer than"):
+        dc.run_macro("echo \"" + "x" * 1100 + "\"")

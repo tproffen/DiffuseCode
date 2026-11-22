@@ -302,6 +302,7 @@ end subroutine show_adp
       USE crystal_mod 
 !
       USE envir_mod 
+      USE errlist_mod, ONLY: ier_api
       USE class_macro_internal
       USE prompt_mod 
       IMPLICIT none 
@@ -316,7 +317,7 @@ end subroutine show_adp
       WRITE (output_io, 2010) as_at_lis (k), as_iscat (k), (as_pos (l,  &
       k), l = 1, 3), as_dw (as_iscat (k) )                              
       ENDDO 
-      IF (.not.lmakro) THEN 
+      IF (.not.lmakro .AND. .NOT. ier_api) THEN   ! no pause in library mode
          WRITE (output_io, 2020) 
          READ ( *, 1000) cdummy 
       ENDIF 
@@ -346,6 +347,7 @@ end subroutine show_adp
       USE atom_name
 !
       USE envir_mod 
+      USE errlist_mod, ONLY: ier_api
       USE class_macro_internal
       USE prompt_mod 
       IMPLICIT none 
@@ -367,7 +369,7 @@ end subroutine show_adp
       at_name_d = at_name (k) 
       WRITE (output_io, 2010) at_name_d, k, cr_dw (k) , cr_occ(k)
       ENDDO 
-      IF (.not.lmakro) THEN 
+      IF (.not.lmakro .AND. .NOT. ier_api) THEN   ! no pause in library mode
          WRITE (output_io, 2020) 
          READ ( *, 1000) cdummy 
       ENDIF 

@@ -390,6 +390,7 @@ END SUBROUTINE locate
 SUBROUTINE lese_text (ihl) 
 !                                                                       
 USE envir_mod 
+USE errlist_mod, ONLY: ier_api
 USE lib_length
 USE prompt_mod 
 !                                                                       
@@ -431,7 +432,7 @@ main_loop: DO
       ENDIF 
    ENDDO  reading
    WRITE(output_io, 2000) 
-   IF(output_io == 6) read ( *, 1000) cdummy 
+   IF(output_io == 6 .AND. .NOT. ier_api) read ( *, 1000) cdummy   ! no pause in library mode
 ENDDO main_loop
 !                                                                       
  9010 CONTINUE 

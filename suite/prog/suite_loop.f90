@@ -95,8 +95,9 @@ lend = .FALSE.
          IF(.NOT. linteractive .AND. .NOT. lmakro) RETURN
       ENDDO main
 !                                                                       
-!
-   CALL do_exit
+!  Library mode (Python): "exit" at the top ends the macro only; no
+!  program exit (clean-up, update check and its questions).
+   IF(.NOT. ier_api) CALL do_exit
 !
 8000 format(' ****EXIT**** Input error on normal read        ',        &
      &       '        ****',a1/)

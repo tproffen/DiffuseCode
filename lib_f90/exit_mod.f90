@@ -59,7 +59,7 @@ IF(new_version > old_version ) THEN
    WRITE(output_io,1300) 
    WRITE(output_io,*)
 ENDIF
-IF(operating == OS_LINUX_WSL) THEN
+IF(operating == OS_LINUX_WSL .AND. .NOT. ier_api) THEN   ! no questions in library mode
    if(generic_get_interval()>0) then
       IF(since_update>generic_get_interval()) THEN
          line = 'NO'
