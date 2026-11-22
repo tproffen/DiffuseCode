@@ -122,7 +122,106 @@ Steps, each with green CI before the next:
   any shared library in the wheel.
 * **Fortran strings and arrays**: `c_char` arrays with an explicit length
   and explicit-size arrays only (no assumed-shape arrays, which would need
-  C descriptors).
+  C descriptors); see the next section.
+
+## Strings and arrays across the C interface
+
+### The two constraints
+
+**Strings.** A normal Fortran string argument (`character(len=*)`) carries
+its length as an extra hidden argument, passed in a compiler-specific way,
+so a `bind(C)` function cannot take one. It receives a C byte array plus an
+explicit length and copies it into a Fortran string (`to_fortran` in the
+proof of concept):
+
+```fortran
+subroutine dc_c_run(text, n) bind(C)
+   integer(c_int), value :: n
+   character(kind=c_char), dimension(n), intent(in) :: text   ! bytes + length
+```
+
+Strings going back work the same way: Python provides a buffer of fixed
+size, Fortran fills and pads it.
+
+**Arrays.** Fortran has two kinds of array argument:
+
+* *explicit-size* (`real :: x(n)`, `n` passed alongside): just a pointer to
+  the first element. C and ctypes handle it directly; NumPy arrays go in
+  with `numpy.ctypeslib.ndpointer`.
+* *assumed-shape* (`real :: x(:)`), used by most modern DISCUS routines: the
+  compiler passes a hidden descriptor (address, bounds, strides). Since
+  Fortran 2018 a `bind(C)` routine may take these too, but the caller then
+  has to build a `CFI_cdesc_t` (from `ISO_Fortran_binding.h`). ctypes cannot
+  include C headers; the layout would have to be copied by hand and can
+  differ between compilers and versions. Not worth the risk.
+
+So the C layer uses explicit-size arrays at the boundary only. Inside the
+wrapper nothing changes: passing an explicit-size array on to an existing
+routine that expects `x(:)` makes the compiler build the descriptor itself.
+**Existing DISCUS code needs no change.**
+
+### What this means later, and how to handle it
+
+1. **Arrays whose size only Fortran knows** (atoms after building a
+   crystal, map sizes). Python cannot receive an array Fortran allocates.
+   Two patterns:
+   * *ask, then fill*: one call returns the size, Python allocates, a second
+     call fills (`get_data_length` / `get_data` already work this way).
+     Simple and safe; the data is copied.
+   * *view Fortran's memory*: Fortran returns the address (`c_loc`) and
+     size, NumPy wraps it without copying (`np.ctypeslib.as_array`). Fast
+     for large maps, but the view is invalid as soon as DISCUS reallocates
+     the array (e.g. the next structure is read). If ever needed: internal
+     only, with an explicit copy or a version counter checked before use.
+
+   For WP3/WP4 sizes (up to millions of atoms, maps of a few hundred MB)
+   copying is fine; the second pattern matters only if memory gets tight.
+2. **Several dimensions.** Fortran stores arrays column by column, NumPy
+   row by row by default. Often this works out: `cr_pos(3, natoms)` has
+   exactly the memory layout of a NumPy array of shape `(natoms, 3)`. For
+   maps the wrapper returns a Fortran-ordered array (`order="F"`) or the
+   transposed shape. Easy to get wrong without tests, so every array
+   function gets a test with a non-symmetric shape.
+3. **Non-contiguous NumPy arrays** (slices such as `a[:, ::2]`) cannot go in
+   directly; the Python wrapper converts them (`np.asfortranarray` or
+   `np.ascontiguousarray`), at the cost of a copy. In one place: the
+   wrapper, not user code.
+4. **Arrays of strings** (atom names, `cr_at_lis`, 4 characters each):
+   passed as one block of `n × length` bytes and split in Python, as the
+   error details are now. Fixed width and padded; a longer name would be
+   cut off, so the wrapper checks and raises an error.
+5. **Size limits.** `c_int` is 32-bit; counts above about 2.1 billion
+   (possible for large 3D grids) need 64-bit (`c_int64_t`) arguments. Use
+   64-bit for all sizes from the start.
+6. **Derived types.** Fortran types with allocatable arrays, pointers or
+   type-bound procedures cannot cross the boundary (molecule lists, the
+   macro storage, the `class_*` objects). The C interface offers functions
+   per piece of data (get/set positions, types, occupancies, ADPs), not
+   structures; the Python `Crystal` class assembles them. More functions,
+   each simple.
+7. **Logicals and optional arguments.** Fortran `logical` is not C's
+   `bool`, and optional arguments across `bind(C)` depend on the compiler.
+   Integer flags (0/1) and fixed argument lists.
+8. **Callbacks from Fortran into Python** (progress reporting, an "abort"
+   check during MMC): possible with `c_funptr` in Fortran and
+   `ctypes.CFUNCTYPE` in Python, which takes the GIL back for the callback
+   by itself. A Python exception cannot travel through Fortran, so a
+   callback signals an abort with its return value and Fortran stops in an
+   orderly way. Not needed now (live output works without callbacks); only
+   for interactive abort or progress bars.
+9. **No signature check.** ctypes trusts the declared types; a mismatch
+   crashes instead of raising an error. Safeguards: one declaration table,
+   a test per function, and only a few patterns (bytes + length, pointer +
+   size, integer flags), so mistakes are easy to spot.
+
+### When this would stop being enough
+
+If a later work package needed rich two-way objects (Python objects living
+in Fortran, many small calls, zero-copy everywhere), a C++ layer with
+nanobind could sit **on top of the same C interface** and build the
+descriptors properly; nothing from option B would be thrown away. What
+WP3–WP9 need (whole arrays in and out, coarse commands) does not call for
+it, but the route exists.
 
 ## What does not change
 
