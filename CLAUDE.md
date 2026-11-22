@@ -18,6 +18,7 @@ targets `claude-python-app`.
 - `migration/WP0_Test_Baseline.md` – test baseline tasks and progress log.
 - `tests/README.md` – how to run the tests.
 - `migration/WP2_Core_Survey.md` – WP2 (core infrastructure) survey and next steps.
+- `migration/WP2_Binding_Decision.md` – f2py or a C interface (proposal: `bind(C)` + ctypes).
 
 ## Build and test
 
