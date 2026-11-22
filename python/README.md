@@ -46,8 +46,9 @@ It reads `examples/anatase.cif`, calculates X-ray and neutron patterns for a
 10×10×4 supercell and an X-ray pattern for a 3×3×1 crystal, and shows the
 plot. In Jupyter, `import diffuse as dc` works directly once the package is
 installed in the environment the notebook runs in. For JupyterLab with
-interactive (zoomable) plots, install with `pip install ".[jupyter]"` and
-open `examples/interactive_plots.ipynb`.
+interactive (zoomable) plots (ipympl, installed with the package), get
+JupyterLab with `pip install ".[jupyter]"` if needed and open
+`examples/interactive_plots.ipynb`.
 
 For work on DiffuseCode itself, a CMake build folder with
 `DIFFUSE_PYTHON_PATH` and `PYTHONPATH` set works too (see `docs/install.md`,

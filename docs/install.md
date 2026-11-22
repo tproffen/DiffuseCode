@@ -34,7 +34,8 @@ Run `source ~/.diffuse/bin/activate` again in every new terminal before using
 the package (or add it to `~/.bashrc`). Keeping the environment outside the
 DiffuseCode folder means a fresh clone or `git clean` does not touch it.
 
-This also installs NumPy, matplotlib and py3Dmol (3D views of structures). Use `.[test]` for what the tests
+This also installs NumPy, matplotlib, ipympl (interactive plots in Jupyter)
+and py3Dmol (3D views of structures). Use `.[test]` for what the tests
 need, `.[docs]` for the documentation tools. The build takes a few minutes. Set
 `CMAKE_BUILD_PARALLEL_LEVEL` to the number of CPU cores to make it faster,
 for example `CMAKE_BUILD_PARALLEL_LEVEL=4 pip install .`.
@@ -67,17 +68,19 @@ in CI. Three tips:
 
 ## Jupyter
 
-To use the package in JupyterLab with interactive plots (zoom, pan, a
-readout of the coordinates under the mouse), install it with the `jupyter`
-extra, which adds JupyterLab and [ipympl](https://matplotlib.org/ipympl/):
+Interactive plots in JupyterLab (zoom, pan, a readout of the coordinates
+under the mouse) come from [ipympl](https://matplotlib.org/ipympl/), which
+is installed with the package. If you do not have JupyterLab yet, the
+`jupyter` extra adds it:
 
 ```bash
 pip install ".[jupyter]"
 jupyter lab
 ```
 
-(The quotes stop the shell from reading the square brackets.) In the
-notebook, before plotting:
+(The quotes stop the shell from reading the square brackets.) JupyterLab
+must run from the same environment as the package. In the notebook, before
+plotting:
 
 ```python
 %matplotlib widget
