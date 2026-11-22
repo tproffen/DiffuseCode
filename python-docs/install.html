@@ -605,7 +605,17 @@ into it), or install into the Python the notebook runs with <code class="docutil
 <a class="reference internal" href="api.html#diffuse.Crystal.view" title="diffuse.Crystal.view"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Crystal.view()</span></code></a> (py3Dmol, installed with the
 package; no extension needed): rotate with the mouse, zoom with the wheel.</p>
 <p>The notebook <code class="docutils literal notranslate"><span class="pre">python/examples/interactive_plots.ipynb</span></code> shows both with a
-structure view, a powder pattern, a diffuse-scattering map and a PDF.</p>
+structure view, a powder pattern, a diffuse-scattering map and a PDF. Run a
+copy of the examples folder, not the notebook in your DiffuseCode clone:
+Jupyter saves a notebook with its results, so the file in the clone would
+change and <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code> would refuse to update it.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>-r<span class="w"> </span>python/examples<span class="w"> </span>~/diffuse-examples
+<span class="nb">cd</span><span class="w"> </span>~/diffuse-examples
+jupyter<span class="w"> </span>lab
+</pre></div>
+</div>
+<p>(If it has happened: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">--</span> <span class="pre">python/examples/interactive_plots.ipynb</span></code>
+throws away the saved results, then <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code> works.)</p>
 </section>
 <section id="without-admin-rights-conda">
 <h2>Without admin rights (conda)<a class="headerlink" href="#without-admin-rights-conda" title="Link to this heading">#</a></h2>

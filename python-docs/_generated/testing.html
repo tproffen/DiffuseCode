@@ -685,6 +685,23 @@ release start it from the command line, for any branch:
 not, open the “changes” job, or try it locally:
 <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/ci_changes.py</span> <span class="pre">--files</span> <span class="pre">discus/prog/fourier.f90</span></code>.</p>
 </section>
+<section id="notebooks-in-the-repository">
+<h2>Notebooks in the repository<a class="headerlink" href="#notebooks-in-the-repository" title="Link to this heading">#</a></h2>
+<p>Notebooks (<code class="docutils literal notranslate"><span class="pre">python/examples/*.ipynb</span></code>) are committed without outputs; a test
+in <code class="docutils literal notranslate"><span class="pre">tests/python/test_diffuse_api.py</span></code> checks it. To work on one in place,
+set up <a class="reference external" href="https://github.com/kynan/nbstripout">nbstripout</a> once per clone:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>nbstripout
+nbstripout<span class="w"> </span>--install
+git<span class="w"> </span>config<span class="w"> </span>filter.nbstripout.extrakeys<span class="w"> </span><span class="s2">"metadata.language_info"</span>
+</pre></div>
+</div>
+<p>Git then strips outputs and the run’s Python details when comparing and
+committing, so <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">diff</span></code> stays empty after a run and results are never
+committed. <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span></code> and <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code> may still list the notebook (its size
+changed); <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span></code> on it stores nothing new and clears that, and a pull then
+replaces the file (the run’s outputs are gone). To just run the examples,
+use a copy of the folder instead.</p>
+</section>
 <section id="adding-a-test">
 <h2>Adding a test<a class="headerlink" href="#adding-a-test" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
@@ -760,6 +777,7 @@ plain <code class="docutils literal notranslate"><span class="pre">run</span></c
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-tests-python-test-suite-python-py-test-diffuse-api-py">3. Python: <code class="docutils literal notranslate"><span class="pre">tests/python/test_suite_python.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_diffuse_api.py</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ci">CI</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notebooks-in-the-repository">Notebooks in the repository</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-a-test">Adding a test</a></li>
 </ul>
   </nav></div>
