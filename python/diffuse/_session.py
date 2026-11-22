@@ -355,9 +355,10 @@ class Session:
     def reset(self) -> None:
         """Put DISCUS, KUPLOT, DIFFEV and REFINE back into their start-up state.
 
-        Same as the suite command ``reset``. Variables and the random number
-        generator are kept. ``current_crystal`` is cleared, so the next
-        calculation on a Crystal reads it in again.
+        Same as the suite command ``reset``. Variables, the random number
+        generator and settings made with ``set`` (``set parallel``,
+        ``set error`` ...) are kept. ``current_crystal`` is cleared, so the
+        next calculation on a Crystal reads it in again.
         """
         self._require_core("reset")
         with self._capture() as cap:
@@ -377,7 +378,11 @@ class Session:
         self._s.dc_seed(int(value))
 
     def random_state(self) -> np.ndarray:
-        """The random number generator's state, for :meth:`set_random_state`."""
+        """The random number generator's complete state, for :meth:`set_random_state`.
+
+        Includes the Gaussian number that DISCUS may keep waiting (Gaussian
+        numbers come in pairs), so a restore repeats the sequence exactly.
+        """
         self._require_core("random_state")
         return np.asarray(self._s.dc_get_random_state(int(self._s.dc_random_size())))
 

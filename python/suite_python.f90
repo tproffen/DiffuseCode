@@ -471,11 +471,14 @@ END SUBROUTINE dc_seed
 !
 INTEGER FUNCTION dc_random_size()
 !
+!  The compiler's seed words plus 3: the waiting Gaussian number of gasdev
+!  (iset, and gset as two 32-bit halves), so that a state restores exactly.
+!
 USE random_state_mod
 !
 IMPLICIT NONE
 !
-dc_random_size = random_nseeds()
+dc_random_size = random_nseeds() + 3
 !
 END FUNCTION dc_random_size
 !
@@ -483,6 +486,7 @@ END FUNCTION dc_random_size
 !
 SUBROUTINE dc_get_random_state(state, n)
 !
+USE random_mod, ONLY: iset, gset
 USE random_state_mod
 !
 IMPLICIT NONE
@@ -493,7 +497,10 @@ INTEGER, INTENT(OUT) :: state(n)
 !f2py intent(in) n
 INTEGER :: nseeds
 !
-CALL random_current(nseeds, state)
+state = 0
+CALL random_current(nseeds, state(1:n-3))
+state(n-2)   = iset
+state(n-1:n) = TRANSFER(gset, state(1:2))
 !
 END SUBROUTINE dc_get_random_state
 !
@@ -501,8 +508,8 @@ END SUBROUTINE dc_get_random_state
 !
 SUBROUTINE dc_set_random_state(state, n)
 !
-!  Restore a state from dc_get_random_state. Also clears the second
-!  Gaussian number that gasdev keeps, as "seed" does.
+!  Restore a state from dc_get_random_state, including the Gaussian
+!  number that gasdev may keep waiting.
 !
 USE random_mod
 USE random_state_mod
@@ -513,8 +520,9 @@ INTEGER, INTENT(IN) :: n
 INTEGER, INTENT(IN) :: state(n)
 !
 CALL alloc_random()
-CALL put_seeds(n, state)
-iset = 0
+CALL put_seeds(n-3, state(1:n-3))
+iset = state(n-2)
+gset = TRANSFER(state(n-1:n), gset)
 !
 END SUBROUTINE dc_set_random_state
 !

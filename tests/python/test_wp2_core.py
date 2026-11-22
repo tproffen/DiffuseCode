@@ -273,3 +273,76 @@ def test_loops_and_blocks_in_memory(dc):
 def test_line_too_long(dc):
     with pytest.raises(ValueError, match="longer than"):
         dc.run_macro("echo \"" + "x" * 1100 + "\"")
+
+
+def test_random_state_restores_mid_gaussian_pair(dc):
+    """gasdev makes Gaussian numbers in pairs; the state includes the one
+    that is waiting, so a restore between the two repeats exactly."""
+    s = dc.session()
+    dc.seed(5)
+    s.value("gran(1.0, s)")                      # first of a pair: the second waits
+    state = s.random_state()
+    a = [s.value("gran(1.0, s)") for _ in range(4)]
+    s.set_random_state(state)
+    assert [s.value("gran(1.0, s)") for _ in range(4)] == a
+
+
+# ------------------------------------------------------------------ reset
+RESET_SCRIPT = """
+import json, sys
+import numpy as np
+import diffuse as dc
+ex = sys.argv[1]
+dc.run_macro("set parallel, useomp:serial")      # same summation order as the test
+layer = dc.read_structure(ex + "/cuau_layer.stru")
+f = dc.fourier(layer, ll=(0, 0, 0), lr=(2, 0, 0), ul=(0, 2, 0), npoints=(41, 41))
+ni = dc.read_structure(ex + "/nickel.cell", supercell=3)
+p = dc.powder(ni, qmax=6.0)
+np.savez(sys.argv[2], fourier=f.intensity, powder=p.intensity)
+"""
+
+
+def test_reset_after_monte_carlo_matches_a_fresh_process(dc, tmp_path):
+    """After an MMC run (tests/04.SRO/SRO_3, cut before its Fourier) and
+    reset(), a Fourier map and a powder pattern are identical to those of a
+    fresh Python process: reset leaves nothing behind that changes them.
+
+    Both run serially: with several OpenMP threads the powder sums come in a
+    different order from run to run (last digits differ even between two
+    fresh processes). 'set parallel' is a setting and outlasts reset, like
+    variables do.
+
+    The diffuse functions set every menu option they use, so this also
+    passes without reset() (checked): nothing left over from the MMC run
+    changes their results. reset() matters for raw run_macro() use."""
+    import shutil
+    import subprocess
+    import conftest
+    examples = REPO / "python" / "examples"
+    script = tmp_path / "fresh.py"
+    script.write_text(RESET_SCRIPT)
+    env = os.environ | {"MPLBACKEND": "Agg"}
+    if conftest.USE_SOURCE:
+        env["PYTHONPATH"] = str(REPO / "python")
+    r = subprocess.run([sys.executable, str(script), str(examples), str(tmp_path / "fresh.npz")],
+                       env=env, capture_output=True, text=True, timeout=300)
+    assert r.returncode == 0, r.stdout + r.stderr
+    fresh = np.load(tmp_path / "fresh.npz")
+
+    sro = tmp_path / "sro3"
+    shutil.copytree(REPO / "tests" / "04.SRO" / "SRO_3", sro)
+    text = (sro / "sro.3.mac").read_text()
+    (sro / "sro_mc.mac").write_text(text[:text.index("@fourier.mac")] + "exit\n")
+    dc.run_macro("set wait, off\nseed 1234\n@sro_mc.mac 0.5, 0.5, 0.5, 0.48, 0.48, 1.5",
+                 cwd=sro)
+    dc.reset()
+    try:
+        dc.run_macro("set parallel, useomp:serial")
+        layer = dc.read_structure(examples / "cuau_layer.stru")
+        f = dc.fourier(layer, ll=(0, 0, 0), lr=(2, 0, 0), ul=(0, 2, 0), npoints=(41, 41))
+        ni = dc.read_structure(examples / "nickel.cell", supercell=3)
+        p = dc.powder(ni, qmax=6.0)
+    finally:
+        dc.run_macro("set parallel, useomp:use, nthreads:all")     # the start-up default
+    np.testing.assert_array_equal(f.intensity, fresh["fourier"])
+    np.testing.assert_array_equal(p.intensity, fresh["powder"])

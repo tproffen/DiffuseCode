@@ -54,8 +54,9 @@ def seed(value: int) -> None:
 def reset() -> None:
     """Put DISCUS back into its start-up state (the suite command ``reset``).
 
-    Removes the structure and all menu settings. Variables and the random
-    number generator are kept. A :class:`Crystal` made earlier is read in
+    Removes the structure and all menu settings. Variables, the random
+    number generator and settings made with ``set`` (for example
+    ``set parallel``) are kept. A :class:`Crystal` made earlier is read in
     again when it is used next.
     """
     session().reset()
