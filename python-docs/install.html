@@ -590,9 +590,17 @@ notebook, before plotting:</p>
 </div>
 <p>Each figure then has a toolbar: the magnifier zooms into a box, the arrows
 pan, home returns to the full view, the disk saves a PNG. Restart JupyterLab
-after installing ipympl, or the figures show <code class="docutils literal notranslate"><span class="pre">Error</span> <span class="pre">displaying</span> <span class="pre">widget</span></code>; the
-same happens when <code class="docutils literal notranslate"><span class="pre">jupyter</span></code> is not the one from your environment
-(<code class="docutils literal notranslate"><span class="pre">which</span> <span class="pre">jupyter</span></code> should point into it).</p>
+after installing ipympl, or the figures show <code class="docutils literal notranslate"><span class="pre">Error</span> <span class="pre">displaying</span> <span class="pre">widget</span></code>.</p>
+<p>If the notebook reports <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">module</span> <span class="pre">named</span> <span class="pre">'ipympl'</span></code> (or <code class="docutils literal notranslate"><span class="pre">'diffuse'</span></code>) although
+you installed it, the notebook runs another Python than the environment you
+installed into, usually because JupyterLab was started from elsewhere (an
+older JupyterLab, or one that is still running). Check in a cell:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="p">;</span> <span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It should be the Python of your environment (e.g. <code class="docutils literal notranslate"><span class="pre">~/.diffuse/bin/python</span></code>).
+Either start JupyterLab from that environment (<code class="docutils literal notranslate"><span class="pre">which</span> <span class="pre">jupyter</span></code> should point
+into it), or install into the Python the notebook runs with <code class="docutils literal notranslate"><span class="pre">%pip</span> <span class="pre">install</span> <span class="pre">ipympl</span></code> in a cell; then restart the kernel and reload the page.</p>
 <p>Structures can be viewed in 3D in the notebook with
 <a class="reference internal" href="api.html#diffuse.Crystal.view" title="diffuse.Crystal.view"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Crystal.view()</span></code></a> (py3Dmol, installed with the
 package; no extension needed): rotate with the mouse, zoom with the wheel.</p>
