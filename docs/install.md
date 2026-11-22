@@ -153,7 +153,19 @@ Structures can be viewed in 3D in the notebook with
 package; no extension needed): rotate with the mouse, zoom with the wheel.
 
 The notebook `python/examples/interactive_plots.ipynb` shows both with a
-structure view, a powder pattern, a diffuse-scattering map and a PDF.
+structure view, a powder pattern, a diffuse-scattering map and a PDF. Run a
+copy of the examples folder, not the notebook in your DiffuseCode clone:
+Jupyter saves a notebook with its results, so the file in the clone would
+change and `git pull` would refuse to update it.
+
+```bash
+cp -r python/examples ~/diffuse-examples
+cd ~/diffuse-examples
+jupyter lab
+```
+
+(If it has happened: `git checkout -- python/examples/interactive_plots.ipynb`
+throws away the saved results, then `git pull` works.)
 
 ## Without admin rights (conda)
 
