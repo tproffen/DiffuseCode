@@ -182,6 +182,7 @@ Python (`diffuse`): `MacroError` has `code`, `category`, `text` and
    Also found: `random_state()` missed the Gaussian number `gasdev` keeps
    waiting (`gset`, a SAVEd local); it is now in `random_mod`, and the
    state restores exactly also between the two numbers of a pair.
-5. **Decide the binding** (plan: f2py now, `bind(C)` + nanobind or ctypes
-   later). The `dc_*` functions are written so that this is a mechanical
-   change; f2py stays until WP3/WP4 need arrays of structures.
+5. **Decide the binding.** Proposal in `WP2_Binding_Decision.md`:
+   a `bind(C)` interface with ctypes instead of f2py, in four steps; a
+   proof of concept works (commands, values, errors, arrays, GIL released,
+   no Python symbols in the library). Decision pending.
