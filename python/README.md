@@ -80,7 +80,8 @@ files or KUPLOT data sets. See `diffuse/_session.py`.
   how it was made, and `powder()` reads it in again if another structure was
   loaded since.
 * DISCUS output is captured, not printed. Set `DIFFUSE_ECHO=1`, or call
-  `dc.session(echo=True)`, to see it. The last output is in
+  `dc.session(echo=True)`, to see it as it is written (also in Jupyter).
+  The last output is in
   `dc.session().last_output`.
 * Input files are copied to a scratch folder first, because DISCUS writes
   converted files (for example `.stru` from `.cif`) next to its input.

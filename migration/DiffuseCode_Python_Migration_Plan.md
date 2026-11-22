@@ -328,7 +328,7 @@ Also make **readline optional** for the Python build: it is only used by the int
 
 **Done when:** A deliberately bad input raises a Python exception. The process survives, prints nothing to the terminal, and the next call works.
 
-**Progress (Nov 2026):** survey and first step in `migration/WP2_Core_Survey.md`. Library mode (`ier_api`: no STOP on errors), the first error recorded for Python (`MacroError.code`, `category`, `text`, `details`), `dc_init`, `dc_reset`, seed and random-state control, `diffuse.seed()` and `diffuse.reset()`; tests in `tests/python/test_wp2_core.py`. Next: output to a callback instead of descriptor capture, no keyboard reads in library mode, commands without a macro file, reset completeness, then the binding decision.
+**Progress (Nov 2026):** survey and first step in `migration/WP2_Core_Survey.md`. Library mode (`ier_api`: no STOP on errors), the first error recorded for Python (`MacroError.code`, `category`, `text`, `details`), `dc_init`, `dc_reset`, seed and random-state control, `diffuse.seed()` and `diffuse.reset()`; tests in `tests/python/test_wp2_core.py`. Output (step 1): all DISCUS output on the captured standard output (banner, errors with all their lines; `set prompt` cannot move it in library mode), shown live with `echo=True` (GIL released during macro runs). Next: no keyboard reads in library mode, commands without a macro file, reset completeness, then the binding decision.
 
 ### WP3 · Crystal data model and I/O
 

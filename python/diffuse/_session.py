@@ -12,10 +12,14 @@ What this layer adds on top of ``suite_python``:
   set, ``run()`` raises ``MacroError``. DISCUS runs in library mode
   (``dc_init``): an error never ends the process, and the first error is
   recorded, so ``MacroError`` carries its number, type and message.
-* **Output is captured.** The suite writes to the process's stdout/stderr.
-  ``run()`` sends both file descriptors to a temporary file while the macro
-  runs, and keeps the text in ``Session.last_output``. Pass ``echo=True``
-  (or set ``DIFFUSE_ECHO=1``) to print it as well.
+* **Output is captured.** The suite writes to the process's stdout/stderr
+  (unbuffered, so line by line). ``run()`` sends both file descriptors to a
+  temporary file while the macro runs, and keeps the text in
+  ``Session.last_output``. With ``echo=True`` (or ``DIFFUSE_ECHO=1``) the
+  lines are also shown as DISCUS writes them, in the terminal or in the
+  notebook cell: the f2py call releases the GIL, and a thread follows the
+  file. In library mode DISCUS keeps all of its output there: ``set prompt``
+  cannot move it to a file, and errors write all their lines to it.
 * **Working directory.** The suite keeps its own working directory, so each
   macro starts with ``cd <folder>``.
 """
@@ -29,6 +33,7 @@ import re
 import shutil
 import sys
 import tempfile
+import threading
 from pathlib import Path
 
 import numpy as np
@@ -129,11 +134,19 @@ class _Capture:
     GFORTRAN_UNBUFFERED_PRECONNECTED is not enough on its own: libgfortran
     reads it once, when it is first loaded, and NumPy (through OpenBLAS) may
     have loaded it before this module.
+
+    With ``live=True`` a thread shows complete lines while they are written
+    (on the real terminal, or through ``sys.stdout`` in Jupyter, where it is
+    not the process's file descriptor 1); ``shown`` is the text shown so far.
     """
 
-    def __init__(self, flush=None):
+    POLL = 0.2                          # seconds between looks at the file
+
+    def __init__(self, flush=None, live: bool = False):
         self.text = ""
+        self.shown = ""
         self._flush = flush
+        self._live = live
 
     def __enter__(self):
         if self._flush is not None:
@@ -144,11 +157,21 @@ class _Capture:
         self._saved = [os.dup(1), os.dup(2)]
         os.dup2(self._file.fileno(), 1)
         os.dup2(self._file.fileno(), 2)
+        self._pos = 0
+        self._thread = None
+        if self._live:
+            self._stop = threading.Event()
+            self._thread = threading.Thread(target=self._follow, daemon=True)
+            self._thread.start()
         return self
 
     def __exit__(self, *exc):
         if self._flush is not None:
             self._flush()
+        if self._thread is not None:
+            self._stop.set()
+            self._thread.join()
+            self._show_new()            # what came in since the last look
         os.dup2(self._saved[0], 1)
         os.dup2(self._saved[1], 2)
         for fd in self._saved:
@@ -157,6 +180,29 @@ class _Capture:
         self.text = _ANSI.sub("", self._file.read().decode(errors="replace"))
         self._file.close()
         return False
+
+    # -- live output -------------------------------------------------------
+    def _follow(self):
+        while not self._stop.wait(self.POLL):
+            self._show_new()
+
+    def _show_new(self):
+        """Show the complete lines written since the last call."""
+        size = os.fstat(self._file.fileno()).st_size
+        if size <= self._pos:
+            return
+        data = os.pread(self._file.fileno(), size - self._pos, self._pos)
+        end = data.rfind(b"\n") + 1
+        if not end:
+            return
+        self._pos += end
+        text = _ANSI.sub("", data[:end].decode(errors="replace"))
+        self.shown += text
+        if sys.stdout is sys.__stdout__:    # a terminal or pipe: fd 1 is the capture now
+            os.write(self._saved[0], text.encode())
+        else:                               # Jupyter and similar: their own stream
+            sys.stdout.write(text)
+            sys.stdout.flush()
 
 
 class Session:
@@ -182,13 +228,16 @@ class Session:
                 self._s.initialize_suite()
         self._show(cap.text)
 
-    def _capture(self) -> _Capture:
-        return _Capture(self._flush)
+    def _capture(self, live: bool = False) -> _Capture:
+        return _Capture(self._flush, live=live and self.echo)
 
-    def _show(self, text: str) -> None:
+    def _show(self, text: str, shown: str = "") -> None:
+        """Keep ``text`` as the last output; with echo, print what was not
+        shown live already."""
         self.last_output = text
-        if self.echo and text:
-            print(text, end="" if text.endswith("\n") else "\n")
+        rest = text[len(shown):] if text.startswith(shown) else text
+        if self.echo and rest:
+            print(rest, end="" if rest.endswith("\n") else "\n")
 
     @property
     def workdir(self) -> Path:
@@ -217,12 +266,12 @@ class Session:
         caller_cwd = os.getcwd()
         self._clear_error()
         try:
-            with self._capture() as cap:
+            with self._capture(live=True) as cap:
                 self._s.execute_macro("@" + str(driver))
                 ok = self._s.get_value(FLAG) == 1.0
         finally:
             os.chdir(caller_cwd)
-        self._show(cap.text)
+        self._show(cap.text, cap.shown)
         if not ok:
             raise self._error("DISCUS command failed", cap.text)
         return cap.text
@@ -347,7 +396,16 @@ _SESSION: Session | None = None
 
 
 def session(echo: bool | None = None) -> Session:
-    """The process-wide Session (created on first use)."""
+    """The process-wide Session (created on first use).
+
+    Parameters
+    ----------
+    echo : bool, optional
+        Show DISCUS's output as it is written (in a terminal or a Jupyter
+        cell), for example to follow a long calculation. Default: off, or
+        on if the environment variable ``DIFFUSE_ECHO`` is set. The output
+        of the last call is always in ``session().last_output``.
+    """
     global _SESSION
     if _SESSION is None:
         _SESSION = Session(echo=echo)

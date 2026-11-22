@@ -169,22 +169,27 @@ character(len=11) :: color   ! Use this color
                color = color_info
             endif
             WRITE(error_io,1000) TRIM(color),typ,error(ier_num),ier_num,TRIM(color_fg)!,CHAR(7)
-            IF(error_io/=0) &
+            IF(error_io/=0 .AND. .NOT. ier_api) &
                WRITE(*    ,1000) TRIM(color),typ,error(ier_num),ier_num,TRIM(color_fg),CHAR(7)
             IF(ier_mpi) &
             WRITE(output_io,1100)                 typ,error(ier_num),ier_num
 !           WRITE(ier_out,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)
             DO i=1,UBOUND(ier_msg,1)
-              IF (ier_msg(i) /= ' ')  &
-     &                WRITE(*,1500) TRIM(color),typ,ier_msg(i),ier_num,TRIM(color_fg)
+              IF (ier_msg(i) /= ' ') THEN
+                IF(ier_api) THEN       ! library mode: all of an error in one place
+                  WRITE(error_io,1500) TRIM(color),typ,ier_msg(i),ier_num,TRIM(color_fg)
+                ELSE
+                  WRITE(*,1500) TRIM(color),typ,ier_msg(i),ier_num,TRIM(color_fg)
+                ENDIF
+              ENDIF
             ENDDO
          ELSE
            WRITE(error_io,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
-           IF(error_io /= 0) WRITE(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
+           IF(error_io /= 0 .AND. .NOT. ier_api) WRITE(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
          ENDIF
        ELSE
          WRITE(error_io,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
-         IF(error_io /=0 ) WRITE(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
+         IF(error_io /=0 .AND. .NOT. ier_api) WRITE(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
        ENDIF
 !
 !       IF (lconn .AND. lsocket) THEN

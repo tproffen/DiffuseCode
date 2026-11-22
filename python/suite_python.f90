@@ -285,6 +285,9 @@ USE lib_macro_func
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(INOUT) :: line
+!f2py threadsafe
+!  (releases the Python GIL while the macro runs, so that a Python thread can
+!   show the output as it is written)
 !
 INTEGER :: length
 !

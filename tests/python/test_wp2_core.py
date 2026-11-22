@@ -9,6 +9,8 @@ terminal, and the next call works.
 
 from __future__ import annotations
 
+import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -136,3 +138,65 @@ def test_random_state_round_trip(dc):
 def test_random_state_bad_shape(dc):
     with pytest.raises(ValueError):
         dc.session().set_random_state([1, 2])
+
+
+# ------------------------------------------------------------------ output
+class TimedStream:
+    """Stands in for sys.stdout and notes when each text arrives."""
+
+    def __init__(self):
+        self.parts = []
+
+    def write(self, text):
+        self.parts.append((time.monotonic(), text))
+        return len(text)
+
+    def flush(self):
+        pass
+
+    def lines_with(self, word):
+        return [(t, line) for t, text in self.parts for line in text.splitlines()
+                if word in line]
+
+
+def test_echo_shows_output_while_the_macro_runs(dc, monkeypatch):
+    """With echo, lines appear as DISCUS writes them (the f2py call releases
+    the GIL and a thread follows the output), and each line only once."""
+    s = dc.session()
+    stream = TimedStream()
+    monkeypatch.setattr(sys, "stdout", stream)
+    monkeypatch.setattr(s, "echo", True)
+    start = time.monotonic()
+    dc.run_macro('do i[1] = 1, 3\n  echo "live step %d", i[1]\n  system "sleep 0.6"\nenddo')
+    end = time.monotonic()
+    steps = [(t, line) for t, line in stream.lines_with("live step") if "echo" not in line]
+    assert [line.strip() for _, line in steps] == ["live step 1", "live step 2", "live step 3"]
+    times = [t for t, _ in steps]
+    assert times[0] < end - 0.8                    # step 1 shown well before the end
+    assert times[1] - times[0] > 0.3 and times[2] - times[1] > 0.3
+    assert s.last_output.count("live step 2") == 1     # kept once in the output
+
+
+def test_without_echo_nothing_is_shown(dc, capfd):
+    capfd.readouterr()
+    dc.run_macro('echo "quiet"')
+    assert capfd.readouterr() == ("", "")
+    assert "quiet" in dc.session().last_output
+
+
+def test_set_prompt_cannot_move_the_output(dc):
+    """In library mode 'set prompt ..., file' (output to <program>.log)
+    is ignored, so the output is still captured."""
+    try:
+        out = dc.run_macro('set prompt,off,file\necho "still here"')
+        assert "still here" in out
+        assert not list(dc.session().workdir.glob("*.log"))
+    finally:
+        dc.run_macro("set prompt,on")
+
+
+def test_error_output_has_all_lines(dc):
+    """The extra lines of an error go to the same output as the error."""
+    with pytest.raises(dc.MacroError) as info:
+        dc.run_macro("discus\n  read\n    stru /no/such/file.stru\n  exit\nexit")
+    assert "/no/such/file.stru" in info.value.output

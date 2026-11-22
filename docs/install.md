@@ -147,7 +147,8 @@ the results come back through files or KUPLOT data sets.
   remembers how it was made, and {func}`~diffuse.powder` reads it in again if
   another structure was loaded since.
 * DISCUS output is captured, not printed. Set `DIFFUSE_ECHO=1`, or call
-  `dc.session(echo=True)`, to see it; the last output is in
+  `dc.session(echo=True)`, to see it as it is written, also in a Jupyter
+  cell (useful for long calculations); the last output is in
   `dc.session().last_output`.
 * A failed DISCUS command raises {class}`~diffuse.MacroError` with DISCUS's
   own error lines.

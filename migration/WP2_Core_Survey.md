@@ -121,10 +121,25 @@ Python (`diffuse`): `MacroError` has `code`, `category`, `text` and
 
 ## 3. Next steps for WP2, in order
 
-1. **Output to a callback.** Move the `write(*` output of the banner,
-   `disp_error` (the duplicate) and `exit_mod` to `output_io`; in library
-   mode open `output_io` on a file that `_session.py` reads, or call a
-   Python logging function. Then drop the file-descriptor capture.
+1. **Output.** *Done (Nov 2026), differently from first planned.* A log
+   file opened by the Fortran code would be buffered by gfortran (text
+   arrives in blocks of several kB, so no live progress), and the only
+   switch against that (`GFORTRAN_UNBUFFERED_ALL`) would slow down every
+   large file DISCUS writes. Standard output, by contrast, is unbuffered
+   (`GFORTRAN_UNBUFFERED_PRECONNECTED`, set by `_session.py`). So the
+   file-descriptor capture stays as the output channel, and:
+   * the banner, the start-up text and the `cd` echo write to `output_io`
+     (standard output in `discus_suite`, so unchanged there); in library
+     mode an error writes all its lines (also DISCUS's extra lines) to
+     `error_io`, without the copy to the screen;
+   * in library mode `set prompt` cannot move the output to a log file or
+     switch it off;
+   * `execute_macro` releases the Python GIL (`!f2py threadsafe`), so a
+     thread can follow the output: with `echo=True` lines are shown as
+     DISCUS writes them, in a terminal and in a Jupyter cell (tested with
+     a kernel: lines 1 s apart arrive 1 s apart).
+   The remaining `write(*` (debug dumps, rare internal messages) are still
+   caught by the capture.
 2. **No keyboard reads in library mode** (the 18 above): an error saying
    the command needs a terminal.
 3. **Commands without a macro file.** Feed the command lines to the macro
