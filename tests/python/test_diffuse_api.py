@@ -173,12 +173,13 @@ def _example_env():
 @pytest.mark.parametrize("notebook", sorted(p.name for p in EXAMPLES.glob("*.ipynb")))
 def test_example_notebook(notebook, tmp_path):
     """The code cells of each notebook in python/examples/ run (as one script,
-    without the IPython magics such as %matplotlib widget, so neither Jupyter
-    nor ipympl is needed)."""
+    without the IPython magics such as %matplotlib widget and without cells
+    tagged "jupyter-only", so neither Jupyter nor ipympl is needed)."""
     pytest.importorskip("matplotlib")
     import json
     cells = json.loads((EXAMPLES / notebook).read_text())["cells"]
-    code = "\n".join("".join(c["source"]) for c in cells if c["cell_type"] == "code")
+    code = "\n".join("".join(c["source"]) for c in cells if c["cell_type"] == "code"
+                     and "jupyter-only" not in c["metadata"].get("tags", []))
     code = "\n".join(line for line in code.splitlines() if not line.lstrip().startswith(("%", "!")))
     script = tmp_path / "notebook.py"
     script.write_text(code + "\n")

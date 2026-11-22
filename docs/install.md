@@ -132,9 +132,21 @@ notebook, before plotting:
 
 Each figure then has a toolbar: the magnifier zooms into a box, the arrows
 pan, home returns to the full view, the disk saves a PNG. Restart JupyterLab
-after installing ipympl, or the figures show `Error displaying widget`; the
-same happens when `jupyter` is not the one from your environment
-(`which jupyter` should point into it).
+after installing ipympl, or the figures show `Error displaying widget`.
+
+If the notebook reports `No module named 'ipympl'` (or `'diffuse'`) although
+you installed it, the notebook runs another Python than the environment you
+installed into, usually because JupyterLab was started from elsewhere (an
+older JupyterLab, or one that is still running). Check in a cell:
+
+```python
+import sys; print(sys.executable)
+```
+
+It should be the Python of your environment (e.g. `~/.diffuse/bin/python`).
+Either start JupyterLab from that environment (`which jupyter` should point
+into it), or install into the Python the notebook runs with `%pip install
+ipympl` in a cell; then restart the kernel and reload the page.
 
 Structures can be viewed in 3D in the notebook with
 {meth}`Crystal.view() <diffuse.Crystal.view>` (py3Dmol, installed with the
