@@ -29,7 +29,6 @@ dependencies:
   # Python packages
   - numpy
   - matplotlib
-  - ipympl
   - py3dmol
   # tests (optional)
   - pytest
