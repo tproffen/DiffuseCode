@@ -171,6 +171,20 @@ def _example_env():
 
 
 @pytest.mark.parametrize("notebook", sorted(p.name for p in EXAMPLES.glob("*.ipynb")))
+def test_example_notebook_committed_clean(notebook):
+    """Notebooks are committed without outputs, execution counts or the
+    details of the Python they last ran in (CLAUDE.md: nbstripout). A run
+    saved by mistake fails here. Needs no DISCUS."""
+    import json
+    nb = json.loads((EXAMPLES / notebook).read_text())
+    for i, cell in enumerate(nb["cells"]):
+        if cell["cell_type"] == "code":
+            assert cell["outputs"] == [], f"cell {i} has outputs"
+            assert cell["execution_count"] is None, f"cell {i} has an execution count"
+    assert set(nb["metadata"]) <= {"kernelspec"}, f"notebook metadata: {sorted(nb['metadata'])}"
+
+
+@pytest.mark.parametrize("notebook", sorted(p.name for p in EXAMPLES.glob("*.ipynb")))
 def test_example_notebook(notebook, tmp_path):
     """The code cells of each notebook in python/examples/ run (as one script,
     without the IPython magics such as %matplotlib widget and without cells

@@ -37,6 +37,25 @@ python3 tools/run_legacy_tests.py --exe build/suite/prog/discus_suite -j 4 --tag
 
 CMake finds the compilers itself (`FC` is optional). Keep build trees outside `tests/`.
 
+### Notebooks in the repository
+
+Notebooks (`python/examples/*.ipynb`) are committed without outputs; a test
+in `tests/python/test_diffuse_api.py` checks it. To work on one in place,
+set up [nbstripout](https://github.com/kynan/nbstripout) once per clone:
+
+```bash
+pip install nbstripout
+nbstripout --install
+git config filter.nbstripout.extrakeys "metadata.language_info"
+```
+
+Git then strips outputs and the run's Python details when comparing and
+committing, so `git diff` stays empty after a run and results are never
+committed. `git status` and `git pull` may still list the notebook (its size
+changed); `git add` on it stores nothing new and clears that, and a pull then
+replaces the file (the run's outputs are gone). To just run the examples,
+use a copy of the folder instead.
+
 CI runs only the jobs a change needs (`tools/ci_changes.py`, see
 `tests/README.md`). After substantial changes (Fortran core, build or
 packaging, several areas at once), **offer the owner a full CI run** and
