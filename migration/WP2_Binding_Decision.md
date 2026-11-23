@@ -1,8 +1,8 @@
 # WP2 – Binding decision: f2py or a C interface
 
 WP2 step 5 (migration plan, section 7; survey in `WP2_Core_Survey.md`).
-Written Nov 2026, after steps 1–4. **Status: proposal; the decision is the
-owner's.**
+Written Nov 2026, after steps 1–4; option E (replace the Fortran) added
+later. **Status: proposal; the decision is the owner's.**
 
 ## The question
 
@@ -11,6 +11,11 @@ f2py generates from `python/suite_python.f90`. The plan foresaw f2py for
 the start and a `bind(C)` interface later. The question is whether to
 switch, to what, and when – before WP3 (crystal data model) adds many new
 functions with arrays in both directions.
+
+A further option was raised later: replace the Fortran itself (C++, or
+Python with NumPy/Numba). It is discussed in
+[Option E](#option-e-replace-the-fortran-c-or-python-with-numpy-numba),
+with an inventory of how much Fortran would actually have to be replicated.
 
 ## What the Python side needs from the binding
 
@@ -222,6 +227,96 @@ nanobind could sit **on top of the same C interface** and build the
 descriptors properly; nothing from option B would be thrown away. What
 WP3–WP9 need (whole arrays in and out, coarse commands) does not call for
 it, but the route exists.
+
+## Option E: replace the Fortran (C++, or Python with NumPy/Numba)
+
+Raised Nov 2026: instead of binding to the Fortran, recreate the core
+calculations in C or C++ (or Python). The question is how much Fortran
+would really have to be replicated, since much of it is replaced by the
+Python migration anyway.
+
+### Inventory
+
+`tools/fortran_inventory.py` sorts every Fortran file (code lines, without
+comments and blank lines) into groups; DISCUS files that hold both a menu
+and the physics behind it are split routine by routine (a routine counts as
+menu if its name says so or if more than 4 % of its lines call the command
+parser). An estimate, good to perhaps ±10 % for the physics core.
+
+| Group | Lines | Share | Future |
+|---|---:|---:|---|
+| A command language, menus, program frame, macros, expressions | 67 800 | 33 % | replaced by the Python API |
+| B plotting (KUPLOT graphics, structure plots) | 10 700 | 5 % | matplotlib, `Crystal.view()` |
+| C fitting and optimisation (DIFFEV, REFINE, KUPLOT fit) | 19 500 | 9 % | SciPy / lmfit, Python orchestration |
+| D file formats and export | 24 700 | 12 % | Python (h5py, gemmi, NumPy); DISCUS's own formats rewritten in Python |
+| E general numerics (FFT, splines, matrices, random, helpers) | 21 300 | 10 % | NumPy / SciPy / FFTW |
+| F system (OS, MPI, sockets, timers) | 3 800 | 2 % | Python standard library |
+| **G physics core** | **55 500** | **27 %** | **to replicate (or keep in Fortran)** |
+| H data tables (scattering factors, profile functions) | 3 700 | 2 % | keep as data (or from xraydb, periodictable) |
+| total | 206 900 | | |
+
+About **three quarters of the Fortran goes away with the Python migration
+whatever happens** (A–F). The rewrite question concerns the physics core,
+about 55 000 lines (45 000–65 000 given the uncertainty), plus the data
+tables:
+
+| Physics area | Lines | Notes |
+|---|---:|---|
+| Fourier, powder, PDF, Patterson, 3D-PDF | 16 800 | well covered by golden tests (WP0, WP4); GPU candidates |
+| structure: reading, symmetry, space groups, generators | 14 200 | partly available in libraries (gemmi, spglib: space groups, symmetry operations, settings) |
+| molecules, domains, stacking faults, surfaces, waves, modify | 10 400 | specialised, DISCUS-specific |
+| Monte Carlo (MMC, RMC) | 8 500 | many energy terms; intertwined with the crystal and chemistry code |
+| chemistry: correlations, connectivity, properties | 5 500 | partly expressible with NumPy |
+
+### Effort
+
+Porting validated numerical code, with tests, runs at roughly 100–250 lines
+of Fortran a day for a developer who knows the physics. For the 55 000
+lines that is about 1–2.5 person-years, before performance work (OpenMP or
+GPU) and before extending the tests where WP0 found gaps
+(`WP0_Test_Coverage_Gaps.md`). Using libraries for symmetry (gemmi,
+spglib) would save part of the structure area. AI-assisted translation
+speeds up writing, not validation, which is the larger part.
+
+### Weighing it
+
+For a rewrite: more people know C++ (or Python) than Fortran; GPUs are
+more natural; better tools; no Fortran runtime in wheels; a C++ core would
+bind to Python with nanobind directly.
+
+Against a rewrite all at once: the physics is decades of validated work,
+and every routine would need re-validating; Fortran is good at exactly
+this kind of array code; the problems met so far (STOP, global state,
+keyboard reads, macro files) were architecture, not language, and are being
+fixed – the one serious memory bug found was in C++ (the bundled finufft);
+the people who know the physics write Fortran; and a parallel rewrite
+delays WP3–WP10 or doubles the work.
+
+### Recommendation: gradual, behind the C interface
+
+The C interface of option B is the seam a gradual move needs. Every core
+calculation sits behind a C function; any of them can later be
+reimplemented (C++, or Python with NumPy/Numba/JAX), checked against the
+golden tests and swapped in without users noticing. f2py offers no such
+seam.
+
+1. Option B as proposed (steps 1–3 above).
+2. Plan rule: a core area moves out of Fortran only with a concrete reason
+   (speed, GPU, maintainability, a missing expert) and only once golden
+   tests cover it; otherwise it stays Fortran behind the C interface.
+3. A pilot: one well-tested kernel – powder (Debye) or PDF – reimplemented
+   both in C++ and in Python with NumPy/Numba, compared with the Fortran
+   for results (golden tests), speed and effort. About 1–2 weeks; it gives
+   measured numbers instead of the estimates above before anything larger
+   is decided.
+4. Likely order if the pilot is convincing: Fourier/powder/PDF first
+   (best tested, most to gain on GPUs), symmetry next with libraries
+   (gemmi/spglib), Monte Carlo and the specialised structure tools last or
+   never.
+
+A complete rewrite at once makes sense only with a dedicated team and the
+Fortran authors on board – a question of people and funding more than of
+code.
 
 ## What does not change
 
