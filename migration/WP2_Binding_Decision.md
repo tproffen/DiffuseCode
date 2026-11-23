@@ -104,6 +104,13 @@ Steps, each with green CI before the next:
    strings as `char` + length, arrays with explicit size). CMake builds it
    as a shared library `libdiffuse_core` next to the f2py module and
    installs it into the package. About 1 day.
+   *Done (Nov 2026):* `python/diffuse_capi.f90`, header
+   `python/diffuse_core.h`, tests `tests/python/test_capi.py` (every
+   function, called with ctypes in a separate process). Two differences from
+   `suite_python`: `dc_value` returns a double (about 12 significant
+   digits, as many as the expression evaluator keeps; f2py gave single
+   precision), and `dc_set_value`, like `set_value`, sets user variables
+   only (`r[]` and other built-in arrays are set with a command).
 2. **Python loader.** `diffuse/_core.py` loads the library with ctypes and
    declares every function in one place; `_session.py` uses it when it is
    there and falls back to `suite_python` (as it does for older module
@@ -308,7 +315,13 @@ seam.
    both in C++ and in Python with NumPy/Numba, compared with the Fortran
    for results (golden tests), speed and effort. About 1–2 weeks; it gives
    measured numbers instead of the estimates above before anything larger
-   is decided.
+   is decided. The pilot includes **benchmarks** (owner's request), not
+   only equal results: the same calculations timed for the Fortran and
+   each rebuild, on one thread and on all cores, for several crystal
+   sizes (from a few hundred to millions of atoms) and grid sizes, plus
+   peak memory; each run repeated, reporting the median; the machine, the
+   compilers and their flags recorded; and kept as a script, so that the
+   comparison can be repeated (later also on a GPU).
 4. Likely order if the pilot is convincing: Fourier/powder/PDF first
    (best tested, most to gain on GPUs), symmetry next with libraries
    (gemmi/spglib), Monte Carlo and the specialised structure tools last or
