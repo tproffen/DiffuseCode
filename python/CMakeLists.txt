@@ -115,11 +115,13 @@ target_link_libraries(diffuse_core ${CORE_LINK_LIBS})
 if (APPLE)
   set_target_properties(diffuse_core PROPERTIES INSTALL_NAME_DIR "@rpath")
 endif ()
+# COMPONENT goes with each artifact kind (after PUBLIC_HEADER it would cover
+# only the header, and pip installs only the python component).
 if (SKBUILD)
-  install(TARGETS diffuse_core LIBRARY DESTINATION diffuse PUBLIC_HEADER DESTINATION diffuse
-          COMPONENT python)
+  install(TARGETS diffuse_core LIBRARY DESTINATION diffuse COMPONENT python
+          PUBLIC_HEADER DESTINATION diffuse COMPONENT python)
 else ()
-  install(TARGETS diffuse_core LIBRARY DESTINATION lib PUBLIC_HEADER DESTINATION include
-          COMPONENT python)
+  install(TARGETS diffuse_core LIBRARY DESTINATION lib COMPONENT python
+          PUBLIC_HEADER DESTINATION include COMPONENT python)
 endif ()
 
