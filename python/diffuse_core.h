@@ -24,11 +24,13 @@
 extern "C" {
 #endif
 
-#define DC_API_VERSION      1
+#define DC_API_VERSION      2     /* 2: crystal arrays                     */
 #define DC_ERR_CLASS_LEN    4     /* "COMM", "I/O ", "FORT" ...            */
 #define DC_ERR_TEXT_LEN     45    /* standard message                      */
 #define DC_ERR_MSGS_LEN     560   /* 7 extra lines of 80 characters        */
 #define DC_MAX_LINE         1024  /* longest command line                  */
+#define DC_SPCGR_LEN        16    /* space group symbol                    */
+#define DC_NAME_LEN         4     /* atom type name                        */
 
 int     dc_api_version(void);                 /* DC_API_VERSION of the library */
 
@@ -63,6 +65,16 @@ int64_t dc_data_length(int ik);               /* points of set ik (1-based), -1 
 int     dc_get_data(int ik, float *x, float *y, int64_t n);
 int     dc_get_data_2d(int ik, float *x, float *y, float *z, int64_t n,
                        int64_t *nx, int64_t *ny);
+
+/* The crystal DISCUS holds. Atom types run 0..ntypes (0: vacancy, "VOID").
+ * Ask for the sizes first, allocate, then fill (-1: a size does not match). */
+void    dc_crystal_size(int64_t *natoms, int *ntypes);
+void    dc_get_cell(double lattice[6],                /* a, b, c, alpha, beta, gamma */
+                    char spcgr[DC_SPCGR_LEN], int64_t icc[3], int64_t *ncatoms);
+int     dc_get_atoms(int64_t n, double *pos,          /* pos[n][3], fractional       */
+                     int *type, int *prop, int *mole);
+int     dc_get_atom_types(int ntypes, char *names,    /* names[ntypes+1][DC_NAME_LEN] */
+                          double *biso, double *occ); /* [ntypes+1]; B in A^2       */
 
 #ifdef __cplusplus
 }

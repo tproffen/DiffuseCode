@@ -178,6 +178,54 @@ def test_supercell_repeats_every_site_once_per_cell(dc, supercell):
 
 
 # --------------------------------------------------------- save / export
+def read_saved_stru(path: Path) -> dict:
+    """The parts of a DISCUS .stru file ("save", "write all") that the
+    crystal arrays hold: an independent reference for the C interface."""
+    out = {"atoms": []}
+    for line in path.read_text().splitlines():
+        word, _, rest = line.strip().partition(" ")
+        values = [v.strip() for v in rest.split(",")]
+        if word == "spcgr":
+            out["spcgr"] = values[0]
+        elif word == "cell":
+            out["cell"] = [float(v) for v in values]
+        elif word == "scat":
+            out["names"] = values
+        elif word == "adp":
+            out["b_iso"] = [float(v) for v in values]
+        elif word == "occ":
+            out["occ"] = [float(v) for v in values]
+        elif word in out.get("names", ()) and len(values) >= 8:
+            out["atoms"].append((word, [float(v) for v in values[:4]],
+                                 int(values[4]), int(values[5])))
+    return out
+
+
+@pytest.mark.parametrize("path, spcgr, natoms", STRUCTURES, ids=lambda v: getattr(v, "stem", None))
+def test_crystal_arrays_match_saved_file(dc, path, spcgr, natoms, tmp_path):
+    """WP3, first slice: the crystal read straight from DISCUS's arrays
+    (C interface) is what DISCUS writes with "save": names, positions, B,
+    properties, molecules, atom types, cell and space group."""
+    cr = dc.read_structure(path, supercell=(2, 1, 2))
+    dc.run_macro("discus\n  save\n    outfile saved.stru\n    write all\n    run\n  exit\nexit",
+                 cwd=tmp_path)
+    ref = read_saved_stru(tmp_path / "saved.stru")
+    assert cr.space_group == ref["spcgr"]
+    assert list(cr.lattice) == pytest.approx(ref["cell"], abs=1e-5)
+    names, b_iso, occ = cr.atom_types()
+    assert list(names) == ref["names"]
+    assert list(b_iso) == pytest.approx(ref["b_iso"], abs=1e-8)
+    assert list(occ) == pytest.approx(ref["occ"], abs=1e-6)
+    atom_names, xyz = cr.atoms()
+    assert len(ref["atoms"]) == cr.natoms == natoms * 4
+    assert list(atom_names) == [a[0] for a in ref["atoms"]]
+    assert np.abs(xyz - np.array([a[1][:3] for a in ref["atoms"]])).max() < 1e-6
+    _pos, types, prop, mole = dc.session()._c.atoms()
+    assert list(b_iso[types - 1]) == pytest.approx([a[1][3] for a in ref["atoms"]], abs=1e-6)
+    assert list(prop) == [a[2] for a in ref["atoms"]]
+    assert list(mole) == [a[3] for a in ref["atoms"]]
+
+
 def test_save_and_read_back(dc, tmp_path):
     cr = dc.read_structure(T / "01.Simulation/cmm2_scat.cell", supercell=(2, 2, 1))
     dc.run_macro("discus\n  save\n    outfile saved.stru\n    write all\n    run\n  exit\nexit",

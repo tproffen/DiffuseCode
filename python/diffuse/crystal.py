@@ -35,13 +35,17 @@ class Crystal:
         Number of atoms in the whole crystal.
     lattice : tuple of float
         ``(a, b, c, alpha, beta, gamma)`` in Å and degrees.
+    space_group : str
+        Space group symbol as DISCUS uses it, for example ``"F m -3 m"``.
     """
 
     path: Path
     supercell: tuple[int, int, int] | None
     natoms: int
     lattice: tuple[float, float, float, float, float, float]  # a, b, c, alpha, beta, gamma
+    space_group: str = "P1"
     _atoms: tuple[np.ndarray, np.ndarray] | None = field(default=None, repr=False)
+    _types: tuple[np.ndarray, np.ndarray, np.ndarray] | None = field(default=None, repr=False)
 
     @property
     def a(self) -> float:
@@ -67,22 +71,44 @@ class Crystal:
 
         Notes
         -----
-        DISCUS saves the crystal to a ``.stru`` file, which is read back.
-        The result is cached on the ``Crystal``.
+        Read straight from DISCUS's arrays (no file). The result is cached
+        on the ``Crystal``.
         """
         if self._atoms is None:
-            _ensure_loaded(self)
-            s = session()
-            out = s.workdir / "atoms.stru"
-            out.unlink(missing_ok=True)
-            s.run(f"discus\n  save\n    outfile {out.name}\n    write all\n    run\n  exit\nexit",
-                  cwd=s.workdir)
-            lines = out.read_text().splitlines()
-            names, xyz = _parse_stru_atoms(lines)
-            if len(names) != self.natoms:
-                raise DiffuseError(f"saved structure has {len(names)} atoms, expected {self.natoms}")
-            self._atoms = (names, xyz)
+            self._read_arrays()
         return self._atoms
+
+    def atom_types(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """The atom types: names, isotropic displacement parameters and occupancies.
+
+        Returns
+        -------
+        names : numpy.ndarray of str, shape (ntypes,)
+            Atom type names, for example ``"TI4+"``, in DISCUS's order (the
+            names :meth:`atoms` uses).
+        b_iso : numpy.ndarray of float, shape (ntypes,)
+            Isotropic displacement parameter B in Å^2 (B = 8 pi^2 <u^2>).
+        occupancy : numpy.ndarray of float, shape (ntypes,)
+            Occupancy of each type.
+
+        Notes
+        -----
+        Vacancies (DISCUS's type 0, ``"VOID"``) are left out.
+        """
+        if self._types is None:
+            self._read_arrays()
+        return self._types
+
+    def _read_arrays(self) -> None:
+        """Fill the caches from DISCUS's crystal arrays (C interface)."""
+        _ensure_loaded(self)
+        core = session()._c
+        pos, types, _prop, _mole = core.atoms()
+        names, b_iso, occupancy = core.atom_types()
+        if len(pos) != self.natoms:
+            raise DiffuseError(f"DISCUS holds {len(pos)} atoms, expected {self.natoms}")
+        self._atoms = (names[types], pos)
+        self._types = (names[1:], b_iso[1:], occupancy[1:])
 
     def positions(self) -> np.ndarray:
         """Fractional coordinates, shape (natoms, 3). See :meth:`atoms`."""
@@ -260,27 +286,6 @@ def _box_edges(lo, n):
                                 != np.array(np.unravel_index(j, (2, 2, 2)))) == 1]
 
 
-def _parse_stru_atoms(lines: list[str]) -> tuple[np.ndarray, np.ndarray]:
-    """Atom names and coordinates from the atom section of a saved .stru file.
-
-    The section can contain ``molecule ...`` blocks between the atom lines;
-    an atom line is a name followed by three numbers.
-    """
-    start = next(i for i, line in enumerate(lines) if line.split()[:1] == ["atoms"]) + 1
-    names, xyz = [], []
-    for line in lines[start:]:
-        words = line.replace(",", " ").split()
-        if len(words) < 4 or words[0].lower() == "molecule":
-            continue
-        try:
-            coords = [float(v) for v in words[1:4]]
-        except ValueError:
-            continue
-        names.append(words[0])
-        xyz.append(coords)
-    return np.array(names), np.array(xyz, dtype=float).reshape(-1, 3)
-
-
 def read_structure(path: str | os.PathLike,
                    supercell: tuple[int, int, int] | int | None = None) -> Crystal:
     """Read a structure file into DISCUS.
@@ -345,26 +350,14 @@ def read_structure(path: str | os.PathLike,
     shutil.copy(path, inputs / ("structure" + suffix))
     command = command.replace(path.name, "structure" + suffix, 1)
 
-    # n[] and lat[] exist only inside the discus section: copy them to the
-    # r[] entries reserved for this package (r[490] ... r[498]).
-    s.run(f"""
-discus
-  read
-    {command}
-  r[490] = n[1]
-  r[491] = lat[1]
-  r[492] = lat[2]
-  r[493] = lat[3]
-  r[494] = lat[4]
-  r[495] = lat[5]
-  r[496] = lat[6]
-exit
-""", cwd=inputs)
+    s.run(f"discus\n  read\n    {command}\nexit\n", cwd=inputs)
+    lattice, space_group, _cells, _per_cell = s._c.cell()
     crystal = Crystal(
         path=path,
         supercell=supercell,
-        natoms=int(s.value("r[490]")),
-        lattice=tuple(s.value(f"r[{i}]") for i in range(491, 497)),
+        natoms=s._c.crystal_size()[0],
+        lattice=lattice,
+        space_group=space_group,
     )
     s.current_crystal = crystal
     return crystal

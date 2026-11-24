@@ -134,6 +134,13 @@ Steps, each with green CI before the next:
    build needs no NumPy, and the wheel is `py3-none-<platform>`.
 4. **From WP3 on**, new functions (crystal arrays in and out) are written
    directly as `bind(C)` functions.
+   *Started (Nov 2026), crystal out:* `dc_crystal_size`, `dc_get_cell`,
+   `dc_get_atoms` (positions, types, properties, molecules) and
+   `dc_get_atom_types` (names, B, occupancy); C interface version 2.
+   Pattern "ask, then fill"; positions as `double[n][3]`, which is the
+   memory layout of `cr_pos(3, n)`. `Crystal.atoms()` reads them instead
+   of saving and parsing a `.stru` file; new `Crystal.atom_types()` and
+   `Crystal.space_group`. Next: crystal in (Python arrays into DISCUS).
 
 ## Risks and how to handle them
 
