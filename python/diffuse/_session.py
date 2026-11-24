@@ -1,11 +1,11 @@
 """The one DISCUS suite that lives in this Python process.
 
-For now everything runs through the f2py module ``suite_python`` (built with
-``-DDIFFUSE_PYTHON=ON``): Python hands the commands to the suite as a macro
-held in memory (``dc_run_commands``; no file), and the suite runs it. The planned bind(C) core (migration plan, WP2) will
-replace this module; the public API in ``diffuse`` is meant to stay the same.
+The compiled core (``_core.py``) is the C library ``libdiffuse_core``
+through ctypes, or the older f2py module ``suite_python``; both are built
+with ``-DDIFFUSE_PYTHON=ON``. Python hands the commands to the suite as a
+macro held in memory (no file), and the suite runs it.
 
-What this layer adds on top of ``suite_python``:
+What this layer adds on top of the core:
 
 * **Errors become exceptions.** A command error ends the whole macro run.
   Every macro written here sets a flag on its last line; if the flag is not
@@ -17,7 +17,7 @@ What this layer adds on top of ``suite_python``:
   temporary file while the macro runs, and keeps the text in
   ``Session.last_output``. With ``echo=True`` (or ``DIFFUSE_ECHO=1``) the
   lines are also shown as DISCUS writes them, in the terminal or in the
-  notebook cell: the f2py call releases the GIL, and a thread follows the
+  notebook cell: the call into the core releases the GIL, and a thread follows the
   file. In library mode DISCUS keeps all of its output there: ``set prompt``
   cannot move it to a file, and errors write all their lines to it.
 * **Working directory.** The suite keeps its own working directory, so each
@@ -27,7 +27,6 @@ What this layer adds on top of ``suite_python``:
 from __future__ import annotations
 
 import atexit
-import importlib
 import os
 import re
 import shutil
@@ -37,6 +36,8 @@ import threading
 from pathlib import Path
 
 import numpy as np
+
+from . import _core
 
 # Must be set before libgfortran is loaded, so that output written while
 # stdout is redirected is not flushed later, after it has been restored.
@@ -82,51 +83,6 @@ class MacroError(DiffuseError):
         self.category = category
         self.text = text
         self.details = list(details)
-
-
-def _import_suite_python():
-    """The compiled DISCUS module.
-
-    $DIFFUSE_PYTHON_PATH (a build folder's python/) wins, for development
-    builds; otherwise the copy that "pip install" put inside this package;
-    otherwise any "suite_python" on the import path.
-    """
-    path = os.environ.get("DIFFUSE_PYTHON_PATH")
-    packaged = f"{__package__}.suite_python"
-    if path:
-        if path not in sys.path:
-            sys.path.insert(0, path)
-        candidates = ["suite_python", packaged]
-    else:
-        candidates = [packaged, "suite_python"]
-    error = None
-    for name in candidates:
-        try:
-            module = importlib.import_module(name).suite
-        except ImportError as exc:
-            error = exc
-            continue
-        if path and name == packaged:
-            import warnings
-            warnings.warn(f"DIFFUSE_PYTHON_PATH={path} has no suite_python module; "
-                          "using the one installed with the diffuse package. Unset "
-                          "DIFFUSE_PYTHON_PATH to silence this.", stacklevel=3)
-        return module
-    here = Path(__file__).resolve().parent
-    lines = [
-        "The DISCUS Python module 'suite_python' was not found.",
-        f"  diffuse package used: {here}",
-        f"  DIFFUSE_PYTHON_PATH:  {path or '(not set)'}",
-        f"  PYTHONPATH:           {os.environ.get('PYTHONPATH') or '(not set)'}",
-        "Install the package with 'pip install .' (in the DiffuseCode folder, in "
-        "your virtual environment), or build with -DDIFFUSE_PYTHON=ON and set "
-        "DIFFUSE_PYTHON_PATH=<build>/python.",
-    ]
-    if "site-packages" not in str(here):
-        lines.append("The diffuse package above is the source folder, not an installed "
-                     "copy: if you installed with pip, unset PYTHONPATH and "
-                     "DIFFUSE_PYTHON_PATH (check ~/.bashrc).")
-    raise ImportError("\n".join(lines)) from error
 
 
 class _Capture:
@@ -234,28 +190,29 @@ class Session:
     def __init__(self, echo: bool | None = None):
         self.echo = bool(os.environ.get("DIFFUSE_ECHO")) if echo is None else echo
         self.last_output = ""
-        self._s = _import_suite_python()
         self._workdir = Path(tempfile.mkdtemp(prefix="diffuse_"))
         atexit.register(shutil.rmtree, self._workdir, ignore_errors=True)
+        self._c = _core.load()
+        if isinstance(self._c, _core.F2pyCore):
+            self._c.set_workdir(self._workdir)
         # Standard input for DISCUS calls (see _Capture): empty lines
         self._stdin = self._workdir / "_stdin"
         self._stdin.write_text("\n" * 20000)
         self.current_crystal = None      # the Crystal now held by DISCUS
-        # flush_output() is in suite_python.f90 since the demo API; builds
-        # without it rely on GFORTRAN_UNBUFFERED_PRECONNECTED alone.
-        self._flush = getattr(self._s, "flush_output", None)
-        # dc_init (library mode, error records) since WP2; older builds of
-        # the module only have initialize_suite.
-        self._core = hasattr(self._s, "dc_init")
+        # Library mode (errors as records, no STOP) unless an old f2py build
+        self._core = self._c.has_core
         with self._capture() as cap:
-            if self._core:
-                self._s.dc_init()
-            else:
-                self._s.initialize_suite()
+            self._c.init()
         self._show(cap.text)
 
+    @property
+    def backend(self) -> str:
+        """How DISCUS is reached: ``"ctypes"`` (the C library
+        libdiffuse_core) or ``"f2py"`` (the module suite_python)."""
+        return self._c.name
+
     def _capture(self, live: bool = False) -> _Capture:
-        return _Capture(self._flush, live=live and self.echo, stdin=self._stdin)
+        return _Capture(self._c.flush, live=live and self.echo, stdin=self._stdin)
 
     def _show(self, text: str, shown: str = "") -> None:
         """Keep ``text`` as the last output; with echo, print what was not
@@ -282,26 +239,14 @@ class Session:
         if too_long:
             raise ValueError(f"command line {too_long[0]} is longer than DISCUS's limit "
                              f"of {MAX_LINE} characters")
-        if hasattr(self._s, "dc_run_commands"):
-            # In memory: DISCUS stores the lines as a macro and runs them,
-            # no file involved (WP2).
-            run = lambda: self._s.dc_run_commands(text)        # noqa: E731
-        else:
-            # Older builds of the module: a driver file, one per session and
-            # overwritten on every call. DISCUS keeps macros in memory by
-            # name but empties that store when a top-level macro ends (also
-            # after an error), so the new text is always read.
-            driver = self._workdir / "_driver.mac"
-            driver.write_text(text)
-            run = lambda: self._s.execute_macro("@" + str(driver))  # noqa: E731
         # DISCUS's "cd" changes the working directory of the whole process;
         # give the caller theirs back afterwards.
         caller_cwd = os.getcwd()
         self._clear_error()
         try:
             with self._capture(live=True) as cap:
-                run()
-                ok = self._s.get_value(FLAG) == 1.0
+                self._c.run(text)
+                ok = self._c.value(FLAG) == 1.0
         finally:
             os.chdir(caller_cwd)
         self._show(cap.text, cap.shown)
@@ -312,7 +257,7 @@ class Session:
     # -- errors -------------------------------------------------------------
     def _clear_error(self) -> None:
         if self._core:
-            self._s.dc_clear_error()
+            self._c.clear_error()
 
     def last_error(self) -> tuple[int, str, str, list[str]]:
         """The first error DISCUS recorded in the last call.
@@ -320,13 +265,9 @@ class Session:
         Returns ``(code, category, text, details)``; ``code`` is 0 when
         there was no error (or the module predates the WP2 core).
         """
-        if not self._core:
-            return 0, "", "", []
-        num, _typ, cls, text, msgs = self._s.dc_last_error()
-        msgs = msgs.decode(errors="replace")
+        num, cls, text, msgs = self._c.last_error()
         details = [msgs[i:i + 80].strip() for i in range(0, len(msgs), 80)]
-        return (int(num), cls.decode().strip(), text.decode(errors="replace").strip(),
-                [d for d in details if d])
+        return int(num), cls.strip(), text.strip(), [d for d in details if d]
 
     def _error(self, what: str, output: str) -> MacroError:
         code, category, text, details = self.last_error()
@@ -346,7 +287,7 @@ class Session:
         """Value of a DISCUS expression, e.g. ``n[1]`` or ``lat[1]``."""
         self._clear_error()
         with self._capture() as cap:
-            v = float(self._s.get_value(expression))
+            v = self._c.value(expression)
         if self.last_error()[0] < 0 or "***" in cap.text:
             raise self._error(f"cannot evaluate '{expression}'", cap.text)
         return v
@@ -362,7 +303,7 @@ class Session:
         """
         self._require_core("reset")
         with self._capture() as cap:
-            self._s.dc_reset()
+            self._c.reset()
         self._show(cap.text)
         self.current_crystal = None
 
@@ -375,7 +316,7 @@ class Session:
         the order in which threads draw numbers can still vary.
         """
         self._require_core("seed")
-        self._s.dc_seed(int(value))
+        self._c.seed(int(value))
 
     def random_state(self) -> np.ndarray:
         """The random number generator's complete state, for :meth:`set_random_state`.
@@ -384,16 +325,16 @@ class Session:
         numbers come in pairs), so a restore repeats the sequence exactly.
         """
         self._require_core("random_state")
-        return np.asarray(self._s.dc_get_random_state(int(self._s.dc_random_size())))
+        return self._c.random_state()
 
     def set_random_state(self, state) -> None:
         """Put the generator back into a state from :meth:`random_state`."""
         self._require_core("set_random_state")
         state = np.asarray(state, dtype=np.int32)
-        if state.shape != (int(self._s.dc_random_size()),):
-            raise ValueError(f"state must have {self._s.dc_random_size()} integers, "
+        if state.shape != (self._c.random_size(),):
+            raise ValueError(f"state must have {self._c.random_size()} integers, "
                              f"not shape {state.shape}")
-        self._s.dc_set_random_state(state)
+        self._c.set_random_state(state)
 
     def _require_core(self, what: str) -> None:
         if not self._core:
@@ -402,26 +343,21 @@ class Session:
 
     # -- KUPLOT data sets -------------------------------------------------
     def n_datasets(self) -> int:
-        return int(self._s.get_data_sets())
+        return self._c.data_sets()
 
     def dataset(self, ik: int) -> tuple[np.ndarray, np.ndarray]:
         """KUPLOT data set ``ik`` (1-based) as float32 arrays ``(x, y)``."""
         self._check_ik(ik)
-        n = int(self._s.get_data_length(ik))
-        x = np.empty(n, np.float32)
-        y = np.empty(n, np.float32)
-        self._s.get_data(ik, x, y)
-        return x, y
+        return self._c.data(ik)
 
     def dataset_2d(self, ik: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """KUPLOT grid data set ``ik`` as ``(x[nx], y[ny], z[nx, ny])``."""
         self._check_ik(ik)
-        n = int(self._s.get_data_length(ik))
-        x, y, z = (np.empty(n, np.float32) for _ in range(3))
-        nx = np.zeros(1, np.int32)
-        ny = np.zeros(1, np.int32)
-        self._s.get_data_3d(ik, x, y, z, nx, ny)
-        nx, ny = int(nx[0]), int(ny[0])
+        n = self._c.data_length(ik)
+        try:
+            x, y, z, nx, ny = self._c.data_2d(ik)
+        except ValueError:
+            nx = ny = 0
         if nx * ny != n:
             raise ValueError(f"data set {ik} is not a grid ({nx} x {ny} != {n})")
         return x[::ny].copy(), y[:ny].copy(), z.reshape(nx, ny)
