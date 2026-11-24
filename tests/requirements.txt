@@ -3,4 +3,5 @@
 # references: space-group operations and International Tables form factors.
 gemmi>=0.6
 py3Dmol                          # Crystal.view() (a dependency of the package)
+ase                              # Crystal.to_ase(), dc.from_ase() (a dependency too)
 tomli; python_version < "3.11"   # reads tests/manifest.toml on Python 3.10

@@ -19,7 +19,7 @@ import numpy as np
 
 LIBRARY = {"darwin": "libdiffuse_core.dylib", "win32": "diffuse_core.dll"}.get(
     sys.platform, "libdiffuse_core.so")
-API_VERSION = 2              # DC_API_VERSION in diffuse_core.h
+API_VERSION = 3              # DC_API_VERSION in diffuse_core.h
 ERR_LENGTHS = (4, 45, 560)   # DC_ERR_CLASS_LEN, DC_ERR_TEXT_LEN, DC_ERR_MSGS_LEN
 SPCGR_LEN = 16               # DC_SPCGR_LEN
 NAME_LEN = 4                 # DC_NAME_LEN
@@ -113,6 +113,8 @@ _SIGNATURES = {
     "dc_get_cell": ([_f64a, _chars, _i64a, _P(_i64)], None),
     "dc_get_atoms": ([_i64, _f64a, _i32a, _i32a, _i32a], _i32),
     "dc_get_atom_types": ([_i32, _chars, _f64a, _f64a], _i32),
+    "dc_set_crystal": ([_f64a, _chars, _i64, _i64a, _i64, _i32, _chars, _f64a, _f64a,
+                        _i64, _f64a, _i32a, _i32a], _i32),
 }
 
 
@@ -244,3 +246,21 @@ class CtypesCore:
         raw = names.raw.decode(errors="replace")
         labels = np.array([raw[i:i + NAME_LEN].strip() for i in range(0, len(raw), NAME_LEN)])
         return labels, biso, occ
+
+    def set_crystal(self, lattice, space_group: str, cells, atoms_per_cell: int,
+                    names, b_iso, occupancy, positions, types, properties) -> bool:
+        """Replace DISCUS's crystal. names/b_iso/occupancy per type 1..ntypes,
+        positions (natoms, 3), types 1..ntypes. False on a DISCUS error."""
+        names = list(names)
+        if any(len(n.encode()) > NAME_LEN for n in names):
+            raise ValueError(f"atom names have at most {NAME_LEN} characters: {names}")
+        block = b"".join(n.encode().ljust(NAME_LEN) for n in names)
+        sg = space_group.encode()
+        pos = np.ascontiguousarray(positions, dtype=np.float64).reshape(-1, 3)
+        return self._lib.dc_set_crystal(
+            np.ascontiguousarray(lattice, dtype=np.float64), sg, len(sg),
+            np.ascontiguousarray(cells, dtype=np.int64), int(atoms_per_cell),
+            len(names), block, np.ascontiguousarray(b_iso, dtype=np.float64),
+            np.ascontiguousarray(occupancy, dtype=np.float64), len(pos), pos,
+            np.ascontiguousarray(types, dtype=np.int32),
+            np.ascontiguousarray(properties, dtype=np.int32)) == 0

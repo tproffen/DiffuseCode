@@ -30,6 +30,7 @@ dependencies:
   - numpy
   - matplotlib
   - py3dmol
+  - ase
   # tests (optional)
   - pytest
   - gemmi

@@ -301,6 +301,27 @@ The results are `xarray` objects with coordinates and metadata, and they can be 
 
 **Done when:** A clean virtual environment can install the wheel and run one smoke test.
 
+**Default install is inclusive (owner, Nov 2026).** `pip install .` (and
+later `pip install diffuse`) installs everything a casual user wants:
+plotting, the 3D viewer, ASE, Jupyter with interactive plots ... An option
+such as `pip install ".[no-jupyter]"` leaves a part out. Standard pip
+extras only add packages, so this needs:
+* **PEP 771 "default extras"** (the intended solution): the package names
+  default extras (e.g. `jupyter`, `ase`, `viewer`); a bare install gets them
+  all, and naming extras replaces the defaults, so an extra `no-jupyter`
+  that lists everything except `jupyter` does exactly this, and
+  `pip install ".[]"` is the minimal install. As of Nov 2026 the PEP is
+  still under discussion with a prototype in pip, not in a pip release;
+  older installers ignore default extras (install less, not fail).
+* **Until then:** everything in the plain dependencies (ASE since Nov 2026;
+  Jupyter moves there too in the packaging pass), and a documented lean
+  install, `pip install --no-deps .` plus NumPy.
+* **Fallback at the first release** if PEP 771 is not usable: two
+  packages, `diffuse-core` (NumPy only, with opt-in extras) and `diffuse`
+  (depends on `diffuse-core` with all extras); for conda, `diffuse` and
+  `diffuse-base`.
+Decide with the first release (wheels, 7.11/7.12).
+
 **Installation without admin rights.** Many users cannot install system packages (FFTW, HDF5 with Fortran, a Fortran compiler). WP1 should cover them, in this order:
 
 1. **Conda environment for building from source (first step of WP1).** An `environment.yml` with the conda-forge packages `fortran-compiler`, `cmake`, `make`, `fftw`, `hdf5` (includes the Fortran libraries), `readline` and `numpy`; Miniforge installs into the home directory, and CMake finds the libraries through `$CONDA_PREFIX`. Add a CI job that builds and tests this way so it keeps working. Works on Linux, macOS and HPC clusters.
@@ -340,10 +361,14 @@ Also make **readline optional** for the Python build: it is only used by the int
 
 **Progress (Nov 2026):** crystal *out* through the C interface (cell, space
 group, positions, types, properties, molecules, B, occupancies; checked
-against `save` output for nine structures). Next: crystal *in*, then
-anisotropic ADPs, molecules as objects and the readers/writers.
+against `save` output for nine structures) and crystal *in*
+(`dc_set_crystal`, `dc.make_crystal`, `dc.from_ase`; the round trip gives
+identical arrays for the nine structures, and powder, Fourier and PDF equal
+those of the same structure read from its file). Next: anisotropic ADPs,
+molecules as objects, an asymmetric unit plus space group from Python, and
+the readers/writers.
 
-**Planned: ASE bridge.** `Crystal.to_ase()` (and `from_ase`) converting to and from an `ase.Atoms` object (cell from `Crystal.lattice_vectors()`, positions from `Crystal.cartesian()`, element symbols from the DISCUS atom names). Opens the ASE ecosystem: its file formats, analysis tools, calculators and viewers (nglview, x3d), without the package maintaining them. ASE as an optional dependency. Noted Nov 2026 with the py3Dmol viewer (`Crystal.view()`); about half a day.
+**Planned: ASE bridge.** `Crystal.to_ase()` (and `from_ase`) converting to and from an `ase.Atoms` object (cell from `Crystal.lattice_vectors()`, positions from `Crystal.cartesian()`, element symbols from the DISCUS atom names). Opens the ASE ecosystem: its file formats, analysis tools, calculators and viewers (nglview, x3d), without the package maintaining them. Noted Nov 2026 with the py3Dmol viewer (`Crystal.view()`). *Done Nov 2026* with crystal in: `Crystal.to_ase()` and `dc.from_ase()`; ASE is a default dependency (inclusive install, see WP1).
 
 **Done when:** Round-tripping all golden structures (Python → Fortran → Python) gives identical data, and the files written match the legacy `save` output.
 

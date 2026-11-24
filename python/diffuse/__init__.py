@@ -14,7 +14,7 @@ See migration/DiffuseCode_Python_Migration_Plan.md for where this is going.
 """
 
 from ._session import DiffuseError, MacroError, Session, session
-from .crystal import Crystal, StructureView, read_structure
+from .crystal import Crystal, StructureView, from_ase, make_crystal, read_structure
 from .fourier import FourierMap, fourier
 from .pdf import PDFPattern, pdf
 from .powder import PowderPattern, powder
@@ -22,7 +22,7 @@ from .powder import PowderPattern, powder
 __all__ = [
     "Crystal", "DiffuseError", "FourierMap", "MacroError", "PDFPattern",
     "PowderPattern", "Session", "StructureView",
-    "fourier", "pdf", "powder", "read_structure", "reset", "run_macro", "seed",
+    "fourier", "from_ase", "make_crystal", "pdf", "powder", "read_structure", "reset", "run_macro", "seed",
     "session",
 ]
 
