@@ -22,7 +22,7 @@ IMPLICIT NONE
 !
 PRIVATE
 !
-INTEGER(C_INT), PARAMETER :: API_VERSION = 2   ! 2: crystal arrays (WP3)
+INTEGER(C_INT), PARAMETER :: API_VERSION = 3   ! 2: crystal arrays out, 3: in (WP3)
 !
 CONTAINS
 !
@@ -457,5 +457,184 @@ ENDDO
 ok = 0
 !
 END FUNCTION capi_get_atom_types
+!
+!*******************************************************************************
+!  A crystal from arrays (WP3, second slice: in)
+!*******************************************************************************
+!
+FUNCTION capi_set_crystal(lattice, spcgr, nsp, icc, ncatoms, ntypes, names, biso, occ, &
+                          natoms, pos, types, prop) BIND(C, NAME='dc_set_crystal') RESULT(ok)
+!
+!  Replace the crystal DISCUS holds, as "read stru" does for a file, from
+!  arrays: lattice (a, b, c, alpha, beta, gamma), space group symbol
+!  (recorded, not applied: pos holds every atom), unit cells along a, b, c
+!  and atoms per unit cell, the atom types 1..ntypes (names: 4 characters
+!  each in one block, B in A^2, occupancy) and the atoms (pos(3, natoms)
+!  fractional, i.e. C/NumPy order n rows of x, y, z; type 1..ntypes;
+!  property flags).
+!
+!  The steps follow do_readstru / do_readstru_disk / readstru and the read
+!  menu in discus/prog/structur.f90: reset, allocate, header, atoms, cell
+!  counts, then lattice, symmetry matrices and ADPs. Returns 0, or -1 (an
+!  error is recorded for dc_last_error: unknown space group, a type out of
+!  range ...).
+!
+USE crystal_mod
+USE chem_mod,       ONLY: chem_period, chem_quick, chem_purge
+USE diffuse_mod,    ONLY: four_last, FOUR_NN
+USE discus_allocate_appl_mod, ONLY: alloc_crystal_scat, alloc_crystal_nmax, alloc_unitcell
+USE discus_config_mod, ONLY: NMAX, MAXSCAT
+USE prep_anis_mod,  ONLY: prep_anis
+USE spcgr_apply,    ONLY: setup_lattice, get_symmetry_matrices
+USE stack_rese_mod, ONLY: do_stack_rese
+USE structur,       ONLY: rese_cr, spcgr_no
+USE errlist_mod,    ONLY: ier_num, ier_typ, ier_msg, ER_APPL
+USE lib_errlist_func, ONLY: errlist
+USE precision_mod,  ONLY: PREC_DP
+!
+REAL(C_DOUBLE),         DIMENSION(6),            INTENT(IN) :: lattice
+INTEGER(C_INT64_T),                     VALUE                :: nsp
+CHARACTER(KIND=C_CHAR), DIMENSION(nsp),          INTENT(IN) :: spcgr
+INTEGER(C_INT64_T),     DIMENSION(3),            INTENT(IN) :: icc
+INTEGER(C_INT64_T),                     VALUE                :: ncatoms
+INTEGER(C_INT),                         VALUE                :: ntypes
+CHARACTER(KIND=C_CHAR), DIMENSION(4*ntypes),     INTENT(IN) :: names
+REAL(C_DOUBLE),         DIMENSION(ntypes),       INTENT(IN) :: biso, occ
+INTEGER(C_INT64_T),                     VALUE                :: natoms
+REAL(C_DOUBLE),         DIMENSION(3, natoms),    INTENT(IN) :: pos
+INTEGER(C_INT),         DIMENSION(natoms),       INTENT(IN) :: types, prop
+INTEGER(C_INT) :: ok
+!
+INTEGER, PARAMETER :: MAXW = 1
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+INTEGER :: ianz, i, k, j
+LOGICAL :: lout
+!
+ok = -1
+CALL set_it
+IF(ier_num /= 0) THEN
+   CALL errlist                      ! records the error for dc_last_error
+   RETURN
+ENDIF
+ok = 0
+!
+CONTAINS
+!
+SUBROUTINE set_it
+IF(ntypes < 1 .OR. natoms < 1 .OR. ncatoms < 1 .OR. MINVAL(icc) < 1) THEN
+   ier_num = -6
+   ier_typ = ER_APPL
+   ier_msg(1) = 'dc_set_crystal: empty crystal or bad cell counts'
+   RETURN
+ENDIF
+IF(MINVAL(types) < 1 .OR. MAXVAL(types) > ntypes) THEN
+   ier_num = -6
+   ier_typ = ER_APPL
+   ier_msg(1) = 'dc_set_crystal: atom type out of range'
+   RETURN
+ENDIF
+!
+CALL rese_cr
+IF(natoms > NMAX .OR. ntypes > MAXSCAT) THEN
+   CALL alloc_crystal_scat(MAX(INT(ntypes) + 2, MAXSCAT))
+   CALL alloc_crystal_nmax(MAX(INT(natoms) + 10, NMAX))
+   IF(ier_num /= 0) RETURN
+ENDIF
+!
+!  Header: name, space group, lattice, atom types
+cr_name  = 'from Python'
+cr_spcgr = from_c(spcgr, MIN(nsp, 16_C_INT64_T))
+cr_set   = 'abc'
+cr_a0    = lattice(1:3)
+cr_win   = lattice(4:6)
+cr_nscat = ntypes
+cr_at_lis(0) = 'VOID'
+cr_dw(0)  = 0.0_PREC_DP
+cr_occ(0) = 1.0_PREC_DP
+DO i = 1, ntypes
+   cr_at_lis(i) = ' '
+   DO k = 1, 4
+      cr_at_lis(i)(k:k) = names(4*(i-1) + k)
+   ENDDO
+   cr_dw(i)  = biso(i)
+   cr_occ(i) = occ(i)
+ENDDO
+werte = 0.0_PREC_DP
+ianz = 0
+CALL spcgr_no(ianz, MAXW, werte)               ! space group number, crystal system
+IF(ier_num /= 0) THEN
+   ier_msg(1) = 'Space group: ' // cr_spcgr
+   RETURN
+ENDIF
+!
+!  Atoms, as struc_read_atoms sets them
+cr_natoms = INT(natoms)
+cr_dim(:, 1) =  1.0D10
+cr_dim(:, 2) = -1.0D10
+as_natoms = 0
+DO i = 1, cr_natoms
+   cr_pos(:, i)   = pos(:, i)
+   cr_iscat(1, i) = types(i)
+   cr_iscat(2:, i) = 1
+   cr_ianis(i)    = types(i)
+   cr_prop(i)     = prop(i)
+   cr_mole(i)     = 0
+   cr_surf(:, i)  = 0
+   cr_magn(:, i)  = 0.0_PREC_DP
+   cr_valu(i)     = 0.0_PREC_DP
+   DO j = 1, 3
+      cr_dim(j, 1) = MIN(cr_dim(j, 1), cr_pos(j, i))
+      cr_dim(j, 2) = MAX(cr_dim(j, 2), cr_pos(j, i))
+   ENDDO
+ENDDO
+!  First atom of each type inside the first unit cell: the "asymmetric unit"
+!  list that struc_read_atoms keeps
+DO k = 1, ntypes
+   DO i = 1, cr_natoms
+      IF(types(i) == k .AND. ALL(pos(:, i) >= 0.0_C_DOUBLE) .AND. ALL(pos(:, i) < 1.0_C_DOUBLE)) THEN
+         as_natoms = as_natoms + 1
+         as_at_lis(as_natoms) = cr_at_lis(k)
+         as_pos(:, as_natoms) = cr_pos(:, i)
+         as_iscat(as_natoms)  = k
+         as_prop(as_natoms)   = cr_prop(i)
+         as_dw(as_natoms)     = cr_dw(k)
+         EXIT
+      ENDIF
+   ENDDO
+ENDDO
+DO j = 1, 3
+   cr_dim0(j, 1) = REAL(NINT(cr_dim(j, 1)))
+   cr_dim0(j, 2) = REAL(NINT(cr_dim(j, 2)))
+ENDDO
+!
+!  Crystal size, as do_readstru_disk with "ncell" in the file
+cr_icc     = INT(icc)
+cr_ncatoms = INT(ncatoms)
+cr_ncreal  = INT(ncatoms)
+IF(cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
+   chem_period(:) = .FALSE.
+   chem_quick     = .FALSE.
+ELSE
+   chem_period(:) = .TRUE.
+   chem_quick     = .TRUE.
+ENDIF
+CALL alloc_unitcell(cr_ncatoms)
+cr_is_sym = 1
+chem_purge = .FALSE.
+!
+!  As the read menu after a structure: lattice, symmetry, ADPs
+lout = .FALSE.
+CALL setup_lattice(cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, cr_rten, cr_win, cr_wrez, &
+                   cr_v, cr_vr, lout, cr_gmat, cr_fmat, cr_cartesian,                 &
+                   cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+CALL get_symmetry_matrices
+IF(ier_num /= 0) RETURN
+CALL prep_anis(cr_natoms, .TRUE.)
+IF(ier_num /= 0) RETURN
+CALL do_stack_rese
+four_last = FOUR_NN
+END SUBROUTINE set_it
+!
+END FUNCTION capi_set_crystal
 !
 END MODULE diffuse_capi

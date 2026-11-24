@@ -209,6 +209,10 @@ plots.
 
 ## How it works, and its limits
 
+The package installs NumPy, matplotlib, py3Dmol (3D views) and ASE (the
+Atomic Simulation Environment: `Crystal.to_ase()`, `dc.from_ase()`) with
+it.
+
 This version drives DISCUS through its C interface, the library
 `libdiffuse_core` (loaded with ctypes, declared in `python/diffuse_core.h`;
 it does not depend on the Python version, and C, C++ or Julia can call it

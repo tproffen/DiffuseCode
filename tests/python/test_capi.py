@@ -67,6 +67,7 @@ sig = {
     "dc_get_cell": ([f64a, ch, i64a, P(i64)], None),
     "dc_get_atoms": ([i64, f64a, i32a, i32a, i32a], i32),
     "dc_get_atom_types": ([i32, ch, f64a, f64a], i32),
+    "dc_set_crystal": ([f64a, ch, i64, i64a, i64, i32, ch, f64a, f64a, i64, f64a, i32a, i32a], i32),
 }
 for name, (args, res) in sig.items():
     f = getattr(lib, name); f.argtypes = args; f.restype = res
@@ -154,6 +155,26 @@ r["get_types"] = lib.dc_get_atom_types(nt.value, names, b, occ)
 r["type_table"] = [names.raw.decode(), b.tolist(), occ.tolist()]
 r["types_bad_n"] = lib.dc_get_atom_types(nt.value + 1, ctypes.create_string_buffer(4 * (nt.value + 2)),
                                          np.zeros(nt.value + 2), np.zeros(nt.value + 2))
+# Back in: a 2 x 1 x 1 NaCl-like crystal from arrays, then read out again
+lat = np.array([5.0, 5.0, 5.0, 90.0, 90.0, 90.0]); sg = b"F m -3 m"
+pos_in = np.array([[0, 0, 0], [0.5, 0.5, 0.5], [1, 0, 0], [1.5, 0.5, 0.5]], float)
+ty_in = np.array([1, 2, 1, 2], np.int32); pr_in = np.ones(4, np.int32)
+r["set"] = lib.dc_set_crystal(lat, sg, len(sg), np.array([2, 1, 1], np.int64), 2, 2, b"NA  CL  ",
+                              np.array([0.5, 0.7]), np.array([1.0, 1.0]), 4, pos_in, ty_in, pr_in)
+lib.dc_crystal_size(ctypes.byref(na), ctypes.byref(nt)); r["set_size"] = [na.value, nt.value]
+pos = np.zeros((4, 3)); ty, pr, mo = (np.zeros(4, np.int32) for _ in range(3))
+lib.dc_get_atoms(4, pos, ty, pr, mo); r["set_atoms"] = [pos.tolist(), ty.tolist()]
+lib.dc_get_cell(lat, (sgb := ctypes.create_string_buffer(16)), icc, ctypes.byref(nc))
+r["set_cell"] = [sgb.raw.decode().strip(), icc.tolist(), nc.value]
+lib.dc_clear_error()
+r["set_bad_type"] = lib.dc_set_crystal(lat, sg, len(sg), np.array([2, 1, 1], np.int64), 2, 2,
+                                       b"NA  CL  ", np.zeros(2), np.ones(2), 4, pos_in,
+                                       np.array([1, 3, 1, 2], np.int32), pr_in)
+r["set_bad_error"] = last_error()[:1]
+lib.dc_clear_error()
+r["set_bad_sg"] = lib.dc_set_crystal(lat, b"Q 99", 4, np.array([2, 1, 1], np.int64), 2, 2,
+                                     b"NA  CL  ", np.zeros(2), np.ones(2), 4, pos_in, ty_in, pr_in)
+r["sg_error"] = last_error()[3]
 run("discus\n  read\n    cell " + cell + ", 2, 2, 2\nexit")
 run("discus\n  r[3] = n[1]\nexit"); r["atoms_before"] = value("r[3]")
 lib.dc_reset(); run("discus\n  r[3] = n[1]\nexit"); r["atoms_after_reset"] = value("r[3]")
@@ -179,7 +200,7 @@ def capi(tmp_path_factory):
 
 
 def test_version_and_commands(capi):
-    assert capi["version"] == 2
+    assert capi["version"] == 3
     assert capi["run"] == 0
     assert capi["value"] == 42.0
 
@@ -244,6 +265,15 @@ def test_crystal_arrays(capi):
     assert capi["get_types"] == 0 and names == "VOIDNI  "
     assert b == [0.0, 0.2] and occ == [1.0, 1.0]
     assert capi["types_bad_n"] == -1
+
+
+def test_set_crystal(capi):
+    assert capi["set"] == 0 and capi["set_size"] == [4, 2]
+    assert capi["set_atoms"] == [[[0, 0, 0], [0.5, 0.5, 0.5], [1, 0, 0], [1.5, 0.5, 0.5]],
+                                 [1, 2, 1, 2]]
+    assert capi["set_cell"] == ["F m -3 m", [2, 1, 1], 2]
+    assert capi["set_bad_type"] == -1 and capi["set_bad_error"][0] < 0
+    assert capi["set_bad_sg"] == -1 and "Q 99" in capi["sg_error"]
 
 
 def test_reset(capi):

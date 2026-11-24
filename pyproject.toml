@@ -18,7 +18,9 @@ description = "DISCUS diffuse-scattering simulations from Python (early preview)
 readme = "python/README.md"
 license = { file = "License.txt" }
 requires-python = ">=3.10"
-dependencies = ["numpy", "matplotlib", "py3Dmol"]   # plot() methods, Crystal.view(), the examples
+# Inclusive by default (owner, Nov 2026): a plain "pip install ." brings the
+# usual tools. ase: Crystal.to_ase() and dc.from_ase().
+dependencies = ["numpy", "matplotlib", "py3Dmol", "ase"]   # plot(), Crystal.view(), ASE bridge
 
 [project.optional-dependencies]
 plot = []                        # kept so that "pip install .[plot]" still works

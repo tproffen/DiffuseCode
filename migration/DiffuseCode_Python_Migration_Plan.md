@@ -301,6 +301,22 @@ The results are `xarray` objects with coordinates and metadata, and they can be 
 
 **Done when:** A clean virtual environment can install the wheel and run one smoke test.
 
+**Default install is inclusive (owner, Nov 2026).** A plain `pip install`
+should give a casual user the usual set of tools (plotting, the 3D viewer,
+ASE, Jupyter with interactive plots ...), with a way to leave parts out.
+pip itself can only add extras (`.[name]`), not take them away, so
+"`no-jupyter`, `no-ase`" needs one of:
+* everything in the default dependencies, and a documented lean install:
+  `pip install --no-deps diffuse` plus a short list of the essentials
+  (NumPy); simple, but the lean way is manual;
+* two packages before the first release: `diffuse-core` (NumPy only) and
+  `diffuse` (depends on `diffuse-core` and all the tools); the usual
+  solution, a little more packaging work;
+* conda: a `diffuse` package with everything and a `diffuse-base` without.
+Decide with the first release (wheels, 7.11/7.12). Until then: new tools go
+into the default dependencies (ASE, Nov 2026); Jupyter is still the
+`[jupyter]` extra and moves in the same packaging pass.
+
 **Installation without admin rights.** Many users cannot install system packages (FFTW, HDF5 with Fortran, a Fortran compiler). WP1 should cover them, in this order:
 
 1. **Conda environment for building from source (first step of WP1).** An `environment.yml` with the conda-forge packages `fortran-compiler`, `cmake`, `make`, `fftw`, `hdf5` (includes the Fortran libraries), `readline` and `numpy`; Miniforge installs into the home directory, and CMake finds the libraries through `$CONDA_PREFIX`. Add a CI job that builds and tests this way so it keeps working. Works on Linux, macOS and HPC clusters.
@@ -340,10 +356,14 @@ Also make **readline optional** for the Python build: it is only used by the int
 
 **Progress (Nov 2026):** crystal *out* through the C interface (cell, space
 group, positions, types, properties, molecules, B, occupancies; checked
-against `save` output for nine structures). Next: crystal *in*, then
-anisotropic ADPs, molecules as objects and the readers/writers.
+against `save` output for nine structures) and crystal *in*
+(`dc_set_crystal`, `dc.make_crystal`, `dc.from_ase`; the round trip gives
+identical arrays for the nine structures, and powder, Fourier and PDF equal
+those of the same structure read from its file). Next: anisotropic ADPs,
+molecules as objects, an asymmetric unit plus space group from Python, and
+the readers/writers.
 
-**Planned: ASE bridge.** `Crystal.to_ase()` (and `from_ase`) converting to and from an `ase.Atoms` object (cell from `Crystal.lattice_vectors()`, positions from `Crystal.cartesian()`, element symbols from the DISCUS atom names). Opens the ASE ecosystem: its file formats, analysis tools, calculators and viewers (nglview, x3d), without the package maintaining them. ASE as an optional dependency. Noted Nov 2026 with the py3Dmol viewer (`Crystal.view()`); about half a day.
+**Planned: ASE bridge.** `Crystal.to_ase()` (and `from_ase`) converting to and from an `ase.Atoms` object (cell from `Crystal.lattice_vectors()`, positions from `Crystal.cartesian()`, element symbols from the DISCUS atom names). Opens the ASE ecosystem: its file formats, analysis tools, calculators and viewers (nglview, x3d), without the package maintaining them. Noted Nov 2026 with the py3Dmol viewer (`Crystal.view()`). *Done Nov 2026* with crystal in: `Crystal.to_ase()` and `dc.from_ase()`; ASE is a default dependency (inclusive install, see WP1).
 
 **Done when:** Round-tripping all golden structures (Python → Fortran → Python) gives identical data, and the files written match the legacy `save` output.
 

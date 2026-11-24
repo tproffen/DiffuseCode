@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 
@@ -72,7 +73,7 @@ class PowderPattern:
         else:
             raise ValueError("x must be 'q' or 'tth'")
         kwargs.setdefault("lw", 1.0)
-        kwargs.setdefault("label", self.crystal.path.stem if self.crystal else None)
+        kwargs.setdefault("label", (Path(self.crystal.label).stem if self.crystal else None))
         ax.plot(xs, self.intensity, **kwargs)
         ax.set_xlabel(label)
         ax.set_ylabel("Intensity (arb. units)")

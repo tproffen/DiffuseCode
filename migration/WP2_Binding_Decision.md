@@ -140,7 +140,12 @@ Steps, each with green CI before the next:
    Pattern "ask, then fill"; positions as `double[n][3]`, which is the
    memory layout of `cr_pos(3, n)`. `Crystal.atoms()` reads them instead
    of saving and parsing a `.stru` file; new `Crystal.atom_types()` and
-   `Crystal.space_group`. Next: crystal in (Python arrays into DISCUS).
+   `Crystal.space_group`.
+   *Crystal in (Nov 2026):* `dc_set_crystal` (version 3) replaces the
+   crystal from arrays, following the steps of `read stru` (reset,
+   allocate, header, atoms, cell counts, lattice, symmetry matrices, ADPs);
+   on an error it calls `errlist`, so `dc_last_error` has the message.
+   Python: `dc.make_crystal`, `dc.from_ase`, `Crystal.to_ase`.
 
 ## Risks and how to handle them
 

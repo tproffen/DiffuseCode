@@ -5,3 +5,4 @@ pydata-sphinx-theme>=0.15
 sphinx-gallery>=0.15
 matplotlib
 numpy
+ase

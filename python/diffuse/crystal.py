@@ -19,15 +19,16 @@ _STRU_SUFFIXES = {".stru"}
 
 @dataclass(eq=False)
 class Crystal:
-    """A structure loaded into DISCUS. Create it with :func:`read_structure`.
+    """A structure loaded into DISCUS. Create it with :func:`read_structure`
+    (from a file), :func:`make_crystal` (from arrays) or :func:`from_ase`.
 
     DISCUS holds one structure at a time. A ``Crystal`` remembers how it was
-    made, so a calculation on an older ``Crystal`` reads it in again first.
+    made, so a calculation on an older ``Crystal`` loads it again first.
 
     Attributes
     ----------
-    path : pathlib.Path
-        The structure file it was read from.
+    path : pathlib.Path or None
+        The structure file it was read from (None if made from arrays).
     supercell : tuple of int or None
         Number of unit cells along a, b and c, or None for a ``.stru`` file
         read as it is.
@@ -39,13 +40,25 @@ class Crystal:
         Space group symbol as DISCUS uses it, for example ``"F m -3 m"``.
     """
 
-    path: Path
+    path: Path | None
     supercell: tuple[int, int, int] | None
     natoms: int
     lattice: tuple[float, float, float, float, float, float]  # a, b, c, alpha, beta, gamma
     space_group: str = "P1"
     _atoms: tuple[np.ndarray, np.ndarray] | None = field(default=None, repr=False)
     _types: tuple[np.ndarray, np.ndarray, np.ndarray] | None = field(default=None, repr=False)
+    _arrays: dict | None = field(default=None, repr=False)   # how make_crystal made it
+
+    @property
+    def label(self) -> str:
+        """The file name, or ``"arrays"`` for a crystal made from arrays."""
+        return self.path.name if self.path is not None else "arrays"
+
+    def __repr__(self) -> str:
+        cell = ", ".join(f"{v:g}" for v in self.lattice)
+        sc = f", supercell={self.supercell}" if self.supercell else ""
+        return (f"Crystal('{self.label}'{sc}, natoms={self.natoms}, lattice=({cell}), "
+                f"space_group='{self.space_group}')")
 
     @property
     def a(self) -> float:
@@ -109,6 +122,31 @@ class Crystal:
             raise DiffuseError(f"DISCUS holds {len(pos)} atoms, expected {self.natoms}")
         self._atoms = (names[types], pos)
         self._types = (names[1:], b_iso[1:], occupancy[1:])
+
+    def to_ase(self):
+        """The crystal as an ASE ``Atoms`` object.
+
+        The ASE cell is the whole crystal (the supercell), with periodic
+        boundaries; positions are Cartesian, in the orientation of
+        :meth:`lattice_vectors`. Element symbols come from the DISCUS atom
+        names (``"TI4+"`` becomes ``"Ti"``); the names themselves are kept
+        in ``atoms.arrays["discus_names"]``.
+
+        Returns
+        -------
+        ase.Atoms
+
+        See Also
+        --------
+        from_ase : the way back
+        """
+        import ase
+        names, _xyz = self.atoms()
+        cells = np.array(self.supercell or _cells_now(), dtype=float)
+        atoms = ase.Atoms(symbols=[_element(n) for n in names], positions=self.cartesian(),
+                          cell=self.lattice_vectors() * cells[:, None], pbc=True)
+        atoms.set_array("discus_names", np.array(names, dtype="U4"))
+        return atoms
 
     def positions(self) -> np.ndarray:
         """Fractional coordinates, shape (natoms, 3). See :meth:`atoms`."""
@@ -202,7 +240,7 @@ class Crystal:
         names = names[keep]
         xyz = frac[keep] @ self.lattice_vectors()
 
-        model = [str(len(names)), self.path.name]
+        model = [str(len(names)), self.label]
         model += [f"{_element(n)} {x:.5f} {y:.5f} {z:.5f}" for n, (x, y, z) in zip(names, xyz)]
         v = py3Dmol.view(width=width, height=height)
         v.addModel("\n".join(model) + "\n", "xyz")
@@ -252,11 +290,6 @@ class StructureView:
 
     def __getattr__(self, name):
         return getattr(self.viewer, name)
-
-    def __repr__(self) -> str:
-        cell = ", ".join(f"{v:g}" for v in self.lattice)
-        sc = f", supercell={self.supercell}" if self.supercell else ""
-        return f"Crystal('{self.path.name}'{sc}, natoms={self.natoms}, lattice=({cell}))"
 
 
 _VIEW_STYLES = {
@@ -363,10 +396,187 @@ def read_structure(path: str | os.PathLike,
     return crystal
 
 
+def make_crystal(lattice, names, positions, *, space_group: str = "P1",
+                 b_iso=0.0, occupancy=1.0,
+                 cells: tuple[int, int, int] = (1, 1, 1), types=None) -> Crystal:
+    """Make a crystal in DISCUS from arrays: every atom, no file.
+
+    Parameters
+    ----------
+    lattice : sequence of 6 float
+        ``(a, b, c, alpha, beta, gamma)`` of one unit cell, in Å and degrees.
+    names : sequence of str, length natoms
+        DISCUS atom name of each atom (at most 4 characters, for example
+        ``"Ni"`` or ``"TI4+"``; DISCUS uses capitals).
+    positions : array_like, shape (natoms, 3)
+        Fractional coordinates in units of the unit cell; a supercell spans
+        e.g. 0 to 4 along a.
+    space_group : str, optional
+        Space group symbol, recorded for DISCUS (Fourier symmetry, export).
+        It is not applied: ``positions`` hold every atom. Default ``"P1"``.
+    b_iso : float, dict or array_like, optional
+        Isotropic displacement parameter B in Å^2: one value for all atoms,
+        one per name (``{"NI": 0.4}``) or one per atom. Default 0.
+    occupancy : float, dict or array_like, optional
+        Occupancy, given the same ways. Default 1.
+    cells : tuple of 3 int, optional
+        Number of unit cells along a, b and c that ``positions`` fill;
+        atoms per cell = natoms / product(cells). Default (1, 1, 1).
+    types : array_like of int, optional
+        A label per atom that splits atoms of the same name, B and
+        occupancy into separate types (for example by crystallographic
+        site, as DISCUS does for the sites of a ``.cell`` file).
+
+    Notes
+    -----
+    As in DISCUS, an atom type is a name together with its B and occupancy:
+    two oxygen sites with different B are two types, both named ``"O"``.
+    Types are numbered in the order they first appear.
+
+    Returns
+    -------
+    Crystal
+        The structure, now held by DISCUS.
+
+    Raises
+    ------
+    ValueError
+        If the arrays do not fit together, or a name is too long.
+    DiffuseError
+        If DISCUS refuses the crystal (for example an unknown space group).
+
+    Examples
+    --------
+    >>> import diffuse as dc
+    >>> import numpy as np
+    >>> fcc = np.array([[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]])
+    >>> cells = np.array([[i, j, k] for i in range(3) for j in range(3) for k in range(3)])
+    >>> xyz = (cells[:, None, :] + fcc[None, :, :]).reshape(-1, 3)
+    >>> cr = dc.make_crystal((3.5238, 3.5238, 3.5238, 90, 90, 90), ["NI"] * len(xyz), xyz,
+    ...                      space_group="Fm-3m", b_iso=0.4, cells=(3, 3, 3))  # doctest: +SKIP
+    >>> cr.natoms  # doctest: +SKIP
+    108
+    """
+    names = np.array([str(n).strip().upper() for n in names])
+    xyz = np.asarray(positions, dtype=float)
+    if xyz.ndim != 2 or xyz.shape[1] != 3 or len(xyz) != len(names) or len(names) == 0:
+        raise ValueError(f"positions must have shape (natoms, 3) with natoms = len(names) > 0, "
+                         f"not {xyz.shape} for {len(names)} names")
+    lattice = tuple(float(v) for v in lattice)
+    if len(lattice) != 6:
+        raise ValueError("lattice must be (a, b, c, alpha, beta, gamma)")
+    cells = tuple(int(n) for n in cells)
+    per_cell, rest = divmod(len(names), int(np.prod(cells)))
+    if len(cells) != 3 or min(cells) < 1 or rest or per_cell < 1:
+        raise ValueError(f"{len(names)} atoms do not fill {cells} unit cells evenly")
+    too_long = sorted({n for n in names if len(n.encode()) > 4})
+    if too_long:
+        raise ValueError(f"DISCUS atom names have at most 4 characters: {too_long}")
+
+    def per_atom(value, what):
+        if isinstance(value, dict):
+            value = {str(k).strip().upper(): float(v) for k, v in value.items()}
+            missing = sorted(set(names) - set(value))
+            if missing:
+                raise ValueError(f"{what} has no value for {missing}")
+            return np.array([value[n] for n in names])
+        value = np.asarray(value, dtype=float)
+        if value.ndim == 0:
+            return np.full(len(names), float(value))
+        if value.shape != (len(names),):
+            raise ValueError(f"{what} needs one value, one per name or one per atom, "
+                             f"not shape {value.shape}")
+        return value
+
+    b_atom, occ_atom = per_atom(b_iso, "b_iso"), per_atom(occupancy, "occupancy")
+    if types is None:
+        labels = np.zeros(len(names), dtype=int)
+    else:
+        labels = np.asarray(types)
+        if labels.shape != (len(names),):
+            raise ValueError(f"types needs one label per atom, not shape {labels.shape}")
+    # A type is (name, B, occupancy[, label]), numbered in order of first appearance
+    index: dict = {}
+    types = np.empty(len(names), dtype=np.int32)
+    for i, key in enumerate(zip(names, b_atom, occ_atom, labels.tolist())):
+        types[i] = index.setdefault(key, len(index) + 1)
+    keys = list(index)
+    arrays = dict(lattice=lattice, space_group=space_group, cells=cells, atoms_per_cell=per_cell,
+                  names=[k[0] for k in keys], b_iso=np.array([k[1] for k in keys]),
+                  occupancy=np.array([k[2] for k in keys]), positions=xyz, types=types,
+                  properties=np.ones(len(names), dtype=np.int32))   # 1: a normal atom
+    s = session()
+    _send_arrays(arrays)
+    lattice, space_group, cells, _per_cell = s._c.cell()
+    crystal = Crystal(path=None, supercell=cells, natoms=s._c.crystal_size()[0],
+                      lattice=lattice, space_group=space_group, _arrays=arrays)
+    s.current_crystal = crystal
+    return crystal
+
+
+def from_ase(atoms, *, b_iso=0.0, occupancy=1.0,
+             space_group: str = "P1") -> Crystal:
+    """Make a crystal in DISCUS from an ASE ``Atoms`` object.
+
+    The ASE cell becomes one DISCUS unit cell holding every atom (ASE has no
+    space group, so the crystal is P1 unless ``space_group`` says
+    otherwise). Atom names are the element symbols in capitals, or
+    ``atoms.arrays["discus_names"]`` if present (as :meth:`Crystal.to_ase`
+    sets it).
+
+    Parameters
+    ----------
+    atoms : ase.Atoms
+        A periodic structure with a cell.
+    b_iso, occupancy, space_group
+        As for :func:`make_crystal`.
+
+    Returns
+    -------
+    Crystal
+
+    Examples
+    --------
+    >>> from ase.build import bulk
+    >>> import diffuse as dc
+    >>> cr = dc.from_ase(bulk("Cu", "fcc", a=3.61, cubic=True) * (4, 4, 4), b_iso=0.6)  # doctest: +SKIP
+    >>> cr.natoms  # doctest: +SKIP
+    256
+    """
+    if not atoms.cell.rank == 3:
+        raise ValueError("the ASE structure needs a cell with three lattice vectors")
+    if "discus_names" in atoms.arrays:
+        names = [str(n) for n in atoms.arrays["discus_names"]]
+    else:
+        names = [s.upper() for s in atoms.get_chemical_symbols()]
+    return make_crystal(tuple(atoms.cell.cellpar()), names, atoms.get_scaled_positions(wrap=False),
+                        space_group=space_group, b_iso=b_iso, occupancy=occupancy)
+
+
+def _send_arrays(arrays: dict) -> None:
+    s = session()
+    s._c.clear_error()
+    ok = s._c.set_crystal(arrays["lattice"], arrays["space_group"], arrays["cells"],
+                          arrays["atoms_per_cell"], arrays["names"], arrays["b_iso"],
+                          arrays["occupancy"], arrays["positions"], arrays["types"],
+                          arrays["properties"])
+    s.current_crystal = None
+    if not ok:
+        raise s._error("DISCUS refused the crystal", "")
+
+
+def _cells_now() -> tuple[int, int, int]:
+    return session()._c.cell()[2]
+
+
 def _ensure_loaded(crystal: Crystal) -> None:
-    """Make ``crystal`` the structure DISCUS holds, reading it again if needed."""
+    """Make ``crystal`` the structure DISCUS holds, loading it again if needed."""
     s = session()
     if s.current_crystal is crystal:
+        return
+    if crystal._arrays is not None:
+        _send_arrays(crystal._arrays)
+        s.current_crystal = crystal
         return
     fresh = read_structure(crystal.path, crystal.supercell)
     if fresh.natoms != crystal.natoms:

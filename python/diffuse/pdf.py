@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 
@@ -52,7 +53,7 @@ class PDFPattern:
         if ax is None:
             _, ax = plt.subplots(figsize=(8, 4.5))
         kwargs.setdefault("lw", 1.0)
-        kwargs.setdefault("label", self.crystal.path.stem if self.crystal else None)
+        kwargs.setdefault("label", (Path(self.crystal.label).stem if self.crystal else None))
         ax.plot(self.r, self.G, **kwargs)
         ax.axhline(0, color="0.6", lw=0.5)
         ax.set_xlabel(r"$r$ (Å)")

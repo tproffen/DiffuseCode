@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-#define DC_API_VERSION      2     /* 2: crystal arrays                     */
+#define DC_API_VERSION      3     /* 2: crystal out, 3: crystal in         */
 #define DC_ERR_CLASS_LEN    4     /* "COMM", "I/O ", "FORT" ...            */
 #define DC_ERR_TEXT_LEN     45    /* standard message                      */
 #define DC_ERR_MSGS_LEN     560   /* 7 extra lines of 80 characters        */
@@ -75,6 +75,14 @@ int     dc_get_atoms(int64_t n, double *pos,          /* pos[n][3], fractional  
                      int *type, int *prop, int *mole);
 int     dc_get_atom_types(int ntypes, char *names,    /* names[ntypes+1][DC_NAME_LEN] */
                           double *biso, double *occ); /* [ntypes+1]; B in A^2       */
+/* Replace the crystal, as "read stru" does for a file: every atom given
+ * (the space group is recorded, not applied); types 1..ntypes; names
+ * [ntypes][DC_NAME_LEN]; biso, occ [ntypes]; pos [natoms][3] fractional.
+ * Returns 0, or -1 with an error for dc_last_error.                        */
+int     dc_set_crystal(const double lattice[6], const char *spcgr, int64_t nsp,
+                       const int64_t icc[3], int64_t ncatoms,
+                       int ntypes, const char *names, const double *biso, const double *occ,
+                       int64_t natoms, const double *pos, const int *type, const int *prop);
 
 #ifdef __cplusplus
 }
