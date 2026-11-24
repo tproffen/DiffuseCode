@@ -115,6 +115,12 @@ Steps, each with green CI before the next:
    declares every function in one place; `_session.py` uses it when it is
    there and falls back to `suite_python` (as it does for older module
    builds today). The whole test suite runs on both. About 1 day.
+   *Done (Nov 2026):* `CtypesCore` and `F2pyCore` in `_core.py` offer the
+   same methods; `Session` uses `_core.load()`, which takes the C library
+   when it is there. `DIFFUSE_BACKEND=ctypes|f2py` forces one; CI runs
+   pytest on f2py in the build job and on ctypes in the installed-package
+   and conda jobs. `Session.backend` tells which is in use. With ctypes,
+   `value()` returns about 12 significant digits instead of 7.
 3. **Drop f2py.** Remove `suite_python`, `cmake/FindF2PY.cmake` and the
    NumPy build dependency; `pyproject.toml` builds a platform wheel that
    works for every Python 3 (`wheel.py-api = "py3"` in scikit-build-core).
