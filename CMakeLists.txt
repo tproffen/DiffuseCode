@@ -52,7 +52,6 @@ if(DIFFUSE_GRAPHICS)
   find_package(ZLIB REQUIRED)
 endif(DIFFUSE_GRAPHICS)
 find_package(FFTW REQUIRED)
-#find_package(PythonExtensions REQUIRED)
 
 option(DIFFUSE_SHARED_LIB "If on build shared libraries" OFF)
 #
@@ -102,10 +101,12 @@ option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
 #  message (status " HDF5 is OFF ${DIFFUSE_HDF5} ")
 #endif ()
 #
-if (DIFFUSE_PYTHON OR DIFFUSE_SHARED_LIB)
+# DIFFUSE_PYTHON needs no Python at build time: the package's compiled part
+# is a plain C library (python/CMakeLists.txt), loaded with ctypes.
+if (DIFFUSE_SHARED_LIB)
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
   set (DIFFUSE_LIBS ${Python3_LIBRARIES})
-endif (DIFFUSE_PYTHON OR DIFFUSE_SHARED_LIB)
+endif (DIFFUSE_SHARED_LIB)
 
 # Set common libraries
 

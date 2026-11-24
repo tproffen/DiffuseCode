@@ -8,7 +8,7 @@
 # see docs/install.md (system packages or conda, also without admin rights).
 
 [build-system]
-requires = ["scikit-build-core>=0.10", "numpy"]
+requires = ["scikit-build-core>=0.10"]   # no NumPy or f2py: the core is a C library
 build-backend = "scikit_build_core.build"
 
 [project]
@@ -38,8 +38,11 @@ cmake.build-type = "Release"
 # Makefiles, not Ninja: the libraries declare their Fortran-module order only
 # with add_dependencies, which Ninja does not use across targets.
 cmake.args = ["-G", "Unix Makefiles"]
-install.components = ["python"]          # only the module, not discus_suite
+install.components = ["python"]          # only libdiffuse_core, not discus_suite
 wheel.packages = ["python/diffuse"]
+# The core is loaded with ctypes and does not use Python's C API: one wheel
+# per platform ("py3-none-<platform>") serves every Python 3.
+wheel.py-api = "py3"
 sdist.exclude = ["tests/", "Manual/", "build/", "docs/_build/", "*.zip"]
 
 [tool.scikit-build.cmake.define]

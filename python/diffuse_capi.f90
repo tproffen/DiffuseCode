@@ -10,7 +10,7 @@ MODULE diffuse_capi
 !    * arrays     : pointer + 64-bit size, explicit-size in Fortran
 !    * sizes      : 64-bit; flags and codes: int
 !  The C names start with "dc_"; the Fortran names here start with "capi_"
-!  (the module "suite" in suite_python.f90 already has dc_init etc.).
+!  (the module "suite" in diffuse_suite.f90 already has dc_init etc.).
 !
 !  Everything runs in library mode (dc_init): an error never ends the
 !  process; the first error is kept for dc_last_error.
@@ -317,8 +317,8 @@ END FUNCTION capi_get_data
 !
 FUNCTION capi_get_data_2d(ik, x, y, z, n, nx, ny) BIND(C, NAME='dc_get_data_2d') RESULT(ok)
 !
-!  A KUPLOT grid data set: x(n), y(n), z(n) as in get_data_3d of the f2py
-!  module (x and y per point, z(ix, iy) with y running fastest), and the
+!  A KUPLOT grid data set: x(n), y(n), z(n) as get_data_3d in
+!  diffuse_suite.f90 (x and y per point, z(ix, iy) with y running fastest), and the
 !  grid size nx, ny. n must be dc_data_length(ik). Returns 0, or -1 (no
 !  such data set, a wrong n, or not a grid).
 !

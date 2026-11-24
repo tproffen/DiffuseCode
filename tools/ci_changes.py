@@ -7,8 +7,9 @@ Every changed file falls into one group:
              release notes, .gitignore             -> no job
   docs       docs/                                 -> docs build
   python     the Python package and its tests      -> Python tests, docs
-  packaging  pyproject.toml, environment.yml, CMake files, the f2py
-             wrapper, the workflow and this script -> everything
+  packaging  pyproject.toml, environment.yml, CMake files, the C
+             interface (python/*.f90, *.h), the workflow and this
+             script                                -> everything
   fortran    everything else (Fortran and C sources, legacy macro tests,
              their runner and reference data)      -> build, all tests
 
@@ -52,7 +53,7 @@ DOCS_OS = "ubuntu-24.04"          # builds (and publishes) the docs
 GROUPS = [
     ("packaging", ["pyproject.toml", "environment.yml", "CMakeLists.txt",
                    "*/CMakeLists.txt", "cmake/*", "*.cmake",
-                   "python/suite_python.f90", ".github/*",
+                   "python/*.f90", "python/*.h", ".github/*",
                    "tools/ci_changes.py", "tests/requirements.txt"]),
     ("docs", ["docs/*"]),
     ("text", ["migration/*", "*.md", "License.txt", "release_notes.txt",

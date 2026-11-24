@@ -16,7 +16,7 @@ def pytest_configure(config):
         config.addinivalue_line("markers", f"{tag}: {text}")
 
 
-# ------------------------------------------------------- diffuse / suite_python
+# ------------------------------------------------------- diffuse
 import os
 import sys
 from pathlib import Path
@@ -42,8 +42,8 @@ if USE_SOURCE:
 def suite():
     """The in-process DISCUS suite (``diffuse.session()``).
 
-    Skips the test if the compiled core (libdiffuse_core or the f2py module
-    suite_python) cannot be loaded. Build
+    Skips the test if the compiled core (libdiffuse_core) cannot be
+    loaded. Build
     it with -DDIFFUSE_PYTHON=ON and set DIFFUSE_PYTHON_PATH=<build>/python
     (DIFFUSE_REQUIRE_PYTHON=1 turns the skip into an error, as in CI).
     The Fortran state is global, so there is one session per pytest run.

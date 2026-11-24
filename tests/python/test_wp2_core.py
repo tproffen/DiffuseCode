@@ -161,7 +161,7 @@ class TimedStream:
 
 
 def test_echo_shows_output_while_the_macro_runs(dc, monkeypatch):
-    """With echo, lines appear as DISCUS writes them (the f2py call releases
+    """With echo, lines appear as DISCUS writes them (the ctypes call releases
     the GIL and a thread follows the output), and each line only once."""
     s = dc.session()
     stream = TimedStream()
@@ -348,36 +348,20 @@ def test_reset_after_monte_carlo_matches_a_fresh_process(dc, tmp_path):
     np.testing.assert_array_equal(p.intensity, fresh["powder"])
 
 
-# ------------------------------------------------- core: C library or f2py
-def test_backend_is_the_one_asked_for(dc):
-    """DIFFUSE_BACKEND picks the core (CI runs the tests on both); without
-    it the C library is used whenever it is there."""
-    from diffuse import _core
-    wanted = os.environ.get("DIFFUSE_BACKEND") or \
-        ("ctypes" if _core.find_library() else "f2py")
-    assert dc.session().backend == wanted
+# ------------------------------------------------------- the C library
+def test_backend(dc):
+    assert dc.session().backend == "ctypes"
 
 
 def test_value_precision(dc):
-    """The C library returns doubles (about 12 significant digits, what the
-    expression evaluator keeps); the f2py module returns single precision."""
-    third = dc.session().value("1.0/3.0")
-    limit = 1e-11 if dc.session().backend == "ctypes" else 1e-7
-    assert abs(third - 1.0 / 3.0) < limit
+    """dc_value returns doubles: about 12 significant digits, what the
+    expression evaluator keeps (the f2py module gave single precision)."""
+    assert abs(dc.session().value("1.0/3.0") - 1.0 / 3.0) < 1e-11
 
 
-def test_bad_backend_name(monkeypatch):
+def test_missing_library(monkeypatch):
+    """Without the library, load() says where it looked."""
     from diffuse import _core
-    monkeypatch.setenv("DIFFUSE_BACKEND", "fortran")
-    with pytest.raises(ValueError, match="ctypes"):
-        _core.load()
-
-
-def test_ctypes_backend_without_library(monkeypatch):
-    """Asking for the C library when there is none is an error, not a
-    silent fall-back to f2py."""
-    from diffuse import _core
-    monkeypatch.setenv("DIFFUSE_BACKEND", "ctypes")
     monkeypatch.setattr(_core, "find_library", lambda: None)
     with pytest.raises(ImportError, match="libdiffuse_core"):
         _core.load()

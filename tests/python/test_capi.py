@@ -1,9 +1,8 @@
 """The C interface (libdiffuse_core, python/diffuse_core.h), called with ctypes.
 
-Every function of the header is called once, in a separate process (one
-DISCUS per process; the f2py module of the other tests stays out of it).
-Step 1 of option B in migration/WP2_Binding_Decision.md; the Python package
-itself still uses the f2py module.
+Every function of the header is called once, straight through ctypes and
+without the diffuse package, in a separate process (one DISCUS per
+process). Option B in migration/WP2_Binding_Decision.md.
 
     DIFFUSE_PYTHON_PATH=<build>/python pytest tests/python/test_capi.py
 """
@@ -164,7 +163,7 @@ def test_version_and_commands(capi):
 
 def test_value_precision(capi):
     """dc_value returns a double: about 12 significant digits, as many as
-    DISCUS's expression evaluator keeps (the f2py get_value gave about 7)."""
+    DISCUS's expression evaluator keeps (the old f2py module gave about 7)."""
     assert abs(capi["third"] - 1.0 / 3.0) < 1e-11
 
 

@@ -1,11 +1,13 @@
 MODULE suite
 !
-!  Module to interface python with the discus_suite
+!  The discus_suite as a library: start-up in library mode, running
+!  commands from memory, errors, random state and KUPLOT data. The C
+!  interface (diffuse_capi.f90, libdiffuse_core) is built on these; Python
+!  reaches them through it (migration plan WP2, option B). Until Nov 2026
+!  this file was suite_python.f90, wrapped by f2py.
 !
 !  reinhard.neder@fau.de
 !  tproffen@ornl.gov
-!
-!  Version initial test not ready for release
 !
 !
 USE suite_setup_mod
@@ -36,8 +38,8 @@ PUBLIC get_data_sets       ! Returns number of loaded KUPLOT data sets
 public python_error
 PUBLIC flush_output       ! Flush the Fortran output units (for Python output capture)
 !  Core interface (migration plan, WP2). These take and return plain
-!  integers, strings and integer arrays only, so that they can move to a
-!  bind(C) layer later without changing the Python side.
+!  integers, strings and integer arrays only; diffuse_capi.f90 offers them
+!  to C as dc_*.
 PUBLIC dc_init             ! Initialize in library mode (no STOP on errors)
 PUBLIC dc_reset            ! Reset DISCUS, KUPLOT, DIFFEV, REFINE (suite "reset")
 PUBLIC dc_clear_error      ! Forget the last recorded error
@@ -286,9 +288,6 @@ USE lib_macro_func
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(INOUT) :: line
-!f2py threadsafe
-!  (releases the Python GIL while the macro runs, so that a Python thread can
-!   show the output as it is written)
 !
 INTEGER :: length
 !
@@ -344,7 +343,7 @@ SUBROUTINE flush_output()
 !  text; buffered output would otherwise appear later, outside the capture.
 !
 USE prompt_mod
-USE ISO_FORTRAN_ENV, ONLY: OUTPUT_UNIT, ERROR_UNIT   ! plain form: f2py prints a debug line for "USE, INTRINSIC ::"
+USE ISO_FORTRAN_ENV, ONLY: OUTPUT_UNIT, ERROR_UNIT
 !
 IMPLICIT NONE
 !
@@ -434,7 +433,6 @@ INTEGER           , INTENT(OUT) :: typ
 CHARACTER(LEN=4)  , INTENT(OUT) :: cls
 CHARACTER(LEN=45) , INTENT(OUT) :: text
 CHARACTER(LEN=560), INTENT(OUT) :: msgs
-!f2py intent(out) num, typ, cls, text, msgs
 !
 INTEGER :: i
 !
@@ -493,8 +491,6 @@ IMPLICIT NONE
 !
 INTEGER, INTENT(IN)  :: n
 INTEGER, INTENT(OUT) :: state(n)
-!f2py intent(out) state
-!f2py intent(in) n
 INTEGER :: nseeds
 !
 state = 0
@@ -547,8 +543,6 @@ IMPLICIT NONE
 CHARACTER(LEN=*), INTENT(IN)  :: text
 INTEGER         , INTENT(OUT) :: nchar_max
 INTEGER         , INTENT(OUT) :: nlines
-!f2py intent(out) nchar_max, nlines
-!f2py threadsafe
 !
 CHARACTER(LEN=*), PARAMETER :: NAME = '/diffuse/python/commands.mac'
 CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE :: content

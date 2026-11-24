@@ -80,7 +80,7 @@ Without `DISCUS_SUITE` only the manifest checks run.
 
 ## 3. Python: `tests/python/test_suite_python.py`, `test_diffuse_api.py`
 
-Run DISCUS in-process through the f2py module `suite_python` and check the
+Run DISCUS in-process (the C library `libdiffuse_core`, through ctypes) and check the
 results as NumPy arrays, against the legacy `RESULTS/` files and against
 golden data in `tests/golden/<id>/`. `test_diffuse_api.py` tests the
 `diffuse` package (`python/diffuse/`, see `python/README.md`) and the demo
@@ -101,8 +101,7 @@ skipped.
 
 | Variable | Meaning |
 |---|---|
-| `DIFFUSE_PYTHON_PATH` | folder that holds `libdiffuse_core.so` and `suite_python*.so` (`<build>/python`) |
-| `DIFFUSE_BACKEND` | `ctypes` (the C library `libdiffuse_core`, the default when it is there) or `f2py` (`suite_python`); CI runs the tests on both |
+| `DIFFUSE_PYTHON_PATH` | folder that holds `libdiffuse_core.so` (`<build>/python`) |
 | `DIFFUSE_REQUIRE_PYTHON=1` | fail instead of skip if the module cannot be imported (used in CI) |
 | `DIFFUSE_UPDATE_GOLDEN=1` | write the golden files instead of comparing; review the diff before committing |
 
@@ -131,7 +130,7 @@ It runs only what the changes need (`tools/ci_changes.py`, first job
 | `docs/` | docs (Ubuntu 24.04) |
 | Python package, `tests/python/`, `tests/golden/` | pytest (graphics build, Ubuntu 24.04 and 22.04), docs |
 | Fortran sources, legacy tests, anything else | build, legacy tests, pytest (graphics build, 22.04) |
-| `pyproject.toml`, `environment.yml`, CMake, `python/suite_python.f90`, `.github/` | everything, conda included |
+| `pyproject.toml`, `environment.yml`, CMake, the C interface (`python/*.f90`, `python/*.h`), `.github/` | everything, conda included |
 
 Opening a pull request into `claude-python-app` runs nothing when the branch
 already contains the latest `claude-python-app`: the push runs tested exactly
