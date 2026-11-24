@@ -96,8 +96,14 @@ lend = .FALSE.
       ENDDO main
 !                                                                       
 !  Library mode (Python): "exit" at the top ends the macro only; no
-!  program exit (clean-up, update check and its questions).
-   IF(.NOT. ier_api) CALL do_exit
+!  program exit (clean-up, update check and its questions). The macro is
+!  closed as at its normal end: otherwise the macro stack keeps pointing at
+!  the stored commands, which the next call replaces (freed memory).
+   IF(.NOT. ier_api) THEN
+      CALL do_exit
+   ELSEIF(lmakro) THEN
+      CALL macro_close(0)
+   ENDIF
 !
 8000 format(' ****EXIT**** Input error on normal read        ',        &
      &       '        ****',a1/)
