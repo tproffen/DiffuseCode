@@ -26,7 +26,7 @@
 # Text only (migration/, *.md outside docs/): nothing. docs/: the docs.
 # Python package: pytest (graphics build, Ubuntu 24.04 and 22.04) and docs.
 # Fortran, legacy tests: build, legacy tests, pytest on 22.04 (WSL2).
-# pyproject.toml, environment.yml, CMake, the f2py wrapper, this workflow:
+# pyproject.toml, environment.yml, CMake, the C interface, this workflow:
 # everything, conda included.
 name: tests
 
@@ -103,9 +103,6 @@ jobs:
         env:
           DIFFUSE_PYTHON_PATH: ${{ github.workspace }}/build/python
           DIFFUSE_REQUIRE_PYTHON: "1"
-          # The f2py module here; the installed-package jobs use the C
-          # library (ctypes), so the whole suite runs on both cores.
-          DIFFUSE_BACKEND: f2py
           MPLBACKEND: Agg
         # DISCUS_SUITE is not set here, so the legacy macro tests inside
         # pytest are skipped; the next step runs them in parallel.
@@ -178,7 +175,7 @@ jobs:
 
       - name: Check that nothing links PGPLOT, X11 or PNG
         run: |
-          so=$(.venv/bin/python -c "import diffuse, pathlib; print(next(pathlib.Path(diffuse.__file__).parent.glob('suite_python*.so')))")
+          so=$(.venv/bin/python -c "import diffuse, pathlib; print(pathlib.Path(diffuse.__file__).parent / 'libdiffuse_core.so')")
           for f in "$so" build/*/suite/prog/discus_suite; do
             echo "$f"
             if ldd "$f" | grep -i -E 'pgplot|libx11|libpng'; then
@@ -189,7 +186,6 @@ jobs:
       - name: Python tests (pytest, installed package)
         env:
           DIFFUSE_REQUIRE_PYTHON: "1"
-          DIFFUSE_BACKEND: ctypes          # the C library (the build job tests f2py)
           MPLBACKEND: Agg
         run: .venv/bin/python -m pytest tests/python -v -rxs --junitxml=pytest-${{ matrix.os }}.xml
 
@@ -245,7 +241,6 @@ jobs:
       - name: Python tests (pytest, installed package)
         env:
           DIFFUSE_REQUIRE_PYTHON: "1"
-          DIFFUSE_BACKEND: ctypes          # the C library (the build job tests f2py)
           MPLBACKEND: Agg
         run: python -m pytest tests/python -v -rxs
 

@@ -125,6 +125,13 @@ Steps, each with green CI before the next:
    NumPy build dependency; `pyproject.toml` builds a platform wheel that
    works for every Python 3 (`wheel.py-api = "py3"` in scikit-build-core).
    About half a day, plus CI.
+   *Done (Nov 2026):* `python/CMakeLists.txt` builds only
+   `libdiffuse_core`; the f2py, NumPy, Cython and PythonExtensions CMake
+   modules are gone, and `DIFFUSE_PYTHON` no longer looks for Python at all.
+   `python/suite_python.f90` is now `python/diffuse_suite.f90` (the same
+   Fortran module `suite`, without the `!f2py` lines) and is compiled into
+   the library only. `F2pyCore` and `DIFFUSE_BACKEND` are removed; the
+   build needs no NumPy, and the wheel is `py3-none-<platform>`.
 4. **From WP3 on**, new functions (crystal arrays in and out) are written
    directly as `bind(C)` functions.
 

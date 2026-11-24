@@ -7,7 +7,7 @@
     p.plot()
 
 This first version drives DISCUS through its C interface ``libdiffuse_core``
-(ctypes), or the older f2py module ``suite_python``; install with
+(ctypes); install with
 ``pip install .``, or build with ``-DDIFFUSE_PYTHON=ON`` and set
 ``DIFFUSE_PYTHON_PATH`` to ``<build>/python``. DISCUS holds one structure at a time, in this process.
 See migration/DiffuseCode_Python_Migration_Plan.md for where this is going.

@@ -1,4 +1,5 @@
-"""Tests for the in-process Python interface (f2py module suite_python).
+"""Tests for the in-process Python interface (the session that runs DISCUS;
+named after the f2py module suite_python that came first).
 
 These run DISCUS inside the Python process and read results back as NumPy
 arrays. Each calculation is checked two ways:

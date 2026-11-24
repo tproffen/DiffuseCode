@@ -1,8 +1,7 @@
 """The one DISCUS suite that lives in this Python process.
 
-The compiled core (``_core.py``) is the C library ``libdiffuse_core``
-through ctypes, or the older f2py module ``suite_python``; both are built
-with ``-DDIFFUSE_PYTHON=ON``. Python hands the commands to the suite as a
+The compiled core (``_core.py``) is the C library ``libdiffuse_core``,
+loaded with ctypes (built with ``-DDIFFUSE_PYTHON=ON``, or by ``pip install``). Python hands the commands to the suite as a
 macro held in memory (no file), and the suite runs it.
 
 What this layer adds on top of the core:
@@ -193,22 +192,18 @@ class Session:
         self._workdir = Path(tempfile.mkdtemp(prefix="diffuse_"))
         atexit.register(shutil.rmtree, self._workdir, ignore_errors=True)
         self._c = _core.load()
-        if isinstance(self._c, _core.F2pyCore):
-            self._c.set_workdir(self._workdir)
         # Standard input for DISCUS calls (see _Capture): empty lines
         self._stdin = self._workdir / "_stdin"
         self._stdin.write_text("\n" * 20000)
         self.current_crystal = None      # the Crystal now held by DISCUS
-        # Library mode (errors as records, no STOP) unless an old f2py build
-        self._core = self._c.has_core
-        with self._capture() as cap:
+        with self._capture() as cap:        # library mode: errors as records, no STOP
             self._c.init()
         self._show(cap.text)
 
     @property
     def backend(self) -> str:
-        """How DISCUS is reached: ``"ctypes"`` (the C library
-        libdiffuse_core) or ``"f2py"`` (the module suite_python)."""
+        """How DISCUS is reached: ``"ctypes"``, the C library libdiffuse_core
+        (earlier builds also had ``"f2py"``, the module suite_python)."""
         return self._c.name
 
     def _capture(self, live: bool = False) -> _Capture:
@@ -256,14 +251,13 @@ class Session:
 
     # -- errors -------------------------------------------------------------
     def _clear_error(self) -> None:
-        if self._core:
-            self._c.clear_error()
+        self._c.clear_error()
 
     def last_error(self) -> tuple[int, str, str, list[str]]:
         """The first error DISCUS recorded in the last call.
 
         Returns ``(code, category, text, details)``; ``code`` is 0 when
-        there was no error (or the module predates the WP2 core).
+        there was no error.
         """
         num, cls, text, msgs = self._c.last_error()
         details = [msgs[i:i + 80].strip() for i in range(0, len(msgs), 80)]
@@ -301,7 +295,6 @@ class Session:
         ``set error`` ...) are kept. ``current_crystal`` is cleared, so the
         next calculation on a Crystal reads it in again.
         """
-        self._require_core("reset")
         with self._capture() as cap:
             self._c.reset()
         self._show(cap.text)
@@ -315,7 +308,6 @@ class Session:
         ``value=0`` seeds from the clock. With more than one OpenMP thread
         the order in which threads draw numbers can still vary.
         """
-        self._require_core("seed")
         self._c.seed(int(value))
 
     def random_state(self) -> np.ndarray:
@@ -324,22 +316,15 @@ class Session:
         Includes the Gaussian number that DISCUS may keep waiting (Gaussian
         numbers come in pairs), so a restore repeats the sequence exactly.
         """
-        self._require_core("random_state")
         return self._c.random_state()
 
     def set_random_state(self, state) -> None:
         """Put the generator back into a state from :meth:`random_state`."""
-        self._require_core("set_random_state")
         state = np.asarray(state, dtype=np.int32)
         if state.shape != (self._c.random_size(),):
             raise ValueError(f"state must have {self._c.random_size()} integers, "
                              f"not shape {state.shape}")
         self._c.set_random_state(state)
-
-    def _require_core(self, what: str) -> None:
-        if not self._core:
-            raise DiffuseError(f"{what}() needs a suite_python module built from "
-                               "DiffuseCode with the WP2 core (dc_* functions); rebuild it.")
 
     # -- KUPLOT data sets -------------------------------------------------
     def n_datasets(self) -> int:

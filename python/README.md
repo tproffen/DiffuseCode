@@ -71,10 +71,12 @@ For work on DiffuseCode itself, a CMake build folder with
 
 ## How it works, and its limits
 
-This version drives the existing f2py module `suite_python`
-(`python/suite_python.f90`). Python writes the commands to a small macro,
-DISCUS runs it in the same process, and the results come back through
-files or KUPLOT data sets. See `diffuse/_session.py`.
+This version drives DISCUS through its C interface, the library
+`libdiffuse_core` (`python/diffuse_capi.f90`, declared in
+`python/diffuse_core.h`), loaded with ctypes (`diffuse/_core.py`). Python
+hands the commands to DISCUS as a macro held in memory, DISCUS runs it in
+the same process, and the results come back through files or KUPLOT data
+sets. See `diffuse/_session.py`.
 
 * DISCUS holds **one structure at a time** per process. A `Crystal` remembers
   how it was made, and `powder()` reads it in again if another structure was
@@ -87,8 +89,8 @@ files or KUPLOT data sets. See `diffuse/_session.py`.
   converted files (for example `.stru` from `.cif`) next to its input.
 
 The migration plan (`migration/DiffuseCode_Python_Migration_Plan.md`,
-WP1–WP5) replaces `suite_python` underneath with a `bind(C)` core and a
-proper `pip install`. The aim is to keep this API while doing so.
+WP3–WP5) moves more of DISCUS behind the C interface (crystal arrays in and
+out instead of files). The aim is to keep this API while doing so.
 
 ## Documentation
 

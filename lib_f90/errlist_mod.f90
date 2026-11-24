@@ -57,7 +57,7 @@ MODULE errlist_mod
    INTEGER            :: ier_num_tmp   = 0
    INTEGER            :: ier_typ_tmp   = ER_NONE
 !
-!  Library ("API") mode, set by the Python interface (python/suite_python.f90).
+!  Library ("API") mode, set by the Python interface (python/diffuse_suite.f90).
 !  ier_api: no STOP on errors; the program carries on as with ER_S_CONT.
 !  The first error shown since the last reset of ier_last_num is kept in
 !  ier_last_* (filled in disp_error), so that the caller can read it.

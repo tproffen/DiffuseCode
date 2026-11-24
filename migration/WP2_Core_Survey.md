@@ -185,4 +185,6 @@ Python (`diffuse`): `MacroError` has `code`, `category`, `text` and
 5. **Decide the binding.** Proposal in `WP2_Binding_Decision.md`:
    a `bind(C)` interface with ctypes instead of f2py, in four steps; a
    proof of concept works (commands, values, errors, arrays, GIL released,
-   no Python symbols in the library). Decision pending.
+   no Python symbols in the library). Decided (option B) and done in Nov
+   2026: the package reaches DISCUS through `libdiffuse_core` and ctypes;
+   f2py is gone (steps 1–3 in `WP2_Binding_Decision.md`).

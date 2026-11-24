@@ -10,8 +10,8 @@ or against a CMake build folder:
     pip install -r docs/requirements.txt
     DIFFUSE_PYTHON_PATH=build/python python3 -m sphinx -W -b html docs docs/_build/html
 
-The example gallery runs python/examples/*.py and needs the suite_python
-module (DIFFUSE_PYTHON_PATH). Without it, set DIFFUSE_DOCS_NO_GALLERY=1 to
+The example gallery runs python/examples/*.py and needs the compiled core
+libdiffuse_core (DIFFUSE_PYTHON_PATH, or an installed package). Without it, set DIFFUSE_DOCS_NO_GALLERY=1 to
 build everything except the gallery. Without network access, set
 DIFFUSE_DOCS_OFFLINE=1 (no links into the Python/NumPy/matplotlib docs).
 """
@@ -55,8 +55,8 @@ autodoc_default_options = {"members": True}
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
 napoleon_use_rtype = False
-# diffuse loads suite_python only when a session starts, so importing it for
-# the API pages works without the compiled module.
+# diffuse loads libdiffuse_core only when a session starts, so importing it
+# for the API pages works without the compiled library.
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),

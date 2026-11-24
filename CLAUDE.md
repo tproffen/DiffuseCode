@@ -18,7 +18,7 @@ targets `claude-python-app`.
 - `migration/WP0_Test_Baseline.md` – test baseline tasks and progress log.
 - `tests/README.md` – how to run the tests.
 - `migration/WP2_Core_Survey.md` – WP2 (core infrastructure) survey and next steps.
-- `migration/WP2_Binding_Decision.md` – f2py or a C interface (proposal: `bind(C)` + ctypes), and option E: replace the Fortran (inventory: `tools/fortran_inventory.py`).
+- `migration/WP2_Binding_Decision.md` – f2py or a C interface: `bind(C)` + ctypes, done (`python/diffuse_capi.f90`, `diffuse_core.h`, `diffuse/_core.py`), and option E: replace the Fortran (inventory: `tools/fortran_inventory.py`).
 
 ## Build and test
 

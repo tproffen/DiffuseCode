@@ -29,8 +29,8 @@ except dc.MacroError as err:
 print("1 + 1 =", dc.session().value("1 + 1"))
 
 # %%
-# ``backend`` says how Python reaches DISCUS: ``"ctypes"`` (the C library
-# libdiffuse_core, the default) or ``"f2py"`` (the older module).
+# ``backend`` says how Python reaches DISCUS: ``"ctypes"``, the C library
+# libdiffuse_core (earlier builds could also use the f2py module).
 print("backend:", dc.session().backend)
 
 # %%
