@@ -712,7 +712,14 @@ Fortran module <code class="docutils literal notranslate"><span class="pre">suit
 the library only. <code class="docutils literal notranslate"><span class="pre">F2pyCore</span></code> and <code class="docutils literal notranslate"><span class="pre">DIFFUSE_BACKEND</span></code> are removed; the
 build needs no NumPy, and the wheel is <code class="docutils literal notranslate"><span class="pre">py3-none-&lt;platform&gt;</span></code>.</p></li>
 <li><p><strong>From WP3 on</strong>, new functions (crystal arrays in and out) are written
-directly as <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> functions.</p></li>
+directly as <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> functions.
+<em>Started (Nov 2026), crystal out:</em> <code class="docutils literal notranslate"><span class="pre">dc_crystal_size</span></code>, <code class="docutils literal notranslate"><span class="pre">dc_get_cell</span></code>,
+<code class="docutils literal notranslate"><span class="pre">dc_get_atoms</span></code> (positions, types, properties, molecules) and
+<code class="docutils literal notranslate"><span class="pre">dc_get_atom_types</span></code> (names, B, occupancy); C interface version 2.
+Pattern “ask, then fill”; positions as <code class="docutils literal notranslate"><span class="pre">double[n][3]</span></code>, which is the
+memory layout of <code class="docutils literal notranslate"><span class="pre">cr_pos(3,</span> <span class="pre">n)</span></code>. <code class="docutils literal notranslate"><span class="pre">Crystal.atoms()</span></code> reads them instead
+of saving and parsing a <code class="docutils literal notranslate"><span class="pre">.stru</span></code> file; new <code class="docutils literal notranslate"><span class="pre">Crystal.atom_types()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Crystal.space_group</span></code>. Next: crystal in (Python arrays into DISCUS).</p></li>
 </ol>
 </section>
 <section id="risks-and-how-to-handle-them">

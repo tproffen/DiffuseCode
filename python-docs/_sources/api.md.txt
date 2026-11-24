@@ -10,7 +10,7 @@
 .. autofunction:: read_structure
 
 .. autoclass:: Crystal
-   :members: atoms, positions, cartesian, lattice_vectors, view, volume, a
+   :members: atoms, atom_types, positions, cartesian, lattice_vectors, view, volume, a
 
 .. autoclass:: StructureView
    :members: show, write_html

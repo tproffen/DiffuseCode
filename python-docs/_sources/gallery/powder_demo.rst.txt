@@ -74,19 +74,49 @@ A CIF file holds the asymmetric unit. DISCUS applies the space group
 
  .. code-block:: none
 
-    Crystal(path=PosixPath('/home/runner/work/DiffuseCode/DiffuseCode/python/examples/anatase.cif'), supercell=(10, 10, 4), natoms=4800, lattice=(3.73, 3.73, 9.37, 90.0, 90.0, 90.0))
+    Crystal(path=PosixPath('/home/runner/work/DiffuseCode/DiffuseCode/python/examples/anatase.cif'), supercell=(10, 10, 4), natoms=4800, lattice=(3.73, 3.73, 9.37, 90.0, 90.0, 90.0), space_group='I 41/a m d')
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-44
+.. GENERATED FROM PYTHON SOURCE LINES 40-43
+
+The atoms come straight from DISCUS's arrays: names and fractional
+coordinates per atom, and per atom type the displacement parameter B and
+the occupancy.
+
+.. GENERATED FROM PYTHON SOURCE LINES 43-48
+
+.. code-block:: Python
+
+    names, xyz = crystal.atoms()
+    print(crystal.space_group, crystal.natoms, "atoms; first:", names[0], xyz[0])
+    for name, b, occ in zip(*crystal.atom_types()):
+        print(f"{name:5s} B = {b:.3f} A^2, occupancy {occ:.2f}")
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    I 41/a m d 4800 atoms; first: TI4+ [-5. -5. -2.]
+    TI4+  B = 1.000 A^2, occupancy 1.00
+    O2-   B = 1.000 A^2, occupancy 1.00
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 49-53
 
 Calculate powder patterns
 -------------------------
 The results are NumPy arrays (``q`` and ``intensity``), so any plotting or
 analysis library can use them.
 
-.. GENERATED FROM PYTHON SOURCE LINES 44-49
+.. GENERATED FROM PYTHON SOURCE LINES 53-58
 
 .. code-block:: Python
 
@@ -108,12 +138,12 @@ analysis library can use them.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-52
+.. GENERATED FROM PYTHON SOURCE LINES 59-61
 
 A much smaller crystal of the same structure shows how the crystal size
 broadens the peaks.
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-56
+.. GENERATED FROM PYTHON SOURCE LINES 61-65
 
 .. code-block:: Python
 
@@ -128,14 +158,14 @@ broadens the peaks.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-61
+.. GENERATED FROM PYTHON SOURCE LINES 66-70
 
 Plot
 ----
 X-rays see mostly titanium; neutrons see oxygen much more strongly, so the
 relative peak heights change.
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-79
+.. GENERATED FROM PYTHON SOURCE LINES 70-88
 
 .. code-block:: Python
 
@@ -172,7 +202,7 @@ relative peak heights change.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.281 seconds)
+   **Total running time of the script:** (0 minutes 0.201 seconds)
 
 
 .. _sphx_glr_download_gallery_powder_demo.py:

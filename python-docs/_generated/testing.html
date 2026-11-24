@@ -524,7 +524,7 @@ and exits with code 1 if any test did not pass.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--exe</span> <span class="pre">PATH</span></code></p></td>
-<td><p>the <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> binary (or set <code class="docutils literal notranslate"><span class="pre">$DISCUS_SUITE</span></code>, or have it on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>)</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> binary; default: <code class="docutils literal notranslate"><span class="pre">$DISCUS_SUITE</span></code>, then this checkout’s <code class="docutils literal notranslate"><span class="pre">build/suite/prog/discus_suite</span></code>, then <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (last, with a warning: an installed copy may be an older working version)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">N</span></code></p></td>
 <td><p>run N tests in parallel (tests tagged <code class="docutils literal notranslate"><span class="pre">exclusive</span></code> still run alone, at the end)</p></td>
@@ -605,7 +605,11 @@ test, and also checks the manifest against <code class="docutils literal notrans
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DISCUS_SUITE</span><span class="o">=</span>/path/to/discus_suite<span class="w"> </span>pytest<span class="w"> </span>tests/python<span class="w"> </span>-m<span class="w"> </span><span class="s2">"not slow"</span>
 </pre></div>
 </div>
-<p>Without <code class="docutils literal notranslate"><span class="pre">DISCUS_SUITE</span></code> only the manifest checks run.</p>
+<p><code class="docutils literal notranslate"><span class="pre">discus_suite</span></code> is looked for as with the runner (<code class="docutils literal notranslate"><span class="pre">$DISCUS_SUITE</span></code>, <code class="docutils literal notranslate"><span class="pre">build/</span></code>,
+then <code class="docutils literal notranslate"><span class="pre">PATH</span></code>); the pytest header says which one is used and where it came
+from. Without one, only the manifest checks run. To keep an installed
+working copy next to a development build, set <code class="docutils literal notranslate"><span class="pre">DISCUS_SUITE</span></code> in the
+virtual environment, e.g. in <code class="docutils literal notranslate"><span class="pre">.diffuse/bin/activate</span></code>.</p>
 </section>
 </section>
 <section id="python-tests-python-test-suite-python-py-test-diffuse-api-py">

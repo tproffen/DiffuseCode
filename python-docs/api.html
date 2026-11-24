@@ -535,7 +535,7 @@ file is read as it is.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="diffuse.Crystal">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">Crystal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supercell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">natoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lattice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_atoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/crystal.html#Crystal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Crystal" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">diffuse.</span></span><span class="sig-name descname"><span class="pre">Crystal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supercell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">natoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lattice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'P1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_atoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/crystal.html#Crystal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Crystal" title="Link to this definition">#</a></dt>
 <dd><p>A structure loaded into DISCUS. Create it with <a class="reference internal" href="#diffuse.read_structure" title="diffuse.read_structure"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_structure()</span></code></a>.</p>
 <p>DISCUS holds one structure at a time. A <code class="docutils literal notranslate"><span class="pre">Crystal</span></code> remembers how it was
 made, so a calculation on an older <code class="docutils literal notranslate"><span class="pre">Crystal</span></code> reads it in again first.</p>
@@ -546,7 +546,9 @@ made, so a calculation on an older <code class="docutils literal notranslate"><s
 <li><p><strong>supercell</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>natoms</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 <li><p><strong>lattice</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>)</p></li>
+<li><p><strong>space_group</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
 <li><p><strong>_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>_types</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -595,6 +597,17 @@ read as it is.</p>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diffuse.Crystal.space_group">
+<span class="sig-name descname"><span class="pre">space_group</span></span><a class="headerlink" href="#diffuse.Crystal.space_group" title="Link to this definition">#</a></dt>
+<dd><p>Space group symbol as DISCUS uses it, for example <code class="docutils literal notranslate"><span class="pre">&quot;F</span> <span class="pre">m</span> <span class="pre">-3</span> <span class="pre">m&quot;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="diffuse.Crystal.a">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">a</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><a class="headerlink" href="#diffuse.Crystal.a" title="Link to this definition">#</a></dt>
@@ -624,8 +637,30 @@ read as it is.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>DISCUS saves the crystal to a <code class="docutils literal notranslate"><span class="pre">.stru</span></code> file, which is read back.
-The result is cached on the <code class="docutils literal notranslate"><span class="pre">Crystal</span></code>.</p>
+<p>Read straight from DISCUS’s arrays (no file). The result is cached
+on the <code class="docutils literal notranslate"><span class="pre">Crystal</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diffuse.Crystal.atom_types">
+<span class="sig-name descname"><span class="pre">atom_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/crystal.html#Crystal.atom_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Crystal.atom_types" title="Link to this definition">#</a></dt>
+<dd><p>The atom types: names, isotropic displacement parameters and occupancies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>names</strong> (<em>numpy.ndarray of str, shape (ntypes,)</em>) – Atom type names, for example <code class="docutils literal notranslate"><span class="pre">&quot;TI4+&quot;</span></code>, in DISCUS’s order (the
+names <a class="reference internal" href="#diffuse.Crystal.atoms" title="diffuse.Crystal.atoms"><code class="xref py py-meth docutils literal notranslate"><span class="pre">atoms()</span></code></a> uses).</p></li>
+<li><p><strong>b_iso</strong> (<em>numpy.ndarray of float, shape (ntypes,)</em>) – Isotropic displacement parameter B in Å^2 (B = 8 pi^2 &lt;u^2&gt;).</p></li>
+<li><p><strong>occupancy</strong> (<em>numpy.ndarray of float, shape (ntypes,)</em>) – Occupancy of each type.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)">tuple</a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>, <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>, <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>]</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Vacancies (DISCUS’s type 0, <code class="docutils literal notranslate"><span class="pre">&quot;VOID&quot;</span></code>) are left out.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1540,9 +1575,11 @@ concerned).</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.supercell"><code class="docutils literal notranslate"><span class="pre">Crystal.supercell</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.natoms"><code class="docutils literal notranslate"><span class="pre">Crystal.natoms</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.lattice"><code class="docutils literal notranslate"><span class="pre">Crystal.lattice</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.space_group"><code class="docutils literal notranslate"><span class="pre">Crystal.space_group</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.a"><code class="docutils literal notranslate"><span class="pre">Crystal.a</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.volume"><code class="docutils literal notranslate"><span class="pre">Crystal.volume</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.atoms"><code class="docutils literal notranslate"><span class="pre">Crystal.atoms()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.atom_types"><code class="docutils literal notranslate"><span class="pre">Crystal.atom_types()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.positions"><code class="docutils literal notranslate"><span class="pre">Crystal.positions()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.lattice_vectors"><code class="docutils literal notranslate"><span class="pre">Crystal.lattice_vectors()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diffuse.Crystal.cartesian"><code class="docutils literal notranslate"><span class="pre">Crystal.cartesian()</span></code></a></li>
