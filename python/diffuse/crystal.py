@@ -112,6 +112,39 @@ class Crystal:
             self._read_arrays()
         return self._types
 
+    def adps(self) -> np.ndarray:
+        """Anisotropic displacement parameters of every atom.
+
+        Returns
+        -------
+        numpy.ndarray of float, shape (natoms, 6)
+            U11, U22, U33, U23, U13, U12 in Å² (the CIF convention), as
+            DISCUS uses them: symmetry-equivalent atoms carry the rotated
+            tensor; an isotropic atom has the tensor of its B
+            (U = B / 8 pi^2).
+        """
+        _ensure_loaded(self)
+        uij, _prin, index = session()._c.adps()
+        if len(uij) == 0:
+            return np.zeros((self.natoms, 6))
+        return uij[index - 1]
+
+    def molecules(self) -> tuple[np.ndarray, list[np.ndarray]]:
+        """The molecules DISCUS holds.
+
+        Returns
+        -------
+        types : numpy.ndarray of int, shape (nmolecules,)
+            Molecule type of each molecule (1, 2, ...).
+        atoms : list of numpy.ndarray of int
+            For each molecule, its atoms as 0-based indices into
+            :meth:`atoms`.
+        """
+        _ensure_loaded(self)
+        mtype, _mchar, mlen, flat = session()._c.molecules()
+        bounds = np.concatenate([[0], np.cumsum(mlen)])
+        return mtype, [flat[bounds[i]:bounds[i + 1]] - 1 for i in range(len(mlen))]
+
     def _read_arrays(self) -> None:
         """Fill the caches from DISCUS's crystal arrays (C interface)."""
         _ensure_loaded(self)
@@ -130,7 +163,8 @@ class Crystal:
         boundaries; positions are Cartesian, in the orientation of
         :meth:`lattice_vectors`. Element symbols come from the DISCUS atom
         names (``"TI4+"`` becomes ``"Ti"``); the names themselves are kept
-        in ``atoms.arrays["discus_names"]``.
+        in ``atoms.arrays["discus_names"]``, the displacement tensors of
+        :meth:`adps` in ``atoms.arrays["discus_u_aniso"]``.
 
         Returns
         -------
@@ -146,6 +180,7 @@ class Crystal:
         atoms = ase.Atoms(symbols=[_element(n) for n in names], positions=self.cartesian(),
                           cell=self.lattice_vectors() * cells[:, None], pbc=True)
         atoms.set_array("discus_names", np.array(names, dtype="U4"))
+        atoms.set_array("discus_u_aniso", self.adps())
         return atoms
 
     def positions(self) -> np.ndarray:
@@ -397,8 +432,9 @@ def read_structure(path: str | os.PathLike,
 
 
 def make_crystal(lattice, names, positions, *, space_group: str = "P1",
-                 b_iso=0.0, occupancy=1.0,
-                 cells: tuple[int, int, int] = (1, 1, 1), types=None) -> Crystal:
+                 b_iso=0.0, occupancy=1.0, u_aniso=None,
+                 cells: tuple[int, int, int] = (1, 1, 1), types=None,
+                 molecules=None, molecule_types=None) -> Crystal:
     """Make a crystal in DISCUS from arrays: every atom, no file.
 
     Parameters
@@ -419,6 +455,11 @@ def make_crystal(lattice, names, positions, *, space_group: str = "P1",
         one per name (``{"NI": 0.4}``) or one per atom. Default 0.
     occupancy : float, dict or array_like, optional
         Occupancy, given the same ways. Default 1.
+    u_aniso : dict or array_like, optional
+        Anisotropic displacement parameters U11, U22, U33, U23, U13, U12 in
+        Å² (the CIF convention), per name (``{"O": (u11, ..., u12)}``) or per
+        atom, shape (natoms, 6). DISCUS then derives B from them. Default:
+        isotropic, from ``b_iso``.
     cells : tuple of 3 int, optional
         Number of unit cells along a, b and c that ``positions`` fill;
         atoms per cell = natoms / product(cells). Default (1, 1, 1).
@@ -426,11 +467,16 @@ def make_crystal(lattice, names, positions, *, space_group: str = "P1",
         A label per atom that splits atoms of the same name, B and
         occupancy into separate types (for example by crystallographic
         site, as DISCUS does for the sites of a ``.cell`` file).
+    molecules : sequence of sequences of int, optional
+        Atoms (0-based indices into ``names``) that form each molecule.
+    molecule_types : sequence of int, optional
+        Type (1, 2, ...) of each molecule. Default: all type 1.
 
     Notes
     -----
-    As in DISCUS, an atom type is a name together with its B and occupancy:
-    two oxygen sites with different B are two types, both named ``"O"``.
+    As in DISCUS, an atom type is a name together with its B, occupancy and
+    anisotropic ADPs: two oxygen sites with different B are two types, both
+    named ``"O"``.
     Types are numbered in the order they first appear.
 
     Returns
@@ -489,22 +535,55 @@ def make_crystal(lattice, names, positions, *, space_group: str = "P1",
         return value
 
     b_atom, occ_atom = per_atom(b_iso, "b_iso"), per_atom(occupancy, "occupancy")
+    if u_aniso is None:
+        u_atom = np.zeros((len(names), 6))
+    elif isinstance(u_aniso, dict):
+        u_aniso = {str(k).strip().upper(): v for k, v in u_aniso.items()}
+        u_atom = np.array([u_aniso.get(n, (0.0,) * 6) for n in names], dtype=float)
+        if u_atom.shape != (len(names), 6):
+            raise ValueError("u_aniso per name needs six values U11, U22, U33, U23, U13, U12")
+    else:
+        u_atom = np.asarray(u_aniso, dtype=float)
+        if u_atom.shape != (len(names), 6):
+            raise ValueError(f"u_aniso needs shape (natoms, 6), not {u_atom.shape}")
     if types is None:
         labels = np.zeros(len(names), dtype=int)
     else:
         labels = np.asarray(types)
         if labels.shape != (len(names),):
             raise ValueError(f"types needs one label per atom, not shape {labels.shape}")
-    # A type is (name, B, occupancy[, label]), numbered in order of first appearance
+    # A type is (name, B, occupancy, U[, label]), numbered in order of first appearance
     index: dict = {}
     types = np.empty(len(names), dtype=np.int32)
-    for i, key in enumerate(zip(names, b_atom, occ_atom, labels.tolist())):
+    for i, key in enumerate(zip(names, b_atom, occ_atom, map(tuple, u_atom.tolist()),
+                                labels.tolist())):
         types[i] = index.setdefault(key, len(index) + 1)
     keys = list(index)
+    mol = None
+    if molecules is not None:
+        members = [np.asarray(m, dtype=np.int64).reshape(-1) for m in molecules]
+        if any(len(m) == 0 for m in members):
+            raise ValueError("every molecule needs at least one atom")
+        flat = np.concatenate(members) if members else np.zeros(0, np.int64)
+        if len(flat) and (flat.min() < 0 or flat.max() >= len(names)):
+            raise ValueError("molecule atom indices must be 0 .. natoms-1")
+        if len(np.unique(flat)) != len(flat):
+            raise ValueError("an atom is in more than one molecule")
+        mtypes = np.ones(len(members), np.int32) if molecule_types is None \
+            else np.asarray(molecule_types, dtype=np.int32)
+        if mtypes.shape != (len(members),) or (len(mtypes) and mtypes.min() < 1):
+            raise ValueError("molecule_types needs one type >= 1 per molecule")
+        mol = dict(types=mtypes, lengths=np.array([len(m) for m in members], np.int32),
+                   atoms=flat + 1)
+    elif molecule_types is not None:
+        raise ValueError("molecule_types without molecules")
     arrays = dict(lattice=lattice, space_group=space_group, cells=cells, atoms_per_cell=per_cell,
                   names=[k[0] for k in keys], b_iso=np.array([k[1] for k in keys]),
-                  occupancy=np.array([k[2] for k in keys]), positions=xyz, types=types,
-                  properties=np.ones(len(names), dtype=np.int32))   # 1: a normal atom
+                  occupancy=np.array([k[2] for k in keys]),
+                  u_aniso=np.array([k[3] for k in keys]) if u_aniso is not None else None,
+                  positions=xyz, types=types,
+                  properties=np.ones(len(names), dtype=np.int32),   # 1: a normal atom
+                  molecules=mol)
     s = session()
     _send_arrays(arrays)
     lattice, space_group, cells, _per_cell = s._c.cell()
@@ -514,7 +593,7 @@ def make_crystal(lattice, names, positions, *, space_group: str = "P1",
     return crystal
 
 
-def from_ase(atoms, *, b_iso=0.0, occupancy=1.0,
+def from_ase(atoms, *, b_iso=0.0, occupancy=1.0, u_aniso=None,
              space_group: str = "P1") -> Crystal:
     """Make a crystal in DISCUS from an ASE ``Atoms`` object.
 
@@ -522,13 +601,14 @@ def from_ase(atoms, *, b_iso=0.0, occupancy=1.0,
     space group, so the crystal is P1 unless ``space_group`` says
     otherwise). Atom names are the element symbols in capitals, or
     ``atoms.arrays["discus_names"]`` if present (as :meth:`Crystal.to_ase`
-    sets it).
+    sets it); ``atoms.arrays["discus_u_aniso"]``, if present and
+    ``u_aniso`` is not given, gives the displacement tensors.
 
     Parameters
     ----------
     atoms : ase.Atoms
         A periodic structure with a cell.
-    b_iso, occupancy, space_group
+    b_iso, occupancy, u_aniso, space_group
         As for :func:`make_crystal`.
 
     Returns
@@ -549,8 +629,10 @@ def from_ase(atoms, *, b_iso=0.0, occupancy=1.0,
         names = [str(n) for n in atoms.arrays["discus_names"]]
     else:
         names = [s.upper() for s in atoms.get_chemical_symbols()]
+    if u_aniso is None and "discus_u_aniso" in atoms.arrays:
+        u_aniso = np.asarray(atoms.arrays["discus_u_aniso"], dtype=float)
     return make_crystal(tuple(atoms.cell.cellpar()), names, atoms.get_scaled_positions(wrap=False),
-                        space_group=space_group, b_iso=b_iso, occupancy=occupancy)
+                        space_group=space_group, b_iso=b_iso, occupancy=occupancy, u_aniso=u_aniso)
 
 
 def _send_arrays(arrays: dict) -> None:
@@ -559,10 +641,13 @@ def _send_arrays(arrays: dict) -> None:
     ok = s._c.set_crystal(arrays["lattice"], arrays["space_group"], arrays["cells"],
                           arrays["atoms_per_cell"], arrays["names"], arrays["b_iso"],
                           arrays["occupancy"], arrays["positions"], arrays["types"],
-                          arrays["properties"])
+                          arrays["properties"], arrays.get("u_aniso"))
     s.current_crystal = None
     if not ok:
         raise s._error("DISCUS refused the crystal", "")
+    mol = arrays.get("molecules")
+    if mol is not None and not s._c.set_molecules(mol["types"], mol["lengths"], mol["atoms"]):
+        raise s._error("DISCUS refused the molecules", "")
 
 
 def _cells_now() -> tuple[int, int, int]:

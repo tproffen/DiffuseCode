@@ -41,4 +41,5 @@ _generated/migration/WP0_Test_Baseline
 _generated/migration/WP0_Test_Coverage_Gaps
 _generated/migration/WP2_Core_Survey
 _generated/migration/WP2_Binding_Decision
+_generated/migration/WP3_Next_Steps
 ```

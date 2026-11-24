@@ -22,7 +22,7 @@ IMPLICIT NONE
 !
 PRIVATE
 !
-INTEGER(C_INT), PARAMETER :: API_VERSION = 3   ! 2: crystal arrays out, 3: in (WP3)
+INTEGER(C_INT), PARAMETER :: API_VERSION = 4   ! 2: crystal out, 3: in, 4: ADPs, molecules (WP3)
 !
 CONTAINS
 !
@@ -463,13 +463,16 @@ END FUNCTION capi_get_atom_types
 !*******************************************************************************
 !
 FUNCTION capi_set_crystal(lattice, spcgr, nsp, icc, ncatoms, ntypes, names, biso, occ, &
-                          natoms, pos, types, prop) BIND(C, NAME='dc_set_crystal') RESULT(ok)
+                          has_anis, anis, natoms, pos, types, prop) BIND(C, NAME='dc_set_crystal') RESULT(ok)
 !
 !  Replace the crystal DISCUS holds, as "read stru" does for a file, from
 !  arrays: lattice (a, b, c, alpha, beta, gamma), space group symbol
 !  (recorded, not applied: pos holds every atom), unit cells along a, b, c
 !  and atoms per unit cell, the atom types 1..ntypes (names: 4 characters
-!  each in one block, B in A^2, occupancy) and the atoms (pos(3, natoms)
+!  each in one block, B in A^2, occupancy; if has_anis /= 0 also the
+!  anisotropic ADPs anis(6, ntypes): U11, U22, U33, U23, U13, U12 in A^2, as
+!  in a CIF; one value U11 > 0 with the rest 0 is an isotropic U) and the
+!  atoms (pos(3, natoms)
 !  fractional, i.e. C/NumPy order n rows of x, y, z; type 1..ntypes;
 !  property flags).
 !
@@ -500,6 +503,8 @@ INTEGER(C_INT64_T),                     VALUE                :: ncatoms
 INTEGER(C_INT),                         VALUE                :: ntypes
 CHARACTER(KIND=C_CHAR), DIMENSION(4*ntypes),     INTENT(IN) :: names
 REAL(C_DOUBLE),         DIMENSION(ntypes),       INTENT(IN) :: biso, occ
+INTEGER(C_INT),                         VALUE                :: has_anis
+REAL(C_DOUBLE),         DIMENSION(6, ntypes),    INTENT(IN) :: anis
 INTEGER(C_INT64_T),                     VALUE                :: natoms
 REAL(C_DOUBLE),         DIMENSION(3, natoms),    INTENT(IN) :: pos
 INTEGER(C_INT),         DIMENSION(natoms),       INTENT(IN) :: types, prop
@@ -507,7 +512,8 @@ INTEGER(C_INT) :: ok
 !
 INTEGER, PARAMETER :: MAXW = 1
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
-INTEGER :: ianz, i, k, j
+INTEGER :: ianz, i, k, j, ncheck, ncatoms_saved
+INTEGER, DIMENSION(:), ALLOCATABLE :: type_adp
 LOGICAL :: lout
 !
 ok = -1
@@ -559,6 +565,8 @@ DO i = 1, ntypes
    cr_dw(i)  = biso(i)
    cr_occ(i) = occ(i)
 ENDDO
+cr_anis(:, 0:ntypes) = 0.0_PREC_DP
+IF(has_anis /= 0) cr_anis(:, 1:ntypes) = anis
 werte = 0.0_PREC_DP
 ianz = 0
 CALL spcgr_no(ianz, MAXW, werte)               ! space group number, crystal system
@@ -629,12 +637,254 @@ CALL setup_lattice(cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, cr_rten, cr_win, cr_w
                    cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 CALL get_symmetry_matrices
 IF(ier_num /= 0) RETURN
+!  ADPs. prep_anis sets the tensor of the first 5 * cr_ncatoms atoms only.
+!  Here every atom is "first" (cr_iscat(2,i) = 1, nothing is rotated), so
+!  all atoms of a type share one tensor: copy it to the others. If a type
+!  first appears beyond that range, let prep_anis look at every atom.
+ncheck = MIN(cr_natoms, 5 * cr_ncatoms)
+ALLOCATE(type_adp(0:cr_nscat))
+type_adp = 0
+DO i = 1, ncheck
+   type_adp(cr_iscat(1, i)) = 1
+ENDDO
+ncatoms_saved = cr_ncatoms
+IF(ANY(type_adp(1:cr_nscat) == 0)) cr_ncatoms = cr_natoms
 CALL prep_anis(cr_natoms, .TRUE.)
+cr_ncatoms = ncatoms_saved
 IF(ier_num /= 0) RETURN
+type_adp = 0
+DO i = 1, cr_natoms
+   IF(type_adp(cr_iscat(1, i)) == 0) type_adp(cr_iscat(1, i)) = cr_iscat(3, i)
+   IF(i > ncheck) cr_iscat(3, i) = type_adp(cr_iscat(1, i))
+ENDDO
+DEALLOCATE(type_adp)
 CALL do_stack_rese
 four_last = FOUR_NN
 END SUBROUTINE set_it
 !
 END FUNCTION capi_set_crystal
+!
+!*******************************************************************************
+!  Displacement parameters (WP3, third slice)
+!*******************************************************************************
+!
+FUNCTION capi_get_type_anis(ntypes, anis) BIND(C, NAME='dc_get_type_anis') RESULT(ok)
+!
+!  The ADPs of the atom types 0..ntypes as given (file or dc_set_crystal):
+!  anis(6, 0:ntypes) = U11, U22, U33, U23, U13, U12 (A^2; all 0: isotropic,
+!  from B). Returns 0, or -1 for a wrong ntypes.
+!
+USE crystal_mod, ONLY: cr_nscat, cr_anis
+INTEGER(C_INT),                         VALUE       :: ntypes
+REAL(C_DOUBLE), DIMENSION(6, 0:ntypes), INTENT(OUT) :: anis
+INTEGER(C_INT) :: ok
+!
+ok = -1
+anis = 0.0_C_DOUBLE
+IF(ntypes /= cr_nscat .OR. .NOT. ALLOCATED(cr_anis)) RETURN
+anis = cr_anis(:, 0:ntypes)
+ok = 0
+!
+END FUNCTION capi_get_type_anis
+!
+!*******************************************************************************
+!
+FUNCTION capi_adp_count() BIND(C, NAME='dc_adp_count') RESULT(n)
+!
+!  Number of distinct displacement tensors DISCUS made from the types and the
+!  symmetry (prep_anis): the list dc_get_adps returns.
+!
+USE crystal_mod, ONLY: cr_nanis
+INTEGER(C_INT64_T) :: n
+n = cr_nanis
+END FUNCTION capi_adp_count
+!
+!*******************************************************************************
+!
+FUNCTION capi_get_adps(nanis, uij, prin) BIND(C, NAME='dc_get_adps') RESULT(ok)
+!
+!  The distinct displacement tensors: uij(6, nanis) = U11, U22, U33, U23,
+!  U13, U12 (A^2, CIF convention) and the principal axes prin(4, 3, nanis):
+!  for axis k, prin(1:3, k, j) the unit vector (Cartesian) and prin(4, k, j)
+!  the mean-square displacement along it. Returns 0, or -1 for a wrong nanis.
+!
+USE crystal_mod, ONLY: cr_nanis, cr_anis_full, cr_prin
+INTEGER(C_INT64_T),                         VALUE       :: nanis
+REAL(C_DOUBLE),     DIMENSION(6, nanis),    INTENT(OUT) :: uij
+REAL(C_DOUBLE),     DIMENSION(4, 3, nanis), INTENT(OUT) :: prin
+INTEGER(C_INT) :: ok
+!
+ok = -1
+uij = 0.0_C_DOUBLE
+prin = 0.0_C_DOUBLE
+IF(nanis /= cr_nanis) RETURN
+ok = 0
+IF(nanis == 0) RETURN
+IF(ALLOCATED(cr_anis_full)) uij  = cr_anis_full(:, 1:nanis)
+IF(ALLOCATED(cr_prin))      prin = cr_prin(:, :, 1:nanis)
+!
+END FUNCTION capi_get_adps
+!
+!*******************************************************************************
+!
+FUNCTION capi_get_atom_adps(n, adp) BIND(C, NAME='dc_get_atom_adps') RESULT(ok)
+!
+!  For each atom, its displacement tensor: index 1..nanis into dc_get_adps.
+!  n must be the number of atoms. Returns 0, or -1 for a wrong n.
+!
+USE crystal_mod, ONLY: cr_natoms, cr_iscat
+INTEGER(C_INT64_T),               VALUE       :: n
+INTEGER(C_INT),     DIMENSION(n), INTENT(OUT) :: adp
+INTEGER(C_INT) :: ok
+INTEGER(C_INT64_T) :: i
+!
+ok = -1
+adp = 0
+IF(n /= cr_natoms) RETURN
+ok = 0
+IF(n == 0 .OR. .NOT. ALLOCATED(cr_iscat)) RETURN
+DO i = 1, n
+   adp(i) = cr_iscat(3, i)
+ENDDO
+!
+END FUNCTION capi_get_atom_adps
+!
+!*******************************************************************************
+!  Molecules (WP3, third slice)
+!*******************************************************************************
+!
+SUBROUTINE capi_molecule_size(nmole, ntypes, natoms) BIND(C, NAME='dc_molecule_size')
+!
+!  Number of molecules, of molecule types and of atoms in all molecules.
+!
+USE molecule_mod, ONLY: mole_num_mole, mole_num_type, mole_off, mole_len
+INTEGER(C_INT64_T), INTENT(OUT) :: nmole
+INTEGER(C_INT),     INTENT(OUT) :: ntypes
+INTEGER(C_INT64_T), INTENT(OUT) :: natoms
+!
+nmole  = mole_num_mole
+ntypes = mole_num_type
+natoms = 0
+IF(mole_num_mole > 0) natoms = mole_off(mole_num_mole) + mole_len(mole_num_mole)
+!
+END SUBROUTINE capi_molecule_size
+!
+!*******************************************************************************
+!
+FUNCTION capi_get_molecules(nmole, natoms, mtype, mchar, mlen, atoms) &
+         BIND(C, NAME='dc_get_molecules') RESULT(ok)
+!
+!  The molecules: type, character (0: atoms; 1 cube, 2 cylinder, 3 sphere,
+!  4 edge; negative: domains), number of atoms, and the atoms of all
+!  molecules one after the other (1-based atom numbers; molecule m has
+!  mlen(m) atoms). Returns 0, or -1 for wrong sizes.
+!
+USE molecule_mod, ONLY: mole_num_mole, mole_type, mole_char, mole_off, mole_len, mole_cont
+INTEGER(C_INT64_T),                    VALUE       :: nmole, natoms
+INTEGER(C_INT),     DIMENSION(nmole),  INTENT(OUT) :: mtype, mchar, mlen
+INTEGER(C_INT),     DIMENSION(natoms), INTENT(OUT) :: atoms
+INTEGER(C_INT) :: ok
+INTEGER :: m, k, i
+!
+ok = -1
+mtype = 0
+mchar = 0
+mlen = 0
+atoms = 0
+IF(nmole /= mole_num_mole) RETURN
+IF(nmole > 0) THEN
+   IF(natoms /= mole_off(mole_num_mole) + mole_len(mole_num_mole)) RETURN
+ELSEIF(natoms /= 0) THEN
+   RETURN
+ENDIF
+k = 0
+DO m = 1, mole_num_mole
+   mtype(m) = mole_type(m)
+   mchar(m) = mole_char(m)
+   mlen(m)  = mole_len(m)
+   DO i = 1, mole_len(m)
+      k = k + 1
+      atoms(k) = mole_cont(mole_off(m) + i)
+   ENDDO
+ENDDO
+ok = 0
+!
+END FUNCTION capi_get_molecules
+!
+!*******************************************************************************
+!
+FUNCTION capi_set_molecules(nmole, natoms, mtype, mlen, atoms) &
+         BIND(C, NAME='dc_set_molecules') RESULT(ok)
+!
+!  Group atoms of the crystal DISCUS holds into molecules (after
+!  dc_set_crystal): molecule m has type mtype(m) (1, 2, ...) and the
+!  mlen(m) atoms that follow in atoms (1-based atom numbers). Replaces all
+!  molecules; character "atoms" (0). Returns 0, or -1 (error recorded).
+!
+USE crystal_mod,   ONLY: cr_natoms, cr_prop, cr_mole
+USE molecule_mod
+USE prop_para_mod, ONLY: PROP_MOLECULE
+USE discus_allocate_appl_mod, ONLY: alloc_molecule
+USE errlist_mod,   ONLY: ier_num, ier_typ, ier_msg, ER_APPL
+USE lib_errlist_func, ONLY: errlist
+USE precision_mod, ONLY: PREC_DP
+INTEGER(C_INT64_T),                    VALUE      :: nmole, natoms
+INTEGER(C_INT),     DIMENSION(nmole),  INTENT(IN) :: mtype, mlen
+INTEGER(C_INT),     DIMENSION(natoms), INTENT(IN) :: atoms
+INTEGER(C_INT) :: ok
+INTEGER :: m, i, k, ntype
+!
+ok = -1
+IF(SUM(INT(mlen, C_INT64_T)) /= natoms .OR. ANY(mlen < 1) .OR. ANY(mtype < 1) .OR. &
+   ANY(atoms < 1) .OR. ANY(atoms > cr_natoms)) THEN
+   ier_num = -6
+   ier_typ = ER_APPL
+   ier_msg(1) = 'dc_set_molecules: sizes, types or atom numbers out of range'
+   CALL errlist
+   RETURN
+ENDIF
+!  Forget the old molecules
+DO i = 1, cr_natoms
+   cr_mole(i) = 0
+   cr_prop(i) = IBCLR(cr_prop(i), PROP_MOLECULE)
+ENDDO
+ntype = 0
+IF(nmole > 0) ntype = MAXVAL(mtype)
+IF(nmole > MOLE_MAX_MOLE .OR. ntype > MOLE_MAX_TYPE .OR. natoms > MOLE_MAX_ATOM) THEN
+   CALL alloc_molecule(MAX(1, MOLE_MAX_GENE), MAX(1, MOLE_MAX_SYMM), MAX(INT(nmole) + 1, MOLE_MAX_MOLE), &
+                       MAX(ntype + 1, MOLE_MAX_TYPE), MAX(INT(natoms) + 1, MOLE_MAX_ATOM))
+   IF(ier_num /= 0) THEN
+      CALL errlist
+      RETURN
+   ENDIF
+ENDIF
+mole_num_mole = INT(nmole)
+mole_num_type = ntype
+mole_num_curr = 0
+k = 0
+DO m = 1, mole_num_mole
+   mole_type(m) = mtype(m)
+   mole_char(m) = MOLE_ATOM
+   mole_dens(m) = 0.0_PREC_DP
+   mole_file(m) = ' '
+   mole_fuzzy(m) = 0.0_PREC_DP
+   mole_off(m)  = k
+   mole_len(m)  = mlen(m)
+   DO i = 1, mlen(m)
+      k = k + 1
+      mole_cont(k) = atoms(k)
+      cr_mole(atoms(k)) = m
+      cr_prop(atoms(k)) = IBSET(cr_prop(atoms(k)), PROP_MOLECULE)
+   ENDDO
+ENDDO
+mole_num_atom = k
+IF(ntype > 0) THEN
+   mole_biso(1:ntype) = 0.0_PREC_DP
+   mole_clin(1:ntype) = 0.0_PREC_DP
+   mole_cqua(1:ntype) = 0.0_PREC_DP
+ENDIF
+ok = 0
+!
+END FUNCTION capi_set_molecules
 !
 END MODULE diffuse_capi
