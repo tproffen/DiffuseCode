@@ -49,6 +49,7 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="WP3 next steps: asymmetric unit from Python, and the option E pilot" href="WP3_Next_Steps.html" />
     <link rel="prev" title="WP2 – Core infrastructure: survey and first step" href="WP2_Core_Survey.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
@@ -208,6 +209,13 @@
 <li class=" current active">
   <a class="nav-link dropdown-item nav-internal" href="#" aria-current="page">
     WP2 – Binding decision: f2py or a C interface
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="WP3_Next_Steps.html">
+    WP3 next steps: asymmetric unit from Python, and the option E pilot
   </a>
 </li>
 
@@ -375,6 +383,13 @@
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="#" aria-current="page">
     WP2 – Binding decision: f2py or a C interface
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="WP3_Next_Steps.html">
+    WP3 next steps: asymmetric unit from Python, and the option E pilot
   </a>
 </li>
 
@@ -724,7 +739,11 @@ of saving and parsing a <code class="docutils literal notranslate"><span class="
 crystal from arrays, following the steps of <code class="docutils literal notranslate"><span class="pre">read</span> <span class="pre">stru</span></code> (reset,
 allocate, header, atoms, cell counts, lattice, symmetry matrices, ADPs);
 on an error it calls <code class="docutils literal notranslate"><span class="pre">errlist</span></code>, so <code class="docutils literal notranslate"><span class="pre">dc_last_error</span></code> has the message.
-Python: <code class="docutils literal notranslate"><span class="pre">dc.make_crystal</span></code>, <code class="docutils literal notranslate"><span class="pre">dc.from_ase</span></code>, <code class="docutils literal notranslate"><span class="pre">Crystal.to_ase</span></code>.</p></li>
+Python: <code class="docutils literal notranslate"><span class="pre">dc.make_crystal</span></code>, <code class="docutils literal notranslate"><span class="pre">dc.from_ase</span></code>, <code class="docutils literal notranslate"><span class="pre">Crystal.to_ase</span></code>.
+<em>ADPs and molecules (Nov 2026, version 4):</em> <code class="docutils literal notranslate"><span class="pre">dc_get_type_anis</span></code>,
+<code class="docutils literal notranslate"><span class="pre">dc_adp_count</span></code>/<code class="docutils literal notranslate"><span class="pre">dc_get_adps</span></code>/<code class="docutils literal notranslate"><span class="pre">dc_get_atom_adps</span></code> (distinct tensors,
+principal axes, tensor per atom), <code class="docutils literal notranslate"><span class="pre">dc_set_crystal</span></code> with per-type tensors,
+<code class="docutils literal notranslate"><span class="pre">dc_molecule_size</span></code>/<code class="docutils literal notranslate"><span class="pre">dc_get_molecules</span></code>/<code class="docutils literal notranslate"><span class="pre">dc_set_molecules</span></code>.</p></li>
 </ol>
 </section>
 <section id="risks-and-how-to-handle-them">
@@ -985,7 +1004,7 @@ seam.</p>
 <li><p>Plan rule: a core area moves out of Fortran only with a concrete reason
 (speed, GPU, maintainability, a missing expert) and only once golden
 tests cover it; otherwise it stays Fortran behind the C interface.</p></li>
-<li><p>A pilot: one well-tested kernel – powder (Debye) or PDF – reimplemented
+<li><p>A pilot (detailed plan in <code class="docutils literal notranslate"><span class="pre">WP3_Next_Steps.md</span></code>, section 2): one well-tested kernel – powder (Debye) or PDF – reimplemented
 both in C++ and in Python with NumPy/Numba, compared with the Fortran
 for results (golden tests), speed and effort. About 1–2 weeks; it gives
 measured numbers instead of the estimates above before anything larger
@@ -1033,6 +1052,15 @@ Only <code class="docutils literal notranslate"><span class="pre">_session.py</s
         <p class="prev-next-subtitle">previous</p>
         <p class="prev-next-title">WP2 – Core infrastructure: survey and first step</p>
       </div>
+    </a>
+    <a class="right-next"
+       href="WP3_Next_Steps.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">WP3 next steps: asymmetric unit from Python, and the option E pilot</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>

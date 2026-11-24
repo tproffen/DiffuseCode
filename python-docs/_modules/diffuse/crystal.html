@@ -209,6 +209,13 @@
   </a>
 </li>
 
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../_generated/migration/WP3_Next_Steps.html">
+    WP3 next steps: asymmetric unit from Python, and the option E pilot
+  </a>
+</li>
+
                 </ul>
             </li>
             
@@ -371,6 +378,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../_generated/migration/WP2_Binding_Decision.html">
     WP2 – Binding decision: f2py or a C interface
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../_generated/migration/WP3_Next_Steps.html">
+    WP3 next steps: asymmetric unit from Python, and the option E pilot
   </a>
 </li>
 
@@ -599,6 +613,45 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_types</span></div>
 
 
+<div class="viewcode-block" id="Crystal.adps">
+<a class="viewcode-back" href="../../api.html#diffuse.Crystal.adps">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">adps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Anisotropic displacement parameters of every atom.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray of float, shape (natoms, 6)</span>
+<span class="sd">            U11, U22, U33, U23, U13, U12 in Å² (the CIF convention), as</span>
+<span class="sd">            DISCUS uses them: symmetry-equivalent atoms carry the rotated</span>
+<span class="sd">            tensor; an isotropic atom has the tensor of its B</span>
+<span class="sd">            (U = B / 8 pi^2).</span>
+<span class="sd">        """</span>
+        <span class="n">_ensure_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">uij</span><span class="p">,</span> <span class="n">_prin</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">session</span><span class="p">()</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">adps</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">uij</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">natoms</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">uij</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Crystal.molecules">
+<a class="viewcode-back" href="../../api.html#diffuse.Crystal.molecules">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">molecules</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""The molecules DISCUS holds.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        types : numpy.ndarray of int, shape (nmolecules,)</span>
+<span class="sd">            Molecule type of each molecule (1, 2, ...).</span>
+<span class="sd">        atoms : list of numpy.ndarray of int</span>
+<span class="sd">            For each molecule, its atoms as 0-based indices into</span>
+<span class="sd">            :meth:`atoms`.</span>
+<span class="sd">        """</span>
+        <span class="n">_ensure_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">mtype</span><span class="p">,</span> <span class="n">_mchar</span><span class="p">,</span> <span class="n">mlen</span><span class="p">,</span> <span class="n">flat</span> <span class="o">=</span> <span class="n">session</span><span class="p">()</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">molecules</span><span class="p">()</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">mlen</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">mtype</span><span class="p">,</span> <span class="p">[</span><span class="n">flat</span><span class="p">[</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mlen</span><span class="p">))]</span></div>
+
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_read_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Fill the caches from DISCUS's crystal arrays (C interface)."""</span>
         <span class="n">_ensure_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -619,7 +672,8 @@
 <span class="sd">        boundaries; positions are Cartesian, in the orientation of</span>
 <span class="sd">        :meth:`lattice_vectors`. Element symbols come from the DISCUS atom</span>
 <span class="sd">        names (``"TI4+"`` becomes ``"Ti"``); the names themselves are kept</span>
-<span class="sd">        in ``atoms.arrays["discus_names"]``.</span>
+<span class="sd">        in ``atoms.arrays["discus_names"]``, the displacement tensors of</span>
+<span class="sd">        :meth:`adps` in ``atoms.arrays["discus_u_aniso"]``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -635,6 +689,7 @@
         <span class="n">atoms</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">Atoms</span><span class="p">(</span><span class="n">symbols</span><span class="o">=</span><span class="p">[</span><span class="n">_element</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">],</span> <span class="n">positions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cartesian</span><span class="p">(),</span>
                           <span class="n">cell</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">()</span> <span class="o">*</span> <span class="n">cells</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">pbc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">atoms</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s2">"discus_names"</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"U4"</span><span class="p">))</span>
+        <span class="n">atoms</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s2">"discus_u_aniso"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adps</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">atoms</span></div>
 
 
@@ -914,8 +969,9 @@
 <div class="viewcode-block" id="make_crystal">
 <a class="viewcode-back" href="../../api.html#diffuse.make_crystal">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_crystal</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">space_group</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"P1"</span><span class="p">,</span>
-                 <span class="n">b_iso</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">occupancy</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-                 <span class="n">cells</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">types</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Crystal</span><span class="p">:</span>
+                 <span class="n">b_iso</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">occupancy</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">u_aniso</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">cells</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">types</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">molecules</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">molecule_types</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Crystal</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Make a crystal in DISCUS from arrays: every atom, no file.</span>
 
 <span class="sd">    Parameters</span>
@@ -936,6 +992,11 @@
 <span class="sd">        one per name (``{"NI": 0.4}``) or one per atom. Default 0.</span>
 <span class="sd">    occupancy : float, dict or array_like, optional</span>
 <span class="sd">        Occupancy, given the same ways. Default 1.</span>
+<span class="sd">    u_aniso : dict or array_like, optional</span>
+<span class="sd">        Anisotropic displacement parameters U11, U22, U33, U23, U13, U12 in</span>
+<span class="sd">        Å² (the CIF convention), per name (``{"O": (u11, ..., u12)}``) or per</span>
+<span class="sd">        atom, shape (natoms, 6). DISCUS then derives B from them. Default:</span>
+<span class="sd">        isotropic, from ``b_iso``.</span>
 <span class="sd">    cells : tuple of 3 int, optional</span>
 <span class="sd">        Number of unit cells along a, b and c that ``positions`` fill;</span>
 <span class="sd">        atoms per cell = natoms / product(cells). Default (1, 1, 1).</span>
@@ -943,11 +1004,16 @@
 <span class="sd">        A label per atom that splits atoms of the same name, B and</span>
 <span class="sd">        occupancy into separate types (for example by crystallographic</span>
 <span class="sd">        site, as DISCUS does for the sites of a ``.cell`` file).</span>
+<span class="sd">    molecules : sequence of sequences of int, optional</span>
+<span class="sd">        Atoms (0-based indices into ``names``) that form each molecule.</span>
+<span class="sd">    molecule_types : sequence of int, optional</span>
+<span class="sd">        Type (1, 2, ...) of each molecule. Default: all type 1.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    As in DISCUS, an atom type is a name together with its B and occupancy:</span>
-<span class="sd">    two oxygen sites with different B are two types, both named ``"O"``.</span>
+<span class="sd">    As in DISCUS, an atom type is a name together with its B, occupancy and</span>
+<span class="sd">    anisotropic ADPs: two oxygen sites with different B are two types, both</span>
+<span class="sd">    named ``"O"``.</span>
 <span class="sd">    Types are numbered in the order they first appear.</span>
 
 <span class="sd">    Returns</span>
@@ -1006,22 +1072,55 @@
         <span class="k">return</span> <span class="n">value</span>
 
     <span class="n">b_atom</span><span class="p">,</span> <span class="n">occ_atom</span> <span class="o">=</span> <span class="n">per_atom</span><span class="p">(</span><span class="n">b_iso</span><span class="p">,</span> <span class="s2">"b_iso"</span><span class="p">),</span> <span class="n">per_atom</span><span class="p">(</span><span class="n">occupancy</span><span class="p">,</span> <span class="s2">"occupancy"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">u_aniso</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">u_atom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u_aniso</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">u_aniso</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">u_aniso</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">u_atom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">u_aniso</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,)</span> <span class="o">*</span> <span class="mi">6</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">u_atom</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="mi">6</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"u_aniso per name needs six values U11, U22, U33, U23, U13, U12"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">u_atom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">u_aniso</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">u_atom</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="mi">6</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"u_aniso needs shape (natoms, 6), not </span><span class="si">{</span><span class="n">u_atom</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">types</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">types</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"types needs one label per atom, not shape </span><span class="si">{</span><span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="c1"># A type is (name, B, occupancy[, label]), numbered in order of first appearance</span>
+    <span class="c1"># A type is (name, B, occupancy, U[, label]), numbered in order of first appearance</span>
     <span class="n">index</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">types</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">b_atom</span><span class="p">,</span> <span class="n">occ_atom</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">tolist</span><span class="p">())):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">b_atom</span><span class="p">,</span> <span class="n">occ_atom</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">u_atom</span><span class="o">.</span><span class="n">tolist</span><span class="p">()),</span>
+                                <span class="n">labels</span><span class="o">.</span><span class="n">tolist</span><span class="p">())):</span>
         <span class="n">types</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">molecules</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">members</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">molecules</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">members</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"every molecule needs at least one atom"</span><span class="p">)</span>
+        <span class="n">flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">members</span><span class="p">)</span> <span class="k">if</span> <span class="n">members</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">flat</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"molecule atom indices must be 0 .. natoms-1"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">flat</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">flat</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"an atom is in more than one molecule"</span><span class="p">)</span>
+        <span class="n">mtypes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">members</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="k">if</span> <span class="n">molecule_types</span> <span class="ow">is</span> <span class="kc">None</span> \
+            <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">molecule_types</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mtypes</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">members</span><span class="p">),)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtypes</span><span class="p">)</span> <span class="ow">and</span> <span class="n">mtypes</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"molecule_types needs one type &gt;= 1 per molecule"</span><span class="p">)</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">types</span><span class="o">=</span><span class="n">mtypes</span><span class="p">,</span> <span class="n">lengths</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">members</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+                   <span class="n">atoms</span><span class="o">=</span><span class="n">flat</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">molecule_types</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"molecule_types without molecules"</span><span class="p">)</span>
     <span class="n">arrays</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">lattice</span><span class="o">=</span><span class="n">lattice</span><span class="p">,</span> <span class="n">space_group</span><span class="o">=</span><span class="n">space_group</span><span class="p">,</span> <span class="n">cells</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span> <span class="n">atoms_per_cell</span><span class="o">=</span><span class="n">per_cell</span><span class="p">,</span>
                   <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">],</span> <span class="n">b_iso</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]),</span>
-                  <span class="n">occupancy</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]),</span> <span class="n">positions</span><span class="o">=</span><span class="n">xyz</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="n">types</span><span class="p">,</span>
-                  <span class="n">properties</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>   <span class="c1"># 1: a normal atom</span>
+                  <span class="n">occupancy</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]),</span>
+                  <span class="n">u_aniso</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">])</span> <span class="k">if</span> <span class="n">u_aniso</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                  <span class="n">positions</span><span class="o">=</span><span class="n">xyz</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="n">types</span><span class="p">,</span>
+                  <span class="n">properties</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>   <span class="c1"># 1: a normal atom</span>
+                  <span class="n">molecules</span><span class="o">=</span><span class="n">mol</span><span class="p">)</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">session</span><span class="p">()</span>
     <span class="n">_send_arrays</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span>
     <span class="n">lattice</span><span class="p">,</span> <span class="n">space_group</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">_per_cell</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">cell</span><span class="p">()</span>
@@ -1034,7 +1133,7 @@
 
 <div class="viewcode-block" id="from_ase">
 <a class="viewcode-back" href="../../api.html#diffuse.from_ase">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">from_ase</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">b_iso</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">occupancy</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">from_ase</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">b_iso</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">occupancy</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">u_aniso</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">space_group</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"P1"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Crystal</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Make a crystal in DISCUS from an ASE ``Atoms`` object.</span>
 
@@ -1042,13 +1141,14 @@
 <span class="sd">    space group, so the crystal is P1 unless ``space_group`` says</span>
 <span class="sd">    otherwise). Atom names are the element symbols in capitals, or</span>
 <span class="sd">    ``atoms.arrays["discus_names"]`` if present (as :meth:`Crystal.to_ase`</span>
-<span class="sd">    sets it).</span>
+<span class="sd">    sets it); ``atoms.arrays["discus_u_aniso"]``, if present and</span>
+<span class="sd">    ``u_aniso`` is not given, gives the displacement tensors.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    atoms : ase.Atoms</span>
 <span class="sd">        A periodic structure with a cell.</span>
-<span class="sd">    b_iso, occupancy, space_group</span>
+<span class="sd">    b_iso, occupancy, u_aniso, space_group</span>
 <span class="sd">        As for :func:`make_crystal`.</span>
 
 <span class="sd">    Returns</span>
@@ -1069,8 +1169,10 @@
         <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">atoms</span><span class="o">.</span><span class="n">arrays</span><span class="p">[</span><span class="s2">"discus_names"</span><span class="p">]]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">atoms</span><span class="o">.</span><span class="n">get_chemical_symbols</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="n">u_aniso</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">"discus_u_aniso"</span> <span class="ow">in</span> <span class="n">atoms</span><span class="o">.</span><span class="n">arrays</span><span class="p">:</span>
+        <span class="n">u_aniso</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">atoms</span><span class="o">.</span><span class="n">arrays</span><span class="p">[</span><span class="s2">"discus_u_aniso"</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">make_crystal</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">cellpar</span><span class="p">()),</span> <span class="n">names</span><span class="p">,</span> <span class="n">atoms</span><span class="o">.</span><span class="n">get_scaled_positions</span><span class="p">(</span><span class="n">wrap</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-                        <span class="n">space_group</span><span class="o">=</span><span class="n">space_group</span><span class="p">,</span> <span class="n">b_iso</span><span class="o">=</span><span class="n">b_iso</span><span class="p">,</span> <span class="n">occupancy</span><span class="o">=</span><span class="n">occupancy</span><span class="p">)</span></div>
+                        <span class="n">space_group</span><span class="o">=</span><span class="n">space_group</span><span class="p">,</span> <span class="n">b_iso</span><span class="o">=</span><span class="n">b_iso</span><span class="p">,</span> <span class="n">occupancy</span><span class="o">=</span><span class="n">occupancy</span><span class="p">,</span> <span class="n">u_aniso</span><span class="o">=</span><span class="n">u_aniso</span><span class="p">)</span></div>
 
 
 
@@ -1080,10 +1182,13 @@
     <span class="n">ok</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">set_crystal</span><span class="p">(</span><span class="n">arrays</span><span class="p">[</span><span class="s2">"lattice"</span><span class="p">],</span> <span class="n">arrays</span><span class="p">[</span><span class="s2">"space_group"</span><span class="p">],</span> <span class="n">arrays</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">],</span>
                           <span class="n">arrays</span><span class="p">[</span><span class="s2">"atoms_per_cell"</span><span class="p">],</span> <span class="n">arrays</span><span class="p">[</span><span class="s2">"names"</span><span class="p">],</span> <span class="n">arrays</span><span class="p">[</span><span class="s2">"b_iso"</span><span class="p">],</span>
                           <span class="n">arrays</span><span class="p">[</span><span class="s2">"occupancy"</span><span class="p">],</span> <span class="n">arrays</span><span class="p">[</span><span class="s2">"positions"</span><span class="p">],</span> <span class="n">arrays</span><span class="p">[</span><span class="s2">"types"</span><span class="p">],</span>
-                          <span class="n">arrays</span><span class="p">[</span><span class="s2">"properties"</span><span class="p">])</span>
+                          <span class="n">arrays</span><span class="p">[</span><span class="s2">"properties"</span><span class="p">],</span> <span class="n">arrays</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"u_aniso"</span><span class="p">))</span>
     <span class="n">s</span><span class="o">.</span><span class="n">current_crystal</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">s</span><span class="o">.</span><span class="n">_error</span><span class="p">(</span><span class="s2">"DISCUS refused the crystal"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">arrays</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"molecules"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">set_molecules</span><span class="p">(</span><span class="n">mol</span><span class="p">[</span><span class="s2">"types"</span><span class="p">],</span> <span class="n">mol</span><span class="p">[</span><span class="s2">"lengths"</span><span class="p">],</span> <span class="n">mol</span><span class="p">[</span><span class="s2">"atoms"</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="n">s</span><span class="o">.</span><span class="n">_error</span><span class="p">(</span><span class="s2">"DISCUS refused the molecules"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_cells_now</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>

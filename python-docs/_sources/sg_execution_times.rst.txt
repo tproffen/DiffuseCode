@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:02.189** total execution time for 5 files **from all galleries**:
+**00:03.012** total execution time for 5 files **from all galleries**:
 
 .. container::
 
@@ -33,17 +33,17 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_gallery_fourier_demo.py` (``../python/examples/fourier_demo.py``)
-     - 00:01.165
+     - 00:01.571
      - 0.0
    * - :ref:`sphx_glr_gallery_crystals_from_python.py` (``../python/examples/crystals_from_python.py``)
-     - 00:00.619
+     - 00:00.875
      - 0.0
    * - :ref:`sphx_glr_gallery_powder_demo.py` (``../python/examples/powder_demo.py``)
-     - 00:00.197
+     - 00:00.269
      - 0.0
    * - :ref:`sphx_glr_gallery_pdf_demo.py` (``../python/examples/pdf_demo.py``)
-     - 00:00.166
+     - 00:00.232
      - 0.0
    * - :ref:`sphx_glr_gallery_errors_and_seeds.py` (``../python/examples/errors_and_seeds.py``)
-     - 00:00.043
+     - 00:00.066
      - 0.0

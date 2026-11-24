@@ -146,6 +146,10 @@ Steps, each with green CI before the next:
    allocate, header, atoms, cell counts, lattice, symmetry matrices, ADPs);
    on an error it calls `errlist`, so `dc_last_error` has the message.
    Python: `dc.make_crystal`, `dc.from_ase`, `Crystal.to_ase`.
+   *ADPs and molecules (Nov 2026, version 4):* `dc_get_type_anis`,
+   `dc_adp_count`/`dc_get_adps`/`dc_get_atom_adps` (distinct tensors,
+   principal axes, tensor per atom), `dc_set_crystal` with per-type tensors,
+   `dc_molecule_size`/`dc_get_molecules`/`dc_set_molecules`.
 
 ## Risks and how to handle them
 
@@ -336,7 +340,7 @@ seam.
 2. Plan rule: a core area moves out of Fortran only with a concrete reason
    (speed, GPU, maintainability, a missing expert) and only once golden
    tests cover it; otherwise it stays Fortran behind the C interface.
-3. A pilot: one well-tested kernel – powder (Debye) or PDF – reimplemented
+3. A pilot (detailed plan in `WP3_Next_Steps.md`, section 2): one well-tested kernel – powder (Debye) or PDF – reimplemented
    both in C++ and in Python with NumPy/Numba, compared with the Fortran
    for results (golden tests), speed and effort. About 1–2 weeks; it gives
    measured numbers instead of the estimates above before anything larger

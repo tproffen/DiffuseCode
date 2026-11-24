@@ -212,6 +212,13 @@
   </a>
 </li>
 
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="WP3_Next_Steps.html">
+    WP3 next steps: asymmetric unit from Python, and the option E pilot
+  </a>
+</li>
+
                 </ul>
             </li>
             
@@ -376,6 +383,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="WP2_Binding_Decision.html">
     WP2 – Binding decision: f2py or a C interface
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="WP3_Next_Steps.html">
+    WP3 next steps: asymmetric unit from Python, and the option E pilot
   </a>
 </li>
 
@@ -934,9 +948,12 @@ group, positions, types, properties, molecules, B, occupancies; checked
 against <code class="docutils literal notranslate"><span class="pre">save</span></code> output for nine structures) and crystal <em>in</em>
 (<code class="docutils literal notranslate"><span class="pre">dc_set_crystal</span></code>, <code class="docutils literal notranslate"><span class="pre">dc.make_crystal</span></code>, <code class="docutils literal notranslate"><span class="pre">dc.from_ase</span></code>; the round trip gives
 identical arrays for the nine structures, and powder, Fourier and PDF equal
-those of the same structure read from its file). Next: anisotropic ADPs,
-molecules as objects, an asymmetric unit plus space group from Python, and
-the readers/writers.</p>
+those of the same structure read from its file); anisotropic ADPs
+(<code class="docutils literal notranslate"><span class="pre">Crystal.adps()</span></code>, <code class="docutils literal notranslate"><span class="pre">make_crystal(u_aniso=)</span></code>, symmetry-rotated tensors
+checked) and molecules (<code class="docutils literal notranslate"><span class="pre">Crystal.molecules()</span></code>, <code class="docutils literal notranslate"><span class="pre">make_crystal(molecules=)</span></code>).
+Found: <code class="docutils literal notranslate"><span class="pre">save</span></code>/<code class="docutils literal notranslate"><span class="pre">read</span> <span class="pre">stru</span></code> loses symmetry-rotated tensors (strict xfail test).
+Next, detailed in <code class="docutils literal notranslate"><span class="pre">WP3_Next_Steps.md</span></code>: an asymmetric unit plus space group
+from Python (<code class="docutils literal notranslate"><span class="pre">crystal_from_sites</span></code>), and the option E pilot with benchmarks.</p>
 <p><strong>Planned: ASE bridge.</strong> <code class="docutils literal notranslate"><span class="pre">Crystal.to_ase()</span></code> (and <code class="docutils literal notranslate"><span class="pre">from_ase</span></code>) converting to and from an <code class="docutils literal notranslate"><span class="pre">ase.Atoms</span></code> object (cell from <code class="docutils literal notranslate"><span class="pre">Crystal.lattice_vectors()</span></code>, positions from <code class="docutils literal notranslate"><span class="pre">Crystal.cartesian()</span></code>, element symbols from the DISCUS atom names). Opens the ASE ecosystem: its file formats, analysis tools, calculators and viewers (nglview, x3d), without the package maintaining them. Noted Nov 2026 with the py3Dmol viewer (<code class="docutils literal notranslate"><span class="pre">Crystal.view()</span></code>). <em>Done Nov 2026</em> with crystal in: <code class="docutils literal notranslate"><span class="pre">Crystal.to_ase()</span></code> and <code class="docutils literal notranslate"><span class="pre">dc.from_ase()</span></code>; ASE is a default dependency (inclusive install, see WP1).</p>
 <p><strong>Done when:</strong> Round-tripping all golden structures (Python → Fortran → Python) gives identical data, and the files written match the legacy <code class="docutils literal notranslate"><span class="pre">save</span></code> output.</p>
 </section>
