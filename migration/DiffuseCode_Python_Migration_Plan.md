@@ -301,21 +301,26 @@ The results are `xarray` objects with coordinates and metadata, and they can be 
 
 **Done when:** A clean virtual environment can install the wheel and run one smoke test.
 
-**Default install is inclusive (owner, Nov 2026).** A plain `pip install`
-should give a casual user the usual set of tools (plotting, the 3D viewer,
-ASE, Jupyter with interactive plots ...), with a way to leave parts out.
-pip itself can only add extras (`.[name]`), not take them away, so
-"`no-jupyter`, `no-ase`" needs one of:
-* everything in the default dependencies, and a documented lean install:
-  `pip install --no-deps diffuse` plus a short list of the essentials
-  (NumPy); simple, but the lean way is manual;
-* two packages before the first release: `diffuse-core` (NumPy only) and
-  `diffuse` (depends on `diffuse-core` and all the tools); the usual
-  solution, a little more packaging work;
-* conda: a `diffuse` package with everything and a `diffuse-base` without.
-Decide with the first release (wheels, 7.11/7.12). Until then: new tools go
-into the default dependencies (ASE, Nov 2026); Jupyter is still the
-`[jupyter]` extra and moves in the same packaging pass.
+**Default install is inclusive (owner, Nov 2026).** `pip install .` (and
+later `pip install diffuse`) installs everything a casual user wants:
+plotting, the 3D viewer, ASE, Jupyter with interactive plots ... An option
+such as `pip install ".[no-jupyter]"` leaves a part out. Standard pip
+extras only add packages, so this needs:
+* **PEP 771 "default extras"** (the intended solution): the package names
+  default extras (e.g. `jupyter`, `ase`, `viewer`); a bare install gets them
+  all, and naming extras replaces the defaults, so an extra `no-jupyter`
+  that lists everything except `jupyter` does exactly this, and
+  `pip install ".[]"` is the minimal install. As of Nov 2026 the PEP is
+  still under discussion with a prototype in pip, not in a pip release;
+  older installers ignore default extras (install less, not fail).
+* **Until then:** everything in the plain dependencies (ASE since Nov 2026;
+  Jupyter moves there too in the packaging pass), and a documented lean
+  install, `pip install --no-deps .` plus NumPy.
+* **Fallback at the first release** if PEP 771 is not usable: two
+  packages, `diffuse-core` (NumPy only, with opt-in extras) and `diffuse`
+  (depends on `diffuse-core` with all extras); for conda, `diffuse` and
+  `diffuse-base`.
+Decide with the first release (wheels, 7.11/7.12).
 
 **Installation without admin rights.** Many users cannot install system packages (FFTW, HDF5 with Fortran, a Fortran compiler). WP1 should cover them, in this order:
 
