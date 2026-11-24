@@ -30,7 +30,7 @@ Useful options:
 
 | Option | Meaning |
 |---|---|
-| `--exe PATH` | the `discus_suite` binary (or set `$DISCUS_SUITE`, or have it on `PATH`) |
+| `--exe PATH` | the `discus_suite` binary; default: `$DISCUS_SUITE`, then this checkout's `build/suite/prog/discus_suite`, then `PATH` (last, with a warning: an installed copy may be an older working version) |
 | `-j N` | run N tests in parallel (tests tagged `exclusive` still run alone, at the end) |
 | `--tags fast` | only tests with one of these tags (`fast`, `medium`, `slow`, `mc`, …) |
 | `--exclude-tags slow,mpi` | skip tests with these tags (default: `mpi`) |
@@ -76,7 +76,11 @@ test, and also checks the manifest against `test_all.mac`:
 DISCUS_SUITE=/path/to/discus_suite pytest tests/python -m "not slow"
 ```
 
-Without `DISCUS_SUITE` only the manifest checks run.
+`discus_suite` is looked for as with the runner (`$DISCUS_SUITE`, `build/`,
+then `PATH`); the pytest header says which one is used and where it came
+from. Without one, only the manifest checks run. To keep an installed
+working copy next to a development build, set `DISCUS_SUITE` in the
+virtual environment, e.g. in `.diffuse/bin/activate`.
 
 ## 3. Python: `tests/python/test_suite_python.py`, `test_diffuse_api.py`
 

@@ -16,6 +16,22 @@ def pytest_configure(config):
         config.addinivalue_line("markers", f"{tag}: {text}")
 
 
+def pytest_report_header(config):
+    """Say which discus_suite the legacy macro tests use (test_legacy_macros.py)."""
+    import importlib.util
+    from pathlib import Path
+    tool = Path(__file__).resolve().parents[2] / "tools" / "run_legacy_tests.py"
+    spec = importlib.util.spec_from_file_location("_legacy_runner_header", tool)
+    runner = importlib.util.module_from_spec(spec)
+    import sys
+    sys.modules[spec.name] = runner              # needed by dataclasses
+    spec.loader.exec_module(runner)
+    exe, where = runner.find_exe_where(None)
+    if exe is None:
+        return "discus_suite: not found (legacy macro tests skipped; set DISCUS_SUITE)"
+    return runner.describe_exe(exe, where)
+
+
 # ------------------------------------------------------- diffuse
 import os
 import sys
