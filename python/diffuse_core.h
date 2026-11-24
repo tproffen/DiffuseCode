@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-#define DC_API_VERSION      3     /* 2: crystal out, 3: crystal in         */
+#define DC_API_VERSION      4     /* 2: crystal out, 3: in, 4: ADPs, molecules */
 #define DC_ERR_CLASS_LEN    4     /* "COMM", "I/O ", "FORT" ...            */
 #define DC_ERR_TEXT_LEN     45    /* standard message                      */
 #define DC_ERR_MSGS_LEN     560   /* 7 extra lines of 80 characters        */
@@ -77,12 +77,32 @@ int     dc_get_atom_types(int ntypes, char *names,    /* names[ntypes+1][DC_NAME
                           double *biso, double *occ); /* [ntypes+1]; B in A^2       */
 /* Replace the crystal, as "read stru" does for a file: every atom given
  * (the space group is recorded, not applied); types 1..ntypes; names
- * [ntypes][DC_NAME_LEN]; biso, occ [ntypes]; pos [natoms][3] fractional.
- * Returns 0, or -1 with an error for dc_last_error.                        */
+ * [ntypes][DC_NAME_LEN]; biso, occ [ntypes]; if has_anis, anis [ntypes][6]
+ * = U11, U22, U33, U23, U13, U12 in A^2 (CIF convention); pos [natoms][3]
+ * fractional. Returns 0, or -1 with an error for dc_last_error.            */
 int     dc_set_crystal(const double lattice[6], const char *spcgr, int64_t nsp,
                        const int64_t icc[3], int64_t ncatoms,
                        int ntypes, const char *names, const double *biso, const double *occ,
+                       int has_anis, const double *anis,
                        int64_t natoms, const double *pos, const int *type, const int *prop);
+
+/* Displacement parameters. Per type as given (anis [ntypes+1][6]); the
+ * distinct tensors DISCUS made with the symmetry (uij [nanis][6], principal
+ * axes prin [nanis][3][4]: unit vector, then <u^2>), and per atom the
+ * tensor (1..nanis).                                                        */
+int     dc_get_type_anis(int ntypes, double *anis);
+int64_t dc_adp_count(void);
+int     dc_get_adps(int64_t nanis, double *uij, double *prin);
+int     dc_get_atom_adps(int64_t n, int *adp);
+
+/* Molecules: per molecule type, character (0 atoms, 1 cube, 2 cylinder, 3
+ * sphere, 4 edge, < 0 domains) and length; atoms [natoms]: the atoms
+ * (1-based) of all molecules, one molecule after the other.                */
+void    dc_molecule_size(int64_t *nmole, int *ntypes, int64_t *natoms);
+int     dc_get_molecules(int64_t nmole, int64_t natoms, int *type, int *character,
+                         int *length, int *atoms);
+int     dc_set_molecules(int64_t nmole, int64_t natoms, const int *type,
+                         const int *length, const int *atoms);
 
 #ifdef __cplusplus
 }

@@ -19,7 +19,7 @@ import numpy as np
 
 LIBRARY = {"darwin": "libdiffuse_core.dylib", "win32": "diffuse_core.dll"}.get(
     sys.platform, "libdiffuse_core.so")
-API_VERSION = 3              # DC_API_VERSION in diffuse_core.h
+API_VERSION = 4              # DC_API_VERSION in diffuse_core.h
 ERR_LENGTHS = (4, 45, 560)   # DC_ERR_CLASS_LEN, DC_ERR_TEXT_LEN, DC_ERR_MSGS_LEN
 SPCGR_LEN = 16               # DC_SPCGR_LEN
 NAME_LEN = 4                 # DC_NAME_LEN
@@ -114,7 +114,14 @@ _SIGNATURES = {
     "dc_get_atoms": ([_i64, _f64a, _i32a, _i32a, _i32a], _i32),
     "dc_get_atom_types": ([_i32, _chars, _f64a, _f64a], _i32),
     "dc_set_crystal": ([_f64a, _chars, _i64, _i64a, _i64, _i32, _chars, _f64a, _f64a,
-                        _i64, _f64a, _i32a, _i32a], _i32),
+                        _i32, _f64a, _i64, _f64a, _i32a, _i32a], _i32),
+    "dc_get_type_anis": ([_i32, _f64a], _i32),
+    "dc_adp_count": ([], _i64),
+    "dc_get_adps": ([_i64, _f64a, _f64a], _i32),
+    "dc_get_atom_adps": ([_i64, _i32a], _i32),
+    "dc_molecule_size": ([_P(_i64), _P(_i32), _P(_i64)], None),
+    "dc_get_molecules": ([_i64, _i64, _i32a, _i32a, _i32a, _i32a], _i32),
+    "dc_set_molecules": ([_i64, _i64, _i32a, _i32a, _i32a], _i32),
 }
 
 
@@ -248,9 +255,11 @@ class CtypesCore:
         return labels, biso, occ
 
     def set_crystal(self, lattice, space_group: str, cells, atoms_per_cell: int,
-                    names, b_iso, occupancy, positions, types, properties) -> bool:
-        """Replace DISCUS's crystal. names/b_iso/occupancy per type 1..ntypes,
-        positions (natoms, 3), types 1..ntypes. False on a DISCUS error."""
+                    names, b_iso, occupancy, positions, types, properties,
+                    u_aniso=None) -> bool:
+        """Replace DISCUS's crystal. names/b_iso/occupancy (and u_aniso,
+        shape (ntypes, 6), or None) per type 1..ntypes, positions (natoms, 3),
+        types 1..ntypes. False on a DISCUS error."""
         names = list(names)
         if any(len(n.encode()) > NAME_LEN for n in names):
             raise ValueError(f"atom names have at most {NAME_LEN} characters: {names}")
@@ -261,6 +270,52 @@ class CtypesCore:
             np.ascontiguousarray(lattice, dtype=np.float64), sg, len(sg),
             np.ascontiguousarray(cells, dtype=np.int64), int(atoms_per_cell),
             len(names), block, np.ascontiguousarray(b_iso, dtype=np.float64),
-            np.ascontiguousarray(occupancy, dtype=np.float64), len(pos), pos,
+            np.ascontiguousarray(occupancy, dtype=np.float64),
+            0 if u_aniso is None else 1,
+            np.ascontiguousarray(np.zeros((len(names), 6)) if u_aniso is None else u_aniso,
+                                 dtype=np.float64).reshape(-1),
+            len(pos), pos,
             np.ascontiguousarray(types, dtype=np.int32),
             np.ascontiguousarray(properties, dtype=np.int32)) == 0
+
+    # -- displacement parameters ---------------------------------------------
+    def type_anis(self) -> np.ndarray:
+        """ADPs of the types 0..ntypes as given, shape (ntypes+1, 6)"""
+        ntypes = self.crystal_size()[1]
+        out = np.zeros((ntypes + 1, 6), np.float64)
+        if self._lib.dc_get_type_anis(ntypes, out):
+            raise RuntimeError("dc_get_type_anis: the number of atom types changed")
+        return out
+
+    def adps(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Distinct tensors (nanis, 6), principal axes (nanis, 3, 4), and per
+        atom the tensor (1-based index)"""
+        nanis = int(self._lib.dc_adp_count())
+        uij, prin = np.zeros((nanis, 6)), np.zeros((nanis, 3, 4))
+        if self._lib.dc_get_adps(nanis, uij, prin):
+            raise RuntimeError("dc_get_adps: the number of tensors changed")
+        n = self.crystal_size()[0]
+        index = np.zeros(n, np.int32)
+        if self._lib.dc_get_atom_adps(n, index):
+            raise RuntimeError("dc_get_atom_adps: the number of atoms changed")
+        return uij, prin, index
+
+    # -- molecules ---------------------------------------------------------------
+    def molecules(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Per molecule: type, character, number of atoms; and all their atoms
+        (1-based), one molecule after the other"""
+        nmole, ntypes, natoms = _i64(), _i32(), _i64()
+        self._lib.dc_molecule_size(ctypes.byref(nmole), ctypes.byref(ntypes), ctypes.byref(natoms))
+        mtype, mchar, mlen = (np.zeros(nmole.value, np.int32) for _ in range(3))
+        atoms = np.zeros(natoms.value, np.int32)
+        if self._lib.dc_get_molecules(nmole.value, natoms.value, mtype, mchar, mlen, atoms):
+            raise RuntimeError("dc_get_molecules: sizes changed")
+        return mtype, mchar, mlen, atoms
+
+    def set_molecules(self, types, lengths, atoms) -> bool:
+        """Replace the molecules: per molecule its type (1, 2 ...) and number
+        of atoms, and all their atoms (1-based). False on a DISCUS error."""
+        types = np.ascontiguousarray(types, dtype=np.int32)
+        lengths = np.ascontiguousarray(lengths, dtype=np.int32)
+        atoms = np.ascontiguousarray(atoms, dtype=np.int32)
+        return self._lib.dc_set_molecules(len(types), len(atoms), types, lengths, atoms) == 0

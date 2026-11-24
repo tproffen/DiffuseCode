@@ -364,9 +364,12 @@ group, positions, types, properties, molecules, B, occupancies; checked
 against `save` output for nine structures) and crystal *in*
 (`dc_set_crystal`, `dc.make_crystal`, `dc.from_ase`; the round trip gives
 identical arrays for the nine structures, and powder, Fourier and PDF equal
-those of the same structure read from its file). Next: anisotropic ADPs,
-molecules as objects, an asymmetric unit plus space group from Python, and
-the readers/writers.
+those of the same structure read from its file); anisotropic ADPs
+(`Crystal.adps()`, `make_crystal(u_aniso=)`, symmetry-rotated tensors
+checked) and molecules (`Crystal.molecules()`, `make_crystal(molecules=)`).
+Found: `save`/`read stru` loses symmetry-rotated tensors (strict xfail test).
+Next, detailed in `WP3_Next_Steps.md`: an asymmetric unit plus space group
+from Python (`crystal_from_sites`), and the option E pilot with benchmarks.
 
 **Planned: ASE bridge.** `Crystal.to_ase()` (and `from_ase`) converting to and from an `ase.Atoms` object (cell from `Crystal.lattice_vectors()`, positions from `Crystal.cartesian()`, element symbols from the DISCUS atom names). Opens the ASE ecosystem: its file formats, analysis tools, calculators and viewers (nglview, x3d), without the package maintaining them. Noted Nov 2026 with the py3Dmol viewer (`Crystal.view()`). *Done Nov 2026* with crystal in: `Crystal.to_ase()` and `dc.from_ase()`; ASE is a default dependency (inclusive install, see WP1).
 

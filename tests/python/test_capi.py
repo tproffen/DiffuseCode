@@ -15,6 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 REPO = Path(__file__).resolve().parents[2]
@@ -67,7 +68,13 @@ sig = {
     "dc_get_cell": ([f64a, ch, i64a, P(i64)], None),
     "dc_get_atoms": ([i64, f64a, i32a, i32a, i32a], i32),
     "dc_get_atom_types": ([i32, ch, f64a, f64a], i32),
-    "dc_set_crystal": ([f64a, ch, i64, i64a, i64, i32, ch, f64a, f64a, i64, f64a, i32a, i32a], i32),
+    "dc_set_crystal": ([f64a, ch, i64, i64a, i64, i32, ch, f64a, f64a, i32, f64a,
+                        i64, f64a, i32a, i32a], i32),
+    "dc_get_type_anis": ([i32, f64a], i32), "dc_adp_count": ([], i64),
+    "dc_get_adps": ([i64, f64a, f64a], i32), "dc_get_atom_adps": ([i64, i32a], i32),
+    "dc_molecule_size": ([P(i64), P(i32), P(i64)], None),
+    "dc_get_molecules": ([i64, i64, i32a, i32a, i32a, i32a], i32),
+    "dc_set_molecules": ([i64, i64, i32a, i32a, i32a], i32),
 }
 for name, (args, res) in sig.items():
     f = getattr(lib, name); f.argtypes = args; f.restype = res
@@ -159,8 +166,25 @@ r["types_bad_n"] = lib.dc_get_atom_types(nt.value + 1, ctypes.create_string_buff
 lat = np.array([5.0, 5.0, 5.0, 90.0, 90.0, 90.0]); sg = b"F m -3 m"
 pos_in = np.array([[0, 0, 0], [0.5, 0.5, 0.5], [1, 0, 0], [1.5, 0.5, 0.5]], float)
 ty_in = np.array([1, 2, 1, 2], np.int32); pr_in = np.ones(4, np.int32)
+anis_in = np.array([[0.01, 0.01, 0.01, 0, 0, 0], [0.02, 0.02, 0.02, 0, 0, 0]], float)
 r["set"] = lib.dc_set_crystal(lat, sg, len(sg), np.array([2, 1, 1], np.int64), 2, 2, b"NA  CL  ",
-                              np.array([0.5, 0.7]), np.array([1.0, 1.0]), 4, pos_in, ty_in, pr_in)
+                              np.array([0.5, 0.7]), np.array([1.0, 1.0]), 1, anis_in.ravel(),
+                              4, pos_in, ty_in, pr_in)
+ta = np.zeros((3, 6)); r["type_anis"] = [lib.dc_get_type_anis(2, ta), ta.tolist()]
+nan = lib.dc_adp_count(); uij = np.zeros((nan, 6)); prin = np.zeros((nan, 3, 4))
+r["adps"] = [nan, lib.dc_get_adps(nan, uij, prin), uij.tolist(), prin[:, :, 3].tolist()]
+idx = np.zeros(4, np.int32); r["atom_adps"] = [lib.dc_get_atom_adps(4, idx), idx.tolist()]
+r["adps_bad_n"] = lib.dc_get_adps(nan + 1, np.zeros((nan + 1, 6)), np.zeros((nan + 1, 3, 4)))
+r["set_mol"] = lib.dc_set_molecules(2, 4, np.array([1, 2], np.int32), np.array([2, 2], np.int32),
+                                    np.array([1, 2, 3, 4], np.int32))
+nm, nmt, nma = i64(), i32(), i64()
+lib.dc_molecule_size(ctypes.byref(nm), ctypes.byref(nmt), ctypes.byref(nma))
+mt, mc, ml = (np.zeros(2, np.int32) for _ in range(3)); ma = np.zeros(4, np.int32)
+r["mol"] = [nm.value, nmt.value, nma.value, lib.dc_get_molecules(2, 4, mt, mc, ml, ma),
+            mt.tolist(), mc.tolist(), ml.tolist(), ma.tolist()]
+lib.dc_clear_error()
+r["set_mol_bad"] = lib.dc_set_molecules(1, 1, np.array([1], np.int32), np.array([1], np.int32),
+                                        np.array([9], np.int32))
 lib.dc_crystal_size(ctypes.byref(na), ctypes.byref(nt)); r["set_size"] = [na.value, nt.value]
 pos = np.zeros((4, 3)); ty, pr, mo = (np.zeros(4, np.int32) for _ in range(3))
 lib.dc_get_atoms(4, pos, ty, pr, mo); r["set_atoms"] = [pos.tolist(), ty.tolist()]
@@ -168,12 +192,14 @@ lib.dc_get_cell(lat, (sgb := ctypes.create_string_buffer(16)), icc, ctypes.byref
 r["set_cell"] = [sgb.raw.decode().strip(), icc.tolist(), nc.value]
 lib.dc_clear_error()
 r["set_bad_type"] = lib.dc_set_crystal(lat, sg, len(sg), np.array([2, 1, 1], np.int64), 2, 2,
-                                       b"NA  CL  ", np.zeros(2), np.ones(2), 4, pos_in,
+                                       b"NA  CL  ", np.zeros(2), np.ones(2), 0, np.zeros(12),
+                                       4, pos_in,
                                        np.array([1, 3, 1, 2], np.int32), pr_in)
 r["set_bad_error"] = last_error()[:1]
 lib.dc_clear_error()
 r["set_bad_sg"] = lib.dc_set_crystal(lat, b"Q 99", 4, np.array([2, 1, 1], np.int64), 2, 2,
-                                     b"NA  CL  ", np.zeros(2), np.ones(2), 4, pos_in, ty_in, pr_in)
+                                     b"NA  CL  ", np.zeros(2), np.ones(2), 0, np.zeros(12),
+                                     4, pos_in, ty_in, pr_in)
 r["sg_error"] = last_error()[3]
 run("discus\n  read\n    cell " + cell + ", 2, 2, 2\nexit")
 run("discus\n  r[3] = n[1]\nexit"); r["atoms_before"] = value("r[3]")
@@ -200,7 +226,7 @@ def capi(tmp_path_factory):
 
 
 def test_version_and_commands(capi):
-    assert capi["version"] == 3
+    assert capi["version"] == 4
     assert capi["run"] == 0
     assert capi["value"] == 42.0
 
@@ -274,6 +300,22 @@ def test_set_crystal(capi):
     assert capi["set_cell"] == ["F m -3 m", [2, 1, 1], 2]
     assert capi["set_bad_type"] == -1 and capi["set_bad_error"][0] < 0
     assert capi["set_bad_sg"] == -1 and "Q 99" in capi["sg_error"]
+
+
+def test_adps_and_molecules(capi):
+    """Two isotropic types given as U (one value): two tensors U*1, each atom
+    pointing to its type's; molecules in and out."""
+    ok, table = capi["type_anis"]
+    assert ok == 0 and table[1][0] == 0.01 and table[2][0] == 0.02
+    nanis, ok, uij, msd = capi["adps"]
+    assert nanis == 2 and ok == 0
+    assert [u[:3] for u in uij] == [[0.01] * 3, [0.02] * 3]
+    assert np.allclose([sorted(m) for m in msd], [[0.01] * 3, [0.02] * 3])  # <u^2> per axis
+    assert capi["atom_adps"] == [0, [1, 2, 1, 2]]
+    assert capi["adps_bad_n"] == -1
+    assert capi["set_mol"] == 0
+    assert capi["mol"] == [2, 2, 4, 0, [1, 2], [0, 0], [2, 2], [1, 2, 3, 4]]
+    assert capi["set_mol_bad"] == -1
 
 
 def test_reset(capi):
