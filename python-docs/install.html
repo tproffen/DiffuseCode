@@ -667,6 +667,9 @@ plots.</p>
 </section>
 <section id="how-it-works-and-its-limits">
 <h2>How it works, and its limits<a class="headerlink" href="#how-it-works-and-its-limits" title="Link to this heading">#</a></h2>
+<p>The package installs NumPy, matplotlib, py3Dmol (3D views) and ASE (the
+Atomic Simulation Environment: <code class="docutils literal notranslate"><span class="pre">Crystal.to_ase()</span></code>, <code class="docutils literal notranslate"><span class="pre">dc.from_ase()</span></code>) with
+it.</p>
 <p>This version drives DISCUS through its C interface, the library
 <code class="docutils literal notranslate"><span class="pre">libdiffuse_core</span></code> (loaded with ctypes, declared in <code class="docutils literal notranslate"><span class="pre">python/diffuse_core.h</span></code>;
 it does not depend on the Python version, and C, C++ or Julia can call it

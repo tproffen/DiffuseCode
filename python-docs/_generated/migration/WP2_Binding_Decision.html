@@ -719,7 +719,12 @@ directly as <code class="docutils literal notranslate"><span class="pre">bind(C)
 Pattern “ask, then fill”; positions as <code class="docutils literal notranslate"><span class="pre">double[n][3]</span></code>, which is the
 memory layout of <code class="docutils literal notranslate"><span class="pre">cr_pos(3,</span> <span class="pre">n)</span></code>. <code class="docutils literal notranslate"><span class="pre">Crystal.atoms()</span></code> reads them instead
 of saving and parsing a <code class="docutils literal notranslate"><span class="pre">.stru</span></code> file; new <code class="docutils literal notranslate"><span class="pre">Crystal.atom_types()</span></code> and
-<code class="docutils literal notranslate"><span class="pre">Crystal.space_group</span></code>. Next: crystal in (Python arrays into DISCUS).</p></li>
+<code class="docutils literal notranslate"><span class="pre">Crystal.space_group</span></code>.
+<em>Crystal in (Nov 2026):</em> <code class="docutils literal notranslate"><span class="pre">dc_set_crystal</span></code> (version 3) replaces the
+crystal from arrays, following the steps of <code class="docutils literal notranslate"><span class="pre">read</span> <span class="pre">stru</span></code> (reset,
+allocate, header, atoms, cell counts, lattice, symmetry matrices, ADPs);
+on an error it calls <code class="docutils literal notranslate"><span class="pre">errlist</span></code>, so <code class="docutils literal notranslate"><span class="pre">dc_last_error</span></code> has the message.
+Python: <code class="docutils literal notranslate"><span class="pre">dc.make_crystal</span></code>, <code class="docutils literal notranslate"><span class="pre">dc.from_ase</span></code>, <code class="docutils literal notranslate"><span class="pre">Crystal.to_ase</span></code>.</p></li>
 </ol>
 </section>
 <section id="risks-and-how-to-handle-them">

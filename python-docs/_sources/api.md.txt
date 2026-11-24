@@ -9,8 +9,12 @@
 ```{eval-rst}
 .. autofunction:: read_structure
 
+.. autofunction:: make_crystal
+
+.. autofunction:: from_ase
+
 .. autoclass:: Crystal
-   :members: atoms, atom_types, positions, cartesian, lattice_vectors, view, volume, a
+   :members: atoms, atom_types, positions, cartesian, lattice_vectors, to_ase, view, volume, a, label
 
 .. autoclass:: StructureView
    :members: show, write_html

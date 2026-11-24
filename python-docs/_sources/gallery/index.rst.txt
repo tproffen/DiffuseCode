@@ -6,7 +6,8 @@ Examples
 Short scripts that use the ``diffuse`` package. Each one runs DISCUS when the
 documentation is built, so the output and plots here are real results.
 
-To run them (and the notebook ``interactive_plots.ipynb``) yourself, copy the
+To run them (and the notebooks ``interactive_plots.ipynb`` and
+``crystals_and_ase.ipynb``, crystals in Python and ASE) yourself, copy the
 folder ``python/examples`` out of your DiffuseCode clone first, for example
 ``cp -r python/examples ~/diffuse-examples``: Jupyter saves a notebook with
 its results, which would change the file in the clone and block ``git pull``.
@@ -91,6 +92,23 @@ its results, which would change the file in the clone and block ``git pull``.
     </div>
 
 
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="DISCUS can take a crystal straight from Python arrays: positions, names, displacement parameters. That makes it easy to build or change a structure with NumPy (or with ASE, the Atomic Simulation Environment) and calculate its scattering with DISCUS.">
+
+.. only:: html
+
+  .. image:: /gallery/images/thumb/sphx_glr_crystals_from_python_thumb.png
+    :alt:
+
+  :doc:`/gallery/crystals_from_python`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Crystals from Python: arrays and ASE</div>
+    </div>
+
+
 .. thumbnail-parent-div-close
 
 .. raw:: html
@@ -105,6 +123,7 @@ its results, which would change the file in the clone and block ``git pull``.
    /gallery/pdf_demo
    /gallery/fourier_demo
    /gallery/powder_demo
+   /gallery/crystals_from_python
 
 
 
