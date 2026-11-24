@@ -1212,8 +1212,8 @@ of the last call is always in <code class="docutils literal notranslate"><span c
 <dl class="py property">
 <dt class="sig sig-object py" id="diffuse.Session.backend">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">backend</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#diffuse.Session.backend" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;ctypes&quot;</span></code> (the C library
-libdiffuse_core) or <code class="docutils literal notranslate"><span class="pre">&quot;f2py&quot;</span></code> (the module suite_python).</p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;ctypes&quot;</span></code>, the C library libdiffuse_core
+(earlier builds also had <code class="docutils literal notranslate"><span class="pre">&quot;f2py&quot;</span></code>, the module suite_python).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>How DISCUS is reached</p>
@@ -1250,7 +1250,7 @@ libdiffuse_core) or <code class="docutils literal notranslate"><span class="pre"
 <span class="sig-name descname"><span class="pre">last_error</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/diffuse/_session.html#Session.last_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diffuse.Session.last_error" title="Link to this definition">#</a></dt>
 <dd><p>The first error DISCUS recorded in the last call.</p>
 <p>Returns <code class="docutils literal notranslate"><span class="pre">(code,</span> <span class="pre">category,</span> <span class="pre">text,</span> <span class="pre">details)</span></code>; <code class="docutils literal notranslate"><span class="pre">code</span></code> is 0 when
-there was no error (or the module predates the WP2 core).</p>
+there was no error.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)">int</a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>]]</p>

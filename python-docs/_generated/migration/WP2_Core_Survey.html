@@ -747,7 +747,9 @@ state restores exactly also between the two numbers of a pair.</p></li>
 <li><p><strong>Decide the binding.</strong> Proposal in <code class="docutils literal notranslate"><span class="pre">WP2_Binding_Decision.md</span></code>:
 a <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> interface with ctypes instead of f2py, in four steps; a
 proof of concept works (commands, values, errors, arrays, GIL released,
-no Python symbols in the library). Decision pending.</p></li>
+no Python symbols in the library). Decided (option B) and done in Nov
+2026: the package reaches DISCUS through <code class="docutils literal notranslate"><span class="pre">libdiffuse_core</span></code> and ctypes;
+f2py is gone (steps 1–3 in <code class="docutils literal notranslate"><span class="pre">WP2_Binding_Decision.md</span></code>).</p></li>
 </ol>
 </section>
 </section>

@@ -703,7 +703,14 @@ and conda jobs. <code class="docutils literal notranslate"><span class="pre">Ses
 <li><p><strong>Drop f2py.</strong> Remove <code class="docutils literal notranslate"><span class="pre">suite_python</span></code>, <code class="docutils literal notranslate"><span class="pre">cmake/FindF2PY.cmake</span></code> and the
 NumPy build dependency; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> builds a platform wheel that
 works for every Python 3 (<code class="docutils literal notranslate"><span class="pre">wheel.py-api</span> <span class="pre">=</span> <span class="pre">&quot;py3&quot;</span></code> in scikit-build-core).
-About half a day, plus CI.</p></li>
+About half a day, plus CI.
+<em>Done (Nov 2026):</em> <code class="docutils literal notranslate"><span class="pre">python/CMakeLists.txt</span></code> builds only
+<code class="docutils literal notranslate"><span class="pre">libdiffuse_core</span></code>; the f2py, NumPy, Cython and PythonExtensions CMake
+modules are gone, and <code class="docutils literal notranslate"><span class="pre">DIFFUSE_PYTHON</span></code> no longer looks for Python at all.
+<code class="docutils literal notranslate"><span class="pre">python/suite_python.f90</span></code> is now <code class="docutils literal notranslate"><span class="pre">python/diffuse_suite.f90</span></code> (the same
+Fortran module <code class="docutils literal notranslate"><span class="pre">suite</span></code>, without the <code class="docutils literal notranslate"><span class="pre">!f2py</span></code> lines) and is compiled into
+the library only. <code class="docutils literal notranslate"><span class="pre">F2pyCore</span></code> and <code class="docutils literal notranslate"><span class="pre">DIFFUSE_BACKEND</span></code> are removed; the
+build needs no NumPy, and the wheel is <code class="docutils literal notranslate"><span class="pre">py3-none-&lt;platform&gt;</span></code>.</p></li>
 <li><p><strong>From WP3 on</strong>, new functions (crystal arrays in and out) are written
 directly as <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> functions.</p></li>
 </ol>

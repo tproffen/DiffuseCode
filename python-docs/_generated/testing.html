@@ -610,7 +610,7 @@ test, and also checks the manifest against <code class="docutils literal notrans
 </section>
 <section id="python-tests-python-test-suite-python-py-test-diffuse-api-py">
 <span id="3-python-testspythontest_suite_pythonpy-test_diffuse_apipy"></span><h2>3. Python: <code class="docutils literal notranslate"><span class="pre">tests/python/test_suite_python.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_diffuse_api.py</span></code><a class="headerlink" href="#python-tests-python-test-suite-python-py-test-diffuse-api-py" title="Link to this heading">#</a></h2>
-<p>Run DISCUS in-process through the f2py module <code class="docutils literal notranslate"><span class="pre">suite_python</span></code> and check the
+<p>Run DISCUS in-process (the C library <code class="docutils literal notranslate"><span class="pre">libdiffuse_core</span></code>, through ctypes) and check the
 results as NumPy arrays, against the legacy <code class="docutils literal notranslate"><span class="pre">RESULTS/</span></code> files and against
 golden data in <code class="docutils literal notranslate"><span class="pre">tests/golden/&lt;id&gt;/</span></code>. <code class="docutils literal notranslate"><span class="pre">test_diffuse_api.py</span></code> tests the
 <code class="docutils literal notranslate"><span class="pre">diffuse</span></code> package (<code class="docutils literal notranslate"><span class="pre">python/diffuse/</span></code>, see <code class="docutils literal notranslate"><span class="pre">python/README.md</span></code>) and the demo
@@ -634,15 +634,12 @@ skipped.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_PYTHON_PATH</span></code></p></td>
-<td><p>folder that holds <code class="docutils literal notranslate"><span class="pre">libdiffuse_core.so</span></code> and <code class="docutils literal notranslate"><span class="pre">suite_python*.so</span></code> (<code class="docutils literal notranslate"><span class="pre">&lt;build&gt;/python</span></code>)</p></td>
+<td><p>folder that holds <code class="docutils literal notranslate"><span class="pre">libdiffuse_core.so</span></code> (<code class="docutils literal notranslate"><span class="pre">&lt;build&gt;/python</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_BACKEND</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ctypes</span></code> (the C library <code class="docutils literal notranslate"><span class="pre">libdiffuse_core</span></code>, the default when it is there) or <code class="docutils literal notranslate"><span class="pre">f2py</span></code> (<code class="docutils literal notranslate"><span class="pre">suite_python</span></code>); CI runs the tests on both</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_REQUIRE_PYTHON=1</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_REQUIRE_PYTHON=1</span></code></p></td>
 <td><p>fail instead of skip if the module cannot be imported (used in CI)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_UPDATE_GOLDEN=1</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_UPDATE_GOLDEN=1</span></code></p></td>
 <td><p>write the golden files instead of comparing; review the diff before committing</p></td>
 </tr>
 </tbody>
@@ -684,7 +681,7 @@ pytest tests, then the legacy tests tagged <code class="docutils literal notrans
 <tr class="row-odd"><td><p>Fortran sources, legacy tests, anything else</p></td>
 <td><p>build, legacy tests, pytest (graphics build, 22.04)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>, <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code>, CMake, <code class="docutils literal notranslate"><span class="pre">python/suite_python.f90</span></code>, <code class="docutils literal notranslate"><span class="pre">.github/</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>, <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code>, CMake, the C interface (<code class="docutils literal notranslate"><span class="pre">python/*.f90</span></code>, <code class="docutils literal notranslate"><span class="pre">python/*.h</span></code>), <code class="docutils literal notranslate"><span class="pre">.github/</span></code></p></td>
 <td><p>everything, conda included</p></td>
 </tr>
 </tbody>

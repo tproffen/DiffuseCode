@@ -532,9 +532,8 @@ for example <code class="docutils literal notranslate"><span class="pre">CMAKE_B
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Always install into a virtual environment (or a conda environment). A NumPy
-installed with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--user</span></code> next to the system’s NumPy is what broke
-the f2py step on Ubuntu 22.04 before.</p>
+<p>Always install into a virtual environment (or a conda environment), so that
+the packages it brings (NumPy, matplotlib …) do not mix with the system’s.</p>
 </div>
 </section>
 <section id="wsl2">
@@ -669,9 +668,9 @@ plots.</p>
 <section id="how-it-works-and-its-limits">
 <h2>How it works, and its limits<a class="headerlink" href="#how-it-works-and-its-limits" title="Link to this heading">#</a></h2>
 <p>This version drives DISCUS through its C interface, the library
-<code class="docutils literal notranslate"><span class="pre">libdiffuse_core</span></code> (loaded with ctypes; the older f2py module <code class="docutils literal notranslate"><span class="pre">suite_python</span></code>
-is the fall-back, and <code class="docutils literal notranslate"><span class="pre">DIFFUSE_BACKEND=f2py</span></code> selects it). Python
-hands the commands to DISCUS as a macro held in memory, DISCUS runs it in the
+<code class="docutils literal notranslate"><span class="pre">libdiffuse_core</span></code> (loaded with ctypes, declared in <code class="docutils literal notranslate"><span class="pre">python/diffuse_core.h</span></code>;
+it does not depend on the Python version, and C, C++ or Julia can call it
+too). Python hands the commands to DISCUS as a macro held in memory, DISCUS runs it in the
 same process, and the results come back through files or KUPLOT data sets.
 DISCUS never waits for the keyboard: a pause such as <code class="docutils literal notranslate"><span class="pre">wait</span></code> continues at
 once, and a command that needs typed input (<code class="docutils literal notranslate"><span class="pre">wait</span> <span class="pre">input</span></code>) raises

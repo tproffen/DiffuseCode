@@ -46,9 +46,8 @@ python python/examples/powder_demo.py
 ```
 
 ```{note}
-Always install into a virtual environment (or a conda environment). A NumPy
-installed with `pip install --user` next to the system's NumPy is what broke
-the f2py step on Ubuntu 22.04 before.
+Always install into a virtual environment (or a conda environment), so that
+the packages it brings (NumPy, matplotlib ...) do not mix with the system's.
 ```
 
 ## WSL2
@@ -211,9 +210,9 @@ plots.
 ## How it works, and its limits
 
 This version drives DISCUS through its C interface, the library
-`libdiffuse_core` (loaded with ctypes; the older f2py module `suite_python`
-is the fall-back, and `DIFFUSE_BACKEND=f2py` selects it). Python
-hands the commands to DISCUS as a macro held in memory, DISCUS runs it in the
+`libdiffuse_core` (loaded with ctypes, declared in `python/diffuse_core.h`;
+it does not depend on the Python version, and C, C++ or Julia can call it
+too). Python hands the commands to DISCUS as a macro held in memory, DISCUS runs it in the
 same process, and the results come back through files or KUPLOT data sets.
 DISCUS never waits for the keyboard: a pause such as `wait` continues at
 once, and a command that needs typed input (`wait input`) raises

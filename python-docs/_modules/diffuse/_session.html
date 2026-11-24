@@ -479,9 +479,8 @@
   <h1>Source code for diffuse._session</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""The one DISCUS suite that lives in this Python process.</span>
 
-<span class="sd">The compiled core (``_core.py``) is the C library ``libdiffuse_core``</span>
-<span class="sd">through ctypes, or the older f2py module ``suite_python``; both are built</span>
-<span class="sd">with ``-DDIFFUSE_PYTHON=ON``. Python hands the commands to the suite as a</span>
+<span class="sd">The compiled core (``_core.py``) is the C library ``libdiffuse_core``,</span>
+<span class="sd">loaded with ctypes (built with ``-DDIFFUSE_PYTHON=ON``, or by ``pip install``). Python hands the commands to the suite as a</span>
 <span class="sd">macro held in memory (no file), and the suite runs it.</span>
 
 <span class="sd">What this layer adds on top of the core:</span>
@@ -680,22 +679,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"diffuse_"</span><span class="p">))</span>
         <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_c</span> <span class="o">=</span> <span class="n">_core</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="p">,</span> <span class="n">_core</span><span class="o">.</span><span class="n">F2pyCore</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">set_workdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">)</span>
         <span class="c1"># Standard input for DISCUS calls (see _Capture): empty lines</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">/</span> <span class="s2">"_stdin"</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">*</span> <span class="mi">20000</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_crystal</span> <span class="o">=</span> <span class="kc">None</span>      <span class="c1"># the Crystal now held by DISCUS</span>
-        <span class="c1"># Library mode (errors as records, no STOP) unless an old f2py build</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_core</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">has_core</span>
-        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>        <span class="c1"># library mode: errors as records, no STOP</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_show</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">backend</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""How DISCUS is reached: ``"ctypes"`` (the C library</span>
-<span class="sd">        libdiffuse_core) or ``"f2py"`` (the module suite_python)."""</span>
+<span class="w">        </span><span class="sd">"""How DISCUS is reached: ``"ctypes"``, the C library libdiffuse_core</span>
+<span class="sd">        (earlier builds also had ``"f2py"``, the module suite_python)."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">name</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_capture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">live</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Capture</span><span class="p">:</span>
@@ -746,8 +741,7 @@
 
     <span class="c1"># -- errors -------------------------------------------------------------</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_clear_error</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">clear_error</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">clear_error</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Session.last_error">
 <a class="viewcode-back" href="../../api.html#diffuse.Session.last_error">[docs]</a>
@@ -755,7 +749,7 @@
 <span class="w">        </span><span class="sd">"""The first error DISCUS recorded in the last call.</span>
 
 <span class="sd">        Returns ``(code, category, text, details)``; ``code`` is 0 when</span>
-<span class="sd">        there was no error (or the module predates the WP2 core).</span>
+<span class="sd">        there was no error.</span>
 <span class="sd">        """</span>
         <span class="n">num</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">msgs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">last_error</span><span class="p">()</span>
         <span class="n">details</span> <span class="o">=</span> <span class="p">[</span><span class="n">msgs</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="mi">80</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">msgs</span><span class="p">),</span> <span class="mi">80</span><span class="p">)]</span>
@@ -799,7 +793,6 @@
 <span class="sd">        ``set error`` ...) are kept. ``current_crystal`` is cleared, so the</span>
 <span class="sd">        next calculation on a Crystal reads it in again.</span>
 <span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"reset"</span><span class="p">)</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_show</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
@@ -816,7 +809,6 @@
 <span class="sd">        ``value=0`` seeds from the clock. With more than one OpenMP thread</span>
 <span class="sd">        the order in which threads draw numbers can still vary.</span>
 <span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
 
 
@@ -828,7 +820,6 @@
 <span class="sd">        Includes the Gaussian number that DISCUS may keep waiting (Gaussian</span>
 <span class="sd">        numbers come in pairs), so a restore repeats the sequence exactly.</span>
 <span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"random_state"</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">random_state</span><span class="p">()</span></div>
 
 
@@ -836,18 +827,12 @@
 <a class="viewcode-back" href="../../api.html#diffuse.Session.set_random_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_random_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Put the generator back into a state from :meth:`random_state`."""</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"set_random_state"</span><span class="p">)</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">random_size</span><span class="p">(),):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"state must have </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">random_size</span><span class="p">()</span><span class="si">}</span><span class="s2"> integers, "</span>
                              <span class="sa">f</span><span class="s2">"not shape </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">set_random_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
 
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_require_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">DiffuseError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">() needs a suite_python module built from "</span>
-                               <span class="s2">"DiffuseCode with the WP2 core (dc_* functions); rebuild it."</span><span class="p">)</span>
 
     <span class="c1"># -- KUPLOT data sets -------------------------------------------------</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
