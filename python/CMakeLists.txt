@@ -94,3 +94,34 @@ else ()
   install(TARGETS ${generated_module_file} DESTINATION lib COMPONENT python)
 endif ()
 
+# --- C interface: libdiffuse_core (WP2 option B, migration/WP2_Binding_Decision.md)
+# A plain shared library with bind(C) functions (python/diffuse_capi.f90,
+# declared in python/diffuse_core.h), for ctypes and other languages. It
+# needs no Python: the Python library is taken out of the link list, so the
+# library does not depend on the Python version. Built next to the f2py
+# module while both exist (Fortran modules in their own folder, as
+# suite_python.f90 is compiled into both).
+set(CORE_LINK_LIBS ${PYLINK_LIBS})
+if (Python3_LIBRARIES)
+  list(REMOVE_ITEM CORE_LINK_LIBS ${Python3_LIBRARIES})
+endif ()
+add_library(diffuse_core SHARED
+            ${fortran_src_file}
+            "${CMAKE_SOURCE_DIR}/python/diffuse_capi.f90")
+set_target_properties(diffuse_core PROPERTIES
+                      Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/diffuse_core_mod"
+                      PUBLIC_HEADER "${CMAKE_SOURCE_DIR}/python/diffuse_core.h")
+target_link_libraries(diffuse_core ${CORE_LINK_LIBS})
+if (APPLE)
+  set_target_properties(diffuse_core PROPERTIES INSTALL_NAME_DIR "@rpath")
+endif ()
+# COMPONENT goes with each artifact kind (after PUBLIC_HEADER it would cover
+# only the header, and pip installs only the python component).
+if (SKBUILD)
+  install(TARGETS diffuse_core LIBRARY DESTINATION diffuse COMPONENT python
+          PUBLIC_HEADER DESTINATION diffuse COMPONENT python)
+else ()
+  install(TARGETS diffuse_core LIBRARY DESTINATION lib COMPONENT python
+          PUBLIC_HEADER DESTINATION include COMPONENT python)
+endif ()
+
