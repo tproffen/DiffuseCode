@@ -8,8 +8,10 @@ Python-API tests.
     DISCUS_SUITE=/path/to/discus_suite pytest tests/python -m "not slow"
     DISCUS_SUITE=... pytest tests/python -k "04."
 
-discus_suite is found via $DISCUS_SUITE or PATH. Without it, the macro tests
-are skipped and only the manifest checks run. Tests run one at a time here;
+discus_suite is found via $DISCUS_SUITE, then this checkout's
+build/suite/prog/discus_suite, then PATH (last: an installed copy may be an
+older working version). The pytest header says which one is used. Without
+one, the macro tests are skipped and only the manifest checks run. Tests run one at a time here;
 use the runner directly (-j N) for parallel runs.
 """
 
@@ -32,7 +34,7 @@ sys.modules["run_legacy_tests"] = runner      # needed by dataclasses
 _spec.loader.exec_module(runner)
 
 TESTS = runner.load_manifest(runner.DEFAULT_MANIFEST)
-EXE = runner.find_exe(os.environ.get("DISCUS_SUITE"))
+EXE, EXE_WHERE = runner.find_exe_where(None)
 
 
 def test_manifest_matches_test_all():
@@ -60,7 +62,7 @@ def workdir():
     return Path(path) if path else Path(tempfile.mkdtemp(prefix="discus_pytest_"))
 
 
-@pytest.mark.skipif(EXE is None, reason="discus_suite not found ($DISCUS_SUITE or PATH)")
+@pytest.mark.skipif(EXE is None, reason="discus_suite not found ($DISCUS_SUITE, build/ or PATH)")
 @pytest.mark.parametrize("test", [_param(t) for t in TESTS])
 def test_macro(test, workdir):
     opts = argparse.Namespace(

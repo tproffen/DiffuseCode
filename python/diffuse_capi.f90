@@ -22,7 +22,7 @@ IMPLICIT NONE
 !
 PRIVATE
 !
-INTEGER(C_INT), PARAMETER :: API_VERSION = 1
+INTEGER(C_INT), PARAMETER :: API_VERSION = 2   ! 2: crystal arrays (WP3)
 !
 CONTAINS
 !
@@ -350,5 +350,112 @@ ny = npy(1)
 ok = 0
 !
 END FUNCTION capi_get_data_2d
+!
+!*******************************************************************************
+!  The crystal DISCUS holds (crystal_mod), as arrays (WP3, first slice: out)
+!*******************************************************************************
+!
+SUBROUTINE capi_crystal_size(natoms, ntypes) BIND(C, NAME='dc_crystal_size')
+!
+!  Number of atoms in the crystal and of atom types (types run 0..ntypes;
+!  type 0 is a vacancy, "VOID").
+!
+USE crystal_mod, ONLY: cr_natoms, cr_nscat
+INTEGER(C_INT64_T), INTENT(OUT) :: natoms
+INTEGER(C_INT),     INTENT(OUT) :: ntypes
+!
+natoms = cr_natoms
+ntypes = cr_nscat
+!
+END SUBROUTINE capi_crystal_size
+!
+!*******************************************************************************
+!
+SUBROUTINE capi_get_cell(lattice, spcgr, icc, ncatoms) BIND(C, NAME='dc_get_cell')
+!
+!  Lattice (a, b, c in A, alpha, beta, gamma in degrees), space group symbol
+!  (16 characters, blank padded), unit cells along a, b, c and atoms per
+!  unit cell.
+!
+USE crystal_mod, ONLY: cr_a0, cr_win, cr_spcgr, cr_icc, cr_ncatoms
+REAL(C_DOUBLE),         DIMENSION(6),  INTENT(OUT) :: lattice
+CHARACTER(KIND=C_CHAR), DIMENSION(16), INTENT(OUT) :: spcgr
+INTEGER(C_INT64_T),     DIMENSION(3),  INTENT(OUT) :: icc
+INTEGER(C_INT64_T),                    INTENT(OUT) :: ncatoms
+!
+lattice(1:3) = cr_a0
+lattice(4:6) = cr_win
+CALL to_c(cr_spcgr, spcgr, 16_C_INT64_T)
+icc = cr_icc
+ncatoms = cr_ncatoms
+!
+END SUBROUTINE capi_get_cell
+!
+!*******************************************************************************
+!
+FUNCTION capi_get_atoms(n, pos, types, prop, mole) BIND(C, NAME='dc_get_atoms') RESULT(ok)
+!
+!  The atoms: fractional coordinates pos(3, n) (in C/NumPy order: n rows of
+!  x, y, z), atom type (0..ntypes), property flags and molecule number
+!  (0: none). n must be the number of atoms. Returns 0, or -1 for a wrong n.
+!
+USE crystal_mod, ONLY: cr_natoms, cr_pos, cr_iscat, cr_prop, cr_mole
+INTEGER(C_INT64_T),                     VALUE       :: n
+REAL(C_DOUBLE),     DIMENSION(3, n),    INTENT(OUT) :: pos
+INTEGER(C_INT),     DIMENSION(n),       INTENT(OUT) :: types, prop, mole
+INTEGER(C_INT) :: ok
+INTEGER(C_INT64_T) :: i
+!
+ok = -1
+pos = 0.0_C_DOUBLE
+types = 0
+prop = 0
+mole = 0
+IF(n /= cr_natoms) RETURN
+ok = 0
+IF(n == 0) RETURN
+IF(ALLOCATED(cr_pos))   pos = cr_pos(:, 1:n)
+IF(ALLOCATED(cr_iscat)) THEN
+   DO i = 1, n
+      types(i) = cr_iscat(1, i)
+   ENDDO
+ENDIF
+IF(ALLOCATED(cr_prop))  prop = cr_prop(1:n)
+IF(ALLOCATED(cr_mole))  mole = cr_mole(1:n)
+!
+END FUNCTION capi_get_atoms
+!
+!*******************************************************************************
+!
+FUNCTION capi_get_atom_types(ntypes, names, biso, occ) BIND(C, NAME='dc_get_atom_types') RESULT(ok)
+!
+!  The atom types 0..ntypes: names (4 characters each, blank padded, one
+!  block of 4*(ntypes+1) characters), isotropic displacement parameter B
+!  (A^2) and occupancy. ntypes must be the number from dc_crystal_size.
+!  Returns 0, or -1 for a wrong ntypes.
+!
+USE crystal_mod, ONLY: cr_nscat, cr_at_lis, cr_dw, cr_occ
+INTEGER(C_INT),                                 VALUE       :: ntypes
+CHARACTER(KIND=C_CHAR), DIMENSION(4*(ntypes+1)), INTENT(OUT) :: names
+REAL(C_DOUBLE),         DIMENSION(0:ntypes),    INTENT(OUT) :: biso, occ
+INTEGER(C_INT) :: ok
+INTEGER :: i, k
+!
+ok = -1
+names = ' '
+biso = 0.0_C_DOUBLE
+occ = 0.0_C_DOUBLE
+IF(ntypes /= cr_nscat) RETURN
+IF(.NOT. (ALLOCATED(cr_at_lis) .AND. ALLOCATED(cr_dw) .AND. ALLOCATED(cr_occ))) RETURN
+DO i = 0, ntypes
+   DO k = 1, 4
+      names(4*i + k) = cr_at_lis(i)(k:k)
+   ENDDO
+   biso(i) = cr_dw(i)
+   occ(i)  = cr_occ(i)
+ENDDO
+ok = 0
+!
+END FUNCTION capi_get_atom_types
 !
 END MODULE diffuse_capi

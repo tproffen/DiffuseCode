@@ -50,6 +50,8 @@ i32, i64, f64, ch = ctypes.c_int, ctypes.c_int64, ctypes.c_double, ctypes.c_char
 P = ctypes.POINTER
 f32a = np.ctypeslib.ndpointer(np.float32, flags="C_CONTIGUOUS")
 i32a = np.ctypeslib.ndpointer(np.int32, flags="C_CONTIGUOUS")
+i64a = np.ctypeslib.ndpointer(np.int64, flags="C_CONTIGUOUS")
+f64a = np.ctypeslib.ndpointer(np.float64, flags="C_CONTIGUOUS")
 sig = {
     "dc_api_version": ([], i32), "dc_init": ([], None), "dc_reset": ([], None),
     "dc_flush_output": ([], None), "dc_run": ([ch, i64], i64),
@@ -61,6 +63,10 @@ sig = {
     "dc_data_sets": ([], i32), "dc_data_length": ([i32], i64),
     "dc_get_data": ([i32, f32a, f32a, i64], i32),
     "dc_get_data_2d": ([i32, f32a, f32a, f32a, i64, P(i64), P(i64)], i32),
+    "dc_crystal_size": ([P(i64), P(i32)], None),
+    "dc_get_cell": ([f64a, ch, i64a, P(i64)], None),
+    "dc_get_atoms": ([i64, f64a, i32a, i32a, i32a], i32),
+    "dc_get_atom_types": ([i32, ch, f64a, f64a], i32),
 }
 for name, (args, res) in sig.items():
     f = getattr(lib, name); f.argtypes = args; f.restype = res
@@ -131,6 +137,23 @@ exit""")
 n2 = lib.dc_data_length(1); gx, gy, gz = (np.zeros(n2, np.float32) for _ in range(3))
 r["grid"] = [lib.dc_get_data_2d(1, gx, gy, gz, n2, ctypes.byref(nx), ctypes.byref(ny)), nx.value, ny.value, n2]
 r["grid_x"] = sorted(set(np.round(gx, 4).tolist())); r["grid_y"] = sorted(set(np.round(gy, 4).tolist()))
+run("discus\n  read\n    cell " + cell + ", 2, 3, 1\nexit")
+na, nt = i64(), i32(); lib.dc_crystal_size(ctypes.byref(na), ctypes.byref(nt))
+r["size"] = [na.value, nt.value]
+lat = np.zeros(6); sg = ctypes.create_string_buffer(16); icc = np.zeros(3, np.int64); nc = i64()
+lib.dc_get_cell(lat, sg, icc, ctypes.byref(nc))
+r["cell"] = [lat.tolist(), sg.raw.decode().strip(), icc.tolist(), nc.value]
+pos = np.zeros((na.value, 3)); ty, pr, mo = (np.zeros(na.value, np.int32) for _ in range(3))
+r["get_atoms"] = lib.dc_get_atoms(na.value, pos, ty, pr, mo)
+r["pos_range"] = [pos.min(axis=0).tolist(), pos.max(axis=0).tolist()]
+r["types"] = sorted(set(ty.tolist()))
+r["atoms_bad_n"] = lib.dc_get_atoms(na.value + 1, np.zeros((na.value + 1, 3)),
+                                    *(np.zeros(na.value + 1, np.int32) for _ in range(3)))
+names = ctypes.create_string_buffer(4 * (nt.value + 1)); b = np.zeros(nt.value + 1); occ = np.zeros(nt.value + 1)
+r["get_types"] = lib.dc_get_atom_types(nt.value, names, b, occ)
+r["type_table"] = [names.raw.decode(), b.tolist(), occ.tolist()]
+r["types_bad_n"] = lib.dc_get_atom_types(nt.value + 1, ctypes.create_string_buffer(4 * (nt.value + 2)),
+                                         np.zeros(nt.value + 2), np.zeros(nt.value + 2))
 run("discus\n  read\n    cell " + cell + ", 2, 2, 2\nexit")
 run("discus\n  r[3] = n[1]\nexit"); r["atoms_before"] = value("r[3]")
 lib.dc_reset(); run("discus\n  r[3] = n[1]\nexit"); r["atoms_after_reset"] = value("r[3]")
@@ -156,7 +179,7 @@ def capi(tmp_path_factory):
 
 
 def test_version_and_commands(capi):
-    assert capi["version"] == 1
+    assert capi["version"] == 2
     assert capi["run"] == 0
     assert capi["value"] == 42.0
 
@@ -204,6 +227,23 @@ def test_grid_data(capi):
     assert (ok, nx, ny, n) == (0, 5, 3, 15)
     assert capi["grid_x"] == [0.0, 0.5, 1.0, 1.5, 2.0]
     assert capi["grid_y"] == [0.0, 0.5, 1.0]
+
+
+def test_crystal_arrays(capi):
+    """nickel.cell (F m -3 m, 4 atoms per cell) as 2 x 3 x 1 unit cells."""
+    assert capi["size"] == [24, 1]
+    lattice, spcgr, icc, ncatoms = capi["cell"]
+    assert lattice == [3.5234, 3.5234, 3.5234, 90.0, 90.0, 90.0]
+    assert spcgr == "F m -3 m" and icc == [2, 3, 1] and ncatoms == 4
+    assert capi["get_atoms"] == 0 and capi["types"] == [1]
+    # x spans 2 cells, y 3, z 1: the order (n, 3) of the array is right
+    lo, hi = capi["pos_range"]
+    assert [h - l for l, h in zip(lo, hi)] == [1.5, 2.5, 0.5]
+    assert capi["atoms_bad_n"] == -1
+    names, b, occ = capi["type_table"]
+    assert capi["get_types"] == 0 and names == "VOIDNI  "
+    assert b == [0.0, 0.2] and occ == [1.0, 1.0]
+    assert capi["types_bad_n"] == -1
 
 
 def test_reset(capi):

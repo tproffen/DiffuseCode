@@ -179,11 +179,38 @@ class Result:
     log: str = ""
 
 
-def find_exe(given: str | None) -> Path | None:
-    for cand in (given, os.environ.get("DISCUS_SUITE"), shutil.which("discus_suite")):
+# A build of this checkout, in the folder CLAUDE.md and docs/install.md use
+REPO_BUILD = REPO / "build" / "suite" / "prog" / "discus_suite"
+
+
+def find_exe_where(given: str | None) -> tuple[Path | None, str]:
+    """The discus_suite to test, and where it was found.
+
+    Order: --exe, $DISCUS_SUITE, this checkout's build/ folder, PATH. PATH
+    comes last: a discus_suite installed there (/usr/local/bin ...) may be
+    an older working copy, not a build of this checkout.
+    """
+    for cand, where in ((given, "--exe"), (os.environ.get("DISCUS_SUITE"), "$DISCUS_SUITE"),
+                        (str(REPO_BUILD), "this checkout's build/"),
+                        (shutil.which("discus_suite"), "PATH")):
         if cand and Path(cand).is_file() and os.access(cand, os.X_OK):
-            return Path(cand).resolve()
-    return None
+            return Path(cand).resolve(), where
+    return None, ""
+
+
+def find_exe(given: str | None) -> Path | None:
+    return find_exe_where(given)[0]
+
+
+def describe_exe(exe: Path, where: str) -> str:
+    """One line for the log: path, build time, where it came from; and a
+    warning if it is from PATH (may not be this checkout's build)."""
+    built = time.strftime("%Y-%m-%d %H:%M", time.localtime(exe.stat().st_mtime))
+    line = f"discus_suite: {exe} (built {built}, from {where})"
+    if where == "PATH":
+        line += ("\n  WARNING: from PATH, perhaps not a build of this checkout; set "
+                 "DISCUS_SUITE or use --exe to test a particular build")
+    return line
 
 
 def macro_string(s: str) -> str:
@@ -412,7 +439,8 @@ def select(tests: list[Test], opts) -> tuple[list[Test], list[Result]]:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--exe", help="discus_suite binary (default: $DISCUS_SUITE, then PATH)")
+    p.add_argument("--exe", help="discus_suite binary (default: $DISCUS_SUITE, then "
+                   "build/suite/prog/discus_suite of this checkout, then PATH)")
     p.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     p.add_argument("--id", action="append",
                    help="run only tests whose id matches this glob (repeatable)")
@@ -461,10 +489,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{r.id:<20} SKIPPED  {r.message}")
         return 0
 
-    exe = find_exe(opts.exe)
+    exe, where = find_exe_where(opts.exe)
     if exe is None:
-        print("discus_suite not found: use --exe, $DISCUS_SUITE or PATH", file=sys.stderr)
+        print("discus_suite not found: use --exe, $DISCUS_SUITE, build/ or PATH",
+              file=sys.stderr)
         return 2
+    print(describe_exe(exe, where))
 
     if opts.xvfb == "auto":
         opts.xvfb = not os.environ.get("DISPLAY") and shutil.which("xvfb-run") is not None

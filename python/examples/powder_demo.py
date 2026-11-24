@@ -37,6 +37,15 @@ crystal = dc.read_structure(CIF, supercell=(10, 10, 4))
 print(crystal)
 
 # %%
+# The atoms come straight from DISCUS's arrays: names and fractional
+# coordinates per atom, and per atom type the displacement parameter B and
+# the occupancy.
+names, xyz = crystal.atoms()
+print(crystal.space_group, crystal.natoms, "atoms; first:", names[0], xyz[0])
+for name, b, occ in zip(*crystal.atom_types()):
+    print(f"{name:5s} B = {b:.3f} A^2, occupancy {occ:.2f}")
+
+# %%
 # Calculate powder patterns
 # -------------------------
 # The results are NumPy arrays (``q`` and ``intensity``), so any plotting or

@@ -19,8 +19,10 @@ import numpy as np
 
 LIBRARY = {"darwin": "libdiffuse_core.dylib", "win32": "diffuse_core.dll"}.get(
     sys.platform, "libdiffuse_core.so")
-API_VERSION = 1              # DC_API_VERSION in diffuse_core.h
+API_VERSION = 2              # DC_API_VERSION in diffuse_core.h
 ERR_LENGTHS = (4, 45, 560)   # DC_ERR_CLASS_LEN, DC_ERR_TEXT_LEN, DC_ERR_MSGS_LEN
+SPCGR_LEN = 16               # DC_SPCGR_LEN
+NAME_LEN = 4                 # DC_NAME_LEN
 
 
 def _folders() -> list[tuple[Path, bool]]:
@@ -85,6 +87,8 @@ _i32, _i64, _f64, _chars = ctypes.c_int, ctypes.c_int64, ctypes.c_double, ctypes
 _P = ctypes.POINTER
 _f32a = np.ctypeslib.ndpointer(np.float32, flags="C_CONTIGUOUS")
 _i32a = np.ctypeslib.ndpointer(np.int32, flags="C_CONTIGUOUS")
+_i64a = np.ctypeslib.ndpointer(np.int64, flags="C_CONTIGUOUS")
+_f64a = np.ctypeslib.ndpointer(np.float64, flags="C_CONTIGUOUS")
 
 # name: (argument types, result type), as in diffuse_core.h
 _SIGNATURES = {
@@ -105,6 +109,10 @@ _SIGNATURES = {
     "dc_data_length": ([_i32], _i64),
     "dc_get_data": ([_i32, _f32a, _f32a, _i64], _i32),
     "dc_get_data_2d": ([_i32, _f32a, _f32a, _f32a, _i64, _P(_i64), _P(_i64)], _i32),
+    "dc_crystal_size": ([_P(_i64), _P(_i32)], None),
+    "dc_get_cell": ([_f64a, _chars, _i64a, _P(_i64)], None),
+    "dc_get_atoms": ([_i64, _f64a, _i32a, _i32a, _i32a], _i32),
+    "dc_get_atom_types": ([_i32, _chars, _f64a, _f64a], _i32),
 }
 
 
@@ -199,3 +207,40 @@ class CtypesCore:
                                              ctypes.byref(nx), ctypes.byref(ny)):
             raise ValueError(f"KUPLOT data set {ik} is not a grid")
         return x, y, z, nx.value, ny.value
+
+    # -- the crystal DISCUS holds ---------------------------------------------
+    def crystal_size(self) -> tuple[int, int]:
+        """(number of atoms, number of atom types); types run 0..ntypes."""
+        natoms, ntypes = _i64(), _i32()
+        self._lib.dc_crystal_size(ctypes.byref(natoms), ctypes.byref(ntypes))
+        return natoms.value, ntypes.value
+
+    def cell(self) -> tuple[tuple[float, ...], str, tuple[int, int, int], int]:
+        """(a, b, c, alpha, beta, gamma), space group, unit cells, atoms per cell"""
+        lattice = np.zeros(6, np.float64)
+        spcgr = ctypes.create_string_buffer(SPCGR_LEN)
+        icc = np.zeros(3, np.int64)
+        ncatoms = _i64()
+        self._lib.dc_get_cell(lattice, spcgr, icc, ctypes.byref(ncatoms))
+        return (tuple(float(v) for v in lattice), spcgr.raw.decode(errors="replace").strip(),
+                tuple(int(v) for v in icc), ncatoms.value)
+
+    def atoms(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Positions (natoms, 3), atom types, property flags, molecule numbers"""
+        n = self.crystal_size()[0]
+        pos = np.zeros((n, 3), np.float64)
+        types, prop, mole = (np.zeros(n, np.int32) for _ in range(3))
+        if self._lib.dc_get_atoms(n, pos, types, prop, mole):
+            raise RuntimeError("dc_get_atoms: the number of atoms changed")
+        return pos, types, prop, mole
+
+    def atom_types(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Names, B (A^2) and occupancy of atom types 0..ntypes"""
+        ntypes = self.crystal_size()[1]
+        names = ctypes.create_string_buffer(NAME_LEN * (ntypes + 1))
+        biso, occ = np.zeros(ntypes + 1, np.float64), np.zeros(ntypes + 1, np.float64)
+        if self._lib.dc_get_atom_types(ntypes, names, biso, occ):
+            raise RuntimeError("dc_get_atom_types: the number of atom types changed")
+        raw = names.raw.decode(errors="replace")
+        labels = np.array([raw[i:i + NAME_LEN].strip() for i in range(0, len(raw), NAME_LEN)])
+        return labels, biso, occ
