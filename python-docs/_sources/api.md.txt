@@ -52,7 +52,7 @@
 
 .. autoclass:: Session
    :members: run, value, dataset, dataset_2d, workdir, last_output, last_error,
-             reset, seed, random_state, set_random_state
+             reset, seed, random_state, set_random_state, backend
 ```
 
 ## State and random numbers

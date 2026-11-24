@@ -482,9 +482,10 @@
 <span class="sd">    p = dc.powder(cr, qmin=0.5, qmax=10, dq=0.005, radiation="xray")</span>
 <span class="sd">    p.plot()</span>
 
-<span class="sd">This first version drives DISCUS through the f2py module ``suite_python``</span>
-<span class="sd">(build with ``-DDIFFUSE_PYTHON=ON`` and set ``DIFFUSE_PYTHON_PATH`` to</span>
-<span class="sd">``&lt;build&gt;/python``). DISCUS holds one structure at a time, in this process.</span>
+<span class="sd">This first version drives DISCUS through its C interface ``libdiffuse_core``</span>
+<span class="sd">(ctypes), or the older f2py module ``suite_python``; install with</span>
+<span class="sd">``pip install .``, or build with ``-DDIFFUSE_PYTHON=ON`` and set</span>
+<span class="sd">``DIFFUSE_PYTHON_PATH`` to ``&lt;build&gt;/python``. DISCUS holds one structure at a time, in this process.</span>
 <span class="sd">See migration/DiffuseCode_Python_Migration_Plan.md for where this is going.</span>
 <span class="sd">"""</span>
 

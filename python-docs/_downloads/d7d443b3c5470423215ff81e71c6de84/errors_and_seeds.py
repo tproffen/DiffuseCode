@@ -29,6 +29,11 @@ except dc.MacroError as err:
 print("1 + 1 =", dc.session().value("1 + 1"))
 
 # %%
+# ``backend`` says how Python reaches DISCUS: ``"ctypes"`` (the C library
+# libdiffuse_core, the default) or ``"f2py"`` (the older module).
+print("backend:", dc.session().backend)
+
+# %%
 # Reproducible random numbers
 # ---------------------------
 # ``ran(0)`` is DISCUS's uniform random number between 0 and 1.

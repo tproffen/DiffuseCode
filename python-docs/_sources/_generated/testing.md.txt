@@ -101,7 +101,8 @@ skipped.
 
 | Variable | Meaning |
 |---|---|
-| `DIFFUSE_PYTHON_PATH` | folder that holds `suite_python*.so` (`<build>/python`) |
+| `DIFFUSE_PYTHON_PATH` | folder that holds `libdiffuse_core.so` and `suite_python*.so` (`<build>/python`) |
+| `DIFFUSE_BACKEND` | `ctypes` (the C library `libdiffuse_core`, the default when it is there) or `f2py` (`suite_python`); CI runs the tests on both |
 | `DIFFUSE_REQUIRE_PYTHON=1` | fail instead of skip if the module cannot be imported (used in CI) |
 | `DIFFUSE_UPDATE_GOLDEN=1` | write the golden files instead of comparing; review the diff before committing |
 

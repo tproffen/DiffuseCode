@@ -479,12 +479,12 @@
   <h1>Source code for diffuse._session</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""The one DISCUS suite that lives in this Python process.</span>
 
-<span class="sd">For now everything runs through the f2py module ``suite_python`` (built with</span>
-<span class="sd">``-DDIFFUSE_PYTHON=ON``): Python hands the commands to the suite as a macro</span>
-<span class="sd">held in memory (``dc_run_commands``; no file), and the suite runs it. The planned bind(C) core (migration plan, WP2) will</span>
-<span class="sd">replace this module; the public API in ``diffuse`` is meant to stay the same.</span>
+<span class="sd">The compiled core (``_core.py``) is the C library ``libdiffuse_core``</span>
+<span class="sd">through ctypes, or the older f2py module ``suite_python``; both are built</span>
+<span class="sd">with ``-DDIFFUSE_PYTHON=ON``. Python hands the commands to the suite as a</span>
+<span class="sd">macro held in memory (no file), and the suite runs it.</span>
 
-<span class="sd">What this layer adds on top of ``suite_python``:</span>
+<span class="sd">What this layer adds on top of the core:</span>
 
 <span class="sd">* **Errors become exceptions.** A command error ends the whole macro run.</span>
 <span class="sd">  Every macro written here sets a flag on its last line; if the flag is not</span>
@@ -496,7 +496,7 @@
 <span class="sd">  temporary file while the macro runs, and keeps the text in</span>
 <span class="sd">  ``Session.last_output``. With ``echo=True`` (or ``DIFFUSE_ECHO=1``) the</span>
 <span class="sd">  lines are also shown as DISCUS writes them, in the terminal or in the</span>
-<span class="sd">  notebook cell: the f2py call releases the GIL, and a thread follows the</span>
+<span class="sd">  notebook cell: the call into the core releases the GIL, and a thread follows the</span>
 <span class="sd">  file. In library mode DISCUS keeps all of its output there: ``set prompt``</span>
 <span class="sd">  cannot move it to a file, and errors write all their lines to it.</span>
 <span class="sd">* **Working directory.** The suite keeps its own working directory, so each</span>
@@ -506,7 +506,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">atexit</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
@@ -516,6 +515,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_core</span>
 
 <span class="c1"># Must be set before libgfortran is loaded, so that output written while</span>
 <span class="c1"># stdout is redirected is not flushed later, after it has been restored.</span>
@@ -567,51 +568,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">details</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">details</span><span class="p">)</span></div>
 
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_import_suite_python</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">"""The compiled DISCUS module.</span>
-
-<span class="sd">    $DIFFUSE_PYTHON_PATH (a build folder's python/) wins, for development</span>
-<span class="sd">    builds; otherwise the copy that "pip install" put inside this package;</span>
-<span class="sd">    otherwise any "suite_python" on the import path.</span>
-<span class="sd">    """</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DIFFUSE_PYTHON_PATH"</span><span class="p">)</span>
-    <span class="n">packaged</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">__package__</span><span class="si">}</span><span class="s2">.suite_python"</span>
-    <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
-        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"suite_python"</span><span class="p">,</span> <span class="n">packaged</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">packaged</span><span class="p">,</span> <span class="s2">"suite_python"</span><span class="p">]</span>
-    <span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">suite</span>
-        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="n">exc</span>
-            <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">path</span> <span class="ow">and</span> <span class="n">name</span> <span class="o">==</span> <span class="n">packaged</span><span class="p">:</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DIFFUSE_PYTHON_PATH=</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> has no suite_python module; "</span>
-                          <span class="s2">"using the one installed with the diffuse package. Unset "</span>
-                          <span class="s2">"DIFFUSE_PYTHON_PATH to silence this."</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">module</span>
-    <span class="n">here</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
-    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">"The DISCUS Python module 'suite_python' was not found."</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">"  diffuse package used: </span><span class="si">{</span><span class="n">here</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">"  DIFFUSE_PYTHON_PATH:  </span><span class="si">{</span><span class="n">path</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'(not set)'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">"  PYTHONPATH:           </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'PYTHONPATH'</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'(not set)'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-        <span class="s2">"Install the package with 'pip install .' (in the DiffuseCode folder, in "</span>
-        <span class="s2">"your virtual environment), or build with -DDIFFUSE_PYTHON=ON and set "</span>
-        <span class="s2">"DIFFUSE_PYTHON_PATH=&lt;build&gt;/python."</span><span class="p">,</span>
-    <span class="p">]</span>
-    <span class="k">if</span> <span class="s2">"site-packages"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">here</span><span class="p">):</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"The diffuse package above is the source folder, not an installed "</span>
-                     <span class="s2">"copy: if you installed with pip, unset PYTHONPATH and "</span>
-                     <span class="s2">"DIFFUSE_PYTHON_PATH (check ~/.bashrc)."</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_Capture</span><span class="p">:</span>
@@ -721,28 +677,29 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">echo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">echo</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DIFFUSE_ECHO"</span><span class="p">))</span> <span class="k">if</span> <span class="n">echo</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">echo</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_output</span> <span class="o">=</span> <span class="s2">""</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_s</span> <span class="o">=</span> <span class="n">_import_suite_python</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"diffuse_"</span><span class="p">))</span>
         <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_c</span> <span class="o">=</span> <span class="n">_core</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="p">,</span> <span class="n">_core</span><span class="o">.</span><span class="n">F2pyCore</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">set_workdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">)</span>
         <span class="c1"># Standard input for DISCUS calls (see _Capture): empty lines</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">/</span> <span class="s2">"_stdin"</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">*</span> <span class="mi">20000</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_crystal</span> <span class="o">=</span> <span class="kc">None</span>      <span class="c1"># the Crystal now held by DISCUS</span>
-        <span class="c1"># flush_output() is in suite_python.f90 since the demo API; builds</span>
-        <span class="c1"># without it rely on GFORTRAN_UNBUFFERED_PRECONNECTED alone.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_flush</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="p">,</span> <span class="s2">"flush_output"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="c1"># dc_init (library mode, error records) since WP2; older builds of</span>
-        <span class="c1"># the module only have initialize_suite.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_core</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="p">,</span> <span class="s2">"dc_init"</span><span class="p">)</span>
+        <span class="c1"># Library mode (errors as records, no STOP) unless an old f2py build</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_core</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">has_core</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_init</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">initialize_suite</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_show</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">backend</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""How DISCUS is reached: ``"ctypes"`` (the C library</span>
+<span class="sd">        libdiffuse_core) or ``"f2py"`` (the module suite_python)."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">name</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_capture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">live</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Capture</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_Capture</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_flush</span><span class="p">,</span> <span class="n">live</span><span class="o">=</span><span class="n">live</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">echo</span><span class="p">,</span> <span class="n">stdin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_Capture</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">flush</span><span class="p">,</span> <span class="n">live</span><span class="o">=</span><span class="n">live</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">echo</span><span class="p">,</span> <span class="n">stdin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">shown</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Keep ``text`` as the last output; with echo, print what was not</span>
@@ -771,26 +728,14 @@
         <span class="k">if</span> <span class="n">too_long</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"command line </span><span class="si">{</span><span class="n">too_long</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> is longer than DISCUS's limit "</span>
                              <span class="sa">f</span><span class="s2">"of </span><span class="si">{</span><span class="n">MAX_LINE</span><span class="si">}</span><span class="s2"> characters"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="p">,</span> <span class="s2">"dc_run_commands"</span><span class="p">):</span>
-            <span class="c1"># In memory: DISCUS stores the lines as a macro and runs them,</span>
-            <span class="c1"># no file involved (WP2).</span>
-            <span class="n">run</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_run_commands</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>        <span class="c1"># noqa: E731</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Older builds of the module: a driver file, one per session and</span>
-            <span class="c1"># overwritten on every call. DISCUS keeps macros in memory by</span>
-            <span class="c1"># name but empties that store when a top-level macro ends (also</span>
-            <span class="c1"># after an error), so the new text is always read.</span>
-            <span class="n">driver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">/</span> <span class="s2">"_driver.mac"</span>
-            <span class="n">driver</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-            <span class="n">run</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">execute_macro</span><span class="p">(</span><span class="s2">"@"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">driver</span><span class="p">))</span>  <span class="c1"># noqa: E731</span>
         <span class="c1"># DISCUS's "cd" changes the working directory of the whole process;</span>
         <span class="c1"># give the caller theirs back afterwards.</span>
         <span class="n">caller_cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_clear_error</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">(</span><span class="n">live</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
-                <span class="n">run</span><span class="p">()</span>
-                <span class="n">ok</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">FLAG</span><span class="p">)</span> <span class="o">==</span> <span class="mf">1.0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+                <span class="n">ok</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">FLAG</span><span class="p">)</span> <span class="o">==</span> <span class="mf">1.0</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">caller_cwd</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_show</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">cap</span><span class="o">.</span><span class="n">shown</span><span class="p">)</span>
@@ -802,7 +747,7 @@
     <span class="c1"># -- errors -------------------------------------------------------------</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_clear_error</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_clear_error</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">clear_error</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Session.last_error">
 <a class="viewcode-back" href="../../api.html#diffuse.Session.last_error">[docs]</a>
@@ -812,13 +757,9 @@
 <span class="sd">        Returns ``(code, category, text, details)``; ``code`` is 0 when</span>
 <span class="sd">        there was no error (or the module predates the WP2 core).</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="p">[]</span>
-        <span class="n">num</span><span class="p">,</span> <span class="n">_typ</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">msgs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_last_error</span><span class="p">()</span>
-        <span class="n">msgs</span> <span class="o">=</span> <span class="n">msgs</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span>
+        <span class="n">num</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">msgs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">last_error</span><span class="p">()</span>
         <span class="n">details</span> <span class="o">=</span> <span class="p">[</span><span class="n">msgs</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="mi">80</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">msgs</span><span class="p">),</span> <span class="mi">80</span><span class="p">)]</span>
-        <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">),</span> <span class="bp">cls</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">text</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-                <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">details</span> <span class="k">if</span> <span class="n">d</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">),</span> <span class="bp">cls</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">details</span> <span class="k">if</span> <span class="n">d</span><span class="p">]</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MacroError</span><span class="p">:</span>
@@ -841,7 +782,7 @@
 <span class="w">        </span><span class="sd">"""Value of a DISCUS expression, e.g. ``n[1]`` or ``lat[1]``."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_clear_error</span><span class="p">()</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
-            <span class="n">v</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">expression</span><span class="p">))</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_error</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="s2">"***"</span> <span class="ow">in</span> <span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"cannot evaluate '</span><span class="si">{</span><span class="n">expression</span><span class="si">}</span><span class="s2">'"</span><span class="p">,</span> <span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
@@ -860,7 +801,7 @@
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"reset"</span><span class="p">)</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capture</span><span class="p">()</span> <span class="k">as</span> <span class="n">cap</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_reset</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_show</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_crystal</span> <span class="o">=</span> <span class="kc">None</span></div>
 
@@ -876,7 +817,7 @@
 <span class="sd">        the order in which threads draw numbers can still vary.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_seed</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Session.random_state">
@@ -888,7 +829,7 @@
 <span class="sd">        numbers come in pairs), so a restore repeats the sequence exactly.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"random_state"</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_get_random_state</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_random_size</span><span class="p">())))</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">random_state</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="Session.set_random_state">
@@ -897,10 +838,10 @@
 <span class="w">        </span><span class="sd">"""Put the generator back into a state from :meth:`random_state`."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_require_core</span><span class="p">(</span><span class="s2">"set_random_state"</span><span class="p">)</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_random_size</span><span class="p">()),):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"state must have </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_random_size</span><span class="p">()</span><span class="si">}</span><span class="s2"> integers, "</span>
+        <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">random_size</span><span class="p">(),):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"state must have </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">random_size</span><span class="p">()</span><span class="si">}</span><span class="s2"> integers, "</span>
                              <span class="sa">f</span><span class="s2">"not shape </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">dc_set_random_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">set_random_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_require_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -910,18 +851,14 @@
 
     <span class="c1"># -- KUPLOT data sets -------------------------------------------------</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">get_data_sets</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">data_sets</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Session.dataset">
 <a class="viewcode-back" href="../../api.html#diffuse.Session.dataset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ik</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""KUPLOT data set ``ik`` (1-based) as float32 arrays ``(x, y)``."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_ik</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span>
-        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">get_data_length</span><span class="p">(</span><span class="n">ik</span><span class="p">))</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">ik</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Session.dataset_2d">
@@ -929,12 +866,11 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">dataset_2d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ik</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""KUPLOT grid data set ``ik`` as ``(x[nx], y[ny], z[nx, ny])``."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_ik</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span>
-        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">get_data_length</span><span class="p">(</span><span class="n">ik</span><span class="p">))</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
-        <span class="n">nx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-        <span class="n">ny</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_s</span><span class="o">.</span><span class="n">get_data_3d</span><span class="p">(</span><span class="n">ik</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
-        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nx</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">ny</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">data_length</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span><span class="o">.</span><span class="n">data_2d</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">nx</span> <span class="o">=</span> <span class="n">ny</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"data set </span><span class="si">{</span><span class="n">ik</span><span class="si">}</span><span class="s2"> is not a grid (</span><span class="si">{</span><span class="n">nx</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">ny</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span><span class="p">[::</span><span class="n">ny</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">y</span><span class="p">[:</span><span class="n">ny</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span></div>

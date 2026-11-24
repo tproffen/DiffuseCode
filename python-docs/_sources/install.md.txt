@@ -210,7 +210,9 @@ plots.
 
 ## How it works, and its limits
 
-This version drives DISCUS through the f2py module `suite_python`: Python
+This version drives DISCUS through its C interface, the library
+`libdiffuse_core` (loaded with ctypes; the older f2py module `suite_python`
+is the fall-back, and `DIFFUSE_BACKEND=f2py` selects it). Python
 hands the commands to DISCUS as a macro held in memory, DISCUS runs it in the
 same process, and the results come back through files or KUPLOT data sets.
 DISCUS never waits for the keyboard: a pause such as `wait` continues at

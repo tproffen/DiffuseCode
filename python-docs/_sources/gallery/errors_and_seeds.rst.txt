@@ -99,13 +99,37 @@ The session is still usable after the error:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-35
+.. GENERATED FROM PYTHON SOURCE LINES 32-34
+
+``backend`` says how Python reaches DISCUS: ``"ctypes"`` (the C library
+libdiffuse_core, the default) or ``"f2py"`` (the older module).
+
+.. GENERATED FROM PYTHON SOURCE LINES 34-36
+
+.. code-block:: Python
+
+    print("backend:", dc.session().backend)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    backend: ctypes
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 37-40
 
 Reproducible random numbers
 ---------------------------
 ``ran(0)`` is DISCUS's uniform random number between 0 and 1.
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-44
+.. GENERATED FROM PYTHON SOURCE LINES 40-49
 
 .. code-block:: Python
 
@@ -126,17 +150,17 @@ Reproducible random numbers
 
  .. code-block:: none
 
-    [0.04116491600871086, 0.6420760154724121, 0.5482484698295593]
+    [0.041164917333, 0.642076015788, 0.54824844931]
     same after seeding again: True
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 45-46
+.. GENERATED FROM PYTHON SOURCE LINES 50-51
 
 Save the generator state, draw numbers, then go back:
 
-.. GENERATED FROM PYTHON SOURCE LINES 46-51
+.. GENERATED FROM PYTHON SOURCE LINES 51-56
 
 .. code-block:: Python
 
@@ -161,7 +185,7 @@ Save the generator state, draw numbers, then go back:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.053 seconds)
+   **Total running time of the script:** (0 minutes 0.058 seconds)
 
 
 .. _sphx_glr_download_gallery_errors_and_seeds.py:

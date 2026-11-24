@@ -494,8 +494,8 @@
   <section id="wp2-binding-decision-f2py-or-a-c-interface">
 <span id="wp2--binding-decision-f2py-or-a-c-interface"></span><h1>WP2 – Binding decision: f2py or a C interface<a class="headerlink" href="#wp2-binding-decision-f2py-or-a-c-interface" title="Link to this heading">#</a></h1>
 <p>WP2 step 5 (migration plan, section 7; survey in <code class="docutils literal notranslate"><span class="pre">WP2_Core_Survey.md</span></code>).
-Written Nov 2026, after steps 1–4. <strong>Status: proposal; the decision is the
-owner’s.</strong></p>
+Written Nov 2026, after steps 1–4; option E (replace the Fortran) added
+later. <strong>Status: proposal; the decision is the owner’s.</strong></p>
 <section id="the-question">
 <h2>The question<a class="headerlink" href="#the-question" title="Link to this heading">#</a></h2>
 <p>Python reaches DISCUS through <code class="docutils literal notranslate"><span class="pre">suite_python</span></code>, an extension module that
@@ -503,6 +503,10 @@ f2py generates from <code class="docutils literal notranslate"><span class="pre"
 the start and a <code class="docutils literal notranslate"><span class="pre">bind(C)</span></code> interface later. The question is whether to
 switch, to what, and when – before WP3 (crystal data model) adds many new
 functions with arrays in both directions.</p>
+<p>A further option was raised later: replace the Fortran itself (C++, or
+Python with NumPy/Numba). It is discussed in
+<a class="reference internal" href="#option-e-replace-the-fortran-c-or-python-with-numpy-numba"><span class="xref myst">Option E</span></a>,
+with an inventory of how much Fortran would actually have to be replicated.</p>
 </section>
 <section id="what-the-python-side-needs-from-the-binding">
 <h2>What the Python side needs from the binding<a class="headerlink" href="#what-the-python-side-needs-from-the-binding" title="Link to this heading">#</a></h2>
@@ -678,11 +682,24 @@ be added on top of the same C interface if WP3 ever needs them.</p>
 everything <code class="docutils literal notranslate"><span class="pre">suite_python</span></code> offers now (prefix <code class="docutils literal notranslate"><span class="pre">dc_</span></code>, C types only,
 strings as <code class="docutils literal notranslate"><span class="pre">char</span></code> + length, arrays with explicit size). CMake builds it
 as a shared library <code class="docutils literal notranslate"><span class="pre">libdiffuse_core</span></code> next to the f2py module and
-installs it into the package. About 1 day.</p></li>
+installs it into the package. About 1 day.
+<em>Done (Nov 2026):</em> <code class="docutils literal notranslate"><span class="pre">python/diffuse_capi.f90</span></code>, header
+<code class="docutils literal notranslate"><span class="pre">python/diffuse_core.h</span></code>, tests <code class="docutils literal notranslate"><span class="pre">tests/python/test_capi.py</span></code> (every
+function, called with ctypes in a separate process). Two differences from
+<code class="docutils literal notranslate"><span class="pre">suite_python</span></code>: <code class="docutils literal notranslate"><span class="pre">dc_value</span></code> returns a double (about 12 significant
+digits, as many as the expression evaluator keeps; f2py gave single
+precision), and <code class="docutils literal notranslate"><span class="pre">dc_set_value</span></code>, like <code class="docutils literal notranslate"><span class="pre">set_value</span></code>, sets user variables
+only (<code class="docutils literal notranslate"><span class="pre">r[]</span></code> and other built-in arrays are set with a command).</p></li>
 <li><p><strong>Python loader.</strong> <code class="docutils literal notranslate"><span class="pre">diffuse/_core.py</span></code> loads the library with ctypes and
 declares every function in one place; <code class="docutils literal notranslate"><span class="pre">_session.py</span></code> uses it when it is
 there and falls back to <code class="docutils literal notranslate"><span class="pre">suite_python</span></code> (as it does for older module
-builds today). The whole test suite runs on both. About 1 day.</p></li>
+builds today). The whole test suite runs on both. About 1 day.
+<em>Done (Nov 2026):</em> <code class="docutils literal notranslate"><span class="pre">CtypesCore</span></code> and <code class="docutils literal notranslate"><span class="pre">F2pyCore</span></code> in <code class="docutils literal notranslate"><span class="pre">_core.py</span></code> offer the
+same methods; <code class="docutils literal notranslate"><span class="pre">Session</span></code> uses <code class="docutils literal notranslate"><span class="pre">_core.load()</span></code>, which takes the C library
+when it is there. <code class="docutils literal notranslate"><span class="pre">DIFFUSE_BACKEND=ctypes|f2py</span></code> forces one; CI runs
+pytest on f2py in the build job and on ctypes in the installed-package
+and conda jobs. <code class="docutils literal notranslate"><span class="pre">Session.backend</span></code> tells which is in use. With ctypes,
+<code class="docutils literal notranslate"><span class="pre">value()</span></code> returns about 12 significant digits instead of 7.</p></li>
 <li><p><strong>Drop f2py.</strong> Remove <code class="docutils literal notranslate"><span class="pre">suite_python</span></code>, <code class="docutils literal notranslate"><span class="pre">cmake/FindF2PY.cmake</span></code> and the
 NumPy build dependency; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> builds a platform wheel that
 works for every Python 3 (<code class="docutils literal notranslate"><span class="pre">wheel.py-api</span> <span class="pre">=</span> <span class="pre">&quot;py3&quot;</span></code> in scikit-build-core).
@@ -808,6 +825,168 @@ WP3–WP9 need (whole arrays in and out, coarse commands) does not call for
 it, but the route exists.</p>
 </section>
 </section>
+<section id="option-e-replace-the-fortran-c-or-python-with-numpy-numba">
+<span id="option-e-replace-the-fortran-c-or-python-with-numpynumba"></span><h2>Option E: replace the Fortran (C++, or Python with NumPy/Numba)<a class="headerlink" href="#option-e-replace-the-fortran-c-or-python-with-numpy-numba" title="Link to this heading">#</a></h2>
+<p>Raised Nov 2026: instead of binding to the Fortran, recreate the core
+calculations in C or C++ (or Python). The question is how much Fortran
+would really have to be replicated, since much of it is replaced by the
+Python migration anyway.</p>
+<section id="inventory">
+<h3>Inventory<a class="headerlink" href="#inventory" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">tools/fortran_inventory.py</span></code> sorts every Fortran file (code lines, without
+comments and blank lines) into groups; DISCUS files that hold both a menu
+and the physics behind it are split routine by routine (a routine counts as
+menu if its name says so or if more than 4 % of its lines call the command
+parser). An estimate, good to perhaps ±10 % for the physics core.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Group</p></th>
+<th class="head text-right"><p>Lines</p></th>
+<th class="head text-right"><p>Share</p></th>
+<th class="head"><p>Future</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A command language, menus, program frame, macros, expressions</p></td>
+<td class="text-right"><p>67 800</p></td>
+<td class="text-right"><p>33 %</p></td>
+<td><p>replaced by the Python API</p></td>
+</tr>
+<tr class="row-odd"><td><p>B plotting (KUPLOT graphics, structure plots)</p></td>
+<td class="text-right"><p>10 700</p></td>
+<td class="text-right"><p>5 %</p></td>
+<td><p>matplotlib, <code class="docutils literal notranslate"><span class="pre">Crystal.view()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>C fitting and optimisation (DIFFEV, REFINE, KUPLOT fit)</p></td>
+<td class="text-right"><p>19 500</p></td>
+<td class="text-right"><p>9 %</p></td>
+<td><p>SciPy / lmfit, Python orchestration</p></td>
+</tr>
+<tr class="row-odd"><td><p>D file formats and export</p></td>
+<td class="text-right"><p>24 700</p></td>
+<td class="text-right"><p>12 %</p></td>
+<td><p>Python (h5py, gemmi, NumPy); DISCUS’s own formats rewritten in Python</p></td>
+</tr>
+<tr class="row-even"><td><p>E general numerics (FFT, splines, matrices, random, helpers)</p></td>
+<td class="text-right"><p>21 300</p></td>
+<td class="text-right"><p>10 %</p></td>
+<td><p>NumPy / SciPy / FFTW</p></td>
+</tr>
+<tr class="row-odd"><td><p>F system (OS, MPI, sockets, timers)</p></td>
+<td class="text-right"><p>3 800</p></td>
+<td class="text-right"><p>2 %</p></td>
+<td><p>Python standard library</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>G physics core</strong></p></td>
+<td class="text-right"><p><strong>55 500</strong></p></td>
+<td class="text-right"><p><strong>27 %</strong></p></td>
+<td><p><strong>to replicate (or keep in Fortran)</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>H data tables (scattering factors, profile functions)</p></td>
+<td class="text-right"><p>3 700</p></td>
+<td class="text-right"><p>2 %</p></td>
+<td><p>keep as data (or from xraydb, periodictable)</p></td>
+</tr>
+<tr class="row-even"><td><p>total</p></td>
+<td class="text-right"><p>206 900</p></td>
+<td class="text-right"><p></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>About <strong>three quarters of the Fortran goes away with the Python migration
+whatever happens</strong> (A–F). The rewrite question concerns the physics core,
+about 55 000 lines (45 000–65 000 given the uncertainty), plus the data
+tables:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Physics area</p></th>
+<th class="head text-right"><p>Lines</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Fourier, powder, PDF, Patterson, 3D-PDF</p></td>
+<td class="text-right"><p>16 800</p></td>
+<td><p>well covered by golden tests (WP0, WP4); GPU candidates</p></td>
+</tr>
+<tr class="row-odd"><td><p>structure: reading, symmetry, space groups, generators</p></td>
+<td class="text-right"><p>14 200</p></td>
+<td><p>partly available in libraries (gemmi, spglib: space groups, symmetry operations, settings)</p></td>
+</tr>
+<tr class="row-even"><td><p>molecules, domains, stacking faults, surfaces, waves, modify</p></td>
+<td class="text-right"><p>10 400</p></td>
+<td><p>specialised, DISCUS-specific</p></td>
+</tr>
+<tr class="row-odd"><td><p>Monte Carlo (MMC, RMC)</p></td>
+<td class="text-right"><p>8 500</p></td>
+<td><p>many energy terms; intertwined with the crystal and chemistry code</p></td>
+</tr>
+<tr class="row-even"><td><p>chemistry: correlations, connectivity, properties</p></td>
+<td class="text-right"><p>5 500</p></td>
+<td><p>partly expressible with NumPy</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="effort">
+<h3>Effort<a class="headerlink" href="#effort" title="Link to this heading">#</a></h3>
+<p>Porting validated numerical code, with tests, runs at roughly 100–250 lines
+of Fortran a day for a developer who knows the physics. For the 55 000
+lines that is about 1–2.5 person-years, before performance work (OpenMP or
+GPU) and before extending the tests where WP0 found gaps
+(<code class="docutils literal notranslate"><span class="pre">WP0_Test_Coverage_Gaps.md</span></code>). Using libraries for symmetry (gemmi,
+spglib) would save part of the structure area. AI-assisted translation
+speeds up writing, not validation, which is the larger part.</p>
+</section>
+<section id="weighing-it">
+<h3>Weighing it<a class="headerlink" href="#weighing-it" title="Link to this heading">#</a></h3>
+<p>For a rewrite: more people know C++ (or Python) than Fortran; GPUs are
+more natural; better tools; no Fortran runtime in wheels; a C++ core would
+bind to Python with nanobind directly.</p>
+<p>Against a rewrite all at once: the physics is decades of validated work,
+and every routine would need re-validating; Fortran is good at exactly
+this kind of array code; the problems met so far (STOP, global state,
+keyboard reads, macro files) were architecture, not language, and are being
+fixed – the one serious memory bug found was in C++ (the bundled finufft);
+the people who know the physics write Fortran; and a parallel rewrite
+delays WP3–WP10 or doubles the work.</p>
+</section>
+<section id="recommendation-gradual-behind-the-c-interface">
+<h3>Recommendation: gradual, behind the C interface<a class="headerlink" href="#recommendation-gradual-behind-the-c-interface" title="Link to this heading">#</a></h3>
+<p>The C interface of option B is the seam a gradual move needs. Every core
+calculation sits behind a C function; any of them can later be
+reimplemented (C++, or Python with NumPy/Numba/JAX), checked against the
+golden tests and swapped in without users noticing. f2py offers no such
+seam.</p>
+<ol class="arabic simple">
+<li><p>Option B as proposed (steps 1–3 above).</p></li>
+<li><p>Plan rule: a core area moves out of Fortran only with a concrete reason
+(speed, GPU, maintainability, a missing expert) and only once golden
+tests cover it; otherwise it stays Fortran behind the C interface.</p></li>
+<li><p>A pilot: one well-tested kernel – powder (Debye) or PDF – reimplemented
+both in C++ and in Python with NumPy/Numba, compared with the Fortran
+for results (golden tests), speed and effort. About 1–2 weeks; it gives
+measured numbers instead of the estimates above before anything larger
+is decided. The pilot includes <strong>benchmarks</strong> (owner’s request), not
+only equal results: the same calculations timed for the Fortran and
+each rebuild, on one thread and on all cores, for several crystal
+sizes (from a few hundred to millions of atoms) and grid sizes, plus
+peak memory; each run repeated, reporting the median; the machine, the
+compilers and their flags recorded; and kept as a script, so that the
+comparison can be repeated (later also on a GPU).</p></li>
+<li><p>Likely order if the pilot is convincing: Fourier/powder/PDF first
+(best tested, most to gain on GPUs), symmetry next with libraries
+(gemmi/spglib), Monte Carlo and the specialised structure tools last or
+never.</p></li>
+</ol>
+<p>A complete rewrite at once makes sense only with a dedicated team and the
+Fortran authors on board – a question of people and funding more than of
+code.</p>
+</section>
+</section>
 <section id="what-does-not-change">
 <h2>What does not change<a class="headerlink" href="#what-does-not-change" title="Link to this heading">#</a></h2>
 <p>The public API (<code class="docutils literal notranslate"><span class="pre">diffuse.read_structure</span></code>, <code class="docutils literal notranslate"><span class="pre">powder</span></code>, <code class="docutils literal notranslate"><span class="pre">fourier</span></code>, <code class="docutils literal notranslate"><span class="pre">pdf</span></code>,
@@ -866,6 +1045,13 @@ Only <code class="docutils literal notranslate"><span class="pre">_session.py</s
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-two-constraints">The two constraints</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-this-means-later-and-how-to-handle-it">What this means later, and how to handle it</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#when-this-would-stop-being-enough">When this would stop being enough</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#option-e-replace-the-fortran-c-or-python-with-numpy-numba">Option E: replace the Fortran (C++, or Python with NumPy/Numba)</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inventory">Inventory</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#effort">Effort</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weighing-it">Weighing it</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recommendation-gradual-behind-the-c-interface">Recommendation: gradual, behind the C interface</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-not-change">What does not change</a></li>

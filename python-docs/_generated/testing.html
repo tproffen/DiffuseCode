@@ -634,12 +634,15 @@ skipped.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_PYTHON_PATH</span></code></p></td>
-<td><p>folder that holds <code class="docutils literal notranslate"><span class="pre">suite_python*.so</span></code> (<code class="docutils literal notranslate"><span class="pre">&lt;build&gt;/python</span></code>)</p></td>
+<td><p>folder that holds <code class="docutils literal notranslate"><span class="pre">libdiffuse_core.so</span></code> and <code class="docutils literal notranslate"><span class="pre">suite_python*.so</span></code> (<code class="docutils literal notranslate"><span class="pre">&lt;build&gt;/python</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_REQUIRE_PYTHON=1</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_BACKEND</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ctypes</span></code> (the C library <code class="docutils literal notranslate"><span class="pre">libdiffuse_core</span></code>, the default when it is there) or <code class="docutils literal notranslate"><span class="pre">f2py</span></code> (<code class="docutils literal notranslate"><span class="pre">suite_python</span></code>); CI runs the tests on both</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_REQUIRE_PYTHON=1</span></code></p></td>
 <td><p>fail instead of skip if the module cannot be imported (used in CI)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_UPDATE_GOLDEN=1</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DIFFUSE_UPDATE_GOLDEN=1</span></code></p></td>
 <td><p>write the golden files instead of comparing; review the diff before committing</p></td>
 </tr>
 </tbody>
