@@ -19,10 +19,26 @@ version 4; Python in `python/diffuse/_core.py` and `crystal.py`):
 
 Every direction is checked against DISCUS reading the same data from a file:
 identical arrays in round trips, and identical powder patterns, Fourier maps
-and PDFs. One DISCUS bug was found on the way and is kept as a strict xfail
-test (`test_save_and_read_keep_rotated_tensors`): `save` writes one atom type
-per distinct displacement tensor, but `read stru` assigns atoms by name, B
-and occupancy, so symmetry-rotated tensors are lost.
+and PDFs. `Crystal.save()` (`.stru`, `.h5`) and `Crystal.export()` (CIF,
+SHELX, RMCProfile, VASP, Scatty) are in place, each tested by reading back
+what it writes (`tests/python/test_crystal_save_export.py`).
+
+### DISCUS bugs found so far (crystal I/O)
+
+Kept as strict xfail tests (they turn red once fixed), the last one as a
+test that documents the current behaviour.
+
+| Bug | Effect | Test |
+|---|---|---|
+| `read stru` sets the displacement tensors of the first 5 × (atoms per cell) atoms only (`prep_anis`); later atoms keep tensor 1 | a saved supercell with anisotropic ADPs reads back with wrong tensors: a Fourier map changes by up to 3 %; isotropic crystals only report it wrong (`adps()`), their calculations use B | `test_save_anisotropic_supercell` |
+| `save` writes one atom type per distinct tensor, `read stru` assigns atoms by name, B and occupancy | symmetry-rotated tensors are lost (236 of 384 atoms, anatase 4×4×2) | `test_save_and_read_keep_rotated_tensors` |
+| `export cif` with `spcgr:original` lists the whole unit cell with the space group's operations | readers (DISCUS, gemmi) generate 80 atoms for anatase instead of 12 | `test_export_cif_original_space_group` |
+| `export shelx` writes the whole unit cell but keeps LATT/SYMM and occupancy 0.5 | re-imported CuO has 32 atoms instead of 8 | `test_shelx_export_import_round_trip` |
+| `.cell` files in the old format read fractions such as 1/3 as 1. | silently wrong positions | `test_cell_legacy_format_misreads_fractions` |
+
+`dc.make_crystal` works around the first one. The first two together mean:
+until fixed, keep anisotropic supercells as Python arrays (or as the
+`.cell` file they came from), not as saved `.stru` files.
 
 `make_crystal` takes **every atom**: the space group is recorded (Fourier
 symmetry, export), not applied. That is right for anything built or changed
@@ -266,11 +282,109 @@ own.
 
 About 1.5 weeks in all, in line with the estimate in the binding decision.
 
+## 3. Crystal methods from the Fortran
+
+DISCUS does most things to "the crystal" through commands and menus; in
+Python they belong on `Crystal` (or next to it). A scan of the DISCUS
+command table (`discus/prog/discus_kdo.f90`), the command summary in
+`discus/prog/appl_dis.hlp` and the sub-menus (save, export, import, chem,
+plot) gives the list below. P1: most useful next; P3: later or niche.
+
+### Writing the crystal
+
+| DISCUS | Method | What it gives | Priority |
+|---|---|---|---|
+| `save` (`.stru`, `internal`, NeXus/HDF5) | `crystal.save(path)` | DISCUS's own format: everything (molecules, properties, ADPs, cells) | **done** |
+| `export cif / shelx / rmcprofile / vasp / scatty` | `crystal.export(path, format=...)` | exchange formats; RMCProfile and Scatty are hard to get elsewhere | **done** |
+| `plot` (xyz, cif, diamond, jmol, xbs, frames, kupl; selection, bonds, polyhedra) | `crystal.export_view(...)` | files for structure viewers; `view()` covers the interactive case | P3 |
+| `storage` (internal, in memory) | `crystal.snapshot()` or internal | fast copy/restore without a file | P2 |
+
+`to_ase()` already writes dozens of formats; the DISCUS writers matter for
+`.stru`, RMCProfile and Scatty, and for keeping DISCUS's ADPs and molecules.
+
+### Questions about the crystal (methods returning data)
+
+| DISCUS | Method | What it gives | Priority |
+|---|---|---|---|
+| `asym` | `crystal.asymmetric_unit()` | sites: name, position, B, occupancy | **P1** (with `crystal_from_sites`) |
+| `wyckoff` | `crystal.site_symmetry(position)` | symmetry operations at a position, multiplicity | P2 |
+| `show` (cell, metric ...) | `metric_tensor`, `reciprocal_lattice` | (`volume`, `lattice_vectors()` exist) | P2 |
+| chem `elem` | `crystal.composition()` | counts and fractions per atom type | **P1** |
+| `find` | `crystal.find_atoms(center, rmin, rmax, types=)` | atoms around a point | P2 |
+| chem `neig`, `env`, `coordination` | `crystal.neighbours(...)`, `crystal.coordination(...)` | neighbour lists and coordination numbers, DISCUS's definitions | **P1** |
+| chem `blen`, `bang` | `crystal.bond_lengths(...)`, `crystal.bond_angles(...)` | bond-length and bond-angle distributions | **P1** |
+| chem `bval` | `crystal.bond_valence(...)` | bond-valence sums | P2 |
+| chem `corr`, `homo`, `disp` | `crystal.correlations(...)`, `crystal.displacement_correlations(...)` | occupancy and displacement correlations: the core of short-range-order analysis | **P1** |
+| chem `aver` | `crystal.average_structure()` | the average unit cell of a disordered crystal | P2 |
+| `connectivity` | `crystal.connectivity(...)` | DISCUS connectivity definitions (used by MMC and chem) | P2 |
+| `property` | `crystal.properties()`, selection by property | the per-atom flags (normal, molecule, surface, inside, outside ...) | P2 |
+| `d2r`, `r2d`, `vprod` | `crystal.to_reciprocal(v)`, `to_direct(v)`, `cross(u, v)` | vector maths in the crystal metric (could be pure Python) | P3 |
+| `project` | `crystal.project(...)` | projections in real and reciprocal space | P3 |
+
+### Changing the crystal
+
+| DISCUS | Method | What it gives | Priority |
+|---|---|---|---|
+| `boundary` (hkl planes, sphere, ellipsoid, cylinder) | `crystal.cut(shape=...)` | nanoparticles of any shape from a supercell | **P1** |
+| `replace` | `crystal.replace(old, new, fraction=)` | random substitution: alloys, doping | **P1** |
+| `remove` | `crystal.remove(selection)` | vacancies; removing atoms or molecules | **P1** |
+| `therm` | `crystal.thermal_displacements(seed=)` | displace atoms according to B / U: a thermal snapshot for diffuse scattering | **P1** |
+| `transform` | `crystal.transform(matrix, origin)` | a new unit cell (supercells, other settings) | **P1** |
+| `symm` | `crystal.apply_symmetry(...)` | rotate / mirror / translate the crystal or parts of it | P2 |
+| `insert`, `append`, `copy`, `switch`, `kick` | `crystal.insert(...)` ... | add, copy, swap atoms and molecules | P2 |
+| `perioditize` | `crystal.perioditize()` | make the crystal periodic | P2 |
+| `spacegroup` | `crystal.set_space_group(...)` | change the recorded space group | P2 |
+| `molecularize`, `demolecularize`, `change` | `crystal.group_molecules(...)` ... | build or dissolve molecules; molecule character | P2 |
+| `domain` | `crystal.insert_domains(...)` | domains of another structure | P3 |
+| `surface` | `crystal.surface(...)` | find and mark surface atoms | P3 |
+| `decorate` | `crystal.decorate(...)` | decorate with molecules or ligands | P3 |
+| `waves`, `shear` | `crystal.modulate(...)`, `crystal.shear(...)` | modulation waves, shear | P3 |
+| `super` | `crystal.superspace(...)` | superspace description | P3 |
+| `purge` | – | DISCUS says "DO NOT USE" | skip |
+
+### Better outside `Crystal`
+
+* **Making a crystal** (functions, next to `read_structure`, `make_crystal`,
+  `from_ase`): `read` (cell, stru, lcell, free), `import` (cif, shelx,
+  rmcprofile, cmaker, lammps, nexus), `free` → `dc.empty_crystal(lattice,
+  space_group)`.
+* **Calculations** (functions taking a crystal): `fourier`, `powder`, `pdf`
+  (exist), `patterson`, `inverse`, `diff-four`, `exp2pdf`; `output` writes
+  results, not the crystal. Methods such as `crystal.powder(...)` could be
+  added as shortcuts.
+* **Simulations** (classes returning a new `Crystal`): `mmc`, `rmc`,
+  `stack` (stacking faults), `place_molecule`.
+* **Session settings**: `reset`, `seed`, `define`, `echo`.
+
+### Design questions to settle first
+
+1. **New crystal or change in place?** DISCUS changes its one crystal; in
+   Python, `cut()`, `replace()` and the like should return a new `Crystal`
+   and leave the original as it was. Possible now: after the DISCUS
+   command the result comes back through the arrays (`make_crystal` in
+   reverse).
+2. **Selections:** DISCUS's `select` / `deselect` state per menu becomes
+   arguments: atom names, a boolean mask, or properties.
+3. **Analysis results** as objects with arrays and `plot()`, like
+   `PowderPattern` and `FourierMap`.
+4. **Python or DISCUS?** Some are easy in NumPy now (remove or replace by
+   mask, composition, vector maths). Wrap DISCUS where it keeps molecules,
+   properties and ADPs consistent, or where the physics lives
+   (correlations, `therm`, `boundary`, MMC).
+
+**First batch (proposal):** `save()` and `export()` (done, Nov 2026);
+`composition()` and `asymmetric_unit()`; `cut()`, `replace()`, `remove()`,
+`thermal_displacements()`; then the chem analysis (neighbours, bond
+lengths, correlations) as one block.
+
 ## Order of the next steps (proposal)
 
 1. `crystal_from_sites` (asymmetric unit + space group), with the gemmi
-   CIF path.
-2. The option E pilot as above (it needs `make_crystal`, `atoms()` and
+   CIF path; `asymmetric_unit()` and `composition()` with it.
+2. The rest of the first batch of crystal methods (section 3): `cut()`,
+   `replace()`, `remove()`, `thermal_displacements()`, then the chem
+   analysis.
+3. The option E pilot as above (it needs `make_crystal`, `atoms()` and
    `adps()`, which are in place).
-3. Then, depending on the pilot, WP4 (single-crystal Fourier as the first
+4. Then, depending on the pilot, WP4 (single-crystal Fourier as the first
    vertical slice) on the Fortran or on a rebuilt kernel.

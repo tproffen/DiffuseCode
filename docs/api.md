@@ -14,8 +14,8 @@
 .. autofunction:: from_ase
 
 .. autoclass:: Crystal
-   :members: atoms, atom_types, adps, molecules, positions, cartesian, lattice_vectors, to_ase,
-             view, volume, a, label
+   :members: atoms, atom_types, adps, molecules, positions, cartesian, lattice_vectors, save,
+             export, to_ase, view, volume, a, label
 
 .. autoclass:: StructureView
    :members: show, write_html

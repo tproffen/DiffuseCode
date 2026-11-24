@@ -14,7 +14,25 @@ from ._session import DiffuseError, session
 # Files that DISCUS reads as an asymmetric unit (then applies the space
 # group and builds the supercell) and files it reads as a whole crystal.
 _CELL_SUFFIXES = {".cell", ".cif"}
-_STRU_SUFFIXES = {".stru"}
+_STRU_SUFFIXES = {".stru", ".h5", ".hdf5"}     # .h5/.hdf5: DISCUS's NeXus-like format
+
+# Crystal.save: DISCUS's own formats, by file suffix
+_SAVE_FORMATS = {".stru": "stru", ".h5": "nexus", ".hdf5": "nexus"}
+# Crystal.export: other programs' formats (DISCUS "export"), by file suffix
+_EXPORT_FORMATS = {".cif": "cif", ".ins": "shelx", ".rmc6f": "rmcprofile",
+                   ".vasp": "vasp", ".poscar": "vasp"}
+_EXPORT_SUFFIX = {"cif": ".cif", "shelx": ".ins", "rmcprofile": ".rmc6f"}  # DISCUS adds these
+
+
+def _output_path(path) -> Path:
+    """An absolute output path whose name DISCUS's command line can take."""
+    path = Path(path).expanduser().resolve()
+    if any(ch in path.name for ch in ',"\'' ) or not path.name.strip():
+        raise ValueError(f"DISCUS cannot write a file named {path.name!r} "
+                         "(no commas or quotes in the name)")
+    if not path.parent.is_dir():
+        raise FileNotFoundError(f"folder {path.parent} does not exist")
+    return path
 
 
 @dataclass(eq=False)
@@ -205,6 +223,154 @@ class Crystal:
         """Atom positions in Å, shape (natoms, 3), in the orientation of
         :meth:`lattice_vectors`."""
         return self.positions() @ self.lattice_vectors()
+
+    def save(self, path, *, format: str | None = None) -> Path:
+        """Save the crystal in DISCUS's own format.
+
+        Everything DISCUS holds about the crystal is written: cell, space
+        group, atom types with B, occupancy and anisotropic ADPs, every atom
+        with its property flags, molecules, and the number of unit cells.
+        :func:`read_structure` reads the file back.
+
+        Parameters
+        ----------
+        path : str or os.PathLike
+            Output file. ``.stru`` (text, the default) or ``.h5`` /
+            ``.hdf5`` (DISCUS's NeXus-like binary format, compact for large
+            crystals, also read by RMCProfile, Yell and Scatty).
+        format : {"stru", "nexus"}, optional
+            Instead of the suffix.
+
+        Returns
+        -------
+        pathlib.Path
+            The file written.
+
+        Notes
+        -----
+        A known DISCUS limitation: atom types that differ only in their
+        symmetry-rotated displacement tensors are told apart when saved but
+        not when read back (all atoms of a name then get the first type's
+        tensor). Crystals with isotropic or unrotated tensors read back
+        exactly.
+
+        Examples
+        --------
+        >>> cr = dc.read_structure("anatase.cif", supercell=(4, 4, 2))  # doctest: +SKIP
+        >>> cr.save("anatase_442.stru")  # doctest: +SKIP
+        >>> dc.read_structure("anatase_442.stru").natoms  # doctest: +SKIP
+        384
+        """
+        path = _output_path(path)
+        fmt = format or _SAVE_FORMATS.get(path.suffix.lower(), "stru")
+        if fmt not in ("stru", "nexus"):
+            raise ValueError(f"save writes 'stru' or 'nexus' (use export() for {fmt!r})")
+        _ensure_loaded(self)
+        path.unlink(missing_ok=True)
+        lines = ["discus", "  save", "    reset", f"    outfile {path.name}"]
+        if fmt == "nexus":
+            lines.append("    format nexus")
+        lines += ["    write all", "    run", "  exit", "exit"]
+        session().run("\n".join(lines), cwd=path.parent)
+        if not path.is_file():
+            raise DiffuseError(f"DISCUS did not write {path}")
+        return path
+
+    def export(self, path, *, format: str | None = None, space_group: str = "P1",
+               version: int = 6, site: str = "average", **shelx) -> Path:
+        """Write the crystal for another program (DISCUS ``export``).
+
+        All formats hold every atom of the crystal; the whole crystal is one
+        cell (a supercell of 4 x 4 x 2 unit cells is written as one cell of
+        that size), except Scatty, which keeps the unit cell and the number
+        of cells.
+
+        Parameters
+        ----------
+        path : str or os.PathLike
+            Output file; the suffix picks the format: ``.cif``, ``.ins``
+            (SHELX), ``.rmc6f`` (RMCProfile), ``.vasp`` / ``.poscar`` or a
+            file named ``POSCAR`` (VASP).
+        format : {"cif", "shelx", "rmcprofile", "vasp", "scatty"}, optional
+            Instead of the suffix; Scatty needs it (its files end in
+            ``_atoms_01.txt``).
+        space_group : str, optional
+            CIF only: ``"P1"`` (default, every atom listed) or
+            ``"original"``, the crystal's space group, meant for a crystal
+            of one unit cell. Known DISCUS bug: with ``"original"`` the
+            file lists every atom of the unit cell together with the
+            symmetry operations, so readers generate too many atoms; use
+            ``"P1"`` until this is fixed.
+        version : {6, 7}, optional
+            RMCProfile file version.
+        site : {"average", "indiv"}, optional
+            Scatty only: sites of the average unit cell, or one per atom.
+        **shelx
+            SHELX only: ``cycles`` (least-squares cycles), ``force``
+            (bool, allow atoms outside the unit cell), ``origin`` ("no",
+            "yes" or "shift": move a centre of symmetry to 0,0,0, which
+            changes the crystal), ``wavelength`` (a symbol such as
+            ``"MOA1"`` or a value in Å).
+
+        Returns
+        -------
+        pathlib.Path
+            The file written.
+
+        Notes
+        -----
+        CIF files hold isotropic displacement parameters (U_iso). The SHELX
+        export has a known DISCUS bug (atoms of the whole unit cell together
+        with the space-group symmetry); check the file before using it.
+
+        Examples
+        --------
+        >>> cr = dc.read_structure("anatase.cif", supercell=(4, 4, 2))  # doctest: +SKIP
+        >>> cr.export("anatase.rmc6f")  # doctest: +SKIP
+        """
+        path = _output_path(path)
+        fmt = format or ("vasp" if path.name.upper() == "POSCAR" else
+                         _EXPORT_FORMATS.get(path.suffix.lower()))
+        if fmt not in ("cif", "shelx", "rmcprofile", "vasp", "scatty"):
+            raise ValueError(f"cannot tell the export format of {path.name!r}: use format= "
+                             "'cif', 'shelx', 'rmcprofile', 'vasp' or 'scatty'")
+        if fmt in _EXPORT_SUFFIX and path.suffix.lower() != _EXPORT_SUFFIX[fmt]:
+            raise ValueError(f"DISCUS writes {fmt} files with the suffix {_EXPORT_SUFFIX[fmt]}")
+        options = []
+        if fmt == "cif":
+            sg = space_group.replace(" ", "")
+            options.append(f"spcgr:{'original' if sg.lower() == 'original' else sg}")
+        elif fmt == "rmcprofile":
+            if int(version) not in (6, 7):
+                raise ValueError("RMCProfile version must be 6 or 7")
+            options.append(f"version:{int(version)}")
+        elif fmt == "scatty":
+            if site not in ("average", "indiv"):
+                raise ValueError("site must be 'average' or 'indiv'")
+            options.append(f"site:{site}")
+        elif fmt == "shelx":
+            unknown = set(shelx) - {"cycles", "force", "origin", "wavelength"}
+            if unknown:
+                raise TypeError(f"unknown SHELX options {sorted(unknown)}")
+            if "cycles" in shelx:
+                options.append(f"cycle:{int(shelx['cycles'])}")
+            if "force" in shelx:
+                options.append(f"force:{'yes' if shelx['force'] else 'no'}")
+            if "origin" in shelx:
+                options.append(f"origin:{shelx['origin']}")
+            if "wavelength" in shelx:
+                options.append(f"lambda:{shelx['wavelength']}")
+        if shelx and fmt != "shelx":
+            raise TypeError(f"{sorted(shelx)} are SHELX options, not {fmt}")
+        _ensure_loaded(self)
+        path.unlink(missing_ok=True)
+        command = ", ".join([f"export {fmt}", path.name] + options)
+        session().run(f"discus\n  {command}\nexit", cwd=path.parent)
+        if not path.is_file():
+            raise DiffuseError(f"DISCUS did not write {path}")
+        if fmt == "shelx" and shelx.get("origin") in ("yes", "shift"):
+            session().current_crystal = None   # DISCUS moved the origin: reload before use
+        return path
 
     def view(self, style: str = "ball", *, scale: float = 1.0, cell: str | None = "crystal",
              show=None, colors: dict | None = None, width: int = 640, height: int = 480,
